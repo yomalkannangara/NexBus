@@ -1,0 +1,1 @@
+</main></div><footer class="footer">Simple PHP MVC • UI inspired by your Figma</footer></body></html>
