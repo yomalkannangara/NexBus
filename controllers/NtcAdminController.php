@@ -42,7 +42,7 @@ class NtcAdminController extends BaseController {
             $this->redirect('?module=ntc_admin&page=timetables&msg=deleted');
         }
         $this->view('ntc_admin','timetables',[
-            'routes'=>$m->routes(), 'rows'=>$m->all(),
+            'routes'=>$m->routes(), 'rows'=>$m->all(), 'counts'=>$m->counts(), 
             'owners'=>$m->ownersWithBuses(), 'depots'=>$m->depotsWithBuses()
         ]);
     }

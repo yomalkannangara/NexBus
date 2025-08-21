@@ -6,6 +6,15 @@ class TimetableModel extends BaseModel {
                 ORDER BY r.route_no+0, r.route_no, t.day_of_week, t.departure_time";
         return $this->pdo->query($sql)->fetchAll();
     }
+     public function counts(): array {
+        $depots = (int)$this->pdo->query("SELECT COUNT(*) c FROM routes")->fetch()['c'];
+        $routes = (int)$this->pdo->query("SELECT COUNT(*) c FROM sltb_depots")->fetch()['c'];
+        $powners = (int)$this->pdo->query("SELECT COUNT(*) c FROM private_bus_owners")->fetch()['c'];
+        $sbus = (int)$this->pdo->query("SELECT COUNT(*) c FROM sltb_buses")->fetch()['c'];
+        $pbus = (int)$this->pdo->query("SELECT COUNT(*) c FROM private_buses")->fetch()['c'];
+
+        return compact('depots','routes');
+    }
     public function routes(): array {
         return $this->pdo
             ->query("SELECT route_id, route_no, name, is_active, stops_json, start_seq, end_seq

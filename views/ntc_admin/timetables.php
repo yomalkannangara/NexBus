@@ -1,8 +1,13 @@
 <section class="page-hero"><h1>Timetable Management</h1><p>Manage bus schedules and timetables</p></section>
+<section class="kpi-wrap">
+<div class="kpi-card"><h3>Active Depots</h3><div class="num"><?= $counts['depots'] ?></div><div class="trend">0% from yesterday</div></div>
+  <div class="kpi-card"><h3>Active Routes</h3><div class="num"><?= $counts['routes'] ?></div><div class="trend">+5% from yesterday</div></div>
+  <div class="kpi-card"><h3>Total Busses</h3><div class="num"><?= $counts['pbus'] ?>+<?= $counts['sbus'] ?></div><div class="trend">+5% from yesterday</div></div>
+  <div class="kpi-card"><h3>Private Bus Owners</h3><div class="num"><?= $counts['powners'] ?></div><div class="trend">+5% from yesterday</div></div>
+</section>
 <div class="toolbar">
-  <button class="btn" id="showAddTT">+ Add Schedule</button>
-  <button class="btn" id="showAddRoute">+ Add Route</button>
-  <button class="btn" id="showAddDepot">+ Add Depot</button>
+  <button class="btn primary" id="showAddRoute">+ Add Route</button>   
+  <button class="btn primary" id="showAddDepot">+ Add Depot</button>
 </div>
 <div id="addTTPanel" class="panel">
   <form method="post" class="form-grid"><input type="hidden" name="action" value="create">
@@ -139,8 +144,12 @@
   </form>
 </div>
 
-<section class="table-section"><h2>Bus Schedules</h2>
-<table><thead><tr><th>Route</th><th>Operator</th><th>Bus</th><th>DOW</th><th>Departure</th><th>Arrival</th><th>Actions</th></tr></thead><tbody>
+<section class="table-panel">
+  <div class="table-panel-head">
+    <h2>Bus Schedules</h2>
+    <button class="btn primary" id="showAddTT">+ Add Schedule</button>
+</div>
+<table class="table users"><thead><tr><th>Route</th><th>Operator</th><th>Bus</th><th>DOW</th><th>Departure</th><th>Arrival</th><th>Actions</th></tr></thead><tbody>
 <?php foreach($rows as $r): ?><tr>
   <td><?=htmlspecialchars($r['route_no'])?></td><td><?=htmlspecialchars($r['operator_type'])?></td><td><?=htmlspecialchars($r['bus_reg_no'])?></td>
   <td><?=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][$r['day_of_week']]?></td>

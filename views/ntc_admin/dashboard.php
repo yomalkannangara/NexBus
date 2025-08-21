@@ -1,12 +1,13 @@
 <section class="page-hero"><h1>Bus Management Dashboard</h1><p>National Transport Commission – Sri Lanka</p></section>
-<section class="cards">
-  <div class="card"><div class="card-title">Total Buses</div><div class="card-value"><?= ($stats['p']+$stats['s']) ?></div></div>
-  <div class="card"><div class="card-title">Registered Bus Owners</div><div class="card-value"><?= $stats['owners'] ?></div></div>
-  <div class="card"><div class="card-title">Active Depots</div><div class="card-value"><?= $stats['depots'] ?></div></div>
-  <div class="card"><div class="card-title">Active Routes</div><div class="card-value"><?= $stats['routes'] ?></div></div>
-  <div class="card"><div class="card-title">Today's Complaints</div><div class="card-value"><?= $stats['complaints'] ?></div></div>
-  <div class="card"><div class="card-title">Delayed Buses Today</div><div class="card-value"><?= $stats['delayed'] ?></div></div>
-  <div class="card"><div class="card-title">Broken Buses Today</div><div class="card-value"><?= $stats['broken'] ?></div></div>
+
+<section class="kpi-wrap">
+  <div class="kpi-card"><h3>Total Buses</h3><div class="num"><?= ($stats['p']+$stats['s']) ?></div><div class="trend">+12% from yesterday</div></div>
+  <div class="kpi-card"><h3>Registered Bus Owners</h3><div class="num"><?= $stats['owners'] ?></div><div class="trend">+3% from yesterday</div></div>
+  <div class="kpi-card"><h3>Active Depots</h3><div class="num"><?= $stats['depots'] ?></div><div class="trend">0% from yesterday</div></div>
+  <div class="kpi-card"><h3>Active Routes</h3><div class="num"><?= $stats['routes'] ?></div><div class="trend">+5% from yesterday</div></div>
+  <div class="kpi-card"><h3>Today's Complaints</h3><div class="num"><?= $stats['complaints'] ?></div><div class="trend">-2% from yesterday</div></div>
+  <div class="kpi-card"><h3>Delayed Buses Today</h3><div class="num"><?= $stats['delayed'] ?></div><div class="trend down">+8% from yesterday</div></div>
+  <div class="kpi-card"><h3>Broken Buses Today</h3><div class="num"><?= $stats['broken'] ?></div><div class="trend">-1% from yesterday</div></div>
 </section>
 <section class="filters"><h2>Bus Location Filters</h2><div class="filter-grid"><div><label>Route</label>
 <select><option>All Routes</option>

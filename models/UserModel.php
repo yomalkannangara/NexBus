@@ -5,7 +5,9 @@ class UserModel extends BaseModel {
         $dm = (int)$this->pdo->query("SELECT COUNT(*) c FROM users WHERE role='DepotManager'")->fetch()['c'];
         $admin = (int)$this->pdo->query("SELECT COUNT(*) c FROM users WHERE role='NTCAdmin'")->fetch()['c'];
         $owner = (int)$this->pdo->query("SELECT COUNT(*) c FROM users WHERE role='PrivateBusOwner'")->fetch()['c'];
-        return compact('dm','admin','owner');
+        $tk = (int)$this->pdo->query("SELECT COUNT(*) c FROM users WHERE role IN ('SLTBTimekeeper','PrivateTimekeeper')")->fetch()['c'];
+
+        return compact('dm','admin','owner','tk');
     }
     public function list(): array {
         $sql = "SELECT user_id, full_name, email, phone, role, status, last_login FROM users ORDER BY full_name";
