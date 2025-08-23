@@ -38,7 +38,8 @@ class UserModel extends BaseModel {
                     $st->execute([$ownerName, $regNo, $phone, $email]);
                     $private_operator_id = (int)$this->pdo->lastInsertId();
                 }
-                $depotId = !empty($d['sltb_depot_id']) ? $d['sltb_depot_id'] : null;
+                $depotId    = !empty($d['sltb_depot_id']) ? $d['sltb_depot_id'] : null;
+                $operatorId = !empty($d['private_operator_id']) ? $d['private_operator_id'] : null;
 
                 // insert the user and link to the owner if it was created
                 $st = $this->pdo->prepare("
@@ -51,7 +52,7 @@ class UserModel extends BaseModel {
                     $d['email'] ?: null,
                     $d['phone'] ?: null,
                     password_hash($d['password'] ?: '123456', PASSWORD_BCRYPT),
-                    $private_operator_id ?: ($d['private_operator_id'] ?? null),
+                    $operatorId,
                     $depotId
 
                 ]);

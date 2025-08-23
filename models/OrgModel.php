@@ -1,11 +1,68 @@
 <?php
 require_once __DIR__.'/BaseModel.php';
+
 class OrgModel extends BaseModel {
+
+    /** Get all SLTB depots with fleet size + manager + routes */
     public function depots(): array {
-        return $this->pdo->query("SELECT * FROM sltb_depots ORDER BY name")->fetchAll();
+        $sql = "
+            SELECT d.sltb_depot_id,
+                   d.name,
+                   d.city,
+                   d.phone,
+                   COUNT(DISTINCT b.reg_no) AS buses,
+                   u.full_name AS manager,
+                   GROUP_CONCAT(DISTINCT r.route_no ORDER BY r.route_no SEPARATOR ', ') AS routes
+            FROM sltb_depots d
+            LEFT JOIN sltb_buses b 
+                   ON b.sltb_depot_id = d.sltb_depot_id
+            LEFT JOIN users u 
+                   ON u.sltb_depot_id = d.sltb_depot_id 
+                  AND u.role = 'DepotManager'
+            LEFT JOIN timetables t
+                   ON t.bus_reg_no = b.reg_no
+                  AND t.operator_type = 'SLTB'
+            LEFT JOIN routes r
+                   ON r.route_id = t.route_id
+            GROUP BY d.sltb_depot_id, d.name, d.city, d.phone, u.full_name
+            ORDER BY d.name
+        ";
+        $rows = $this->pdo->query($sql)->fetchAll();
+        // Convert CSV string into array for template
+        foreach ($rows as &$r) {
+            $r['routes'] = !empty($r['routes']) ? explode(', ', $r['routes']) : [];
+        }
+        return $rows;
     }
+
+    /** Get all private bus owners/operators with fleet size + manager + routes */
     public function owners(): array {
-        return $this->pdo->query("SELECT * FROM private_bus_owners ORDER BY name")->fetchAll();
+        $sql = "
+            SELECT o.private_operator_id,
+                   o.name,
+                   o.reg_no,
+                   o.contact_phone,
+                   COUNT(DISTINCT b.reg_no) AS fleet_size,
+                   u.full_name AS contact_person,
+                   GROUP_CONCAT(DISTINCT r.route_no ORDER BY r.route_no SEPARATOR ', ') AS routes
+            FROM private_bus_owners o
+            LEFT JOIN private_buses b 
+                   ON b.private_operator_id = o.private_operator_id
+            LEFT JOIN users u 
+                   ON u.private_operator_id = o.private_operator_id 
+                  AND u.role = 'PrivateOwner'
+            LEFT JOIN timetables t
+                   ON t.bus_reg_no = b.reg_no
+                  AND t.operator_type = 'Private'
+            LEFT JOIN routes r
+                   ON r.route_id = t.route_id
+            GROUP BY o.private_operator_id, o.name, o.reg_no, o.contact_phone, u.full_name
+            ORDER BY o.name
+        ";
+        $rows = $this->pdo->query($sql)->fetchAll();
+        foreach ($rows as &$r) {
+            $r['routes'] = !empty($r['routes']) ? explode(', ', $r['routes']) : [];
+        }
+        return $rows;
     }
 }
-?>

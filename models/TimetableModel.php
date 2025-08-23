@@ -13,7 +13,7 @@ class TimetableModel extends BaseModel {
         $sbus = (int)$this->pdo->query("SELECT COUNT(*) c FROM sltb_buses")->fetch()['c'];
         $pbus = (int)$this->pdo->query("SELECT COUNT(*) c FROM private_buses")->fetch()['c'];
 
-        return compact('depots','routes');
+        return compact('depots','routes','pbus','sbus','powners');
     }
     public function routes(): array {
         return $this->pdo
@@ -38,6 +38,7 @@ class TimetableModel extends BaseModel {
         foreach ($buses as $b) { if (isset($map[$b['sltb_depot_id']])) { $map[$b['sltb_depot_id']]['buses'][] = $b['reg_no']; } }
         return array_values($map);
     }
+
     public function create(array $d): void {
         $sql = "INSERT INTO timetables (operator_type, route_id, bus_reg_no, day_of_week, departure_time, arrival_time, start_seq, end_seq, effective_from, effective_to)
                 VALUES (?,?,?,?,?,?,?,?,?,?)";

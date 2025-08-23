@@ -43,7 +43,7 @@ class NtcAdminController extends BaseController {
         }
         $this->view('ntc_admin','timetables',[
             'routes'=>$m->routes(), 'rows'=>$m->all(), 'counts'=>$m->counts(), 
-            'owners'=>$m->ownersWithBuses(), 'depots'=>$m->depotsWithBuses()
+            'owners'=>$m->ownersWithBuses(), 'depots'=>$m->depotsWithBuses(),'buses'=>$m->depotsWithBuses()
         ]);
     }
     public function users() {
