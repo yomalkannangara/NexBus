@@ -14,7 +14,10 @@ $page   = $_GET['page']   ?? 'dashboard';
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="logo"></div>
+      <div class="logo">
+        <img src="/NexBus-1/public/images/logo.png" alt="NexBus Logo">
+      </div>
+
       <div>
         <div class="app">Bus Management System</div>
         <div class="sub">National Transport Commission - Sri Lanka</div>
