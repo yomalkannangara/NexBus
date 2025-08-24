@@ -1,1 +1,1 @@
-</main></div><footer class="footer">Simple PHP MVC • UI inspired by your Figma</footer></body></html>
+</main></div><footer class="footer">ntc admin</footer></body></html>

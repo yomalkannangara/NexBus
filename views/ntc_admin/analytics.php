@@ -1,8 +1,8 @@
 <section class="page-hero"><h1>Analytics Dashboard</h1><p>Bus performance metrics and operational insights</p></section>
-<section class="cards">
-  <div class="card alert"><div class="card-title">Delayed Buses Today</div><div class="card-value"><?= $delayed ?></div></div>
-  <div class="card ok"><div class="card-title">Average Driver Rating</div><div class="card-value"><?= $rating ?></div></div>
-  <div class="card warn"><div class="card-title">Speed Violations</div><div class="card-value"><?= $speed_viol ?></div></div>
-  <div class="card info"><div class="card-title">Long Wait Times</div><div class="card-value"><?= $long_wait ?>%</div></div>
+<section class="kpi-wrap">
+  <div class="kpi-card alert"><h3>Delayed Buses Today</h3><div class="num"><?= $delayed ?></div></div>
+  <div class="kpi-card ok"><h3>Average Driver Rating</h3><div class="num"><?= $rating ?></div></div>
+  <div class="kpi-card warn"><h3>Speed Violations</h3><div class="num"><?= $speed_viol ?></div></div>
+  <div class="kpi-card info"><h3>Long Wait Times</h3><div class="num"><?= $long_wait ?>%</div></div>
 </section>
 <p class="muted">Charts can be added with pure JS later.</p>

@@ -1,5 +1,5 @@
 <section class="page-hero"><h1>Fare Stage Management</h1><p>Configure bus fare stages and pricing</p></section>
-<div class="toolbar"><button class="btn" id="showAddFare">+ Add Fare Stage</button></div>
+<div class="toolbar"><button class="btn primary" id="showAddFare">+ Add Fare Stage</button></div>
 <div id="addFarePanel" class="panel">
   <form method="post" class="form-grid">
     <input type="hidden" name="action" value="create">
