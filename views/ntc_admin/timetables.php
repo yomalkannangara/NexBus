@@ -4,25 +4,25 @@
 </section>
 
 <section class="kpi-wrap">
-  <div class="kpi-card">
-    <h3>Active Depots</h3>
-    <div class="num"><?= $counts['depots'] ?></div>
-    <div class="trend">0% from yesterday</div>
+  <div class="mini-card">
+        <div class="mini-num"><?= $counts['depots'] ?></div>
+ <div class="mini-lable">Active Depots</div>
+
   </div>
-  <div class="kpi-card">
-    <h3>Active Routes</h3>
-    <div class="num"><?= $counts['routes'] ?></div>
-    <div class="trend">+5% from yesterday</div>
+  <div class="mini-card">
+        <div class="mini-num"><?= $counts['routes'] ?></div>
+         <div class="mini-lable">Active Routes</div>
+
   </div>
-  <div class="kpi-card">
-    <h3>Total Busses</h3>
-    <div class="num"><?= $counts['pbus'] + $counts['sbus'] ?></div>
-    <div class="trend">+5% from yesterday</div>
+  <div class="mini-card">
+        <div class="mini-num"><?= $counts['pbus'] + $counts['sbus'] ?></div>
+         <div class="mini-lable">Total Busses</div>
+
   </div>
-  <div class="kpi-card">
-    <h3>Private Bus Owners</h3>
-    <div class="num"><?= $counts['powners'] ?></div>
-    <div class="trend">+5% from yesterday</div>
+  <div class="mini-card">
+        <div class="mini-num"><?= $counts['powners'] ?></div>
+         <div class="mini-lable">Private Bus companies</div>
+
   </div>
 </section>
 
@@ -189,6 +189,7 @@
     <thead>
       <tr>
         <th>Route</th>
+        <th>Route name</th>
         <th>Operator</th>
         <th>Bus</th>
         <th>DOW</th>
@@ -199,8 +200,10 @@
     </thead>
     <tbody>
       <?php foreach($rows as $r): ?>
+        
         <tr>
-          <td><?= htmlspecialchars($r['route_no']) ?></td>
+          <td class="name"><?= htmlspecialchars($r['route_no']) ?></td>
+          <td><?= htmlspecialchars($r['name']) ?></td>
           <td><?= htmlspecialchars($r['operator_type']) ?></td>
           <td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
           <td><?= ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][$r['day_of_week']] ?></td>

@@ -1,5 +1,14 @@
 <?php
-require_once __DIR__.'/BaseModel.php';
+namespace App\models\ntc_admin;
+
+use PDO;
+
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
+    }
+}
 class FareModel extends BaseModel {
     public function all(): array {
         $sql = "SELECT f.*, r.route_no FROM fares f JOIN routes r ON r.route_id=f.route_id

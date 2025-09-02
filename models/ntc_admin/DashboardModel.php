@@ -1,5 +1,15 @@
 <?php
-require_once __DIR__.'/BaseModel.php';
+namespace App\models\ntc_admin;
+
+use PDO;
+
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
+    }
+}
+
 class DashboardModel extends BaseModel {
     public function stats(): array {
         $p = (int)$this->pdo->query("SELECT COUNT(*) c FROM private_buses")->fetch()['c'];

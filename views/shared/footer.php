@@ -1,1 +1,0 @@
-</main></div><footer class="footer">ntc admin</footer></body></html>

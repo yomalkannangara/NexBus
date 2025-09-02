@@ -1,8 +1,34 @@
 <?php
-require_once __DIR__.'/BaseModel.php';
+namespace App\models\ntc_admin;
+use PDO;
+
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
+    }
+}
 
 class OrgModel extends BaseModel {
 
+    public function createDepot(array $d): void {
+        $st = $this->pdo->prepare("INSERT INTO sltb_depots (name, city, phone) VALUES (?,?,?)");
+        $st->execute([
+            $d['name'],
+            $d['city'] ?: null,
+            $d['phone'] ?: null
+        ]);
+    }
+    public function createowner(array $d): void {
+        $st = $this->pdo->prepare("INSERT INTO  private_bus_owners(name, reg_no, contact_phone,contact_email) VALUES (?,?,?,?)");
+        $st->execute([
+            $d['name'],
+            $d['reg_no'] ?: null,
+            $d['contact_phone'] ?: null,
+            $d['contact_email'] ?: null
+
+        ]);
+    }    
     /** Get all SLTB depots with fleet size + manager + routes */
     public function depots(): array {
         $sql = "
@@ -43,14 +69,14 @@ class OrgModel extends BaseModel {
                    o.reg_no,
                    o.contact_phone,
                    COUNT(DISTINCT b.reg_no) AS fleet_size,
-                   u.full_name AS contact_person,
+                   u.full_name AS owner_name,
                    GROUP_CONCAT(DISTINCT r.route_no ORDER BY r.route_no SEPARATOR ', ') AS routes
             FROM private_bus_owners o
             LEFT JOIN private_buses b 
                    ON b.private_operator_id = o.private_operator_id
             LEFT JOIN users u 
                    ON u.private_operator_id = o.private_operator_id 
-                  AND u.role = 'PrivateOwner'
+                  AND u.role = 'PrivateBusOwner'
             LEFT JOIN timetables t
                    ON t.bus_reg_no = b.reg_no
                   AND t.operator_type = 'Private'

@@ -1,0 +1,85 @@
+[02-Sep-2025 01:18:04 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(78): run('DepotOfficerCon...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 3
+[02-Sep-2025 08:22:41 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:24:13 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:24:14 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:24:21 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:24:22 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:24:22 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:24:25 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:03 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:04 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:05 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:07 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:35 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:35 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:35 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:36 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:25:37 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:26:16 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:26:17 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:26:18 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:27:33 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:27:34 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:27:45 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:27:45 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:27:46 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:27:46 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:27:47 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:27:47 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:28:01 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:28:01 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:28:01 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:28:01 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:28:01 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:28:01 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:28:03 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:28:03 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:28:03 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:28:03 Asia/Colombo] PHP Warning:  Undefined variable $initial in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 72
+[02-Sep-2025 08:29:28 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:29:53 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:35:49 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:36:00 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:36:09 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:36:12 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:36:27 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:36:32 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:36:32 Asia/Colombo] PHP Warning:  Undefined variable $user in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 17
+[02-Sep-2025 08:43:04 Asia/Colombo] PHP Warning:  Undefined variable $cofntentViewFile in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
+[02-Sep-2025 08:43:04 Asia/Colombo] PHP Fatal error:  Uncaught ValueError: Path cannot be empty in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php:25
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(67): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('auth/login', Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\AuthController.php(19): App\controllers\BaseController->view('auth', 'login', Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->loginForm()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(79): run('AuthController', 'loginForm')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
+[02-Sep-2025 08:43:18 Asia/Colombo] PHP Warning:  Undefined variable $cofntentViewFile in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
+[02-Sep-2025 08:43:18 Asia/Colombo] PHP Fatal error:  Uncaught ValueError: Path cannot be empty in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php:25
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(67): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('auth/login', Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\AuthController.php(19): App\controllers\BaseController->view('auth', 'login', Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->loginForm()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(79): run('AuthController', 'loginForm')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
+[02-Sep-2025 08:43:22 Asia/Colombo] PHP Warning:  Undefined variable $cofntentViewFile in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
+[02-Sep-2025 08:43:22 Asia/Colombo] PHP Fatal error:  Uncaught ValueError: Path cannot be empty in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php:25
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(67): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('auth/login', Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\AuthController.php(19): App\controllers\BaseController->view('auth', 'login', Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->loginForm()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(79): run('AuthController', 'loginForm')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
+[02-Sep-2025 08:52:29 Asia/Colombo] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 70

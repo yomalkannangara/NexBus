@@ -25,7 +25,7 @@
 <section class="table-section"><h2>Fare Stages</h2>
 <table><thead><tr><th>Route</th><th>Stage</th><th>Super Lux</th><th>Lux</th><th>Semi Lux</th><th>Normal</th><th>Active</th><th>Actions</th></tr></thead><tbody>
 <?php foreach($fares as $f): ?><tr>
-  <td><?=htmlspecialchars($f['route_no'])?></td><td><?=htmlspecialchars($f['stage_number'])?></td>
+  <td class="name"><?=htmlspecialchars($f['route_no'])?></td><td><?=htmlspecialchars($f['stage_number'])?></td>
   <td><?=htmlspecialchars($f['super_luxury'])?></td><td><?=htmlspecialchars($f['luxury'])?></td>
   <td><?=htmlspecialchars($f['semi_luxury'])?></td><td><?=htmlspecialchars($f['normal_service'])?></td>
   <td><?= $f['is_super_luxury_active'] ? 'SL ' : '' ?><?= $f['is_luxury_active'] ? 'L ' : '' ?><?= $f['is_semi_luxury_active'] ? 'SeL ' : '' ?><?= $f['is_normal_service_active'] ? 'N' : '' ?></td>

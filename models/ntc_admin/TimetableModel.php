@@ -1,8 +1,16 @@
 <?php
-require_once __DIR__.'/BaseModel.php';
+namespace App\models\ntc_admin;
+use PDO;
+
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
+    }
+}
 class TimetableModel extends BaseModel {
     public function all(): array {
-        $sql = "SELECT t.*, r.route_no FROM timetables t JOIN routes r ON r.route_id=t.route_id
+        $sql = "SELECT t.*, r.route_no,r.name FROM timetables t JOIN routes r ON r.route_id=t.route_id
                 ORDER BY r.route_no+0, r.route_no, t.day_of_week, t.departure_time";
         return $this->pdo->query($sql)->fetchAll();
     }
@@ -64,14 +72,6 @@ class TimetableModel extends BaseModel {
         ]);
     }
 
-    public function createDepot(array $d): void {
-        $st = $this->pdo->prepare("INSERT INTO sltb_depots (name, city, phone) VALUES (?,?,?)");
-        $st->execute([
-            $d['name'],
-            $d['city'] ?: null,
-            $d['phone'] ?: null
-        ]);
-    }
 
     public function delete($id): void {
         $st = $this->pdo->prepare("DELETE FROM timetables WHERE timetable_id=?");

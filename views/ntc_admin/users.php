@@ -4,21 +4,23 @@
 </section>
 
 <section class="kpi-wrap">
-  <div class="kpi-card">
-    <h3>Depot Managers</h3>
-    <div class="num"><?= $counts['dm'] ?></div>
+  <div class="mini-card">
+        <div class="mini-num"><?= $counts['dm'] ?></div>
+ <div class="mini-lable">Depot Managers</div>
   </div>
-  <div class="kpi-card">
-    <h3>NTC Admins</h3>
-    <div class="num"><?= $counts['admin'] ?></div>
+  <div class="mini-card">
+        <div class="mini-num"><?= $counts['admin'] ?></div>
+         <div class="mini-lable">NTC Admins</div>
   </div>
-  <div class="kpi-card">
-     <h3>Bus Owners</h3>
-    <div class="num"><?= $counts['owner'] ?></div>
+  <div class="mini-card">
+         <div class="mini-num"><?= $counts['owner'] ?></div>
+          <div class="mini-lable">Bus companies</div>
+
   </div>
-    <div class="kpi-card">
-     <h3>Timekeepers</h3>
-    <div class="num"><?= $counts['tk'] ?></div>
+  <div class="mini-card">
+         <div class="mini-num"><?= $counts['tk'] ?></div>
+          <div class="mini-lable">Timekeepers</div>
+
   </div>
 </section>
 
@@ -44,14 +46,6 @@
       <input type="password" name="password">
     </label>
 
-    <label>Owner/Company Name
-      <input name="org_name" placeholder="e.g., D.K. Perera Bus Service">
-    </label>
-
-    <label>Registration No
-      <input name="org_reg_no" placeholder="e.g., BR-012345">
-    </label>
-
     <label>Role
       <select name="role" required>
         <option value="NTCAdmin">NTCAdmin</option>
@@ -64,7 +58,7 @@
       </select>
     </label>
 
-    <label>Private Owner
+    <label>Private company
       <select name="private_operator_id">
         <option value="">-- none --</option>
         <?php foreach($owners as $o): ?>
@@ -103,7 +97,7 @@
         <th>User</th>
         <th>Contact</th>
         <th>Role</th>
-        <th>Linked Depot</th>
+        <th>Linked Depot/private bus owner</th>
         <th>Status</th>
         <th>Last Login</th>
         <th>Action</th>
@@ -123,17 +117,17 @@
             <?=htmlspecialchars($u['email'])?><br>
             <?=htmlspecialchars($u['phone'])?>
           </td>
-          <td><span class="badge"><?=htmlspecialchars($u['role'])?></span></td>
+          <td><span class="badge <?=htmlspecialchars($u['role'])?>"><?=htmlspecialchars($u['role'])?></span></td>
           <td>
             <?php
               $link = '';
               if ($u['role']==='PrivateBusOwner') {
-                $q = db()->prepare('SELECT name FROM private_bus_owners WHERE private_operator_id = (SELECT private_operator_id FROM users WHERE user_id=?)');
+                $q = $GLOBALS['db']->prepare('SELECT name FROM private_bus_owners WHERE private_operator_id = (SELECT private_operator_id FROM users WHERE user_id=?)');
                 $q->execute([$u['user_id']]);
                 $link = $q->fetchColumn();
                 echo htmlspecialchars($link ?: '-');
               } elseif (in_array($u['role'], ['DepotManager','DepotOfficer','SLTBTimekeeper'])) {
-                $q = db()->prepare('SELECT name FROM sltb_depots WHERE sltb_depot_id = (SELECT sltb_depot_id FROM users WHERE user_id=?)');
+                $q = $GLOBALS['db']->prepare('SELECT name FROM sltb_depots WHERE sltb_depot_id = (SELECT sltb_depot_id FROM users WHERE user_id=?)');
                 $q->execute([$u['user_id']]);
                 $link = $q->fetchColumn();
                 echo htmlspecialchars($link ?: '-');

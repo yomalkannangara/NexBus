@@ -2,7 +2,7 @@
 
 <section class="kpi-wrap">
   <div class="kpi-card"><h3>Total Buses</h3><div class="num"><?= ($stats['p']+$stats['s']) ?></div><div class="trend">+12% from yesterday</div></div>
-  <div class="kpi-card"><h3>Registered Bus Owners</h3><div class="num"><?= $stats['owners'] ?></div><div class="trend">+3% from yesterday</div></div>
+  <div class="kpi-card"><h3>Registered Bus companies</h3><div class="num"><?= $stats['owners'] ?></div><div class="trend">+3% from yesterday</div></div>
   <div class="kpi-card"><h3>Active Depots</h3><div class="num"><?= $stats['depots'] ?></div><div class="trend">0% from yesterday</div></div>
   <div class="kpi-card"><h3>Active Routes</h3><div class="num"><?= $stats['routes'] ?></div><div class="trend">+5% from yesterday</div></div>
   <div class="kpi-card"><h3>Today's Complaints</h3><div class="num"><?= $stats['complaints'] ?></div><div class="trend">-2% from yesterday</div></div>
