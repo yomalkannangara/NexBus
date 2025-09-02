@@ -1,7 +1,7 @@
-/* ============= NexBus — Modern Mobile UI ============= */
-/* Brand tokens (yours + a few derived) */
+/* ============= NexBus — Modern Mobile UI (optimized) ============= */
+/* Brand tokens */
 :root {
-    /* your palette */
+    /* base palette */
     --bg: #f6f7f9;
     --card: #fff;
     --primary: #80143c;
@@ -24,13 +24,12 @@
     --success: #1ea56a;
     --danger: #e23d3d;
     --info: #0f67ff;
-
     --grad-brand: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-2) 55%, #6f1032 100%);
     --grad-gold: linear-gradient(135deg, #ffe6a3, var(--gold));
     --glass: rgba(255, 255, 255, .6);
 }
 
-/* Dark theme hook (toggle html.dark in JS if you like) */
+/* Dark theme hook */
 html.dark {
     --bg: #0f1220;
     --card: #121731;
@@ -45,7 +44,9 @@ html.dark {
 }
 
 /* ===== Base ===== */
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box
 }
 
@@ -172,16 +173,16 @@ img {
 }
 
 .tab {
-    text-decoration: none;
-    color: var(--muted);
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
     padding: 6px 0;
+    font-size: 11px;
     border-radius: 10px;
-    position: relative;
+    color: var(--muted);
+    text-decoration: none;
 }
 
 .tab.active {
@@ -209,17 +210,15 @@ img {
 }
 
 .pill {
-    background: var(--card);
-    border: 1px solid var(--divider);
-    box-shadow: var(--shadow);
-    border-radius: 14px;
-    padding: 8px 10px;
-    
     display: flex;
     align-items: center;
     gap: 8px;
-    }
-
+    padding: 8px 10px;
+    background: var(--card);
+    border: 1px solid var(--divider);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
 
 .pill select {
     border: 0;
@@ -282,16 +281,15 @@ img {
     color: var(--muted)
 }
 
-/* subtle floating dots */
 .map-placeholder::after {
     content: "";
     position: absolute;
+    right: 22%;
+    top: 18%;
     width: 140px;
     height: 140px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(31, 165, 106, .16), transparent 60%);
-    right: 22%;
-    top: 18%;
     filter: blur(4px);
 }
 
@@ -312,16 +310,18 @@ img {
 /* ===== “Next Bus” list ===== */
 .cards {
     display: grid;
-    gap: 10px;
-
+    gap: 10px
 }
 
 .bus-card {
     display: flex;
-    align-items: center;        border-radius: 10px;
+    align-items: center;
+    gap: 12px;
     padding: 10px;
-  box-shadow: 0px 0px 1px 1px  rgba(0, 0, 0, 0.18);
-    gap: 12px
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--divider);
+    box-shadow: 0 0 1px 1px rgba(0, 0, 0, .08);
 }
 
 .bus-badge {
@@ -330,10 +330,9 @@ img {
     border-radius: 10px;
     display: grid;
     place-items: center;
-    font-weight: 500;
+    font: 500 12px/1.2 inherit;
     color: #fff;
     background: #2b6bff;
-    font-size: 12px;
     box-shadow: 0 10px 18px rgba(18, 107, 255, .25);
 }
 
@@ -346,28 +345,27 @@ img {
 }
 
 .bus-sub {
-    font-size: 12px;
-    color: var(--muted);
     display: flex;
     align-items: center;
-    gap: 8px
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
 }
 
 .chip {
     background: #f1f5ff;
-    color: (var(--maroon));
+    color: var(--maroon);
+    /* fixed invalid color syntax */
     border: 1px solid #e0e6ff;
     padding: 2px 8px;
     border-radius: 999px;
-    font-size: 11px;
-    font-weight: 500;
+    font: 500 11px/1.2 inherit;
 }
 
 .bus-eta {
     margin-left: auto;
     min-width: 64px;
-    text-align: right ;
-
+    text-align: right
 }
 
 .bus-eta .min {
@@ -379,8 +377,8 @@ img {
 /* ===== Buttons ===== */
 .btn {
     border: 0;
-    background: var(--grad-brand);
     color: #fff;
+    background: var(--grad-brand);
     padding: 10px 14px;
     border-radius: 12px;
     font-weight: 800;
@@ -403,6 +401,7 @@ img {
     background: var(--card);
     color: var(--text);
     border: 1px solid var(--divider);
+    box-shadow: var(--shadow)
 }
 
 .btn.pill {
@@ -417,8 +416,7 @@ img {
     color: #4b3b00;
     padding: 4px 8px;
     border-radius: 10px;
-    font-size: 12px;
-    font-weight: 800;
+    font: 800 12px/1.2 inherit;
 }
 
 /* ===== Favourites ===== */
@@ -497,8 +495,8 @@ img {
 .fav-title {
     display: flex;
     align-items: center;
-    gap: 10px  ;  font-weight: 300;
-
+    gap: 10px;
+    font-weight: 300
 }
 
 .route-chip {
@@ -511,7 +509,7 @@ img {
     font-weight: 500;
     color: #fff;
     background: #2b6bff;
-    box-shadow: var(--shadow)
+    box-shadow: var(--shadow);
 }
 
 .fav-meta {
@@ -554,8 +552,8 @@ img {
     width: 42px;
     height: 24px;
     border-radius: 999px;
-    background: #e6e6ea;
     position: relative;
+    background: #e6e6ea;
     border: 1px solid #d8d8dd;
     transition: .18s cubic-bezier(.2, .8, .2, 1);
 }
@@ -621,10 +619,10 @@ body.fav-edit .fav-edit-ctl {
     display: flex;
     align-items: center;
     height: 46px;
+    padding: 0 12px;
     background: var(--card);
     border: 1px solid var(--divider);
     border-radius: 14px;
-    padding: 0 12px;
     box-shadow: var(--shadow);
 }
 
@@ -668,7 +666,7 @@ textarea {
     width: 100%;
     min-height: 120px;
     resize: vertical;
-    padding: 12px 12px;
+    padding: 12px;
     border: 1px solid var(--divider);
     border-radius: 14px;
     background: #fff;
@@ -718,7 +716,7 @@ textarea:focus {
     background: var(--gold-soft);
     border-color: #f1d47a;
     color: #402a00;
-    transform: translateY(-1px)
+    transform: translateY(-1px);
 }
 
 /* Upload pill */
@@ -726,22 +724,22 @@ textarea:focus {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 1px dashed var(--border);
-    background: var(--card);
     padding: 10px 12px;
     border-radius: 12px;
+    background: var(--card);
+    border: 1px dashed var(--border);
     color: var(--text);
     font-weight: 700;
     cursor: pointer;
     box-shadow: var(--shadow);
 }
 
+/* Help/Utilities */
 .help {
     font-size: 12px;
     color: var(--muted)
 }
 
-/* Grid utility */
 .grid-2 {
     display: grid;
     gap: 12px;
@@ -754,12 +752,11 @@ textarea:focus {
     }
 }
 
-/* Notices */
 .notice {
     border-left: 4px solid var(--gold);
     background: var(--card);
     color: var(--text);
-    box-shadow: var(--shadow)
+    box-shadow: var(--shadow);
 }
 
 .notice.success {
@@ -770,14 +767,12 @@ textarea:focus {
     border-left-color: var(--danger)
 }
 
-/* Actions */
 .form-actions {
     margin-top: 6px;
     display: flex;
     justify-content: flex-end
 }
 
-/* ===== Tiny utilities ===== */
 .muted {
     color: var(--muted)
 }
@@ -789,4 +784,12 @@ textarea:focus {
 .center {
     display: grid;
     place-items: center
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion:reduce) {
+    * {
+        animation: none !important;
+        transition: none !important
+    }
 }
