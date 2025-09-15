@@ -1,0 +1,191 @@
+[12-Sep-2025 11:38:29 Asia/Colombo] PHP Warning:  Undefined array key "start_idx" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 52
+[12-Sep-2025 11:38:29 Asia/Colombo] PHP Warning:  Undefined array key "end_idx" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 53
+[12-Sep-2025 12:46:38 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\Models\Passenger\FavouritesModel::routes() in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php:43
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->favourites()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'favourites')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 43
+[12-Sep-2025 12:48:03 Asia/Colombo] PHP Fatal error:  Uncaught ArgumentCountError: Too few arguments to function App\Models\Passenger\FavouritesModel::routesWithFavs(), 0 passed in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 43 and exactly 1 expected in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php:13
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(43): App\Models\Passenger\FavouritesModel->routesWithFavs()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->favourites()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'favourites')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php on line 13
+[12-Sep-2025 12:51:26 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: App\Models\Passenger\FavouritesModel::routesWithFavs(): Argument #1 ($userId) must be of type int, array given, called in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 42 and defined in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php:13
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(42): App\Models\Passenger\FavouritesModel->routesWithFavs(Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->favourites()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'favourites')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php on line 13
+[12-Sep-2025 12:51:28 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: App\Models\Passenger\FavouritesModel::routesWithFavs(): Argument #1 ($userId) must be of type int, array given, called in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 42 and defined in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php:13
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(42): App\Models\Passenger\FavouritesModel->routesWithFavs(Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->favourites()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'favourites')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php on line 13
+[12-Sep-2025 12:51:32 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: App\Models\Passenger\FavouritesModel::routesWithFavs(): Argument #1 ($userId) must be of type int, array given, called in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 42 and defined in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php:13
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(42): App\Models\Passenger\FavouritesModel->routesWithFavs(Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->favourites()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'favourites')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FavouritesModel.php on line 13
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:00:23 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 30
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:00 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:05 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 28
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $active in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 29
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 57
+[12-Sep-2025 13:01:06 Asia/Colombo] PHP Warning:  Undefined variable $rid in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 71
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 15:09:58 Asia/Colombo] PHP Warning:  Undefined array key "minutes_from_departure" in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 39
+[12-Sep-2025 22:41:33 Asia/Colombo] PHP Warning:  Undefined variable $allRoute in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 34
+[12-Sep-2025 22:41:33 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\passenger\favourites.php on line 34
+[12-Sep-2025 22:48:48 Asia/Colombo] PHP Warning:  Undefined array key "start_idx" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 77
+[12-Sep-2025 22:48:48 Asia/Colombo] PHP Warning:  Undefined array key "end_idx" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 78
+[12-Sep-2025 23:39:45 Asia/Colombo] PHP Warning:  Undefined array key "start_idx" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 77
+[12-Sep-2025 23:39:45 Asia/Colombo] PHP Warning:  Undefined array key "end_idx" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 78
+[12-Sep-2025 23:44:14 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "public" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 85

@@ -55,3 +55,42 @@ document.addEventListener('change', (e)=>{
     out.textContent = e.target.files && e.target.files[0] ? e.target.files[0].name : '';
   }
 });
+
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const routeSelect = document.querySelector('select[name="route_id"]');
+  const busSelect   = document.getElementById('busSelect');
+
+  if (!routeSelect || !busSelect) return;
+
+  routeSelect.addEventListener('change', async function(){
+    const routeId = this.value;
+    busSelect.innerHTML = '<option value="">Loading...</option>';
+    if (!routeId) {
+      busSelect.innerHTML = '<option value="">Choose a bus</option>';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/feedback?route_id=${routeId}`);
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        busSelect.innerHTML = '<option value="">Choose a bus</option>';
+        data.forEach(bus=>{
+          const opt = document.createElement('option');
+          opt.value = bus.bus_id;
+          opt.textContent = `${bus.bus_reg_no} (${bus.operator_type})`;
+          busSelect.appendChild(opt);
+        });
+      } else {
+        busSelect.innerHTML = '<option value="">No buses found</option>';
+      }
+    } catch (err) {
+      console.error('Bus fetch failed:', err);
+      busSelect.innerHTML = '<option value="">Error loading buses</option>';
+    }
+  });
+});
+
+

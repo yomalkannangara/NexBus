@@ -57,7 +57,8 @@ protected function view(string $module, string $page, array $data = []): void {
         }
 
         $layoutName = $layout ?? $this->layout;
-        $layoutFile = $this->viewsPath . 'layouts/' . $layoutName . '.php';
+    // Use correct case to match folder name for portability (Windows vs Linux)
+    $layoutFile = $this->viewsPath . 'Layouts/' . $layoutName . '.php';
         if (!is_file($layoutFile)) {
             throw new RuntimeException("Layout not found: {$layoutName}");
         }
@@ -71,7 +72,7 @@ protected function view(string $module, string $page, array $data = []): void {
     protected function requireLogin(array $roles = []): void
     {
         if (!$this->user) {
-            header('Location: /login.php'); exit;
+            header('Location: /login'); exit;
         }
         if ($roles && !in_array($this->user['role'] ?? '', $roles, true)) {
             http_response_code(403);

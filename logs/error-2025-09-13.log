@@ -1,0 +1,136 @@
+[13-Sep-2025 10:27:46 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:61
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(61): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(5)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 61
+[13-Sep-2025 10:27:49 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:61
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(61): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(3)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 61
+[13-Sep-2025 10:27:51 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:61
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(61): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(4)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 61
+[13-Sep-2025 10:28:06 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:61
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(61): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(5)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 61
+[13-Sep-2025 10:28:48 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:61
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(61): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(2)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 61
+[13-Sep-2025 10:32:48 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:60
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(60): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(4)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 60
+[13-Sep-2025 10:33:57 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:60
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(60): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(2)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 60
+[13-Sep-2025 10:34:01 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:60
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(60): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(5)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 60
+[13-Sep-2025 10:34:47 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'bus_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:60
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(60): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(3)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 60
+[13-Sep-2025 10:37:38 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'd.depot_id' in 'on clause' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:64
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(64): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(5)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 64
+[13-Sep-2025 10:37:40 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'd.depot_id' in 'on clause' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:64
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(64): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(4)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 64
+[13-Sep-2025 10:38:15 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'd.depot_id' in 'on clause' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:64
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(64): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(3)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 64
+[13-Sep-2025 10:38:37 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'd.route_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(62): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(5)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 62
+[13-Sep-2025 10:38:39 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'd.route_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(62): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(4)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 62
+[13-Sep-2025 10:38:46 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'd.route_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php(62): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(100): App\Models\Passenger\FeedbackModel->busesByRoute(3)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\PassengerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('PassengerContro...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\FeedbackModel.php on line 62
+[13-Sep-2025 11:07:37 Asia/Colombo] PHP Parse error:  syntax error, unexpected token ";" in C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php on line 95
+[13-Sep-2025 12:03:29 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 4
+[13-Sep-2025 12:03:29 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 17
+[13-Sep-2025 12:03:29 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 32
+[13-Sep-2025 12:03:29 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 42
+[13-Sep-2025 12:03:29 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 52
+[13-Sep-2025 12:03:36 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 4
+[13-Sep-2025 12:03:36 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 17
+[13-Sep-2025 12:03:36 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 32
+[13-Sep-2025 12:03:36 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 42
+[13-Sep-2025 12:03:36 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 52
+[13-Sep-2025 12:03:38 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 4
+[13-Sep-2025 12:03:38 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 17
+[13-Sep-2025 12:03:38 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 32
+[13-Sep-2025 12:03:38 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 42
+[13-Sep-2025 12:03:38 Asia/Colombo] PHP Warning:  Undefined variable $page in C:\xampp\htdocs\NexBus-1\views\Layouts\passenger.php on line 52

@@ -20,14 +20,14 @@ $page   = $segments[1] ?? 'dashboard';
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>NTC Admin</title>
-  <link rel="stylesheet" href="../assets/css/styles.css">
-  <script defer src="../assets/js/app.js"></script>
+  <link rel="stylesheet" href="/assets/css/admin.css">
+  <script defer src="/assets/js/app.js"></script>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <div class="logo">
-        <img src="../assets/images/logo.png" alt="NexBus Logo">
+  <img src="/assets/images/logo.png" alt="NexBus Logo">
       </div>
 
       <div>

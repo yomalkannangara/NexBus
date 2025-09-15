@@ -1,38 +1,51 @@
 <h3>Ticket Prices</h3>
 
-<form method="post" class="form card">
+<form method="post" class="ticket-form">
   <input type="hidden" name="action" value="calc">
 
   <div class="field">
     <label>Route</label>
-    <select name="route_id" onchange="this.form.submit()">
-      <option value="">-- choose --</option>
-      <?php foreach($routes as $r): ?>
-        <option value="<?= (int)$r['route_id'] ?>" <?= (!empty($selectedRoute) && (int)$selectedRoute===(int)$r['route_id'])?'selected':'' ?>>
-          <?= htmlspecialchars($r['route_no'].' — '.$r['name']) ?>
-        </option>
-      <?php endforeach; ?>
-    </select>
+    <div class="select-wrap no-caret">
+      <select name="route_id" onchange="this.form.submit()">
+        <option value="">-- choose --</option>
+        <?php foreach($routes as $r): ?>
+          <option value="<?= (int)$r['route_id'] ?>" <?= (!empty($selectedRoute) && (int)$selectedRoute===(int)$r['route_id'])?'selected':'' ?>>
+            <?= htmlspecialchars($r['route_no'].' — '.$r['name']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
   </div>
 
   <?php if(!empty($selectedRoute)): ?>
     <div class="field">
       <label>Start</label>
-      <select name="start_idx">
-        <?php foreach($stops as $s): ?>
-          <option value="<?= (int)$s['idx'] ?>"><?= htmlspecialchars($s['name']) ?></option>
-        <?php endforeach; ?>
-      </select>
+      <div class="select-wrap no-caret">
+        <select name="start_idx">
+          <?php foreach($stops as $s): ?>
+            <option value="<?= (int)$s['idx'] ?>"
+              <?= (!empty($_POST['start_idx']) && (int)$_POST['start_idx'] === (int)$s['idx']) ? 'selected' : '' ?>>
+              <?= htmlspecialchars($s['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
     </div>
+
     <div class="field">
       <label>Destination</label>
-      <select name="end_idx">
-        <?php foreach($stops as $s): ?>
-          <option value="<?= (int)$s['idx'] ?>"><?= htmlspecialchars($s['name']) ?></option>
-        <?php endforeach; ?>
-      </select>
+      <div class="select-wrap no-caret">
+        <select name="end_idx">
+          <?php foreach($stops as $s): ?>
+            <option value="<?= (int)$s['idx'] ?>"
+              <?= (!empty($_POST['end_idx']) && (int)$_POST['end_idx'] === (int)$s['idx']) ? 'selected' : '' ?>>
+              <?= htmlspecialchars($s['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
     </div>
-    <button class="btn" type="submit">Calculate</button>
+    <button class="btn" type="submit" style="width:100%">Calculate</button>
   <?php endif; ?>
 </form>
 

@@ -48,6 +48,7 @@ $routes = [
 
     // Passenger
     '/home'          => ['PassengerController','home'],
+    '/timetable'     => ['PassengerController','timetable'],
     '/favourites'    => ['PassengerController','favourites'],
     '/ticket'        => ['PassengerController','ticket'],
     '/feedback'      => ['PassengerController','feedback'],

@@ -83,3 +83,26 @@ Stack trace:
 #5 {main}
   thrown in C:\xampp\htdocs\NexBus-1\views\Layouts\guest.php on line 25
 [02-Sep-2025 08:52:29 Asia/Colombo] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php on line 70
+[02-Sep-2025 23:42:45 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\AnalyticsModel" not found in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php:112
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\NtcAdminController->analytics()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('NtcAdminControl...', 'analytics')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php on line 112
+[02-Sep-2025 23:43:28 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php:6
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(112): {closure}('App\\models\\ntc_...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\NtcAdminController->analytics()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(81): run('NtcAdminControl...', 'analytics')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php on line 6
+[02-Sep-2025 23:43:58 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "class", expecting "function" or "const" in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php on line 10
+[02-Sep-2025 23:44:15 Asia/Colombo] PHP Warning:  Undefined variable $delayed in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 3
+[02-Sep-2025 23:44:15 Asia/Colombo] PHP Warning:  Undefined variable $rating in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 4
+[02-Sep-2025 23:44:15 Asia/Colombo] PHP Warning:  Undefined variable $speed_viol in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 5
+[02-Sep-2025 23:44:15 Asia/Colombo] PHP Warning:  Undefined variable $long_wait in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 6
+[02-Sep-2025 23:44:56 Asia/Colombo] PHP Warning:  Undefined variable $delayed in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 3
+[02-Sep-2025 23:44:56 Asia/Colombo] PHP Warning:  Undefined variable $rating in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 4
+[02-Sep-2025 23:44:56 Asia/Colombo] PHP Warning:  Undefined variable $speed_viol in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 5
+[02-Sep-2025 23:44:56 Asia/Colombo] PHP Warning:  Undefined variable $long_wait in C:\xampp\htdocs\NexBus-1\views\ntc_admin\analytics.php on line 6

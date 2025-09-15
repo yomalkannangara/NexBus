@@ -14,8 +14,8 @@ class NtcAdminController extends BaseController {
       public function __construct()
     {
     parent::__construct();
-$this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
-}
+        $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
+        }
     public function dashboard() {
         $m = new DashboardModel();
         $this->view('ntc_admin','dashboard',[ 'stats'=>$m->stats(), 'routes'=>$m->routes() ]);
@@ -24,11 +24,11 @@ $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
         $m = new FareModel();
         if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create') {
             $m->create($_POST);
-            $this->redirect('?module=ntc_admin&page=fares&msg=created');
+            $this->redirect('/A/fares?msg=created');
         }
         if (isset($_GET['delete'])) {
             $m->delete($_GET['delete']);
-            $this->redirect('?module=ntc_admin&page=fares&msg=deleted');
+            $this->redirect('/A/fares?msg=deleted');
         }
         $this->view('ntc_admin','fares',[ 'routes'=>$m->routes(), 'fares'=>$m->all() ]);
     }
@@ -36,15 +36,15 @@ $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
         $m = new TimetableModel();
         if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_route') {
             $m->createRoute($_POST);
-            $this->redirect('?module=ntc_admin&page=timetables&msg=route_created');
+            $this->redirect('/A/timetables?msg=route_created');
         }
         if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create') {
             $m->create($_POST);
-            $this->redirect('?module=ntc_admin&page=timetables&msg=created');
+            $this->redirect('/A/timetables?msg=created');
         }
         if (isset($_GET['delete'])) {
             $m->delete($_GET['delete']);
-            $this->redirect('?module=ntc_admin&page=timetables&msg=deleted');
+            $this->redirect('/A/timetables?msg=deleted');
         }
         $this->view('ntc_admin','timetables',[
             'routes'=>$m->routes(), 'rows'=>$m->all(), 'counts'=>$m->counts(), 
@@ -55,7 +55,7 @@ $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
         $m = new UserModel();
         if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create') {
             $m->create($_POST);
-            $this->redirect('?module=ntc_admin&page=users&msg=created');
+            $this->redirect('/A/users?msg=created');
         }
         $this->view('ntc_admin','users',[ 'counts'=>$m->counts(), 'users'=>$m->list(), 'owners'=>$m->owners(), 'depots'=>$m->depots() ]);
     }
@@ -65,11 +65,11 @@ $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
          
         if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_depot') {
             $m->createDepot($_POST);
-            $this->redirect('?module=ntc_admin&page=depots_owners&msg=depot_created');
+            $this->redirect('/A/depots_owners?msg=depot_created');
         }
         if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_owner') {
             $m->createowner($_POST);
-            $this->redirect('?module=ntc_admin&page=depots_owners&msg=owner_created');
+            $this->redirect('/A/depots_owners?msg=owner_created');
         }        
     }
 
@@ -81,17 +81,17 @@ $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
 
             if ($act === 'update_profile') {
                 $ok = $m->updateProfile($_POST);
-                return $this->redirect('?module=ntc_admin&page=profile&msg=' . ($ok ? 'updated' : 'update_failed'));
+                return $this->redirect('/A/profile?msg=' . ($ok ? 'updated' : 'update_failed'));
             }
 
             if ($act === 'update_password') {
                 $ok = $m->changePassword($_POST);
-                return $this->redirect('?module=ntc_admin&page=profile&msg=' . ($ok ? 'pw_changed' : 'pw_error'));
+                return $this->redirect('/A/profile?msg=' . ($ok ? 'pw_changed' : 'pw_error'));
             }
 
             if ($act === 'save_prefs') {
                 $m->savePrefs($_POST);
-                return $this->redirect('?module=ntc_admin&page=profile&msg=prefs_saved');
+                return $this->redirect('/A/profile?msg=prefs_saved');
             }
         }
 
@@ -107,12 +107,44 @@ $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
             'msg'   => $_GET['msg'] ?? null
         ]);
     }
+public function analytics() {
+    // dummy data (same as before)
+    $analytics = [
+        "busStatus"   => [
+            ["status"=>"Active", "total"=>120],
+            ["status"=>"Maintenance", "total"=>25],
+            ["status"=>"Inactive", "total"=>15],
+        ],
+        "onTime"      => [
+            ["operational_status"=>"OnTime", "total"=>85],
+            ["operational_status"=>"Delayed", "total"=>10],
+            ["operational_status"=>"Breakdown", "total"=>5],
+        ],
+        "revenue"     => [
+            ["date"=>"2025-05-01","operator_type"=>"Private","total"=>45000],
+            ["date"=>"2025-05-01","operator_type"=>"SLTB","total"=>38000],
+            ["date"=>"2025-05-02","operator_type"=>"Private","total"=>50000],
+            ["date"=>"2025-05-02","operator_type"=>"SLTB","total"=>40000],
+        ],
+        "complaints"  => [
+            ["category"=>"Cleanliness","total"=>12],
+            ["category"=>"Driver Behaviour","total"=>8],
+            ["category"=>"Delay","total"=>15],
+        ],
+        "utilization" => [
+            ["route_no"=>"138","utilization"=>75],
+            ["route_no"=>"100","utilization"=>60],
+            ["route_no"=>"199","utilization"=>80],
+        ],
+    ];
 
-    public function analytics() {
-        $pdo = $GLOBALS['db'];
-        $delayed = (int)$pdo->query("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()")->fetch()['c'];
-        $speed_viol = (int)$pdo->query("SELECT COALESCE(SUM(speed_violations),0) s FROM tracking_monitoring WHERE DATE(snapshot_at)=CURDATE()")->fetch()['s'];
-        $this->view('ntc_admin','analytics',[ 'delayed'=>$delayed, 'speed_viol'=>$speed_viol, 'rating'=>8.0, 'long_wait'=>15 ]);
-    }
+    $this->view('ntc_admin','analytics',[
+        'analyticsJson' => json_encode(
+            $analytics,
+            JSON_UNESCAPED_SLASHES|JSON_NUMERIC_CHECK|
+            JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT
+        )
+    ]);
+}
 }
 ?>

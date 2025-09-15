@@ -6,7 +6,7 @@
   --text: #2b2b2b;
   --border: #e8d39a;
   --maroon: #80143c;
-  --maroon-2: #901c3c;
+  --maroon-2: #80143c;
   --gold: #f3b944;
   --gold-soft: #f3b944;
   --muted: #6b7280;
@@ -864,6 +864,27 @@ input:checked+.slider {
 
 input:checked+.slider:before {
   transform: translateX(20px)
+}
+.chart-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 700px;
+  text-align: center;
+}
+
+.chart-card h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
 }
 
 /* ---------------- ACCESSIBILITY ---------------- */

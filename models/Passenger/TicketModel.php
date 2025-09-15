@@ -56,7 +56,7 @@ class TicketModel extends BaseModel {
     $endName   = $stops[$endIdx-1]['name'];
 
     // 2) Stages = absolute difference in positions (min 1)
-    $stages = max(1, abs($endIdx - $startIdx));
+    $stages = max(0, abs($endIdx - $startIdx));
 
     // 3) Pick fare row for route + stage_number (latest effective)
     $sql = "SELECT
