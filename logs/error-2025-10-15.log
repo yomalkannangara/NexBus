@@ -1,0 +1,97 @@
+[15-Oct-2025 12:04:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:04:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:04:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:05:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:06:04 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:06:09 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:06:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:07:14 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:07:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:09:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:09:46 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:09:50 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:10:31 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:10:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:10:46 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\UserModel" not found in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php:29
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\AuthController.php on line 29
+[15-Oct-2025 12:11:59 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: Cannot assign PDO to property App\Models\UserModel::$pdo of type App\Models\PDO in C:\xampp\htdocs\NexBus-1\models\UserModel.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\AuthController.php(29): App\Models\UserModel->__construct()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\AuthController->login()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('AuthController', 'login')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\UserModel.php on line 11

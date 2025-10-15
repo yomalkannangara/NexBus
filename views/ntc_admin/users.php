@@ -27,7 +27,7 @@
 
 
 <div id="addUPanel" class="panel">
-  <form method="post" class="form-grid narrow">
+  <form method="post" class="form-grid narrow" action="/A/users">
     <input type="hidden" name="action" value="create">
 
     <label>Full Name
@@ -86,11 +86,73 @@
     </div>
   </form>
 </div>
+<!-- EDIT USER (same UI as Add) -->
+<div id="editUPanel" class="panel">
+  <form method="post" class="form-grid narrow" action="/A/users" id="editUForm">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="user_id" id="edit_user_id">
+
+    <label>Full Name
+      <input name="full_name" id="edit_full_name" required>
+    </label>
+
+    <label>Email
+      <input type="email" name="email" id="edit_email">
+    </label>
+
+    <label>Phone
+      <input name="phone" id="edit_phone">
+    </label>
+
+    <label>New Password (leave blank to keep current)
+      <input type="password" name="password" id="edit_password" placeholder="Optional">
+    </label>
+
+    <label>Role
+      <select name="role" id="edit_role" required>
+        <option value="NTCAdmin">NTCAdmin</option>
+        <option value="DepotManager">DepotManager</option>
+        <option value="DepotOfficer">DepotOfficer</option>
+        <option value="SLTBTimekeeper">SLTBTimekeeper</option>
+        <option value="PrivateTimekeeper">PrivateTimekeeper</option>
+        <option value="PrivateBusOwner">PrivateBusOwner</option>
+        <option value="Passenger">Passenger</option>
+      </select>
+    </label>
+
+    <label>Private company
+      <select name="private_operator_id" id="edit_private_operator_id">
+        <option value="">-- none --</option>
+        <?php foreach($owners as $o): ?>
+          <option value="<?=htmlspecialchars($o['private_operator_id'])?>">
+            <?=htmlspecialchars($o['name'])?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+
+    <label>SLTB Depot
+      <select name="sltb_depot_id" id="edit_sltb_depot_id">
+        <option value="">-- none --</option>
+        <?php foreach($depots as $d): ?>
+          <option value="<?=htmlspecialchars($d['sltb_depot_id'])?>">
+            <?=htmlspecialchars($d['name'])?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+
+    <div class="form-actions">
+      <button class="btn primary">Update</button>
+      <button type="button" class="btn" id="cancelEditU">Cancel</button>
+    </div>
+  </form>
+</div>
 
 <section class="table-panel">
   <div class="table-panel-head"><h2>Users</h2>
-  <a class="btn primary" id="showAddU">+ Add User</a>
-</div>
+    <a class="btn primary" id="showAddU">+ Add User</a>
+  </div>
   <table class="table users">
     <thead>
       <tr>
@@ -138,11 +200,37 @@
           </td>
           <td><span class="status <?= strtolower($u['status']) ?>"><?=htmlspecialchars($u['status'])?></span></td>
           <td><?=htmlspecialchars($u['last_login'])?></td>
-                  <td>
-          <a class="icon-btn warn" title="Edit">✎</a>
-          <a class="icon-btn info" title="Permissions">⚙</a>
-          <a class="icon-btn danger" title="Delete">🗑</a>
-        </td>
+          <td>
+            <!-- Edit opens the modal and prefills via data-* -->
+            <a
+              class="icon-btn warn btn-edit"
+              title="Edit"
+              href="#"
+              data-user-id="<?= (int)$u['user_id'] ?>"
+              data-full-name="<?= htmlspecialchars($u['full_name'], ENT_QUOTES) ?>"
+              data-email="<?= htmlspecialchars($u['email'] ?? '', ENT_QUOTES) ?>"
+              data-phone="<?= htmlspecialchars($u['phone'] ?? '', ENT_QUOTES) ?>"
+              data-role="<?= htmlspecialchars($u['role'], ENT_QUOTES) ?>"
+              data-private-operator-id="<?= htmlspecialchars((string)($u['private_operator_id'] ?? ''), ENT_QUOTES) ?>"
+              data-sltb-depot-id="<?= htmlspecialchars((string)($u['sltb_depot_id'] ?? ''), ENT_QUOTES) ?>"
+            >✎</a>
+
+            <!-- Suspend/Unsuspend posts to controller -->
+            <form method="post" class="inline-form" style="display:inline" onsubmit="return confirm('<?= $u['status']==='Active' ? 'Suspend this user?' : 'Unsuspend this user?' ?>');">
+              <input type="hidden" name="action" value="<?= $u['status']==='Active' ? 'suspend' : 'unsuspend' ?>">
+              <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
+              <button class="icon-btn info" title="<?= $u['status']==='Active' ? 'Suspend' : 'Unsuspend' ?>" type="submit">
+                <?= $u['status']==='Active' ? '⏸' : '▶' ?>
+              </button>
+            </form>
+
+            <!-- Delete posts to controller -->
+            <form method="post" class="inline-form" style="display:inline" onsubmit="return confirm('Delete this user? This cannot be undone.');">
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
+              <button class="icon-btn danger" title="Delete" type="submit">🗑</button>
+            </form>
+          </td>
         </tr>
       <?php endforeach; ?>
     </tbody>

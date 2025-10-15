@@ -1,0 +1,33 @@
+[14-Oct-2025 11:37:11 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`nexbus`.`complaints`, CONSTRAINT `fk_comp_user` FOREIGN KEY (`assigned_to_user_id`) REFERENCES `users` (`user_id`)) in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php:129
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php(129): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(77): App\models\ntc_admin\UserModel->delete(33)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\NtcAdminController->users()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('NtcAdminControl...', 'users')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php on line 129
+[14-Oct-2025 11:50:02 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`nexbus`.`complaints`, CONSTRAINT `fk_comp_user` FOREIGN KEY (`assigned_to_user_id`) REFERENCES `users` (`user_id`)) in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php:129
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php(129): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(79): App\models\ntc_admin\UserModel->delete(33)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\NtcAdminController->users()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('NtcAdminControl...', 'users')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php on line 129
+[14-Oct-2025 12:15:44 Asia/Colombo] PHP Fatal error:  Uncaught InvalidArgumentException: Invalid user_id in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php:74
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(66): App\models\ntc_admin\UserModel->update(Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\NtcAdminController->users()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(82): run('NtcAdminControl...', 'users')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php on line 74
+[14-Oct-2025 12:18:48 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 243
+[14-Oct-2025 12:18:50 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 243
+[14-Oct-2025 12:20:53 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 243
+[14-Oct-2025 12:20:54 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 243
+[14-Oct-2025 12:22:27 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 243
+[14-Oct-2025 12:22:28 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 243
+[14-Oct-2025 12:56:27 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 236
+[14-Oct-2025 12:58:03 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 236
+[14-Oct-2025 12:58:59 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 236
+[14-Oct-2025 13:05:50 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "endforeach", expecting end of file in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 236

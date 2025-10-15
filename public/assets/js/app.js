@@ -159,3 +159,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 });
+  // ===== Edit User (open + prefill) =====
+  document.addEventListener('click', e => {
+    const editBtn = e.target.closest('.btn-edit');
+    if (!editBtn) return;
+
+    e.preventDefault();
+    // close other panels and open edit
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
+    document.getElementById('editUPanel')?.classList.add('show');
+
+    // pull data-* off the clicked button
+    const d = editBtn.dataset;
+    // fill form fields
+    document.getElementById('edit_user_id').value            = d.userId || '';
+    document.getElementById('edit_full_name').value          = d.fullName || '';
+    document.getElementById('edit_email').value              = d.email || '';
+    document.getElementById('edit_phone').value              = d.phone || '';
+    document.getElementById('edit_role').value               = d.role || 'Passenger';
+
+    // selects: may be "" or an id
+    const poSel = document.getElementById('edit_private_operator_id');
+    const dpSel = document.getElementById('edit_sltb_depot_id');
+    if (poSel) poSel.value = d.privateOperatorId || '';
+    if (dpSel) dpSel.value = d.sltbDepotId || '';
+    
+    // clear password field each open
+    const pw = document.getElementById('edit_password');
+    if (pw) pw.value = '';
+  });
+
+  // Cancel edit
+  document.addEventListener('click', e => {
+    if (e.target.id === 'cancelEditU') {
+      document.getElementById('editUPanel')?.classList.remove('show');
+    }
+  });
+

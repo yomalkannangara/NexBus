@@ -53,11 +53,39 @@ class NtcAdminController extends BaseController {
     }
     public function users() {
         $m = new UserModel();
-        if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create') {
-            $m->create($_POST);
-            $this->redirect('/A/users?msg=created');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $act = $_POST['action'] ?? '';
+
+            if ($act === 'create') {
+                $m->create($_POST);
+                $this->redirect('/A/users?msg=created');
+            }
+            if ($act === 'update') {
+                $m->update($_POST);
+                $this->redirect('/A/users?msg=updated');
+            }
+                
+            if ($act === 'suspend' || $act === 'unsuspend') {
+                $id = (int)($_POST['user_id'] ?? 0);
+                $m->setStatus($id, $act === 'suspend' ? 'Suspended' : 'Active');
+                $this->redirect('/A/users?msg=' . ($act === 'suspend' ? 'suspended' : 'unsuspended'));
+            }
+
+            if ($act === 'delete') {
+                $id = (int)($_POST['user_id'] ?? 0);
+                // Requires DB foreign keys referencing users(user_id) to be defined with ON DELETE CASCADE (or SET NULL as desired)
+                $m->delete($id);
+                $this->redirect('/A/users?msg=deleted');
+            }
         }
-        $this->view('ntc_admin','users',[ 'counts'=>$m->counts(), 'users'=>$m->list(), 'owners'=>$m->owners(), 'depots'=>$m->depots() ]);
+
+        $this->view('ntc_admin','users',[
+            'counts'=>$m->counts(),
+            'users'=>$m->list(),
+            'owners'=>$m->owners(),
+            'depots'=>$m->depots()
+        ]);
     }
     public function depots_owners() {
         $m = new OrgModel();
