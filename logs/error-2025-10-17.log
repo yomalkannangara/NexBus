@@ -1,0 +1,105 @@
+[17-Oct-2025 00:51:58 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:51:58 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:51:58 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:54:25 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:54:25 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:54:25 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:57:49 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:57:49 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:57:49 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:58:02 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:02 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:02 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:58:30 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:30 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:30 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:58:41 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:41 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:41 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:58:47 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:47 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:47 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:58:53 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:53 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:58:53 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 00:59:06 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:59:06 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 00:59:06 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 01:00:21 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:00:21 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:00:21 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 01:08:58 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:08:58 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:08:58 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 01:09:10 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:09:10 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:09:10 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 01:09:12 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:09:12 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:09:12 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 01:13:06 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:13:06 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:13:06 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 01:14:50 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:14:50 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 01:14:50 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16

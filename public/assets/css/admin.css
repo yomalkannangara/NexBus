@@ -971,6 +971,7 @@ input:checked+.slider:before {
 @media (max-width: 900px){
   .filters-grid-3{ grid-template-columns:1fr; }
 }
+
 .field label{
   display:block; margin-bottom:6px; color: var(--maroon);
   font-weight: 600;

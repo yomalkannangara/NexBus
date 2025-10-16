@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 use PDO;
+
 class UserModel
 {
     private PDO $pdo;
@@ -18,6 +19,66 @@ class UserModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
+
+    /** Create Passenger user (users + passengers) using the same pattern as your example. */
+    public function createPassenger(array $d): int
+    {
+        $name  = trim($d['full_name'] ?? '');
+        $email = trim($d['email'] ?? '');
+        $phone = trim($d['phone'] ?? '');
+        $pwd   = $d['password'] ?? '';
+
+        if ($name === '' || $email === '' || $pwd === '') return 0;
+
+        // Compute ONCE so both tables share the same hash (like your example)
+        $pwdHash = password_hash($pwd, PASSWORD_BCRYPT);
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1) Insert into users
+            $st = $this->pdo->prepare("
+                INSERT INTO users (role, full_name, email, phone, password_hash, status)
+                VALUES ('Passenger', ?, ?, ?, ?, 'Active')
+            ");
+            $st->execute([
+                $name,
+                $email,
+                ($phone !== '' ? $phone : null),
+                $pwdHash
+            ]);
+
+            $userId = (int)$this->pdo->lastInsertId();
+
+            // 2) Insert/Update passengers (FK: passengers.user_id → users.user_id)
+            //    Mirrors your example's ON DUPLICATE KEY pattern
+            $st2 = $this->pdo->prepare("
+                INSERT INTO passengers (user_id, full_name, email, phone, password_hash)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                full_name     = VALUES(full_name),
+                email         = VALUES(email),
+                phone         = VALUES(phone),
+                password_hash = VALUES(password_hash)
+            ");
+            $st2->execute([
+                $userId,
+                $name,
+                $email,
+                ($phone !== '' ? $phone : null),
+                $pwdHash
+            ]);
+
+            $this->pdo->commit();
+            return $userId;
+
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            return 0;
+        }
+    }
+
+
 
     public static function update(array $data): bool
     {

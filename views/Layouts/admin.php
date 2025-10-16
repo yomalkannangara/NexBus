@@ -22,6 +22,9 @@ $page   = $segments[1] ?? 'dashboard';
     <title>NTC Admin</title>
   <link rel="stylesheet" href="/assets/css/admin.css">
   <script defer src="/assets/js/app.js"></script>
+  <link rel="stylesheet" href="/assets/css/alert.css">
+<script src="/assets/js/alert.js"></script>
+
 </head>
 <body>
   <header class="topbar">
