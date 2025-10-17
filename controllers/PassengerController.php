@@ -205,4 +205,66 @@ class PassengerController extends BaseController {
           'tab'    => $tab,
       ]);
   }
+
+    /** Profile: view & update details, change password, delete account. */
+  public function profile() {
+      $m = new ProfileModel();
+
+      // Resolve current user (adjust to your auth session)
+      $me = $m->sessionUser();
+      $uid = (int)($me['user_id'] ?? $me['id'] ?? 0);
+      if ($uid <= 0) { 
+          // Fallback for demo/dev. Replace/remove once you have real auth.
+          $uid = 52; 
+      }
+
+      $msg = $_GET['msg'] ?? null;
+      $err = null;
+
+      if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+          $act = $_POST['action'] ?? '';
+
+          if ($act === 'update_profile') {
+              $res = $m->updateProfile($uid, $_POST);
+              return $this->redirect('/profile?msg=' . ($res['ok'] ? 'updated' : urlencode($res['error'] ?? 'error')));
+          }
+
+          if ($act === 'update_password') {
+              $res = $m->changePassword($uid, $_POST['current_password'] ?? '', $_POST['new_password'] ?? '', $_POST['confirm_password'] ?? '');
+              return $this->redirect('/profile?msg=' . ($res['ok'] ? 'pw_changed' : urlencode($res['error'] ?? 'pw_error')));
+          }
+
+          if ($act === 'delete_account') {
+              $mode = $_POST['mode'] ?? 'soft';
+              $typed = trim($_POST['confirm'] ?? '');
+              if ($typed !== 'DELETE') {
+                  return $this->redirect('/profile?msg=' . urlencode('Type DELETE to confirm.'));
+              }
+              $ok = ($mode === 'hard') ? $m->hardDelete($uid) : $m->softDelete($uid);
+
+              // log out and go home (or /logout if you have a route)
+              if ($ok) {
+                  $_SESSION = [];
+                  if (ini_get("session.use_cookies")) {
+                      $params = session_get_cookie_params();
+                      setcookie(session_name(), '', time() - 42000,
+                          $params["path"], $params["domain"],
+                          $params["secure"], $params["httponly"]
+                      );
+                  }
+                  session_destroy();
+                  return $this->redirect('/logout'); // change to '/' if needed
+              }
+              return $this->redirect('/profile?msg=delete_failed');
+          }
+      }
+
+      $meFresh = $m->findByUserId($uid);
+
+      $this->view('passenger', 'profile', [
+          'me'  => $meFresh,
+          'msg' => $msg
+      ]);
+  }
+
 }

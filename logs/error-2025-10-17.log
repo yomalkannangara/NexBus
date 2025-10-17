@@ -103,3 +103,4 @@ Stack trace:
 #0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
 #1 {main}
   thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 15:35:37 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
