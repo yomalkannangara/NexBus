@@ -1,0 +1,26 @@
+/* Staff CSS (Depot Officer + Timekeepers)
+   Import the admin look first, then add small overrides.
+*/
+@import url("/assets/css/admin.css");
+
+/* Optional, scoped tweaks (safe to remove if you want pixel-identical) */
+.role-staff .menu .menu-item.active { background:#eef2ff; color:#1e40af; }
+.role-staff .menu .menu-item { border-radius:10px; }
+.role-staff .topbar .user { font-weight:600; }
+
+.role-staff .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+.role-staff .card { box-shadow:0 6px 16px rgba(0,0,0,.06); }
+.role-staff .card h3 { color:#334155; font-size:.95rem; margin:0 0 6px; }
+.role-staff .card > div { font-size:1.6rem; font-weight:700; }
+
+.role-staff .table { width:100%; border-collapse:collapse; background:#fff; }
+.role-staff .table th,.role-staff .table td { padding:10px 12px; border-bottom:1px solid #eee; }
+.role-staff .table th { background:#fafafa; color:#475569; }
+
+.role-staff input, .role-staff select, .role-staff textarea {
+  border:1px solid #e5e7eb; border-radius:8px; padding:8px 10px; width:100%; background:#fff;
+}
+.role-staff button, .role-staff .button, .role-staff input[type="submit"] {
+  background:#2563eb; border:1px solid #2563eb; color:#fff; padding:8px 12px; border-radius:8px; font-weight:600;
+}
+.role-staff button:hover { filter:brightness(0.97); }

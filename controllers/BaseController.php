@@ -58,7 +58,7 @@ protected function view(string $module, string $page, array $data = []): void {
 
         $layoutName = $layout ?? $this->layout;
     // Use correct case to match folder name for portability (Windows vs Linux)
-    $layoutFile = $this->viewsPath . 'Layouts/' . $layoutName . '.php';
+    $layoutFile = $this->viewsPath . 'layouts/' . $layoutName . '.php'; //Layout changed to lowercase
         if (!is_file($layoutFile)) {
             throw new RuntimeException("Layout not found: {$layoutName}");
         }

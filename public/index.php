@@ -55,9 +55,19 @@ $routes = [
     '/profile'       => ['PassengerController','profile'],
     '/notifications' => ['PassengerController','notifications'],
 
+     // Depot Officer
+    '/O'               => ['DepotOfficerController','dashboard'],
+    '/O/dashboard'     => ['DepotOfficerController','dashboard'],
+    '/O/complaints'    => ['DepotOfficerController','complaints'],
+    '/O/reports'       => ['DepotOfficerController','reports'],
+    '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
+    '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
+    '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
+    '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
+    '/O/attendance'    => ['DepotOfficerController','attendance'],    // NEW
+
     // Other roles
     '/M'   => ['DepotManagerController','home'],
-    '/O'   => ['DepotOfficerController','home'],
     '/P'   => ['BusOwnerController','home'],
     '/TP'  => ['TimekeeperPrivateController','home'],
     '/TS'  => ['TimekeeperSltbController','home'],

@@ -12,6 +12,8 @@ $module = $segments[0] ?? 'ntc_admin';
 $page   = $segments[1] ?? 'dashboard';
 
 // Now you can use $module and $page just like before
+/* $role = $_SESSION['user']['role'] ?? 'guest';
+$isStaffRole = in_array($role, ['DepotOfficer','SLTBTimekeeper','PrivateTimekeeper'], true); */
 
 ?>
 <!doctype html>

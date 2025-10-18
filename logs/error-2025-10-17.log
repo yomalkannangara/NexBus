@@ -103,3 +103,24 @@ Stack trace:
 #0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
 #1 {main}
   thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 15:35:25 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: NO)
+[17-Oct-2025 15:48:30 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1049] Unknown database 'nexbus'
+[17-Oct-2025 15:48:32 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1049] Unknown database 'nexbus'
+[17-Oct-2025 15:48:34 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1049] Unknown database 'nexbus'
+[17-Oct-2025 15:49:40 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1049] Unknown database 'nexbus'
+[17-Oct-2025 15:49:41 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1049] Unknown database 'nexbus'
+[17-Oct-2025 17:17:39 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 17:17:39 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 114
+[17-Oct-2025 17:17:39 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 114 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(114): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[17-Oct-2025 22:39:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(108): run('DepotOfficerCon...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 3
