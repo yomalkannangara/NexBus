@@ -36,10 +36,63 @@ class DepotOfficerModel extends BaseModel
     // Session / role
     public function me(): array { return $this->guard->me(); }
     public function requireDepotOfficer(): void { $this->guard->requireDepotOfficer(); }
-    public function myDepotId(array $u): int { return $this->guard->myDepotId($u); }
+    public function myDepotId(array $u): int {
+    // 1) try session
+    if (!empty($u['sltb_depot_id'])) return (int)$u['sltb_depot_id'];
+
+    // 2) accept either 'user_id' or 'id' from session
+    $uid = (int)($u['user_id'] ?? $u['id'] ?? 0);
+    if (!$uid) return 0;
+
+    // 3) try users.sltb_depot_id
+    $st = $this->pdo->prepare("SELECT sltb_depot_id FROM users WHERE user_id=?");
+    $st->execute([$uid]);
+    $dep = (int)($st->fetchColumn() ?: 0);
+
+    // 4) fallback: users.depot_id (some schemas use this name)
+    if (!$dep) {
+        $st = $this->pdo->prepare("SELECT depot_id FROM users WHERE user_id=?");
+        $st->execute([$uid]);
+        $dep = (int)($st->fetchColumn() ?: 0);
+    }
+
+    // 5) optional fallback: mapping table if you have one
+    if (!$dep) {
+        try {
+            $st = $this->pdo->prepare("SELECT sltb_depot_id FROM sltb_depot_users WHERE user_id=? ORDER BY is_primary DESC LIMIT 1");
+            $st->execute([$uid]);
+            $dep = (int)($st->fetchColumn() ?: 0);
+        } catch (\Throwable $e) {
+            // table may not exist; ignore
+        }
+    }
+
+    // 6) cache into the session for next requests
+    if ($dep) $_SESSION['user']['sltb_depot_id'] = $dep;
+
+    return $dep;
+}
 
     // Lookups
-    public function depot(int $depotId): ?array { return $this->lookup->depot($depotId); }
+public function depot(int $depotId): ?array {
+    if (!$depotId) return null;
+
+    // Try sltb_depots first
+    try {
+        $st = $this->pdo->prepare("SELECT sltb_depot_id AS id, name, code FROM sltb_depots WHERE sltb_depot_id=?");
+        $st->execute([$depotId]);
+        if ($row = $st->fetch()) return $row;
+    } catch (\Throwable $e) {}
+
+    // Fallback to generic depots table
+    try {
+        $st = $this->pdo->prepare("SELECT depot_id AS id, name, code FROM depots WHERE depot_id=?");
+        $st->execute([$depotId]);
+        if ($row = $st->fetch()) return $row;
+    } catch (\Throwable $e) {}
+
+    return null;
+}
     public function depotBuses(int $depotId): array { return $this->lookup->depotBuses($depotId); }
     public function depotDrivers(int $depotId): array { return $this->lookup->depotDrivers($depotId); }
     public function depotStaff(int $depotId): array { return $this->lookup->depotStaff($depotId); }
