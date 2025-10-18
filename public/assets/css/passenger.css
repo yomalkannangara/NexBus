@@ -1214,3 +1214,21 @@ textarea:focus {
 .m-topbar .icon-btn:hover { background: rgba(0,0,0,.07); }
 .m-topbar .icon-btn:active { transform: scale(.97); }
 .m-topbar .icon-btn svg { width: 20px; height: 20px; }
+/* ===== Profile page tiny additions (scoped) ===== */
+.form-hint { font-size: 12px; color: var(--muted); }
+
+.danger-card {
+  border: 1px solid rgba(231, 76, 60, .25);
+  background: linear-gradient(180deg, #fff, rgba(231,76,60,.04));
+}
+
+.danger-card .btn.ghost {
+  border: 1px solid var(--divider);
+}
+
+/* Make inputs in .select-wrap wrap text nicely on small screens */
+.select-wrap input[type="text"],
+.select-wrap input[type="email"],
+.select-wrap input[type="password"] {
+  min-width: 0;
+}
