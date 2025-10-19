@@ -1,28 +1,117 @@
 <?php
-namespace App\Models;
+namespace App\models\depot_manager;
 
-final class EarningsModel {
-    public function top(): array {
-        return [
-            ['value'=>'Rs. 845,500','label'=>'Daily Income','trend'=>'+5.2% from yesterday','color'=>'maroon'],
-            ['value'=>'Rs. 1,250,000','label'=>'Highest Income','sub'=>'December 31, 2024','color'=>'green'],
-            ['value'=>'Rs. 425,000','label'=>'Lowest Income','sub'=>'January 1, 2025','color'=>'red'],
-        ];
+use PDO;
+use PDOException;
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
     }
-    public function busIncome(): array {
-        return [
-            ['number'=>'NC-1247','route'=>'Colombo - Kandy','daily'=>'Rs. 12,500','weekly'=>'Rs. 87,500','eff'=>'95%'],
-            ['number'=>'WP-3456','route'=>'Galle - Matara','daily'=>'Rs. 8,750','weekly'=>'Rs. 61,250','eff'=>'88%'],
-            ['number'=>'CP-7890','route'=>'Negombo - Airport','daily'=>'Rs. 15,200','weekly'=>'Rs. 106,400','eff'=>'98%'],
-            ['number'=>'SP-2134','route'=>'Kurunegala - Anuradhapura','daily'=>'Rs. 0','weekly'=>'Rs. 45,600','eff'=>'0%'],
-            ['number'=>'EP-5678','route'=>'Trincomalee - Batticaloa','daily'=>'Rs. 9,800','weekly'=>'Rs. 68,600','eff'=>'92%'],
-        ];
+}
+
+class EarningsModel extends BaseModel
+{
+    public function top(): array
+    {
+        try {
+            $sql = "SELECT b.reg_no, SUM(e.amount) total
+                      FROM earnings e
+                      JOIN buses b ON b.id=e.bus_id
+                  WHERE YEAR(e.date)=YEAR(CURDATE()) AND MONTH(e.date)=MONTH(CURDATE())
+                  GROUP BY b.id, b.reg_no
+                  ORDER BY total DESC
+                  LIMIT 10";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
     }
-    public function monthlySummary(): array {
-        return [
-            'current'  => 'Rs. 24.5M',
-            'previous' => 'Rs. 23.2M',
-            'growth'   => '+5.6%',
-        ];
+
+    public function busIncome(): array
+    {
+        try {
+            $sql = "SELECT b.reg_no, SUM(e.amount) AS total
+                      FROM earnings e
+                      JOIN buses b ON b.id=e.bus_id
+                  WHERE YEAR(e.date)=YEAR(CURDATE()) AND MONTH(e.date)=MONTH(CURDATE())
+                  GROUP BY b.id, b.reg_no
+                  ORDER BY b.reg_no";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function monthlySummary(): array
+    {
+        try {
+            $sql = "SELECT DATE(e.date) as date, SUM(e.amount) as total
+                      FROM earnings e
+                  WHERE YEAR(e.date)=YEAR(CURDATE()) AND MONTH(e.date)=MONTH(CURDATE())
+                  GROUP BY DATE(e.date)
+                  ORDER BY DATE(e.date)";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function add(array $d): bool
+    {
+        try {
+            $sql = "INSERT INTO earnings (bus_id, date, amount, source, created_at)
+                    VALUES (:bus_id, :date, :amount, :source, NOW())";
+            $st  = $this->pdo->prepare($sql);
+            return $st->execute([
+                ':bus_id' => (int)($d['bus_id'] ?? 0),
+                ':date'   => $d['date'] ?? date('Y-m-d'),
+                ':amount' => (float)($d['amount'] ?? 0),
+                ':source' => $d['source'] ?? 'Ticketing',
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function delete(int $id): bool
+    {
+        try {
+            $st = $this->pdo->prepare("DELETE FROM earnings WHERE id=?");
+            return $st->execute([$id]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function importCsv(?array $file): bool
+    {
+        if (!$file || !is_uploaded_file($file['tmp_name'] ?? '')) return false;
+
+        $okAll = true;
+        if (($handle = fopen($file['tmp_name'], 'r')) !== false) {
+            // Optional: skip header
+            $first = true;
+            while (($row = fgetcsv($handle)) !== false) {
+                // Expect columns: bus_id,date,amount,source
+                if ($first && $this->looksLikeHeader($row)) { $first = false; continue; }
+                $first = false;
+                $ok = $this->add([
+                    'bus_id' => (int)($row[0] ?? 0),
+                    'date'   => $row[1] ?? date('Y-m-d'),
+                    'amount' => (float)($row[2] ?? 0),
+                    'source' => $row[3] ?? 'Ticketing',
+                ]);
+                if (!$ok) $okAll = false;
+            }
+            fclose($handle);
+        }
+        return $okAll;
+    }
+
+    private function looksLikeHeader(array $row): bool
+    {
+        $joined = strtolower(implode(',', $row));
+        return str_contains($joined, 'bus') || str_contains($joined, 'amount');
     }
 }

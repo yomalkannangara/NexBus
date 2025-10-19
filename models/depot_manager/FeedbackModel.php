@@ -1,22 +1,130 @@
 <?php
-namespace App\Models;
+namespace App\models\depot_manager;
 
-final class FeedbackModel {
-    public function cards(): array {
+use PDO;
+use PDOException;
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
+    }
+}
+
+class FeedbackModel extends BaseModel
+{
+    public function cards(): array
+    {
+        $totalMonth = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE())");
+        $open       = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE status IN ('Open','In Progress')");
+        $resolved   = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE status='Resolved' AND YEAR(updated_at)=YEAR(CURDATE()) AND MONTH(updated_at)=MONTH(CURDATE())");
+        $avgRating  = $this->avgSafe("SELECT AVG(rating) a FROM complaints WHERE rating IS NOT NULL AND rating>0");
+
         return [
-            ['value'=>'47','label'=>'Total This Month','trend'=>'down','trendText'=>'-12% from last month','class'=>'text-primary','icon'=>'message-square','accent'=>'primary'],
-            ['value'=>'15','label'=>'Open Complaints','trend'=>'up','trendText'=>'+5% from last week','class'=>'text-red','icon'=>'message-circle','accent'=>'red'],
-            ['value'=>'32','label'=>'Resolved This Month','trend'=>'up','trendText'=>'+8% resolution rate','class'=>'text-green','icon'=>'message-circle','accent'=>'green'],
-            ['value'=>'4.2','label'=>'Average Rating','trend'=>'up','trendText'=>'+0.3 from last month','class'=>'text-secondary','icon'=>'star','accent'=>'secondary'],
+            ['value' => (string)$totalMonth, 'label' => 'Total This Month',  'trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'message'],
+            ['value' => (string)$open,       'label' => 'Open Complaints',   'trendText' => '', 'trend' => '', 'trendClass' => 'red',   'icon' => 'message-circle'],
+            ['value' => (string)$resolved,   'label' => 'Resolved This Month','trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'message-circle'],
+            ['value' => number_format((float)$avgRating, 1), 'label' => 'Average Rating', 'trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'star'],
         ];
     }
-    public function rows(): array {
-        return [
-            ['id'=>'FB001','date'=>'2025-01-10','busNumber'=>'NC-1247','route'=>'Colombo - Kandy','passengerName'=>'Saman Kumara','type'=>'Complaint','category'=>'Delay','description'=>'Bus was 45 minutes late from scheduled departure','status'=>'In Progress','rating'=>2],
-            ['id'=>'FB002','date'=>'2025-01-10','busNumber'=>'WP-3456','route'=>'Galle - Matara','passengerName'=>'Amara Silva','type'=>'Feedback','category'=>'Service Quality','description'=>'Very clean bus and friendly driver. Excellent service!','status'=>'Resolved','rating'=>5],
-            ['id'=>'FB003','date'=>'2025-01-09','busNumber'=>'CP-7890','route'=>'Negombo - Airport','passengerName'=>'Nimal Fernando','type'=>'Complaint','category'=>'Driver Behavior','description'=>'Driver was rude and spoke harshly to elderly passengers','status'=>'Open','rating'=>1],
-            ['id'=>'FB004','date'=>'2025-01-09','busNumber'=>'SP-2134','route'=>'Kurunegala - Anuradhapura','passengerName'=>'Priya Perera','type'=>'Suggestion','category'=>'Route Improvement','description'=>'Please add more stops between Kurunegala and Dambulla','status'=>'Under Review','rating'=>3],
-            ['id'=>'FB005','date'=>'2025-01-08','busNumber'=>'EP-5678','route'=>'Trincomalee - Batticaloa','passengerName'=>'Rajesh Kumar','type'=>'Complaint','category'=>'Vehicle Condition','description'=>'Air conditioning not working, very uncomfortable journey','status'=>'Resolved','rating'=>2],
-        ];
+
+    public function list(): array
+    {
+        try {
+            $sql = "SELECT c.id,
+                           DATE(c.created_at) AS date,
+                           b.reg_no AS busNumber,
+                           CONCAT(r.route_no, ' - ', r.name) AS route,
+                           c.passenger_name AS passengerName,
+                           CASE WHEN c.type IS NULL OR c.type='' THEN 'Complaint' ELSE c.type END AS type,
+                           c.category,
+                           c.description,
+                           c.status,
+                           IFNULL(c.rating, 0) AS rating
+                    FROM complaints c
+                    LEFT JOIN buses b  ON b.id = c.bus_id
+                    LEFT JOIN routes r ON r.route_id = c.route_id
+                    ORDER BY c.created_at DESC
+                    LIMIT 200";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function assign(array $d): bool
+    {
+        try {
+            $sql = "UPDATE complaints SET assigned_to=:uid, status='In Progress', updated_at=NOW() WHERE id=:id";
+            $st  = $this->pdo->prepare($sql);
+            return $st->execute([
+                ':uid' => (int)($d['user_id'] ?? 0),
+                ':id'  => (int)($d['complaint_id'] ?? 0),
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function resolve(array $d): bool
+    {
+        try {
+            $sql = "UPDATE complaints SET status='Resolved', resolution_note=:note, updated_at=NOW(), resolved_at=NOW() WHERE id=:id";
+            $st  = $this->pdo->prepare($sql);
+            return $st->execute([
+                ':note' => $d['note'] ?? null,
+                ':id'   => (int)($d['complaint_id'] ?? 0),
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function close(array $d): bool
+    {
+        try {
+            $sql = "UPDATE complaints SET status='Closed', updated_at=NOW() WHERE id=:id";
+            $st  = $this->pdo->prepare($sql);
+            return $st->execute([':id' => (int)($d['complaint_id'] ?? 0)]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function reply(array $d): bool
+    {
+        try {
+            $sql = "INSERT INTO complaint_replies (complaint_id, user_id, message, created_at)
+                    VALUES (:cid, :uid, :msg, NOW())";
+            $st  = $this->pdo->prepare($sql);
+            return $st->execute([
+                ':cid' => (int)($d['complaint_id'] ?? 0),
+                ':uid' => (int)($_SESSION['user']['id'] ?? 0),
+                ':msg' => $d['message'] ?? '',
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    private function countSafe(string $sql, array $params = []): int
+    {
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
+        } catch (PDOException $e) {
+            return 0;
+        }
+    }
+
+    private function avgSafe(string $sql, array $params = []): float
+    {
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return (float)($st->fetch(PDO::FETCH_ASSOC)['a'] ?? 0.0);
+        } catch (PDOException $e) {
+            return 0.0;
+        }
     }
 }

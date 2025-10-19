@@ -1,22 +1,67 @@
 <?php
-namespace App\Models;
+namespace App\models\depot_manager;
 
-final class PerformanceModel {
-    public function cards(): array {
+use PDO;
+use PDOException;
+abstract class BaseModel {
+    protected PDO $pdo;
+    public function __construct() {
+        $this->pdo = $GLOBALS['db'];   
+    }
+}
+
+class PerformanceModel extends BaseModel
+{
+    public function cards(): array
+    {
+        $avgPunctual  = $this->avgSafe("SELECT AVG(punctuality_score) a FROM trip_performance WHERE DATE(trip_date) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        $avgSafeDrive = $this->avgSafe("SELECT AVG(safe_driving_score) a FROM trip_performance WHERE DATE(trip_date) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        $trips        = $this->countSafe("SELECT COUNT(*) c FROM trip_performance WHERE DATE(trip_date)=CURDATE()");
+        $topAlerts    = $this->countSafe("SELECT COUNT(*) c FROM trip_performance WHERE DATE(trip_date)=CURDATE() AND violations>0");
+
         return [
-            ['title'=>'Delayed Buses Today','value'=>'47','sub'=>'Filtered results','color'=>'red','icon'=>'clock'],
-            ['title'=>'Average Driver Rating','value'=>'8.0','sub'=>'Filtered average','color'=>'green','icon'=>'star'],
-            ['title'=>'Speed Violations','value'=>'75','sub'=>'Filtered data','color'=>'yellow','icon'=>'zap'],
-            ['title'=>'Long Wait Times','value'=>'15%','sub'=>'Over 10 minutes','color'=>'maroon','icon'=>'trending-up'],
+            ['label' => 'Avg Punctuality (7d)', 'value' => number_format((float)$avgPunctual, 1)],
+            ['label' => 'Avg Safe Driving (7d)', 'value' => number_format((float)$avgSafeDrive, 1)],
+            ['label' => 'Trips Today', 'value' => (string)$trips],
+            ['label' => 'Alerts Today', 'value' => (string)$topAlerts],
         ];
     }
-    public function topDrivers(): array {
-        return [
-            ['rank'=>1,'name'=>'Sunil Perera','route'=>'Colombo - Kandy','delay'=>'2%','rating'=>'4.8','speed'=>'1','wait'=>'3%'],
-            ['rank'=>2,'name'=>'Pradeep Kumar','route'=>'Trincomalee - Batticaloa','delay'=>'4%','rating'=>'4.7','speed'=>'2','wait'=>'5%'],
-            ['rank'=>3,'name'=>'Ravi Fernando','route'=>'Negombo - Airport','delay'=>'5%','rating'=>'4.6','speed'=>'0','wait'=>'4%'],
-            ['rank'=>4,'name'=>'Anil Jayawardana','route'=>'Galle - Matara','delay'=>'6%','rating'=>'4.5','speed'=>'3','wait'=>'7%'],
-            ['rank'=>5,'name'=>'Mahesh Silva','route'=>'Kurunegala - Anuradhapura','delay'=>'7%','rating'=>'4.4','speed'=>'1','wait'=>'8%'],
-        ];
+
+    public function topDrivers(): array
+    {
+        try {
+            $sql = "SELECT d.id, d.name, AVG(p.overall_score) AS score, COUNT(*) trips
+                      FROM trip_performance p
+                      JOIN drivers d ON d.id=p.driver_id
+                  GROUP BY d.id, d.name
+                  HAVING trips >= 5
+                  ORDER BY score DESC
+                  LIMIT 20";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    private function countSafe(string $sql, array $params = []): int
+    {
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
+        } catch (PDOException $e) {
+            return 0;
+        }
+    }
+
+    private function avgSafe(string $sql, array $params = []): float
+    {
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return (float)($st->fetch(PDO::FETCH_ASSOC)['a'] ?? 0.0);
+        } catch (PDOException $e) {
+            return 0.0;
+        }
     }
 }

@@ -64,10 +64,20 @@ $routes = [
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
-    '/O/attendance'    => ['DepotOfficerController','attendance'],    // NEW
+    '/O/attendance'    => ['DepotOfficerController','attendance'],    // 
+    
+    '/M'               => ['DepotManagerController','dashboard'],
+    '/M/dashboard'     => ['DepotManagerController','dashboard'],
+    '/M/fleet'    => ['DepotManagerController','fleet'],
+    '/M/feedback'       => ['DepotManagerController','feedback'],
+    '/M/health'   => ['DepotManagerController','health'],   // NEW
+    '/M/drivers'    => ['DepotManagerController','drivers'],    // NEW
+    '/M/performance'      => ['DepotManagerController','performance'],      // NEW
+    '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
+    
 
     // Other roles
-    '/M'   => ['DepotManagerController','home'],
+    
     '/P'   => ['BusOwnerController','home'],
     '/TP'  => ['TimekeeperPrivateController','home'],
     '/TS'  => ['TimekeeperSltbController','home'],

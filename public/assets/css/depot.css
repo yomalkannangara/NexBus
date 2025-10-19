@@ -1,0 +1,165 @@
+/* ============ Depot Manager Layout (match look of provided admin UI) ============ */
+:root{
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --text: #1f2430;
+  --muted: #6d7688;
+
+  /* brand (maroon + gold from screenshot) */
+  --brand: #7a0f2e;
+  --brand-2: #8f1238;
+  --brand-3: #a41540;
+  --gold: #f3d27b;
+
+  /* borders and shadows */
+  --line: #e6ebf3;
+  --shadow: 0 10px 24px rgba(16, 24, 40, 0.06);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+  color:var(--text);
+  background:
+    linear-gradient(180deg, rgba(122,15,46,0.04), rgba(122,15,46,0.02)) no-repeat,
+    var(--bg);
+}
+
+/* ---------------- Topbar ---------------- */
+.topbar{
+  height:72px;
+  background: var(--brand);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 22px 0 18px;
+  border-bottom: 4px solid var(--gold);
+}
+.topbar .brand{display:flex;align-items:center;gap:12px}
+.topbar .logo{
+  width:46px;height:46px;border-radius:50%;
+  background:#fff2; display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  border:1px solid #ffffff44;
+}
+.topbar .logo img{width:100%;height:100%;object-fit:cover}
+.topbar .app{font-weight:700;font-size:18px;letter-spacing:.2px}
+.topbar .sub{font-size:12px;opacity:.85}
+.topbar .right{display:flex;align-items:flex-end;gap:12px;text-align:right}
+.topbar .right .user{font-weight:600}
+.topbar .right .date{font-size:12px;opacity:.9}
+
+/* ---------------- App shell ---------------- */
+.app-shell{
+  display:grid;
+  grid-template-columns: 280px 1fr;
+  gap:0;
+  min-height: calc(100vh - 72px);
+}
+
+/* ---------------- Sidebar ---------------- */
+.sidebar{
+  background: linear-gradient(180deg, var(--brand) 0%, #6a0d29 100%);
+  color:#fff;
+  padding:18px 14px 16px;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+.sidebar-head{
+  display:flex;align-items:center;gap:12px;
+  padding:8px 8px 16px 8px;
+  border-bottom:1px solid #ffffff1f;
+  margin-bottom:10px;
+}
+.mini-logo{width:36px;height:36px;border-radius:1rem;background:#fff1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid #ffffff30}
+.sb-title{font-weight:700;letter-spacing:.3px}
+.sb-sub{font-size:12px;opacity:.85}
+
+/* Menu */
+.menu{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.menu-item{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 12px;border-radius:10px;color:#fff;text-decoration:none;
+  position:relative;transition:all .18s ease;
+}
+.menu-item .icon{width:22px;height:22px;display:grid;place-items:center;opacity:.9}
+.menu-item:hover{background:#ffffff14}
+.menu-item.active{
+  background:#ffffff18; /* slightly lighter */
+  outline:2px solid #ffffff20;
+  box-shadow: inset 0 0 0 1px #ffffff10, 0 0 0 3px rgba(243,210,123,.15);
+}
+
+/* Profile block */
+.sidebar-profile{
+  margin-top:auto;
+  padding-top:16px;
+  border-top:1px solid #ffffff1f;
+}
+.profile-card{
+  display:flex;gap:12px;align-items:center;
+  text-decoration:none;color:#fff;
+  padding:10px;border-radius:12px;
+  background:#ffffff10;border:1px solid #ffffff20;
+}
+.profile-card:hover{background:#ffffff18}
+.profile-avatar{
+  width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;background:#fff2;color:#fff;font-weight:700;border:1px solid #ffffff30
+}
+.profile-meta{display:flex;flex-direction:column}
+.profile-name{font-weight:700;line-height:1.2}
+.profile-email{font-size:12px;opacity:.9}
+
+.profile-logout{
+  margin-top:10px;
+  display:flex;align-items:center;gap:8px;
+  color:#fff;text-decoration:none;
+  background: linear-gradient(180deg, #c92c4b, #b82643);
+  border:1px solid #ffffff24;
+  border-radius:12px;padding:10px 12px;font-weight:600;
+  box-shadow: var(--shadow);
+}
+.profile-logout:hover{filter:brightness(1.05)}
+.logout-icon{font-size:16px}
+
+/* Sidebar foot */
+.sidebar-foot{
+  color:#ffffffcc;
+  font-size:12px;
+  margin-top:14px;
+  padding:10px 6px 0 6px;
+  border-top:1px dashed #ffffff2a;
+}
+.sidebar-foot .version{opacity:.9;margin-top:4px}
+
+/* ---------------- Main content ---------------- */
+#content{
+  padding:24px;
+  background: radial-gradient(1200px 600px at 40% -40%, rgba(243,210,123,.11), transparent 40%),
+              radial-gradient(800px 400px at 90% -10%, rgba(255,255,255,.8), transparent 50%),
+              var(--bg);
+}
+
+/* ---------------- Cards scaffolding (optional) ---------------- */
+.card{
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:14px; box-shadow: var(--shadow);
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 1080px){
+  .app-shell{grid-template-columns: 240px 1fr;}
+}
+@media (max-width: 860px){
+  .topbar{padding:0 14px}
+  .app-shell{grid-template-columns: 1fr}
+  .sidebar{
+    position:sticky; top:0; z-index:5;
+    border-bottom-left-radius:16px; border-bottom-right-radius:16px;
+  }
+}

@@ -1,0 +1,246 @@
+[19-Oct-2025 22:44:30 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:44:30 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:44:30 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 22:44:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php on line 27
+[19-Oct-2025 22:44:38 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:44:38 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:44:38 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 22:49:19 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:49:19 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:49:19 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 22:49:19 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:49:19 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 22:49:19 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:24 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:24 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:30 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:30 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:30 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:32 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:32 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:34 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:34 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:34 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:36 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:38 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:38 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:38 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:40 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:42 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:42 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:42 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:43 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:43 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:45 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:45 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:45 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:47 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:47 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:50 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:50 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 134
+[19-Oct-2025 23:01:50 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 134 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(134): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[19-Oct-2025 23:01:52 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:01:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:02:14 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:02:14 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:04:56 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:04:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:04:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/f...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(69): App\controllers\BaseController->view('depot_manager', 'fleet', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->fleet()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'fleet')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 9
+[19-Oct-2025 23:05:01 Asia/Colombo] PHP Warning:  Undefined array key "accent" in C:\xampp\htdocs\NexBus-1\views\depot_manager\drivers.php on line 8
+[19-Oct-2025 23:05:01 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\drivers.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(166): App\controllers\BaseController->view('depot_manager', 'drivers', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\drivers.php on line 11
+[19-Oct-2025 23:05:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php:42
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/f...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(103): App\controllers\BaseController->view('depot_manager', 'feedback', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->feedback()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'feedback')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 42
+[19-Oct-2025 23:05:03 Asia/Colombo] PHP Warning:  Undefined array key "accent" in C:\xampp\htdocs\NexBus-1\views\depot_manager\health.php on line 8
+[19-Oct-2025 23:05:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\health.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/h...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(130): App\controllers\BaseController->view('depot_manager', 'health', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->health()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'health')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\health.php on line 11
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 25
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "title" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 27
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "sub" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 28
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 25
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "title" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 27
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "sub" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 28
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 25
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "title" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 27
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "sub" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 28
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 25
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "title" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 27
+[19-Oct-2025 23:05:05 Asia/Colombo] PHP Warning:  Undefined array key "sub" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 28
+[19-Oct-2025 23:05:07 Asia/Colombo] PHP Warning:  Undefined array key "current" in C:\xampp\htdocs\NexBus-1\views\depot_manager\earnings.php on line 71
+[19-Oct-2025 23:05:07 Asia/Colombo] PHP Warning:  Undefined array key "previous" in C:\xampp\htdocs\NexBus-1\views\depot_manager\earnings.php on line 75
+[19-Oct-2025 23:05:07 Asia/Colombo] PHP Warning:  Undefined array key "growth" in C:\xampp\htdocs\NexBus-1\views\depot_manager\earnings.php on line 79
+[19-Oct-2025 23:05:15 Asia/Colombo] PHP Warning:  Undefined array key "color" in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
+[19-Oct-2025 23:05:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\Support\Icons" not found in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php:21
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(134): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/d...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(38): App\controllers\BaseController->view('depot_manager', 'dashboard', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->dashboard()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(128): run('DepotManagerCon...', 'dashboard')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\dashboard.php on line 21
