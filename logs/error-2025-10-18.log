@@ -1,0 +1,422 @@
+[18-Oct-2025 06:34:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(108): run('DepotOfficerCon...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 3
+[18-Oct-2025 06:49:45 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(108): run('DepotOfficerCon...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 3
+[18-Oct-2025 06:49:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(108): run('DepotOfficerCon...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 3
+[18-Oct-2025 06:50:10 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(108): run('DepotOfficerCon...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 3
+[18-Oct-2025 06:58:29 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:21:16 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:21:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:21:26 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:21:29 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:21:31 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:24:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:24:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:24:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:32:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:33:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:46:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:46:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:47:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:49:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:52:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:52:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 07:59:01 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'test@gmail.com' for key 'email' in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php:67
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php(67): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(61): App\models\ntc_admin\UserModel->create(Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\NtcAdminController->users()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('NtcAdminControl...', 'users')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php on line 67
+[18-Oct-2025 08:00:48 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:09:14 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:09:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:09:29 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:09:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:09:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:11:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:11:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:16:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:16:43 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 08:29:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 09:46:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 10:03:00 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(17): {closure}('App\\models\\depo...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 9
+[18-Oct-2025 12:47:33 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(154): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 15:35:55 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 15:36:33 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 16:55:00 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 16:55:39 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 16:58:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 19:51:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 19:51:53 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(77): App\models\depot_officer\ReportModel->kpis(0, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(0, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 21:27:36 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(2, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(2, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 21:37:12 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:78
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(78): PDO->prepare('SELECT depot_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(22): App\models\depot_officer\DepotOfficerModel->depot(2)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->dashboard()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 78
+[18-Oct-2025 21:37:13 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:78
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(78): PDO->prepare('SELECT depot_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(22): App\models\depot_officer\DepotOfficerModel->depot(2)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->dashboard()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 78
+[18-Oct-2025 21:37:19 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:78
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(78): PDO->prepare('SELECT depot_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(22): App\models\depot_officer\DepotOfficerModel->depot(2)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->dashboard()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 78
+[18-Oct-2025 21:37:23 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:78
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(78): PDO->prepare('SELECT depot_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(22): App\models\depot_officer\DepotOfficerModel->depot(2)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->dashboard()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 78
+[18-Oct-2025 21:38:29 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(2, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(2, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 22:19:35 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(2, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(2, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19

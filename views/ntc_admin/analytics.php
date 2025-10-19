@@ -87,44 +87,51 @@
 </section>
 
 <section class="charts-grid">
-  <div class="chart-card equal">
+  <div class="chart-card">
     <h2>Bus Status</h2>
-    <!-- slightly shorter so legend + canvas ≈ other cards -->
-    <canvas id="busStatusChart" width="720"  height="360"></canvas>
+    <canvas id="busStatusChart"></canvas>
   </div>
 
-  <div class="chart-card equal">
-    <h2>On-Time Performance</h2>
-    <canvas id="onTimeChart" width="720" height="360"></canvas>
+  <div class="chart-card ">
+    <h2>Delayed Buses by Route</h2>
+    <canvas id="delayedByRouteChart"></canvas>
+  </div>
+  
+  <div class="chart-card">
+    <h2>High Speed Violations by Bus</h2>
+    <canvas id="speedByBusChart"></canvas>
   </div>
 
-  <div class="chart-card equal">
+  <div class="chart-card">
     <h2>Revenue</h2>
-    <canvas id="revenueChart" width="720" height="360"></canvas>
+    <canvas id="revenueChart"></canvas>
   </div>
 
-  <div class="chart-card equal">
-    <h2>Complaints</h2>
-    <canvas id="complaintsChart" width="720" height="360"></canvas>
+  <div class="chart-card">
+    <h2>Bus Wait Time Distribution</h2>
+    <canvas id="waitTimeChart"></canvas>
   </div>
 
-  <div class="chart-card span-2 equal">
-    <h2>Utilization</h2>
-    <canvas id="utilizationChart" width="1280" height="480"></canvas>
+
+  <div class="chart-card ">
+    <h2>Complaints by Route</h2>
+    <canvas id="complaintsRouteChart"></canvas>
   </div>
 </section>
 
-<!-- OPTIONAL: your PHP JSON (keep if you have real data) -->
+<!-- keep if you have real PHP data -->
 <script id="analytics-data" type="application/json">
 <?= $analyticsJson ?? '{}' ?>
 </script>
 
-<!-- 1) Dummy data (used only when your JSON is empty/missing) -->
+<!-- central dummy values (used if PHP JSON is empty) -->
 <script src="../assets/js/analytics/dummyData.js"></script>
 
-<!-- 2) Charts (stand-alone, no imports) -->
+<!-- charts (standalone, no imports) -->
+<script src="../assets/js/analytics/chartCore.js"></script>
 <script src="../assets/js/analytics/busStatus.js"></script>
-<script src="../assets/js/analytics/onTime.js"></script>
 <script src="../assets/js/analytics/revenue.js"></script>
-<script src="../assets/js/analytics/complaints.js"></script>
-<script src="../assets/js/analytics/utilization.js"></script>
+<script src="../assets/js/analytics/speedByBus.js"></script>
+<script src="../assets/js/analytics/waitTime.js"></script>
+<script src="../assets/js/analytics/delayedByRoute.js"></script>
+<script src="../assets/js/analytics/complaintsRoute.js"></script>

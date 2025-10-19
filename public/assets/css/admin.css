@@ -865,38 +865,88 @@ input:checked+.slider {
 input:checked+.slider:before {
   transform: translateX(20px)
 }
-.chart-card {
+
+/* ===================== CHARTS (REWRITTEN) ===================== */
+/* Layout + visuals only. JS sets canvas height/bitmap (no oval donuts). */
+
+.charts-grid{
+  display:grid;
+  grid-template-columns: repeat(12, minmax(0,1fr));
+  gap:16px;
+  align-items:start;
+}
+
+.chart-card{
+  grid-column: span 6;
   background: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 20px;
-  margin: 20px auto;
-  max-width: 700px;
   text-align: center;
+  margin: 0;
+  max-width: none;
+  overflow: hidden;
 }
 
-.chart-card h2 {
-  margin-bottom: 12px;
-  font-size: 18px;
+.chart-card.span-2{ grid-column: span 12; }
+
+@media (max-width: 980px){
+  .chart-card{ grid-column: span 12; }
+}
+
+.chart-card h2{
+  margin: 0 0 12px;
   font-weight: 600;
   color: var(--primary);
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-canvas {
+/* canvases fill the card width; height comes from JS attributes */
+.chart-card canvas{
+  display:block;
+  width:100% !important;
+}
+
+/* Legend */
+.chart-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  justify-content:center;
+  margin-top:6px;
+}
+.chart-legend .legend-item{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color: var(--text);
+}
+.chart-legend .legend-item i{
+  width:10px;
+  height:10px;
+  border-radius:2px;
+  display:inline-block;
+}
+/* --- Allow JS to control canvas size (width & height) --- */
+.chart-card canvas,
+#busStatusChart,
+#waitTimeChart {
+  /* Let JS set exact px width/height via style attributes */
+  width: auto !important;     /* stop forcing 100% width */
+  max-width: 100%;            /* still shrink with the card if needed */
+  height: auto !important;              /* DO NOT use !important here */
+  aspect-ratio: auto !important;
+  max-height: none !important;
   display: block;
-  margin: 0 auto;
 }
-/* grid like the mock */
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
-.chart-card{max-width:none}
-.chart-card.span-2{grid-column:span 2}
-@media (max-width:980px){.charts-grid{grid-template-columns:1fr}.chart-card.span-2{grid-column:auto}}
 
-/* equalize card feel */
-.chart-card.equal{display:flex;flex-direction:column}
-.chart-legend{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:center;margin-top:6px}
-.chart-legend .legend-item{display:inline-flex;align-items:center;gap:8px;color:#2b2b2b;font:12px ui-sans-serif,system-ui,Segoe UI,Roboto}
-.chart-legend .legend-item i{width:10px;height:10px;border-radius:2px;display:inline-block;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+/* ===================== END CHARTS ===================== */
 
 /* ===== Filters panel (matches your screenshot) ===== */
 .filters-panel{
@@ -921,6 +971,7 @@ canvas {
 @media (max-width: 900px){
   .filters-grid-3{ grid-template-columns:1fr; }
 }
+
 .field label{
   display:block; margin-bottom:6px; color: var(--maroon);
   font-weight: 600;
@@ -946,15 +997,14 @@ canvas {
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* ===== KPI cards (new look, rounded with colored outline + icon on right) ===== */
+/* ===== KPI cards (new look) ===== */
 .kpi-wrap--neo{
   display:grid; grid-template-columns: repeat(4,1fr); gap:16px; margin-bottom:16px;
 }
 @media (max-width: 1100px){ .kpi-wrap--neo{ grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 640px){ .kpi-wrap--neo{ grid-template-columns: 1fr; } }
-
 .kpi2{
-  --tone:#80143c; 
+  --tone:#80143c;
   background: var(--card);
   border-radius: 18px;
   border: 1px solid var(--tone);
@@ -970,16 +1020,9 @@ canvas {
   width:40px; height:40px; border-radius:999px;
   display:grid; place-items:center;
   color: var(--tone);
-
 }
-.kpi2 .value{
-  font: 800 28px/1.1 ui-sans-serif; color: var(--tone);
-}
-.kpi2 .hint{
-  margin-top:4px; font-size:12px; color:#9aa0a6;
-}
-
-/* tone variants to match your screenshot */
+.kpi2 .value{ font: 800 28px/1.1 ui-sans-serif; color: var(--tone); }
+.kpi2 .hint{ margin-top:4px; font-size:12px; color:#9aa0a6; }
 .kpi2.tone-red   { --tone:#d0302c; }
 .kpi2.tone-green { --tone:#1e9e4a; }
 .kpi2.tone-orange{ --tone:#e06a00; }

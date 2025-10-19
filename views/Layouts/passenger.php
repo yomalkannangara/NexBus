@@ -21,6 +21,15 @@ $page   = $segments[0] ?? 'home';
       <div class="title">NexBus</div>
     </div>
     <div class="top-actions">
+      <!-- Logout (icon-only) -->
+      <a class="icon-btn" href="/logout" title="Log out" aria-label="Log out">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <!-- power icon -->
+          <path d="M11 3h2v10h-2V3z"/>
+          <path d="M7.05 7.05a7 7 0 1 0 9.9 0l-1.41 1.41a5 5 0 1 1-7.08 0L7.05 7.05z"/>
+        </svg>
+      </a>
+
       <!-- Notifications (bell) -->
       <a class="icon-btn" href="/notifications" title="Notifications" aria-label="Notifications">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

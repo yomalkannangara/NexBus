@@ -1,0 +1,16 @@
+:root { --ap-primary:#2a6cff; --ap-bg: rgba(0,0,0,.45); }
+.ap-backdrop{ position:fixed; inset:0; display:grid; place-items:center; background:var(--ap-bg); z-index:9999; }
+.ap-modal{
+  width:min(420px, calc(100vw - 28px));
+  background:#101522; color:#f2f5f9; border:1px solid rgba(255,255,255,.08);
+  border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,.35); overflow:hidden;
+}
+.ap-head{ padding:12px 16px; font-weight:700; border-bottom:1px solid rgba(255,255,255,.06); }
+.ap-body{ padding:14px 16px; line-height:1.45; white-space:pre-wrap; }
+.ap-foot{ padding:12px 16px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(255,255,255,.06); }
+.ap-btn{
+  border:1px solid rgba(255,255,255,.12); background:#141b2f; color:#e7ecf6;
+  padding:8px 14px; border-radius:10px; font-weight:600; cursor:pointer;
+}
+.ap-btn.primary{ background:var(--ap-primary); border-color:var(--ap-primary); color:#fff; }
+.ap-btn:active{ transform:translateY(1px); }

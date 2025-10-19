@@ -29,12 +29,13 @@ function run(string $ctrl, string $method): void {
     $obj->$method();
 }
 
-// 4. Route table
+// 4. Route table (flat)
 $routes = [
     // Auth
     '/login'        => ['AuthController','loginForm'],
     '/login/submit' => ['AuthController','login'],
     '/logout'       => ['AuthController','logout'],
+    '/register'     => ['AuthController','register'],
 
     // NTC Admin
     '/A/dashboard'     => ['NtcAdminController','dashboard'],
@@ -43,8 +44,7 @@ $routes = [
     '/A/users'         => ['NtcAdminController','users'],
     '/A/depots_owners' => ['NtcAdminController','depots_owners'],
     '/A/analytics'     => ['NtcAdminController','analytics'],
-    '/A/profile'     => ['NtcAdminController','profile'],
-
+    '/A/profile'       => ['NtcAdminController','profile'],
 
     // Passenger
     '/home'          => ['PassengerController','home'],
@@ -55,24 +55,60 @@ $routes = [
     '/profile'       => ['PassengerController','profile'],
     '/notifications' => ['PassengerController','notifications'],
 
+     // Depot Officer
+    '/O'               => ['DepotOfficerController','dashboard'],
+    '/O/dashboard'     => ['DepotOfficerController','dashboard'],
+    '/O/complaints'    => ['DepotOfficerController','complaints'],
+    '/O/reports'       => ['DepotOfficerController','reports'],
+    '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
+    '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
+    '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
+    '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
+    '/O/attendance'    => ['DepotOfficerController','attendance'],    // NEW
+
     // Other roles
     '/M'   => ['DepotManagerController','home'],
-    '/O'   => ['DepotOfficerController','home'],
     '/P'   => ['BusOwnerController','home'],
     '/TP'  => ['TimekeeperPrivateController','home'],
     '/TS'  => ['TimekeeperSltbController','home'],
 ];
 
-// 5. Guard protected routes (require login)
-$protectedPrefixes = ['/A','/M','/O','/P','/TP','/TS'];
-foreach ($protectedPrefixes as $pref) {
-    if ($path === $pref || str_starts_with($path, $pref.'/')) {
-        if (empty($_SESSION['user'])) {
-            $_SESSION['intended'] = $path;
-            header('Location: /login'); 
-            exit;
-        }
-    }
+// 5. Auth guard: allow only public paths without login
+$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket'];
+if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
+    // optionally remember intended URL
+    $_SESSION['intended'] = $path;
+
+    // Render a tiny page that alerts then redirects (no flash/session message needed)
+   // 401 page when not logged in (no flash)
+http_response_code(401);
+$msg  = 'Please log in to continue';
+$next = '/login'; // or "/login?next=" . rawurlencode($path)
+?>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/assets/css/alert.css">
+  <script src="/assets/js/alert.js"></script>
+</head>
+<body>
+  <script>
+    // will WAIT until user presses OK
+    alert(<?= json_encode($msg) ?>).then(function () {
+      window.location.href = <?= json_encode($next) ?>;
+    });
+  </script>
+  <noscript>
+    <!-- JS off fallback -->
+    <meta http-equiv="refresh" content="0;url=<?= htmlspecialchars($next, ENT_QUOTES) ?>">
+  </noscript>
+</body>
+</html>
+<?php
+exit;
+
 }
 
 
@@ -85,3 +121,6 @@ if (isset($routes[$path])) {
 
 http_response_code(404);
 echo "<h1>404</h1><p>No route for <code>".htmlspecialchars($path)."</code></p>";
+    run($c,$m);
+    exit;
+

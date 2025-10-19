@@ -12,16 +12,21 @@ $module = $segments[0] ?? 'ntc_admin';
 $page   = $segments[1] ?? 'dashboard';
 
 // Now you can use $module and $page just like before
+/* $role = $_SESSION['user']['role'] ?? 'guest';
+$isStaffRole = in_array($role, ['DepotOfficer','SLTBTimekeeper','PrivateTimekeeper'], true); */
 
 ?>
 <!doctype html>
 <html lang="en" data-theme="<?= isset($_SESSION['prefs']['theme']) ? $_SESSION['prefs']['theme'] : 'light' ?>">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NTC Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NTC Admin</title>
   <link rel="stylesheet" href="/assets/css/admin.css">
   <script defer src="/assets/js/app.js"></script>
+  <link rel="stylesheet" href="/assets/css/alert.css">
+<script src="/assets/js/alert.js"></script>
+
 </head>
 <body>
   <header class="topbar">

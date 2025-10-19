@@ -1,0 +1,53 @@
+[16-Oct-2025 14:00:35 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Oct-2025 14:00:38 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Oct-2025 14:00:53 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Oct-2025 14:00:55 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Oct-2025 22:19:33 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:19:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:19:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:19:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:19:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:19:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:19:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined function alert() in C:\xampp\htdocs\NexBus-1\public\index.php:75
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 75
+[16-Oct-2025 22:29:27 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 113
+[16-Oct-2025 22:29:27 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 113
+[16-Oct-2025 22:29:27 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 113 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(113): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[16-Oct-2025 22:29:27 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 113
+[16-Oct-2025 22:29:27 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 113
+[16-Oct-2025 22:29:27 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 113 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(113): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[16-Oct-2025 22:38:13 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 113
+[16-Oct-2025 22:38:13 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 113
+[16-Oct-2025 22:38:13 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 113 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(113): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16

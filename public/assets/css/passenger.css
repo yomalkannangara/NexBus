@@ -73,7 +73,9 @@ body {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
-
+h3 {
+    font-weight: 500; /* was 600 */
+}
 a {
     color: var(--blue-1);
     text-decoration: none;
@@ -138,7 +140,7 @@ img {
 }
 
 .brand .title {
-    font-weight: 700;
+    font-weight: 500; /* was 600 */
     letter-spacing: .2px;
     font-size: 16px;
     line-height: 1;
@@ -234,7 +236,7 @@ img {
 
 .tab.active {
     color: var(--blue-1);
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
     background: rgba(178, 235, 242, .55);
     box-shadow: inset 0 0 0 1px var(--divider);
     transform: translateY(-1px);
@@ -275,7 +277,7 @@ img {
     background: transparent;
     outline: none;
     color: var(--text);
-    font-weight: 700;
+    font-weight: 500;
 }
 
 /* ===== Cards ===== */
@@ -323,7 +325,7 @@ img {
 
 .map-placeholder p {
     margin: 6px 0 0;
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
     color: var(--text-soft);
 }
 
@@ -340,6 +342,7 @@ img {
 }
 
 .section-title h3 {
+    font-weight: 500;
     margin: 0;
     font-size: 16px;
     letter-spacing: .2px;
@@ -379,7 +382,7 @@ img {
 }
 
 .bus-title {
-    font-weight: 600;
+    font-weight: 500; /* was 600 */
 }
 
 .bus-sub {
@@ -396,7 +399,7 @@ img {
     border: 1px solid var(--cyan);
     padding: 2px 8px;
     border-radius: 999px;
-    font: 600 11px/1.2 inherit;
+    font: 500 11px/1.2 inherit; /* was 600 */
 }
 
 .bus-eta {
@@ -407,7 +410,7 @@ img {
 
 .bus-eta .min {
     color: var(--success);
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
     font-size: 12px;
 }
 
@@ -418,7 +421,7 @@ img {
     background: var(--grad-brand);
     padding: 10px 14px;
     border-radius: 12px;
-    font-weight: 600;
+    font-weight: 600; /* keep for legibility */
     letter-spacing: .2px;
     box-shadow: var(--thickshadow);
     transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
@@ -431,7 +434,7 @@ img {
 
 .btn.small {
     padding: 6px 10px;
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
 }
 
 .btn.ghost {
@@ -439,6 +442,7 @@ img {
     color: var(--text);
     border: 1px solid var(--divider);
     box-shadow: var(--shadow);
+    font-weight: 500;
 }
 
 .btn.pill {
@@ -453,7 +457,7 @@ img {
     color: var(--blue-1);
     padding: 4px 8px;
     border-radius: 10px;
-    font: 600 12px/1.2 inherit;
+    font: 500 12px/1.2 inherit; /* was 600 */
 }
 
 /* ===== Favourites ===== */
@@ -466,8 +470,8 @@ img {
 
 .fav-header h2 {
     margin: 0;
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 16px; /* was 18px */
+    font-weight: 600; /* was 700 */
 }
 
 .fav-sub {
@@ -538,7 +542,9 @@ img {
     font-size: 15px;
     color: var(--text);
 }
-
+.fav-title strong {
+    font-weight: 600; /* was 700 */
+}
 .route-chip {
     min-width: 44px;
     height: 24px;
@@ -547,7 +553,7 @@ img {
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
     background: var(--grad-brand);
     color: #fff;
     box-shadow: var(--shadow);
@@ -588,7 +594,7 @@ img {
 
 .fav-alerts {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500; /* was 600 */
     color: var(--blue-1);
     display: flex;
     align-items: center;
@@ -673,8 +679,8 @@ body.fav-edit .fav-edit-ctl {
 
 .page-head h2 {
     margin: 0 0 4px;
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 16px; /* was 18px */
+    font-weight: 600; /* was 700 */
 }
 
 .page-head .muted {
@@ -688,7 +694,7 @@ body.fav-edit .fav-edit-ctl {
 .req::after {
     content: " *";
     color: var(--blue-1);
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
 }
 
 /* Styled select (used in favourites "Add") */
@@ -773,7 +779,7 @@ textarea {
     min-height: 80px;
     padding: 8px 10px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400; /* was 500 */
     resize: vertical;
     border: 1px solid var(--divider);
     border-radius: 14px;
@@ -811,7 +817,7 @@ textarea:focus {
 .radio-pill span {
     display: inline-block;
     padding: 6px 10px;
-    font-weight: 600;
+    font-weight: 500; /* was 600 */
     font-size: 13px;
     border-radius: 999px;
     border: 1px solid var(--divider);
@@ -835,7 +841,7 @@ textarea:focus {
     gap: 8px;
     padding: 8px 10px;
     border-radius: 10px;
-    font-weight: 600;
+    font-weight: 500; /* was 600 */
     background: var(--card);
     border: 1px dashed var(--border);
     color: var(--text);
@@ -929,7 +935,7 @@ textarea:focus {
 .ticket-form label {
     display: block;
     margin-bottom: 0.4rem;
-    font-weight: 600;
+    font-weight: 500; /* was 600 */
     color: #333;
 }
 
@@ -957,7 +963,7 @@ textarea:focus {
     color: #fff;
     border: none;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
 }
 
 .ticket-form .btn:hover {
@@ -983,7 +989,7 @@ textarea:focus {
 }
 
 .card.fare .amount {
-    font: 700 18px/1.2 ui-sans-serif, system-ui;
+    font: 600 16px/1.2 ui-sans-serif, system-ui; /* was 700 18px */
     color: var(--blue-1);
 }
 
@@ -1007,7 +1013,8 @@ textarea:focus {
 
 .notif-head h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 16px; /* was 18px */
+    font-weight: 600; /* set for consistency */
 }
 
 .notif-head .unread {
@@ -1129,7 +1136,7 @@ textarea:focus {
 }
 
 .notif-card .title {
-    font-weight: 600;
+    font-weight: 500; /* was 600 */
     margin-bottom: 2px;
 }
 
@@ -1147,7 +1154,7 @@ textarea:focus {
     padding: 2px 10px;
     border-radius: 999px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600; /* was 700 */
 }
 
 .notif-card .tag.delay {
@@ -1184,4 +1191,44 @@ textarea:focus {
   box-shadow: none !important;
   height: 36px;
   width: 100%;
+}
+.m-topbar .top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-topbar .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  background: rgba(0,0,0,.04);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  transition: background .15s ease, transform .08s ease, opacity .15s ease;
+}
+.m-topbar .icon-btn:hover { background: rgba(0,0,0,.07); }
+.m-topbar .icon-btn:active { transform: scale(.97); }
+.m-topbar .icon-btn svg { width: 20px; height: 20px; }
+/* ===== Profile page tiny additions (scoped) ===== */
+.form-hint { font-size: 12px; color: var(--muted); }
+
+.danger-card {
+  border: 1px solid rgba(231, 76, 60, .25);
+  background: linear-gradient(180deg, #fff, rgba(231,76,60,.04));
+}
+
+.danger-card .btn.ghost {
+  border: 1px solid var(--divider);
+}
+
+/* Make inputs in .select-wrap wrap text nicely on small screens */
+.select-wrap input[type="text"],
+.select-wrap input[type="email"],
+.select-wrap input[type="password"] {
+  min-width: 0;
 }
