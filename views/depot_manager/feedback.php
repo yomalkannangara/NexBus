@@ -1,53 +1,60 @@
 <?php
-use App\Support\Icons;
+// NO ICONS HERE.
+// Data expected from controller:
+//   $cards = $m->cards();    // array of KPI cards
+//   $rows  = $m->list();     // recent feedback rows
 
-/* ---------- Safety & defaults (prevents "Undefined array key" notices) ---------- */
 $cards = is_array($cards ?? null) ? $cards : [];
 $rows  = is_array($rows  ?? null) ? $rows  : [];
-$ids   = is_array($ids   ?? null) ? $ids   : array_column($rows, 'id');
 
-foreach ($cards as &$c) {
-  // normalize keys that the template expects
-  $c['value']     = (string)($c['value']     ?? '');
-  $c['label']     = (string)($c['label']     ?? '');
-  $c['class']     = (string)($c['class']     ?? '');            // e.g., value color class
-  $c['accent']    = (string)($c['accent']    ?? '');            // e.g., icon accent class
-  $c['icon']      = (string)($c['icon']      ?? 'circle');      // used by Icons::svg
-  $c['trend']     = (string)($c['trend']     ?? 'up');          // 'up' | 'down'
-  $c['trendText'] = (string)($c['trendText'] ?? '');            // e.g., "+5% from last week"
-}
-unset($c);
+$ids = array_values(
+  array_filter(
+    array_map(fn($r) => $r['id'] ?? null, $rows),
+    fn($v) => $v !== null && $v !== ''
+  )
+);
 
-// tiny helper
 function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <section class="section">
-  <div class="head-between">
-    <div>
-      <h1 class="h1 primary">Passenger Feedback System</h1>
-      <p class="muted">Track and manage passenger complaints and feedback</p>
-    </div>
-  </div>
 
-  <!-- Stats cards -->
+  <div class="title-card">
+  <h1 class="title-heading">Passenger Feedback System</h1>
+  <p class="title-sub">Track and manage passenger complaints and feedback</p>
+</div>
+
+
+  <!-- KPI cards -->
   <div class="grid grid-4 gap-4 mt-4">
-    <?php foreach ($cards as $c): ?>
-      <div class="card p-16">
-        <div class="flex-between">
-          <div>
-            <div class="value <?= h($c['class']) ?>"><?= h($c['value']) ?></div>
-            <p class="muted"><?= h($c['label']) ?></p>
+    <?php if ($cards): ?>
+      <?php foreach ($cards as $c): ?>
+        <?php
+          $val   = h($c['value']     ?? '');
+          $label = h($c['label']     ?? '');
+          $klass = h($c['class']     ?? '');    // text-accent for the number
+          $acc   = h($c['accent']    ?? '');    // colored dot on the right
+          $trend = strtolower((string)($c['trend'] ?? ''));   // 'up' | 'down' | ''
+          $tText = h($c['trendText'] ?? '');
+          $tSym  = $trend === 'down' ? '▼' : ($trend === 'up' ? '▲' : '•');
+          $tCls  = $trend === 'down' ? 'text-red' : ($trend === 'up' ? 'text-green' : 'muted');
+        ?>
+        <div class="card p-16">
+          <div class="flex-between">
+            <div>
+              <div class="value <?= $klass ?>"><?= $val ?></div>
+              <p class="muted"><?= $label ?></p>
+            </div>
+            <div class="kpi-dot <?= $acc ?>"></div>
           </div>
-          <div class="icon <?= h($c['accent']) ?>">
-            <?= Icons::svg($c['icon'] ?: 'circle','',32,32) ?>
+          <div class="trend mt-8">
+            <span class="trend-arrow <?= $tCls ?>"><?= $tSym ?></span>
+            <span class="<?= $tCls ?>"><?= $tText ?></span>
           </div>
         </div>
-        <div class="trend mt-8">
-          <?= Icons::svg(($c['trend']==='down'?'trending-down':'trending-up'),'',16,16); ?>
-          <span class="<?= $c['trend']==='down' ? 'text-red' : 'text-green' ?>"><?= h($c['trendText']) ?></span>
-        </div>
-      </div>
-    <?php endforeach; ?>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <div class="empty-note">No KPI data available.</div>
+    <?php endif; ?>
   </div>
 
   <!-- Quick Response -->
@@ -102,9 +109,9 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
           </tr>
         </thead>
         <tbody>
+        <?php if ($rows): ?>
           <?php foreach ($rows as $i => $r): ?>
             <?php
-              // Safe reads for row fields
               $rid   = (string)($r['id']            ?? '');
               $date  = (string)($r['date']          ?? '');
               $busNo = (string)($r['busNumber']     ?? '');
@@ -143,18 +150,22 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
               <td><?= h($cat) ?></td>
               <td><span class="badge <?= h($cls) ?>"><?= h($stat ?: '-') ?></span></td>
               <td>
-                <div class="stars">
+                <div class="stars" title="<?= h((string)$rate) ?>">
                   <?php for ($s = 1; $s <= 5; $s++): ?>
-                    <span class="star <?= $s <= $rate ? 'on' : '' ?>"><?= Icons::svg('star','',16,16) ?></span>
+                    <span class="star <?= $s <= $rate ? 'on' : '' ?>">★</span>
                   <?php endfor; ?>
                 </div>
               </td>
-              <td><button class="btn icon-only btn-outline" title="View"><?= Icons::svg('eye','',14,14) ?></button></td>
+              <td>
+                <div class="actions-inline">
+                  <button class="btn btn-outline small">View</button>
+                </div>
+              </td>
             </tr>
           <?php endforeach; ?>
-          <?php if (!$rows): ?>
-            <tr><td colspan="9" class="muted" style="text-align:center;padding:16px;">No feedback available.</td></tr>
-          <?php endif; ?>
+        <?php else: ?>
+          <tr><td colspan="9" class="muted" style="text-align:center;padding:16px;">No feedback available.</td></tr>
+        <?php endif; ?>
         </tbody>
       </table>
     </div>

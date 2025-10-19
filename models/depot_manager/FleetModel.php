@@ -9,7 +9,6 @@ abstract class BaseModel {
         $this->pdo = $GLOBALS['db'];   
     }
 }
-
 class FleetModel extends BaseModel
 {
     public function summaryCards(): array
@@ -42,6 +41,30 @@ class FleetModel extends BaseModel
         }
     }
 
+    /* Filter dropdown data */
+    public function routes(): array
+    {
+        try {
+            $sql = "SELECT route_id, route_no, name
+                    FROM routes
+                    ORDER BY route_no+0, route_no";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    public function buses(): array
+    {
+        try {
+            $sql = "SELECT id, reg_no FROM buses ORDER BY reg_no";
+            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    /* CRUD from your previous version kept as-is */
     public function createBus(array $d): bool
     {
         try {

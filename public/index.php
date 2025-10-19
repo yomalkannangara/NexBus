@@ -131,6 +131,5 @@ if (isset($routes[$path])) {
 
 http_response_code(404);
 echo "<h1>404</h1><p>No route for <code>".htmlspecialchars($path)."</code></p>";
-    run($c,$m);
     exit;
 

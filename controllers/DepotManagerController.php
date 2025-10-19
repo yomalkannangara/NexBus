@@ -205,9 +205,9 @@ class DepotManagerController extends BaseController
         }
 
         $this->view('depot_manager', 'earnings', [
-            'top'   => $m->top(),
-            'buses' => $m->busIncome(),
-            'month' => $m->monthlySummary(),
+            'top'   => $m->topSummary(),
+            'buses' => $m->busIncomeDetail(),
+            'month' => $m->monthlyOverview(),
         ]);
     }
 }

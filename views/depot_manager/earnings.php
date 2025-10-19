@@ -1,65 +1,83 @@
 <?php
-// Safe defaults if the controller didn't pass data
-$top = $top ?? [
-  ['value'=>'Rs. 845,500','label'=>'Daily Income','trend'=>'+5.2% from yesterday','color'=>'maroon'],
-  ['value'=>'Rs. 1,250,000','label'=>'Highest Income','sub'=>'December 31, 2024','color'=>'green'],
-  ['value'=>'Rs. 425,000','label'=>'Lowest Income','sub'=>'January 1, 2025','color'=>'red'],
-];
+// Data expected from controller:
+//   $top   = $top   ?? [];   // array: [ ['value','label','trend?','sub?','color'], ... ]
+//   $buses = $buses ?? [];   // array: [ ['number','route','daily','weekly','eff'], ... ]
+//   $month = $month ?? [];   // array: [ 'current','previous','growth' ]
 
-$buses = $buses ?? [
-  ['number'=>'NC-1247','route'=>'Colombo - Kandy','daily'=>'Rs. 12,500','weekly'=>'Rs. 87,500','eff'=>'95%'],
-  ['number'=>'WP-3456','route'=>'Galle - Matara','daily'=>'Rs. 8,750','weekly'=>'Rs. 61,250','eff'=>'88%'],
-  ['number'=>'CP-7890','route'=>'Negombo - Airport','daily'=>'Rs. 15,200','weekly'=>'Rs. 106,400','eff'=>'98%'],
-  ['number'=>'SP-2134','route'=>'Kurunegala - Anuradhapura','daily'=>'Rs. 0','weekly'=>'Rs. 45,600','eff'=>'0%'],
-  ['number'=>'EP-5678','route'=>'Trincomalee - Batticaloa','daily'=>'Rs. 9,800','weekly'=>'Rs. 68,600','eff'=>'92%'],
-];
+$top   = is_array($top   ?? null) ? $top   : [];
+$buses = is_array($buses ?? null) ? $buses : [];
+$month = is_array($month ?? null) ? $month : [];
 
-$month = $month ?? ['current'=>'Rs. 24.5M','previous'=>'Rs. 23.2M','growth'=>'+5.6%'];
+function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <section class="section">
+
+  <div class="title-card">
+  <h1 class="title-heading">Earnings & Income Tracking</h1>
+  <p class="title-sub">Revenue analysis and income monitoring</p>
+</div>
+
   <!-- Top summary strip -->
   <div class="earn-top mt-0">
-    <?php foreach ($top as $t): ?>
-      <div class="earn-box <?= htmlspecialchars($t['color']) ?>">
-        <div class="earn-value"><?= htmlspecialchars($t['value']) ?></div>
-        <div class="earn-sub"><?= htmlspecialchars($t['label']) ?></div>
-        <?php if (!empty($t['trend'])): ?>
-          <div class="earn-trend text-green">▲ <?= htmlspecialchars($t['trend']) ?></div>
-        <?php endif; ?>
-        <?php if (!empty($t['sub'])): ?>
-          <div class="earn-sub2 muted small"><?= htmlspecialchars($t['sub']) ?></div>
-        <?php endif; ?>
-      </div>
-    <?php endforeach; ?>
+    <?php if ($top): ?>
+      <?php foreach ($top as $t): ?>
+        <?php
+          $val   = h($t['value'] ?? '');
+          $lab   = h($t['label'] ?? '');
+          $trend = (string)($t['trend'] ?? '');
+          $sub   = h($t['sub'] ?? '');
+          $color = h($t['color'] ?? 'maroon');
+          $isUp  = strlen($trend) && $trend[0] === '+';
+        ?>
+        <div class="earn-box <?= $color ?>">
+          <div class="earn-value"><?= $val ?></div>
+          <div class="earn-sub"><?= $lab ?></div>
+          <?php if ($trend !== ''): ?>
+            <div class="earn-trend <?= $isUp ? 'text-green' : 'text-red' ?>">
+              <?= $isUp ? '▲' : '▼' ?> <?= h($trend) ?>
+            </div>
+          <?php endif; ?>
+          <?php if ($sub !== ''): ?>
+            <div class="earn-sub2 muted small"><?= $sub ?></div>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <div class="empty-note">No summary yet.</div>
+    <?php endif; ?>
   </div>
 
   <!-- Income per bus -->
   <div class="card mt-6">
     <div class="card__head"><div class="card__title primary">Income per Bus</div></div>
-    <div class="income-list">
-      <?php foreach ($buses as $b): ?>
-        <div class="income-row">
-          <div class="left">
-            <div class="bus"><?= htmlspecialchars($b['number']) ?></div>
-            <div class="muted small"><?= htmlspecialchars($b['route']) ?></div>
+    <?php if ($buses): ?>
+      <div class="income-list">
+        <?php foreach ($buses as $b): ?>
+          <div class="income-row">
+            <div class="left">
+              <div class="bus"><?= h($b['number'] ?? '—') ?></div>
+              <div class="muted small"><?= h($b['route'] ?? '—') ?></div>
+            </div>
+            <div class="right-cols">
+              <div class="col">
+                <div class="muted small">Daily</div>
+                <div class="fw-600"><?= h($b['daily'] ?? 'Rs. 0') ?></div>
+              </div>
+              <div class="col">
+                <div class="muted small">Weekly</div>
+                <div class="fw-600"><?= h($b['weekly'] ?? 'Rs. 0') ?></div>
+              </div>
+              <div class="col">
+                <div class="muted small">Efficiency</div>
+                <span class="chip chip-gold"><?= h($b['eff'] ?? '0%') ?></span>
+              </div>
+            </div>
           </div>
-          <div class="right-cols">
-            <div class="col">
-              <div class="muted small">Daily</div>
-              <div class="fw-600"><?= htmlspecialchars($b['daily']) ?></div>
-            </div>
-            <div class="col">
-              <div class="muted small">Weekly</div>
-              <div class="fw-600"><?= htmlspecialchars($b['weekly']) ?></div>
-            </div>
-            <div class="col">
-              <div class="muted small">Efficiency</div>
-              <span class="chip chip-gold"><?= htmlspecialchars($b['eff']) ?></span>
-            </div>
-          </div>
-        </div>
-      <?php endforeach; ?>
-    </div>
+        <?php endforeach; ?>
+      </div>
+    <?php else: ?>
+      <div class="empty-note p-16">No bus income data.</div>
+    <?php endif; ?>
   </div>
 
   <!-- Monthly summary -->
@@ -68,15 +86,17 @@ $month = $month ?? ['current'=>'Rs. 24.5M','previous'=>'Rs. 23.2M','growth'=>'+5
       <div class="muted">Monthly Income Overview</div>
       <div class="months">
         <div class="mcol">
-          <div class="big primary"><?= htmlspecialchars($month['current']) ?></div>
+          <div class="big primary"><?= h($month['current'] ?? 'Rs. 0') ?></div>
           <div class="muted small">Current Month</div>
         </div>
         <div class="mcol">
-          <div class="big" style="color:#eab308"><?= htmlspecialchars($month['previous']) ?></div>
+          <div class="big" style="color:#eab308"><?= h($month['previous'] ?? 'Rs. 0') ?></div>
           <div class="muted small">Previous Month</div>
         </div>
         <div class="mcol growth">
-          <div class="big text-green"><?= htmlspecialchars($month['growth']) ?></div>
+          <div class="big <?= (isset($month['growth']) && strpos($month['growth'], '-') === 0) ? 'text-red' : 'text-green' ?>">
+            <?= h($month['growth'] ?? '+0.0%') ?>
+          </div>
           <div class="muted small">Monthly Growth</div>
         </div>
       </div>
