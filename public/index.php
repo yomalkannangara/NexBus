@@ -85,11 +85,25 @@ $routes = [
     '/TP/attendance'  => ['TimekeeperPrivateController','attendance'],
     '/TP'             => ['TimekeeperPrivateController','dashboard'],
 
+    // SLTB Timekeeper
+    '/TS/dashboard'  => ['TimekeeperSltbController','dashboard'],
+    '/TS/timetables' => ['TimekeeperSltbController','timetables'],
+    '/TS/trip_logs'  => ['TimekeeperSltbController','trip_logs'],
+    '/TS/reports'    => ['TimekeeperSltbController','reports'],
+    '/TS/attendance' => ['TimekeeperSltbController','attendance'],
+    '/TS'            => ['TimekeeperSltbController','dashboard'],
 
     // Other roles
     
-    '/P'   => ['BusOwnerController','home'],
-    '/TS'  => ['TimekeeperSltbController','home'],
+    '/B'            => ['BusOwnerController','dashboard'],
+    '/B/dashboard'  => ['BusOwnerController','dashboard'],
+    '/B/drivers' => ['BusOwnerController','drivers'],
+    '/B/fleet'  => ['BusOwnerController','fleet'],
+    '/B/reports'    => ['BusOwnerController','reports'],
+    '/B/feedback' => ['BusOwnerController','feedback'],
+    '/B/earnings'   => ['BusOwnerController','earnings'],
+    '/B/performance'   => ['BusOwnerController','reports'],
+    '/B/profile'    => ['BusOwnerController','profile'],
 ];
 
 // 5. Auth guard: allow only public paths without login
