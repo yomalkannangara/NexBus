@@ -66,10 +66,19 @@ $routes = [
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
     '/O/attendance'    => ['DepotOfficerController','attendance'],    // NEW
 
+
+  // Private Timekeeper
+    '/TP/dashboard'   => ['TimekeeperPrivateController','dashboard'],
+    '/TP/timetables'  => ['TimekeeperPrivateController','timetables'],
+    '/TP/trip_logs'   => ['TimekeeperPrivateController','trip_logs'],
+    '/TP/reports'     => ['TimekeeperPrivateController','reports'],
+    '/TP/attendance'  => ['TimekeeperPrivateController','attendance'],
+    '/TP'             => ['TimekeeperPrivateController','dashboard'],
+
+
     // Other roles
     '/M'   => ['DepotManagerController','home'],
     '/P'   => ['BusOwnerController','home'],
-    '/TP'  => ['TimekeeperPrivateController','home'],
     '/TS'  => ['TimekeeperSltbController','home'],
 ];
 
@@ -79,7 +88,7 @@ if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
     // optionally remember intended URL
     $_SESSION['intended'] = $path;
 
-    // Render a tiny page that alerts then redirects (no flash/session message needed)
+// Render a tiny page that alerts then redirects (no flash/session message needed)
    // 401 page when not logged in (no flash)
 http_response_code(401);
 $msg  = 'Please log in to continue';
@@ -123,4 +132,5 @@ http_response_code(404);
 echo "<h1>404</h1><p>No route for <code>".htmlspecialchars($path)."</code></p>";
     run($c,$m);
     exit;
+
 

@@ -420,3 +420,645 @@ Stack trace:
 #4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
 #5 {main}
   thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 22:58:26 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(2, '2025-10-18', '2025-10-18')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(2, '2025-10-18', '2025-10-18')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[18-Oct-2025 23:09:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:17:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:18:05 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:19:16 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:24:01 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:34:24 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:34:25 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:39:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:39:42 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:39:43 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:39:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:39:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:39:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:16 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:20 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:20 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:20 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:20 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:20 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:21 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:21 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:42:21 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:44:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:44:16 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:44:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:01 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:04 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:48:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:38 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:39 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:57:42 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3
+[18-Oct-2025 23:58:05 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "BaseController" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:3
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 [internal function]: {closure}('App\\controllers...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(18): class_exists('App\\controllers...')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(118): run('TimekeeperPriva...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 3

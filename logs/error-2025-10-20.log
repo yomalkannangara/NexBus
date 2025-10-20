@@ -1,0 +1,142 @@
+[20-Oct-2025 00:24:04 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-20', '2025-10-20')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-20', '2025-10-20')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[20-Oct-2025 00:24:13 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-20', '2025-10-20')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-20', '2025-10-20')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[20-Oct-2025 00:47:49 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                        SUM(tm.operational_status='Breakdown') AS b...' at line 3 in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php:32
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php(32): PDO->prepare('SELECT\r\n       ...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(48): App\models\timekeeper_private\ReportModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php on line 32
+[20-Oct-2025 00:47:53 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php(9): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(52): App\models\timekeeper_private\AttendanceModel->staffList(0)
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(108): App\models\timekeeper_private\TimekeeperPrivateModel->staffList(0)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php on line 9
+[20-Oct-2025 00:54:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                        SUM(tm.operational_status='Breakdown') AS b...' at line 3 in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php:32
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php(32): PDO->prepare('SELECT\r\n       ...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(48): App\models\timekeeper_private\ReportModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php on line 32
+[20-Oct-2025 00:54:38 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php(9): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(52): App\models\timekeeper_private\AttendanceModel->staffList(0)
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(108): App\models\timekeeper_private\TimekeeperPrivateModel->staffList(0)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php on line 9
+[20-Oct-2025 00:57:20 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 133
+[20-Oct-2025 00:57:20 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 133
+[20-Oct-2025 00:57:20 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 133 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(133): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[20-Oct-2025 00:58:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php(9): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(52): App\models\timekeeper_private\AttendanceModel->staffList(0)
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(108): App\models\timekeeper_private\TimekeeperPrivateModel->staffList(0)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php on line 9
+[20-Oct-2025 01:05:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'depot_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php(9): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(52): App\models\timekeeper_private\AttendanceModel->staffList(0)
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(108): App\models\timekeeper_private\TimekeeperPrivateModel->staffList(0)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\AttendanceModel.php on line 9
+[20-Oct-2025 01:06:13 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                        SUM(tm.operational_status='Breakdown') AS b...' at line 3 in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php:32
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php(32): PDO->prepare('SELECT\r\n       ...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php(79): App\models\timekeeper_private\ReportModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\ReportModel.php on line 32
+[20-Oct-2025 01:10:22 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\ReportModel::kpiSummary() in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php:79
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php on line 79
+[20-Oct-2025 01:10:23 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\ReportModel::kpiSummary() in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php:79
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php on line 79
+[20-Oct-2025 01:10:24 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\ReportModel::kpiSummary() in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php:79
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php on line 79
+[20-Oct-2025 01:10:28 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\ReportModel::kpiSummary() in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php:79
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php on line 79
+[20-Oct-2025 01:10:28 Asia/Colombo] PHP Warning:  Undefined variable $c in C:\xampp\htdocs\NexBus-1\public\index.php on line 133
+[20-Oct-2025 01:10:28 Asia/Colombo] PHP Warning:  Undefined variable $m in C:\xampp\htdocs\NexBus-1\public\index.php on line 133
+[20-Oct-2025 01:10:28 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: run(): Argument #1 ($ctrl) must be of type string, null given, called in C:\xampp\htdocs\NexBus-1\public\index.php on line 133 and defined in C:\xampp\htdocs\NexBus-1\public\index.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(133): run(NULL, NULL)
+#1 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\public\index.php on line 16
+[20-Oct-2025 01:10:34 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\ReportModel::kpiSummary() in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php:79
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php on line 79
+[20-Oct-2025 01:10:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\ReportModel::kpiSummary() in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php:79
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(89): App\models\timekeeper_private\TimekeeperPrivateModel->kpiSummary(0, '2025-10-20', '2025-10-20')
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(127): run('TimekeeperPriva...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\TimekeeperPrivateModel.php on line 79
