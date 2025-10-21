@@ -233,4 +233,4 @@
 </div>
 
 <!-- JS -->
-<script src="<?= BASE_URL; ?>/assets/js/fleet.js"></script>
+<script src="/assets/js/fleet.js"></script>
