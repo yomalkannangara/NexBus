@@ -124,7 +124,7 @@ class AuthController extends BaseController
             'NTCAdmin'          => '/A/dashboard',
             'DepotManager'      => '/M',
             'DepotOfficer'      => '/O',
-            'PrivateBusOwner'   => '/P',
+            'PrivateBusOwner'   => '/B',
             'SLTBTimekeeper'    => '/TS',
             'PrivateTimekeeper' => '/TP',
             'Passenger'         => '/home',

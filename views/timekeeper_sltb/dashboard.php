@@ -1,7 +1,6 @@
 <?php $depotName = $depot['name'] ?? 'Unknown Depot'; ?>
-
 <div class="card" style="margin-bottom:16px;">
-  <h1 style="margin:0 0 6px 0;">Private Timekeeper — <?= htmlspecialchars($depotName) ?></h1>
+  <h1 style="margin:0 0 6px;">SLTB Timekeeper — <?= htmlspecialchars($depotName) ?></h1>
   <div>Daily tracking snapshot and recent delays</div>
 </div>
 

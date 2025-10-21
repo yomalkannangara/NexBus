@@ -76,11 +76,34 @@ $routes = [
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
     
 
+
+  // Private Timekeeper
+    '/TP/dashboard'   => ['TimekeeperPrivateController','dashboard'],
+    '/TP/timetables'  => ['TimekeeperPrivateController','timetables'],
+    '/TP/trip_logs'   => ['TimekeeperPrivateController','trip_logs'],
+    '/TP/reports'     => ['TimekeeperPrivateController','reports'],
+    '/TP/attendance'  => ['TimekeeperPrivateController','attendance'],
+    '/TP'             => ['TimekeeperPrivateController','dashboard'],
+
+    // SLTB Timekeeper
+    '/TS/dashboard'  => ['TimekeeperSltbController','dashboard'],
+    '/TS/timetables' => ['TimekeeperSltbController','timetables'],
+    '/TS/trip_logs'  => ['TimekeeperSltbController','trip_logs'],
+    '/TS/reports'    => ['TimekeeperSltbController','reports'],
+    '/TS/attendance' => ['TimekeeperSltbController','attendance'],
+    '/TS'            => ['TimekeeperSltbController','dashboard'],
+
     // Other roles
     
-    '/P'   => ['BusOwnerController','home'],
-    '/TP'  => ['TimekeeperPrivateController','home'],
-    '/TS'  => ['TimekeeperSltbController','home'],
+    '/B'            => ['BusOwnerController','dashboard'],
+    '/B/dashboard'  => ['BusOwnerController','dashboard'],
+    '/B/drivers' => ['BusOwnerController','drivers'],
+    '/B/fleet'  => ['BusOwnerController','fleet'],
+    '/B/reports'    => ['BusOwnerController','reports'],
+    '/B/feedback' => ['BusOwnerController','feedback'],
+    '/B/earnings'   => ['BusOwnerController','earnings'],
+    '/B/performance'   => ['BusOwnerController','reports'],
+    '/B/profile'    => ['BusOwnerController','profile'],
 ];
 
 // 5. Auth guard: allow only public paths without login
@@ -89,7 +112,7 @@ if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
     // optionally remember intended URL
     $_SESSION['intended'] = $path;
 
-    // Render a tiny page that alerts then redirects (no flash/session message needed)
+// Render a tiny page that alerts then redirects (no flash/session message needed)
    // 401 page when not logged in (no flash)
 http_response_code(401);
 $msg  = 'Please log in to continue';
@@ -132,4 +155,5 @@ if (isset($routes[$path])) {
 http_response_code(404);
 echo "<h1>404</h1><p>No route for <code>".htmlspecialchars($path)."</code></p>";
     exit;
+
 
