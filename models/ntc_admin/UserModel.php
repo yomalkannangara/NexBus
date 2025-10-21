@@ -122,7 +122,7 @@ class UserModel extends BaseModel {
             $depotId    = !empty($d['sltb_depot_id']) ? $d['sltb_depot_id'] : null;
             $operatorId = !empty($d['private_operator_id']) ? $d['private_operator_id'] : null;
 
-            if ($role === 'PrivateBusOwner') {
+            if (in_array($role, ['PrivateBusOwner','PrivateTimekeeper'], true)) {
                 $depotId = null;
             } elseif (in_array($role, ['DepotManager','DepotOfficer','SLTBTimekeeper'], true)) {
                 $operatorId = null;

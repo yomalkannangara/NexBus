@@ -13,10 +13,12 @@ use App\models\bus_owner\ReportModel;
 
 class BusOwnerController extends BaseController
 {
+    
     public function __construct()
     {
         parent::__construct();
         $this->setLayout('owner'); // views/layouts/owner.php
+        $this->requireLogin(['PrivateBusOwner']);
         // $this->requireLogin(['PrivateBusOwner']);
     }
 

@@ -15,6 +15,7 @@ class NtcAdminController extends BaseController {
     {
     parent::__construct();
         $this->setLayout('admin'); // or 'staff' / 'owner' / 'passenger'
+        $this->requireLogin(['NTCAdmin']);
         }
     public function dashboard() {
         $m = new DashboardModel();

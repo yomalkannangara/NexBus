@@ -1,93 +1,80 @@
 <?php
 namespace App\models\timekeeper_private;
 
-use App\models\common\BaseModel;
+class DashboardModel extends BaseModel
+{
+    public function stats(): array
+    {
+        $today = date('Y-m-d');
 
-class DashboardModel extends BaseModel {
+        $assignedToday = (int)$this->scalar(
+            "SELECT COUNT(DISTINCT bus_reg_no)
+               FROM private_assignments
+              WHERE private_operator_id=:op AND assigned_date=:d",
+            [':op'=>$this->opId, ':d'=>$today]
+        );
+        $assignedYesterday = (int)$this->scalar(
+            "SELECT COUNT(DISTINCT bus_reg_no)
+               FROM private_assignments
+              WHERE private_operator_id=:op AND assigned_date=:d",
+            [':op'=>$this->opId, ':d'=>date('Y-m-d', strtotime('-1 day'))]
+        );
 
-    public function depot(int $depotId): ?array {
-        if (!$depotId) return null;
+        $driversOnDuty = (int)$this->scalar(
+            "SELECT COUNT(DISTINCT private_driver_id)
+               FROM private_assignments
+              WHERE private_operator_id=:op AND assigned_date=:d",
+            [':op'=>$this->opId, ':d'=>$today]
+        );
+        $conductorsOnDuty = (int)$this->scalar(
+            "SELECT COUNT(DISTINCT private_conductor_id)
+               FROM private_assignments
+              WHERE private_operator_id=:op AND assigned_date=:d",
+            [':op'=>$this->opId, ':d'=>$today]
+        );
 
-        // Try private_depots
-        try {
-            $st = $this->pdo->prepare("SELECT depot_id, name, code FROM private_depots WHERE depot_id=?");
-            $st->execute([$depotId]);
-            if ($r = $st->fetch()) return $r;
-        } catch (\Throwable $e) {}
+        $activeRoutes = (int)$this->scalar(
+            "SELECT COUNT(DISTINCT tt.route_id)
+               FROM timetables tt
+               JOIN private_buses pb ON pb.reg_no=tt.bus_reg_no AND pb.private_operator_id=:op",
+            [':op'=>$this->opId]
+        );
 
-        // Fallback: depots
-        try {
-            $st = $this->pdo->prepare("SELECT depot_id, name, code FROM depots WHERE depot_id=?");
-            $st->execute([$depotId]);
-            if ($r = $st->fetch()) return $r;
-        } catch (\Throwable $e) {}
+        $totalBuses = (int)$this->scalar(
+            "SELECT COUNT(*) FROM private_buses WHERE private_operator_id=:op",
+            [':op'=>$this->opId]
+        ) ?: 1;
 
-        // Fallback: sltb_depots
-        try {
-            $st = $this->pdo->prepare("SELECT depot_id, name, code FROM sltb_depots WHERE depot_id=?");
-            $st->execute([$depotId]);
-            if ($r = $st->fetch()) return $r;
-        } catch (\Throwable $e) {}
+        $updatedLastHour = (int)$this->scalar(
+            "SELECT COUNT(DISTINCT tm.bus_reg_no)
+               FROM tracking_monitoring tm
+               JOIN private_buses pb ON pb.reg_no=tm.bus_reg_no AND pb.private_operator_id=:op
+              WHERE tm.snapshot_at >= NOW() - INTERVAL 1 HOUR",
+            [':op'=>$this->opId]
+        );
+        $locationPct = (int)round(($updatedLastHour / $totalBuses) * 100);
 
-        return null;
+        // revenue table in final DB is `earnings`
+        $revenueToday = (int)$this->scalar(
+            "SELECT COALESCE(SUM(e.amount),0)
+               FROM earnings e
+               JOIN private_buses pb ON pb.reg_no=e.bus_reg_no AND pb.private_operator_id=:op
+              WHERE e.date=:d",
+            [':op'=>$this->opId, ':d'=>$today]
+        );
+
+        return [
+            'assigned_today'     => $assignedToday,
+            'assigned_delta'     => $assignedToday - $assignedYesterday,
+            'drivers_on_duty'    => $driversOnDuty,
+            'conductors_on_duty' => $conductorsOnDuty,
+            'active_routes'      => $activeRoutes,
+            'location_pct'       => $locationPct,
+            'revenue_today'      => $revenueToday,
+        ];
     }
 
-    public function todayStats(int $depotId): array {
-        $delayed = 0; $breaks = 0;
-
-        // Prefer direct depot_id column
-        try {
-            $delayed = (int)$this->pdo->query("SELECT COUNT(*) FROM tracking_monitoring WHERE depot_id={$depotId} AND operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()")->fetchColumn();
-            $breaks  = (int)$this->pdo->query("SELECT COUNT(*) FROM tracking_monitoring WHERE depot_id={$depotId} AND operational_status='Breakdown' AND DATE(snapshot_at)=CURDATE()")->fetchColumn();
-            return compact('delayed','breaks');
-        } catch (\Throwable $e) {}
-
-        // Join private_buses by reg_no
-        try {
-            $sql = "SELECT
-                        SUM(tm.operational_status='Delayed') AS d,
-                        SUM(tm.operational_status='Breakdown') AS b
-                    FROM tracking_monitoring tm
-                    JOIN private_buses pb ON pb.reg_no=tm.bus_reg_no AND pb.depot_id=?";
-            $st = $this->pdo->prepare($sql);
-            $st->execute([$depotId]);
-            $r = $st->fetch() ?: [];
-            return ['delayed'=>(int)($r['d']??0),'breaks'=>(int)($r['b']??0)];
-        } catch (\Throwable $e) {}
-
-        // Last fallback: join sltb_buses
-        $sql = "SELECT
-                    SUM(tm.operational_status='Delayed') AS d,
-                    SUM(tm.operational_status='Breakdown') AS b
-                FROM tracking_monitoring tm
-                JOIN sltb_buses b ON b.reg_no=tm.bus_reg_no AND b.sltb_depot_id=?";
-        $st = $this->pdo->prepare($sql);
-        $st->execute([$depotId]);
-        $r = $st->fetch() ?: [];
-        return ['delayed'=>(int)($r['d']??0),'breaks'=>(int)($r['b']??0)];
-    }
-
-    public function delayedToday(int $depotId): array {
-        // Direct filter
-        try {
-            $st=$this->pdo->prepare("SELECT * FROM tracking_monitoring WHERE depot_id=? AND operational_status='Delayed' AND DATE(snapshot_at)=CURDATE() ORDER BY snapshot_at DESC");
-            $st->execute([$depotId]); return $st->fetchAll();
-        } catch (\Throwable $e) {}
-
-        // Join private_buses
-        try {
-            $sql="SELECT tm.* FROM tracking_monitoring tm
-                  JOIN private_buses pb ON pb.reg_no=tm.bus_reg_no AND pb.depot_id=?
-                  WHERE tm.operational_status='Delayed' AND DATE(tm.snapshot_at)=CURDATE()
-                  ORDER BY tm.snapshot_at DESC";
-            $st=$this->pdo->prepare($sql); $st->execute([$depotId]); return $st->fetchAll();
-        } catch (\Throwable $e) {}
-
-        // Fallback sltb_buses
-        $sql="SELECT tm.* FROM tracking_monitoring tm
-              JOIN sltb_buses b ON b.reg_no=tm.bus_reg_no AND b.sltb_depot_id=?
-              WHERE tm.operational_status='Delayed' AND DATE(tm.snapshot_at)=CURDATE()
-              ORDER BY tm.snapshot_at DESC";
-        $st=$this->pdo->prepare($sql); $st->execute([$depotId]); return $st->fetchAll();
+    private function scalar(string $sql, array $p) {
+        $st = $this->pdo->prepare($sql); $st->execute($p); return $st->fetchColumn();
     }
 }

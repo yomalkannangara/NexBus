@@ -32,7 +32,7 @@
             </td>
             <td class="mono"><?= htmlspecialchars($r['bus_reg_no']) ?></td>
             <td>
-              <span class="badge js-badge <?= $already?'gray':($isCurrent?'green':'blue') ?>">
+              <span class="badge js-badge <A?= $already?'gray':($isCurrent?'green':'blue') ?>">
                 <?= $already ? 'Recorded' : ($isCurrent ? 'Current' : 'Scheduled') ?>
               </span>
             </td>

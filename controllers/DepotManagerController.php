@@ -19,6 +19,7 @@ class DepotManagerController extends BaseController
         parent::__construct();
         // Use a non-admin layout for depot roles if you have it
         $this->setLayout('depot_manager'); // e.g. 'staff' or 'depot_manager'
+        $this->requireLogin(['DepotManager']); // role guard via BaseController
     }
 
     /* =========================

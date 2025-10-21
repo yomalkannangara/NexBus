@@ -79,11 +79,11 @@ $routes = [
 
   // Private Timekeeper
     '/TP/dashboard'   => ['TimekeeperPrivateController','dashboard'],
-    '/TP/timetables'  => ['TimekeeperPrivateController','timetables'],
-    '/TP/trip_logs'   => ['TimekeeperPrivateController','trip_logs'],
-    '/TP/reports'     => ['TimekeeperPrivateController','reports'],
-    '/TP/attendance'  => ['TimekeeperPrivateController','attendance'],
+    '/TP/trip_entry'  => ['TimekeeperPrivateController','trip_entry'],
+    '/TP/turns'      => ['TimekeeperPrivateController','turns'],
+    '/TP/history'     => ['TimekeeperPrivateController','history'],
     '/TP'             => ['TimekeeperPrivateController','dashboard'],
+    '/TP/profile'     => ['TimekeeperPrivateController','profile'],
 
     // SLTB Timekeeper
     '/TS/dashboard'  => ['TimekeeperSltbController','dashboard'],

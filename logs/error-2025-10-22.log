@@ -1,0 +1,20 @@
+[22-Oct-2025 00:03:46 Asia/Colombo] PHP Fatal error:  Uncaught Error: Undefined constant "BASE_URL" in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(135): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/f...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(85): App\controllers\BaseController->view('depot_manager', 'fleet', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->fleet()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotManagerCon...', 'fleet')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 236
+[22-Oct-2025 00:03:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Undefined constant "BASE_URL" in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(135): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/f...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(85): App\controllers\BaseController->view('depot_manager', 'fleet', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->fleet()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotManagerCon...', 'fleet')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 236

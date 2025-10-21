@@ -85,15 +85,13 @@ $active = function (string $m, string $p) use ($module, $page): string {
         <a href="/O/reports"     class="menu-item<?= $active('O','reports')     ?>"><i class="icon">📈</i>Reports</a>
         <a href="/O/attendance"  class="menu-item<?= $active('O','attendance')  ?>"><i class="icon">🗒️</i>Attendance</a>
       <?php elseif ($module === 'TP'): ?>
-        <a href="/TP/dashboard"  class="menu-item<?= $active('TP','dashboard')  ?>"><i class="icon">🏠</i>Dashboard</a>
-        <a href="/TP/timetables" class="menu-item<?= $active('TP','timetables') ?>"><i class="icon">📅</i>Timetables</a>
-        <a href="/TP/trip_logs"  class="menu-item<?= $active('TP','trip_logs')  ?>"><i class="icon">🧭</i>Trip Logs</a>
-        <a href="/TP/reports"    class="menu-item<?= $active('TP','reports')    ?>"><i class="icon">📈</i>Reports</a>
-        <a href="/TP/attendance" class="menu-item<?= $active('TP','attendance') ?>"><i class="icon">🗒️</i>Attendance</a>
+        <a href="/TP/dashboard"   class="menu-item<?= $active('TP','dashboard')   ?>"><i class="icon">🏠</i>Dashboard</a>
+        <a href="/TP/trip_entry"  class="menu-item<?= $active('TP','trip_entry')  ?>"><i class="icon">🛫</i>Trip Entry</a>
+        <a href="/TP/turns"       class="menu-item<?= $active('TP','turns')       ?>"><i class="icon">🧭</i>Turns</a>
+        <a href="/TP/history"     class="menu-item<?= $active('TP','history')     ?>"><i class="icon">📜</i>History</a>
       <?php elseif ($module === 'TS'): ?>
         <a href="/TS/dashboard"  class="menu-item<?= $active('TS','dashboard')  ?>"><i class="icon">🏠</i>Dashboard</a>
         <a href="/TS/trip_entry"    class="menu-item<?= $active('TS','trip_entry')    ?>"><i class="icon">📈</i>Trip Entry</a>
-
         <a href="/TS/turns" class="menu-item<?= $active('TS','turns') ?>"><i class="icon">📅</i>Turns</a>
         <a href="/TS/history"  class="menu-item<?= $active('TS','history')  ?>"><i class="icon">🧭</i>History</a>
       <?php else: ?>

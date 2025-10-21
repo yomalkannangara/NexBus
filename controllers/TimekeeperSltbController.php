@@ -18,6 +18,7 @@ class TimekeeperSltbController extends BaseController
         parent::__construct();
         $this->setLayout('staff');               // shared staff chrome
         $this->requireLogin(['SLTBTimekeeper']); // role guard via BaseController
+        
     }
 
     /* ---------- helpers ---------- */

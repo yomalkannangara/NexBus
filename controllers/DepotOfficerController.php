@@ -11,6 +11,7 @@ class DepotOfficerController extends \App\controllers\BaseController {
     $this->setLayout('staff');   // ← switch to the staff layout (not admin)
     $this->m = new \App\models\depot_officer\DepotOfficerModel();
     $this->m->requireDepotOfficer();
+    $this->requireLogin(['depotOfficer']);
 }
 
 

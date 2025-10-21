@@ -269,3 +269,60 @@ Stack trace:
 #5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotManagerCon...', 'fleet')
 #6 {main}
   thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 236
+[21-Oct-2025 22:20:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_private\TripEntryModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:41
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->trip_entry()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'trip_entry')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 41
+[21-Oct-2025 22:22:08 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_private\TurnModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->turns()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'turns')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 65
+[21-Oct-2025 22:28:46 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.private_operators' doesn't exist in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php:15
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php(15): PDO->prepare('SELECT name FRO...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(30): App\models\timekeeper_private\BaseModel->info()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->dashboard()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php on line 15
+[21-Oct-2025 22:28:50 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.private_operators' doesn't exist in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php:15
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php(15): PDO->prepare('SELECT name FRO...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(30): App\models\timekeeper_private\BaseModel->info()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->dashboard()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'dashboard')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php on line 15
+[21-Oct-2025 22:29:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.private_revenue' doesn't exist in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\DashboardModel.php:77
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\DashboardModel.php(77): PDO->prepare('SELECT COALESCE...')
+#1 C:\xampp\htdocs\NexBus-1\models\timekeeper_private\DashboardModel.php(62): App\models\timekeeper_private\DashboardModel->scalar('SELECT COALESCE...', Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(31): App\models\timekeeper_private\DashboardModel->stats()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->dashboard()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'dashboard')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\DashboardModel.php on line 77
+[21-Oct-2025 23:18:01 Asia/Colombo] PHP Warning:  Undefined variable $privateOperatorId in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php on line 11
+[21-Oct-2025 23:18:01 Asia/Colombo] PHP Fatal error:  Uncaught TypeError: Cannot assign null to property App\models\timekeeper_private\BaseModel::$opId of type int in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php(30): App\models\timekeeper_private\BaseModel->__construct(0)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->dashboard()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'dashboard')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_private\BaseModel.php on line 11
+[21-Oct-2025 23:19:27 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_private\TripHistoryModel::routesForOperator() in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:94
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->history()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'history')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 94
+[21-Oct-2025 23:20:21 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\controllers\ProfileModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php:109
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperPrivateController->profile()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperPriva...', 'profile')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperPrivateController.php on line 109
