@@ -1,193 +1,169 @@
-/* staff.css — make staff look like Admin immediately */
+/* =======================================================
+   staff.css (final) — shared layout + pages
+   Uses your design tokens only
+   ======================================================= */
 @import url('/assets/css/admin.css');
 
-/* ---------- Optional staff-only tweaks (safe to delete if you want 1:1 look) ---------- */
-
-/* Slightly different sidebar section labels */
-.sidebar .sb-title {
-  font-weight: 700;
-  letter-spacing: .2px;
-}
-.sidebar .sb-sub {
-  opacity: .85;
-}
-
-/* Ensure our simple classes used in staff views get Admin-like look even if
-   admin.css names differ. These are additive “shims”. */
-.cards {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-.card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 22px rgba(16,24,40,.06);
-  padding: 16px 18px;
-}
-.card h3 {
-  margin: 0 0 6px 0;
-  font-size: 16px;
-  font-weight: 700;
-}
-.mt-2 { margin-top: 12px; }
-.mt-3 { margin-top: 18px; }
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 10px;
-}
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+/* ---------- Tokens ---------- */
+:root {
+  --bg: #f6f7f9;
+  --card: #fff;
+  --primary: #80143c;
+  --accent: #e4b74f;
+  --text: #2b2b2b;
+  --border: #e8d39a;
+  --maroon: #80143c;
+  --maroon-2: #80143c;
+  --gold: #f3b944;
+  --gold-soft: #f3b944;
+  --muted: #6b7280;
+  --ring: rgba(231, 179, 67, .55);
+  --radius: 14px;
+  --shadow: 0 10px 28px rgba(17, 24, 39, .08);
+  --thickshadow: 0 12px 40px rgba(17, 24, 39, .2);
 }
 
-/* Table shim to match Admin look even if class names differ */
-.table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 22px rgba(16,24,40,.06);
+/* ---------- App shell / layout ---------- */
+body { background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%); color: var(--text); }
+
+
+.app-shell { display:grid; grid-template-columns:260px 1fr; min-height: calc(100vh - 62px); }
+
+/* Sidebar */
+.sidebar {
+  background: linear-gradient(180deg, var(--maroon) 0%, var(--maroon-2) 100%);
+  color:#fff; padding:16px 14px; display:flex; flex-direction:column; gap:16px;
 }
-.table thead th {
-  text-align: left;
-  font-weight: 700;
-  font-size: 14px;
-  padding: 12px 14px;
-  background: #faf7f8; /* matches admin soft header tone */
-  border-bottom: 1px solid #eee1e6;
+.sidebar .sb-title { font-weight:700; letter-spacing:.2px; }
+.sidebar .sb-sub { opacity:.85; }
+.menu { display:flex; flex-direction:column; gap:6px; }
+.menu .menu-item {
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  border-radius:12px; color:#fff; text-decoration:none; opacity:.95;
 }
-.table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid #f1e8ec;
-  font-size: 14px;
+.menu .menu-item:hover { opacity:1; background: rgba(255,255,255,.08); }
+.menu .menu-item.active { background: var(--gold); color: var(--maroon); }
+
+/* Sidebar profile */
+.sidebar-profile { margin-top:auto; }
+.profile-card { display:flex; gap:10px; align-items:center; padding:10px; border-radius:12px; background: rgba(255,255,255,.08); }
+.profile-avatar { width:36px; height:36px; border-radius:50%; background:#fff; color:var(--maroon); display:grid; place-items:center; font-weight:800; }
+.profile-email { font-size:12px; opacity:.9; }
+.profile-logout { margin-top:10px; display:flex; gap:8px; align-items:center; color:#fff; text-decoration:none; opacity:.9; }
+.profile-logout:hover { opacity:1; }
+
+/* ---------- Page Title Banner (use at top of every page) ---------- */
+.title-banner{
+  position:relative; border-radius:22px;
+  background: linear-gradient(180deg, var(--maroon), var(--maroon-2));
+  color:#fff; padding:28px 32px 26px; box-shadow: var(--shadow);
+  border-left: 6px solid var(--gold);margin-bottom: 10px;
 }
-.table tbody tr:hover td {
-  background: #fff8fa;
+.title-banner h1{ margin:0 0 8px; font-size:22px; font-weight:600; line-height:1.6; }
+.title-banner p{ margin:0; font-size:14px; opacity:.92; }
+
+/* ---------- Cards & accents ---------- */
+.card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; }
+.cards{ display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+/* colorful borders using your tokens */
+.card.accent-rose   { border-left:6px solid var(--gold); }
+.card.accent-amber  { border-left:6px solid #f59e0b; }
+.card.accent-indigo { border-left:6px solid #6366f1; }
+.card.accent-cyan   { border-left:6px solid #06b6d4; }
+.card.accent-green  { border-left:6px solid #16a34a; }
+
+/* KPI text helpers */
+.metric-title{ font-size:13px; color:var(--muted); margin-bottom:6px; }
+.metric-value{ font-size:26px; font-weight:900; color: var(--maroon); }
+.metric-sub{ font-size:12px; color:#8b8f97; }
+
+/* ---------- Forms & buttons ---------- */
+.button, button, [type="submit"]{
+  appearance:none; border:1px solid transparent; padding:10px 14px; border-radius:10px;
+  background: var(--primary); color:#fff; font-weight:600; cursor:pointer;
+  box-shadow: 0 0 0 0 transparent; transition: box-shadow .15s ease;
+}
+.button.outline{ background:#fff; color:var(--primary); border-color: var(--border); }
+.button:focus-visible, button:focus-visible { outline:0; box-shadow: 0 0 0 4px var(--ring); }
+
+input[type="date"], input[type="time"], input[type="text"], input[type="number"], select{
+  width:100%; padding:9px 10px; border-radius:10px; border:1px solid var(--border); background:#fff;
+}
+input:focus-visible, select:focus-visible { outline:0; box-shadow: 0 0 0 4px var(--ring); }
+
+/* ---------- Generic table (history) ---------- */
+.table{
+  width:100%; border-collapse:separate; border-spacing:0; background:#fff;
+  border-radius:12px; overflow:hidden; box-shadow: var(--shadow);
+}
+.table thead th{
+  text-align:left; font-weight:700; font-size:14px; padding:12px 14px;
+  background: #fff7e6; /* soft gold band */
+  border-bottom: 1px solid var(--border);
+}
+.table tbody td{
+  padding:12px 14px; border-bottom:1px solid #f1e8ec; font-size:14px;
+}
+.table tbody tr:hover td{ background:#fffaf0; }
+
+/* ---------- Trip Entry / Turns tables ---------- */
+.tk{ padding:16px; }
+.table-wrap{ overflow:auto; }
+.tk-table{ width:100%; min-width:760px; border-collapse:collapse; }
+.tk-table th,.tk-table td{ padding:10px 12px; border-bottom:1px solid #eee; text-align:left; vertical-align:middle; }
+.tk-table thead th{
+  font-size:13px; color:#555; text-transform:uppercase; letter-spacing:.03em;
+  background:#fff7e6; border-bottom:1px solid var(--border);
 }
 
-/* Buttons & inputs (in case admin.css selector names differ) */
-.button, button, [type="submit"] {
-  appearance: none;
-  border: 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #7c0f2b; /* NTC maroon */
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
+/* badges + buttons used on these pages */
+.mono{ font-family: ui-monospace, Menlo, Consolas, monospace; }
+.route-no{ font-weight:700; }
+.route-name{ color:#374151; font-size:14px; }
+.badge{ display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; }
+.badge.green{ background:#dcfce7; color:#166534; }
+.badge.blue{  background:#e0f2fe; color:#075985; }
+.badge.gray{  background:#f3f4f6; color:#374151; }
+
+.btn-start{
+  background: var(--primary); color:#fff; border:0; border-radius:10px;
+  padding:8px 10px; cursor:pointer; font-weight:600;
 }
-.button.outline {
-  background: #fff;
-  color: #7c0f2b;
-  border: 1px solid #e6c9d1;
+.btn-start[disabled]{ background:#cbd5e1; color:#475569; cursor:not-allowed; }
+.btn-complete{
+  background: var(--accent); color:#2b2b2b; border:1px solid var(--border);
+  border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:700;
 }
-input[type="date"],
-input[type="time"],
-input[type="text"],
-input[type="number"],
-select {
-  width: 100%;
-  padding: 9px 10px;
-  border-radius: 10px;
-  border: 1px solid #e8d7dc;
-  background: #fff;
+.text-red{ color:#b91c1c; }
+.row-current{ background: linear-gradient(90deg, rgba(243,185,68,.18), transparent); }
+
+/* Dialogs */
+dialog::backdrop{ background: rgba(0,0,0,.35); }
+dialog{ border:0; border-radius:12px; padding:16px 20px; box-shadow: var(--thickshadow); }
+
+/* ---------- Notices ---------- */
+.notice{
+  background:#fffdf3; color: var(--maroon);
+  border:1px solid var(--border); padding:10px 14px; border-radius:10px;
+  margin:8px 0 16px; font-weight:600;
 }
 
-/* Notice banner used by “$msg” blocks in the views */
-.notice {
-  background: #fff4f7;
-  color: #7c0f2b;
-  border: 1px solid #f3d8e0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  margin: 8px 0 16px;
-  font-weight: 600;
+/* ---------- Dashboard map placeholder ---------- */
+.live-header{ display:flex; align-items:center; gap:8px; font-weight:600; color:var(--maroon); margin-bottom:10px; }
+.live-dot{ width:10px; height:10px; border-radius:999px; background: var(--gold); box-shadow: 0 0 0 4px var(--ring); }
+.map-placeholder{
+  position:relative; border-radius:12px; height:360px; overflow:hidden;
+  background: linear-gradient(180deg, #fffaf0, #f4f6fa);
+  border:1px dashed var(--border);
 }
+.map-inner{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); font-weight:600; }
+.map-crosshair{ position:absolute; width:120px; height:120px; border-radius:999px; border:2px dashed var(--gold-soft); }
 
-/* Page header variant */
-.page-head {
-  margin-bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.page-head h1 {
-  margin: 0;
-  font-size: 24px;
-  line-height: 1.2;
-}
-.page-head .muted {
-  color: #6b7280;
-}
-
-/* Stats card variant */
-.cards.stats .card.stat h3 {
-  margin: 0 0 2px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6f1632;
-  opacity: .9;
-}
-.card.stat .stat-num {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: .3px;
-}
-.card.stat .stat-num.danger { color: #b4234c; }
-.card.stat .stat-num.warn   { color: #b54708; }
-.card.stat .stat-num.ok     { color: #027a48; }
-
-/* Table refinements */
-.table.compact thead th,
-.table.compact tbody td {
-  padding: 10px 12px;
-}
-.td-num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Monospace utility */
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Status pill */
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 1px solid transparent;
-}
-.status-pill.delayed {
-  background: #fff1f3;
-  color: #b4234c;
-  border-color: #f3c2cf;
-}
-.status-pill.breakdown {
-  background: #fff7ed;
-  color: #b54708;
-  border-color: #fbd6a1;
-}
-.status-pill.ok {
-  background: #ecfdf3;
-  color: #027a48;
-  border-color: #a6f4c5;
-}
-.status-pill.neutral {
-  background: #f8fafc;
-  color: #334155;
-  border-color: #e2e8f0;
+/* ---------- Responsive ---------- */
+@media (max-width: 980px){ .cards{ grid-template-columns:repeat(2,minmax(220px,1fr)); } }
+@media (max-width: 640px){
+  .app-shell{ grid-template-columns:1fr; }
+  .title-banner h1{ font-size:26px; }
+  .cards{ grid-template-columns:1fr; }
 }

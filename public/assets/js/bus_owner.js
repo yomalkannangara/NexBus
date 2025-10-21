@@ -423,25 +423,77 @@
     });
   }
 
-  // ---------- performance ----------
-  function setupExportButton() {
-    const exportBtn = document.querySelector('.js-export');
-    const timeSel   = document.querySelector('.js-time-filter');
-    if (!exportBtn) return;
-    exportBtn.addEventListener('click', () => {
-      const base  = exportBtn.getAttribute('data-export-href') || '/reports/export';
-      const range = (timeSel && timeSel.value) ? timeSel.value : '6m';
-      window.location.href = `${base}?range=${encodeURIComponent(range)}`;
+  // ---------- fleet: assign driver/conductor ----------
+  function setupAssignModal() {
+    const modal = document.getElementById('assignModal');
+    const form  = document.getElementById('assignForm');
+    if (!modal || !form) return;
+
+    const btnClose   = document.getElementById('assignClose');
+    const btnCancel  = document.getElementById('assignCancel');
+    const busIdInput = document.getElementById('assign_bus_id');
+    const driverInp  = document.getElementById('assign_driver_id');
+    const condInp    = document.getElementById('assign_conductor_id');
+
+    let triggerBtn = null;
+
+    const open = (busId) => {
+      busIdInput && (busIdInput.value = busId || '');
+      if (driverInp) driverInp.value = '';
+      if (condInp)   condInp.value   = '';
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    };
+    const close = () => {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    };
+
+    $$('.js-assign').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        triggerBtn = btn;
+        const id = btn.getAttribute('data-bus-id') || '';
+        const d  = btn.getAttribute('data-driver-id') || '';
+        const c  = btn.getAttribute('data-conductor-id') || '';
+        open(id);
+        if (driverInp) driverInp.value = (d && d !== '0') ? d : '';
+        if (condInp)   condInp.value   = (c && c !== '0') ? c : '';
+      });
     });
-  }
-  function markRankBadges() {
-    $$('.rank-badge').forEach(badge => {
-      const n = parseInt(badge.textContent, 10);
-      badge.classList.remove('rank-1','rank-2','rank-3','rank-other');
-      if (n === 1) badge.classList.add('rank-1');
-      else if (n === 2) badge.classList.add('rank-2');
-      else if (n === 3) badge.classList.add('rank-3');
-      else badge.classList.add('rank-other');
+
+    btnClose?.addEventListener('click', (e) => { e.preventDefault(); close(); });
+    btnCancel?.addEventListener('click', (e) => { e.preventDefault(); close(); });
+    modal.querySelector('.modal__backdrop')?.addEventListener('click', close);
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const busId = (busIdInput?.value || '').trim();
+      const drv   = (driverInp?.value || '').trim();
+      const con   = (condInp?.value || '').trim();
+      if (!busId) { toast('Missing bus ID', false); return; }
+      if (!drv && !con) { toast('Enter driver or conductor', false); return; }
+
+      const ok = await postFormOrFallback(form);
+      if (ok) {
+        // optimistic row update
+        const esc = (window.CSS && CSS.escape) ? CSS.escape(busId) : busId;
+        const row = document.querySelector(`tr[data-bus-id="${esc}"]`);
+        if (row) {
+          const tdDriver = row.querySelector('.td-driver');
+          const tdCond   = row.querySelector('.td-conductor');
+          if (tdDriver) tdDriver.innerHTML = drv ? drv : '<span class="text-secondary">Unassigned</span>';
+          if (tdCond)   tdCond.innerHTML   = con ? con : '<span class="text-secondary">Unassigned</span>';
+        }
+        // keep button dataset in sync for next open
+        if (triggerBtn) {
+          if (drv) triggerBtn.setAttribute('data-driver-id', drv); else triggerBtn.setAttribute('data-driver-id', '0');
+          if (con) triggerBtn.setAttribute('data-conductor-id', con); else triggerBtn.setAttribute('data-conductor-id', '0');
+        }
+        close();
+        toast('Assignment saved');
+      }
     });
   }
 
@@ -467,6 +519,9 @@
     safe('setupDriverModal', setupDriverModal);
     safe('wireDriverAndConductorDeletes', wireDriverAndConductorDeletes);
     safe('wireStatusToggles', wireStatusToggles);
+
+    // fleet assign
+    safe('setupAssignModal', setupAssignModal);
 
     console.info('[app.js] ready.');
   });

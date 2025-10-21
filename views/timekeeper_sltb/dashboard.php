@@ -1,38 +1,56 @@
-<?php $depotName = $depot['name'] ?? 'Unknown Depot'; ?>
-<div class="card page-head">
-  <h1 style="margin:0 0 6px;">SLTB Timekeeper — <?= htmlspecialchars($depotName) ?></h1>
-  <div class="muted">Daily tracking snapshot and recent delays</div>
+
+<div class="title-banner">
+    <h1>SLTB TimeKeeper Dashboard</h1>
+    <p><?= htmlspecialchars($S['depot_name'] ?? 'My Depot') ?> — National Transport Commission</p>
+</div>
+<!-- your dashboard cards -->
+<div class="grid" style="display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:16px;margin:16px 0;">
+  <div class="card accent-rose">
+    <div class="metric-title">Total Buses Assigned Today</div>
+    <div class="metric-value"><?= (int)($stats['assigned_today'] ?? 0) ?></div>
+    <div class="metric-sub">
+      <?= ($stats['assigned_delta'] ?? 0) >= 0 ? '+' : '' ?><?= (int)($stats['assigned_delta'] ?? 0) ?> from yesterday
+    </div>
+  </div>
+
+  <div class="card accent-amber">
+    <div class="metric-title">Today's Revenue</div>
+    <div class="metric-value">LKR <?= number_format((float)($stats['revenue_today'] ?? 0),0,'.',',') ?></div>
+    <div class="metric-sub">+12% from yesterday</div>
+  </div>
+
+  <div class="card accent-green">
+    <div class="metric-title">Drivers on Duty</div>
+    <div class="metric-value"><?= (int)($stats['drivers_on_duty'] ?? 0) ?></div>
+    <div class="metric-sub">on shift today</div>
+  </div>
+
+  <div class="card accent-indigo">
+    <div class="metric-title">Active Routes</div>
+    <div class="metric-value"><?= (int)($stats['active_routes'] ?? 0) ?></div>
+    <div class="metric-sub">From depot</div>
+  </div>
+
+  <div class="card accent-cyan">
+    <div class="metric-title">Conductors on Duty</div>
+    <div class="metric-value"><?= (int)($stats['conductors_on_duty'] ?? 0) ?></div>
+    <div class="metric-sub">on shift today</div>
+  </div>
+
+  <div class="card accent-rose">
+    <div class="metric-title">Location Updates</div>
+    <div class="metric-value"><?= (int)($stats['location_pct'] ?? 0) ?>%</div>
+    <div class="metric-sub">Last hour</div>
+  </div>
 </div>
 
-<div class="cards stats">
-  <div class="card stat">
-    <h3>Delayed Today</h3>
-    <div class="stat-num danger"><?= (int)($todayStats['delayed'] ?? 0) ?></div>
+<!-- Map placeholder panel -->
+<div class="card">
+  <div style="display:flex;align-items:center;gap:8px;font-weight:600;color:#4a0e25;margin-bottom:10px;">
+    <div style="width:10px;height:10px;border-radius:999px;background:#e11d48;box-shadow:0 0 0 4px rgba(225,29,72,.15)"></div>
+    <span>Live Bus Locations</span>
   </div>
-  <div class="card stat">
-    <h3>Breakdowns Today</h3>
-    <div class="stat-num warn"><?= (int)($todayStats['breaks'] ?? 0) ?></div>
+  <div style="height:360px;border:1px dashed #e5e7eb;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fdf2f8,#f1f5f9);">
+    <p style="color:#6b7280;font-weight:600;margin:0;">Map Placeholder</p>
   </div>
 </div>
-
-<h3 class="mt-3">Recent Delays</h3>
-<table class="table compact">
-  <thead><tr><th>Time</th><th>Bus</th><th>Status</th><th>Delay (min)</th></tr></thead>
-  <tbody>
-  <?php foreach (($delayed ?? []) as $r): 
-    $status = trim((string)($r['operational_status'] ?? ''));
-    $pill = 'neutral';
-    if (stripos($status, 'delay') !== false)       { $pill = 'delayed'; }
-    elseif (stripos($status, 'break') !== false)   { $pill = 'breakdown'; }
-    elseif (stripos($status, 'on time') !== false 
-         || stripos($status, 'ok') !== false)      { $pill = 'ok'; }
-  ?>
-    <tr>
-      <td class="mono"><?= htmlspecialchars($r['snapshot_at'] ?? '') ?></td>
-      <td><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></td>
-      <td><span class="status-pill <?= $pill ?>"><?= htmlspecialchars($status) ?></span></td>
-      <td class="td-num"><span class="mono"><?= (float)($r['avg_delay_min'] ?? 0) ?></span></td>
-    </tr>
-  <?php endforeach; ?>
-  </tbody>
-</table>

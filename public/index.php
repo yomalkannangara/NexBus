@@ -87,10 +87,10 @@ $routes = [
 
     // SLTB Timekeeper
     '/TS/dashboard'  => ['TimekeeperSltbController','dashboard'],
-    '/TS/timetables' => ['TimekeeperSltbController','timetables'],
-    '/TS/trip_logs'  => ['TimekeeperSltbController','trip_logs'],
-    '/TS/reports'    => ['TimekeeperSltbController','reports'],
-    '/TS/attendance' => ['TimekeeperSltbController','attendance'],
+    '/TS/turns' => ['TimekeeperSltbController','turns'],
+    '/TS/history'  => ['TimekeeperSltbController','history'],
+    '/TS/trip_entry'    => ['TimekeeperSltbController','entry'],
+    '/TS/profile' => ['TimekeeperSltbController','profile'],
     '/TS'            => ['TimekeeperSltbController','dashboard'],
 
     // Other roles

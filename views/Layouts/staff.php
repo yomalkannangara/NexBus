@@ -1,4 +1,5 @@
 <?php
+
 // derive current module/page from the path like /O/dashboard or /TP/timetables
 $uri      = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $segments = array_values(array_filter(explode('/', $uri)));
@@ -9,6 +10,7 @@ $user     = $_SESSION['user'] ?? [];
 $initial  = $user ? strtoupper(substr($user['name'] ?? $user['full_name'] ?? 'U', 0, 1)) : '?';
 $email    = $user['email'] ?? '';
 $name     = $user['full_name']  ?? ($user['full_name'] ?? 'Staff User');
+  $profileHref = in_array($module, ['O','TP','TS'], true) ? ("/$module/profile") : "/home";
 
 // labels per module
 $roleLabel = match ($module) {
@@ -45,6 +47,7 @@ $active = function (string $m, string $p) use ($module, $page): string {
   <link rel="stylesheet" href="/assets/css/alert.css">
   <script defer src="/assets/js/app.js"></script>
   <script src="/assets/js/alert.js"></script>
+
 </head>
 <body>
 <header class="topbar">
@@ -89,25 +92,24 @@ $active = function (string $m, string $p) use ($module, $page): string {
         <a href="/TP/attendance" class="menu-item<?= $active('TP','attendance') ?>"><i class="icon">🗒️</i>Attendance</a>
       <?php elseif ($module === 'TS'): ?>
         <a href="/TS/dashboard"  class="menu-item<?= $active('TS','dashboard')  ?>"><i class="icon">🏠</i>Dashboard</a>
-        <a href="/TS/timetables" class="menu-item<?= $active('TS','timetables') ?>"><i class="icon">📅</i>Timetables</a>
-        <a href="/TS/trip_logs"  class="menu-item<?= $active('TS','trip_logs')  ?>"><i class="icon">🧭</i>Trip Logs</a>
-        <a href="/TS/reports"    class="menu-item<?= $active('TS','reports')    ?>"><i class="icon">📈</i>Reports</a>
-        <a href="/TS/attendance" class="menu-item<?= $active('TS','attendance') ?>"><i class="icon">🗒️</i>Attendance</a>
+        <a href="/TS/trip_entry"    class="menu-item<?= $active('TS','trip_entry')    ?>"><i class="icon">📈</i>Trip Entry</a>
+
+        <a href="/TS/turns" class="menu-item<?= $active('TS','turns') ?>"><i class="icon">📅</i>Turns</a>
+        <a href="/TS/history"  class="menu-item<?= $active('TS','history')  ?>"><i class="icon">🧭</i>History</a>
       <?php else: ?>
         <!-- Fallback: staff dashboard -->
         <a href="/home" class="menu-item"><i class="icon">🏠</i>Home</a>
       <?php endif; ?>
     </nav>
 
-    <div class="sidebar-profile">
-      <div class="profile-card">
+   <div class="sidebar-profile">
+      <a href="<?= htmlspecialchars($profileHref) ?>" class="profile-card" style="text-decoration:none;color:inherit;">
         <div class="profile-avatar"><?= htmlspecialchars($initial) ?></div>
         <div class="profile-meta">
           <div class="profile-name"><?= htmlspecialchars($name) ?></div>
           <div class="profile-email"><?= htmlspecialchars($email) ?></div>
         </div>
-      </div>
-
+      </a>
       <a href="/logout" class="profile-logout">
         <span class="logout-icon">⇦</span>
         <span class="logout-text">Logout</span>
@@ -125,4 +127,6 @@ $active = function (string $m, string $p) use ($module, $page): string {
   </main>
 </div>
 </body>
+  <script src="/assets/js/timekeeper.js"></script>
+
 </html>

@@ -3,168 +3,184 @@ declare(strict_types=1);
 
 namespace App\controllers;
 
-// Ensure the parent is loaded even if autoload is case-sensitive on some envs
-require_once __DIR__ . '/BaseController.php';
+use App\controllers\BaseController;
 
 use App\models\timekeeper_sltb\DashboardModel;
-use App\models\timekeeper_sltb\TimetableModel;
-use App\models\timekeeper_sltb\TrackingModel;
-use App\models\timekeeper_sltb\ReportModel;
-use App\models\timekeeper_sltb\AttendanceModel;
+use App\models\timekeeper_sltb\TripHistoryModel;
+use App\models\timekeeper_sltb\TurnModel;
+use App\models\timekeeper_sltb\TripEntryModel;
+use App\models\timekeeper_sltb\ProfileModel;
 
-class TimekeeperSltbController extends \App\controllers\BaseController
+class TimekeeperSltbController extends BaseController
 {
     public function __construct()
     {
         parent::__construct();
-        $this->setLayout('staff');                  // shared staff chrome
-        $this->requireLogin(['SLTBTimekeeper']);    // role guard via BaseController
+        $this->setLayout('staff');               // shared staff chrome
+        $this->requireLogin(['SLTBTimekeeper']); // role guard via BaseController
     }
 
-    /** Resolve depot id from session/db, tolerant to depot_id / sltb_depot_id / mapping table */
-    private function myDepotId(array $u): int
+    /* ---------- helpers ---------- */
+
+    private function me(): array {
+        return $_SESSION['user'] ?? [];
+    }
+
+    private function myUserId(): int {
+        $u = $this->me();
+        return (int)($u['user_id'] ?? $u['id'] ?? 0);
+    }
+
+    /** Resolve depot id from session or DB (works if either sltb_depot_id or depot_id exists) */
+    private function myDepotId(): int
     {
-        if (!empty($u['depot_id']))      return (int)$u['depot_id'];
+        $u = $this->me();
         if (!empty($u['sltb_depot_id'])) return (int)$u['sltb_depot_id'];
+        if (!empty($u['depot_id']))      return (int)$u['depot_id'];
 
-        $uid = (int)($u['user_id'] ?? $u['id'] ?? 0);
-        if (!$uid) return 0;
+        $uid = $this->myUserId();
+        if ($uid <= 0) return 0;
 
-        $pdo = $GLOBALS['db'];
-
-        // users.depot_id
         try {
-            $st = $pdo->prepare("SELECT depot_id FROM users WHERE user_id=?");
-            $st->execute([$uid]);
-            $dep = (int)($st->fetchColumn() ?: 0);
-            if ($dep) { $_SESSION['user']['depot_id'] = $dep; return $dep; }
-        } catch (\Throwable $e) {}
-
-        // users.sltb_depot_id
-        try {
-            $st = $pdo->prepare("SELECT sltb_depot_id FROM users WHERE user_id=?");
-            $st->execute([$uid]);
-            $dep = (int)($st->fetchColumn() ?: 0);
-            if ($dep) { $_SESSION['user']['sltb_depot_id'] = $dep; return $dep; }
-        } catch (\Throwable $e) {}
-
-        // optional mapping table (if present)
-        try {
-            $st = $pdo->prepare("SELECT sltb_depot_id FROM sltb_depot_users WHERE user_id=? ORDER BY is_primary DESC LIMIT 1");
-            $st->execute([$uid]);
-            $dep = (int)($st->fetchColumn() ?: 0);
-            if ($dep) { $_SESSION['user']['sltb_depot_id'] = $dep; return $dep; }
-        } catch (\Throwable $e) {}
-
-        return 0;
+            $pdo = $GLOBALS['db'];
+            $st = $pdo->prepare("SELECT COALESCE(sltb_depot_id, depot_id, 0) FROM users WHERE (id=? OR user_id=?) LIMIT 1");
+            $st->execute([$uid, $uid]);
+            return (int)$st->fetchColumn();
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
-    public function dashboard(): void
-    {
-        $u   = $_SESSION['user'] ?? [];
-        $dep = $this->myDepotId($u);
-
-        $dash = new DashboardModel();
-        $this->view('timekeeper_sltb', 'dashboard', [
-            'me'         => $u,
-            'depot'      => $dash->depot($dep),
-            'todayStats' => $dash->todayStats($dep),
-            'delayed'    => $dash->delayedToday($dep),
-        ]);
+    /** CSRF token for TS module */
+    private function csrfEnsure(): string {
+        if (empty($_SESSION['csrf_ts'])) {
+            $_SESSION['csrf_ts'] = bin2hex(random_bytes(16));
+        }
+        return $_SESSION['csrf_ts'];
+    }
+    private function csrfValid(?string $t): bool {
+        return is_string($t) && hash_equals($_SESSION['csrf_ts'] ?? '', $t);
     }
 
-    public function timetables(): void
+    /* ---------- pages ---------- */
+
+    public function dashboard()
     {
-        $u   = $_SESSION['user'] ?? [];
-        $dep = $this->myDepotId($u);
+        $m = new DashboardModel();
+        $stats = $m->stats();
+        $this->view('timekeeper_sltb', 'dashboard', [ 'stats' => $stats ]);
+    }
 
-        $tt = new TimetableModel();
+    public function entry()
+    {
+        $m = new TripEntryModel();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'update')) {
-            $tt->updateTimetable($_POST);
-            $this->redirect('/TS/timetables?msg=updated');
-            return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            header('Content-Type: application/json');
+            if (($_POST['action'] ?? '') === 'start') {
+                $tt = (int)($_POST['timetable_id'] ?? 0);
+                echo json_encode($m->start($tt)); return;
+            }
+            echo json_encode(['ok'=>false,'msg'=>'Unknown action']); return;
         }
 
-        $this->view('timekeeper_sltb', 'timetables', [
-            'me'   => $u,
-            'depot'=> (new DashboardModel())->depot($dep),
-            'rows' => $tt->todayTimetables($dep),
-            'msg'  => $_GET['msg'] ?? null,
+        $this->view('timekeeper_sltb', 'trip_entry', [
+            'rows' => $m->todayList()
         ]);
     }
 
-    public function trip_logs(): void
+    public function turns()
     {
-        $u    = $_SESSION['user'] ?? [];
-        $dep  = $this->myDepotId($u);
-        $from = $_GET['from'] ?? date('Y-m-d');
+        $m = new TurnModel();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            header('Content-Type: application/json');
+            if (($_POST['action'] ?? '') === 'complete') {
+                $id = (int)($_POST['sltb_trip_id'] ?? 0);
+                echo json_encode(['ok' => $m->complete($id)]); return;
+            }
+            echo json_encode(['ok'=>false]); return;
+        }
+
+        $this->view('timekeeper_sltb', 'turn_management', [
+            'rows' => $m->running()
+        ]);
+    }
+
+    public function history()
+    {
+        $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
         $to   = $_GET['to']   ?? date('Y-m-d');
+        $routeId = isset($_GET['route_id']) ? (int)$_GET['route_id'] : null;
+        $turnNo  = isset($_GET['turn_no'])  ? (int)$_GET['turn_no']  : null;
 
-        $track = new TrackingModel();
+        $m = new TripHistoryModel();
+        $rows   = $m->list($from, $to, $routeId, $turnNo);
+        $routes = $m->routesForDepot();
 
-        $this->view('timekeeper_sltb', 'trip_logs', [
-            'me'   => $u,
+        $this->view('timekeeper_sltb', 'history', [
             'from' => $from,
             'to'   => $to,
-            'rows' => $track->logs($dep, $from, $to),
+            'rows' => $rows,
+            'routes' => $routes,
+            'route_id' => $routeId,
+            'turn_no'  => $turnNo,
+            'count' => count($rows),
         ]);
     }
 
-    public function reports(): void
-    {
-        $u    = $_SESSION['user'] ?? [];
-        $dep  = $this->myDepotId($u);
-        $from = $_GET['from'] ?? date('Y-m-d');
-        $to   = $_GET['to']   ?? date('Y-m-d');
-
-        $report = new ReportModel();
-
-        if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-            $csv = $report->csv($dep, $from, $to);
-            header('Content-Type: text/csv');
-            header('Content-Disposition: attachment; filename="sltb-tk-report-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
-            echo $csv; exit;
-        }
-
-        $this->view('timekeeper_sltb', 'reports', [
-            'me'      => $u,
-            'from'    => $from,
-            'to'      => $to,
-            'summary' => $report->kpis($dep, $from, $to),
-        ]);
-    }
-
-public function attendance(): void
+   public function profile()
 {
-    $u    = $_SESSION['user'] ?? [];
-    $dep  = $this->myDepotId($u);
-    $date = $_GET['date'] ?? date('Y-m-d');
+    // Require login
+    $me = $_SESSION['user'] ?? null;
+    if (!$me || empty($me['user_id'])) {
+        return $this->redirect('/login');
+    }
+    $uid = (int)$me['user_id'];
 
-    $att   = new \App\models\timekeeper_sltb\AttendanceModel();
-    $staff = $att->staffList($dep); // load staff first so we know who to save
+    $m = new ProfileModel();
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'mark')) {
-        // Build a normalized $mark array with defaults (unchecked checkboxes don’t post)
-        $mark = [];
-        foreach ($staff as $s) {
-            $uid   = (int)$s['user_id'];
-            $row   = $_POST['mark'][$uid] ?? [];
-            $abs   = !empty($row['absent']) ? 1 : 0;
-            $notes = trim($row['notes'] ?? '');
-            $mark[$uid] = ['absent' => $abs, 'notes' => $notes];
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $act = $_POST['action'] ?? '';
+
+        if ($act === 'update_profile') {
+            $ok = $m->updateProfile($uid, [
+                'full_name' => trim($_POST['full_name'] ?? ''),
+                'email'     => trim($_POST['email'] ?? ''),
+                'phone'     => trim($_POST['phone'] ?? '')
+            ]);
+
+            if ($ok) {
+                // refresh session cache with latest user fields
+                if ($fresh = $m->findById($uid)) {
+                    $_SESSION['user']['full_name']     = $fresh['full_name']     ?? ($_SESSION['user']['full_name'] ?? null);
+                    $_SESSION['user']['email']         = $fresh['email']         ?? ($_SESSION['user']['email'] ?? null);
+                    $_SESSION['user']['sltb_depot_id'] = $fresh['sltb_depot_id'] ?? ($_SESSION['user']['sltb_depot_id'] ?? null);
+                }
+                return $this->redirect('/TS/profile?msg=updated');
+            }
+            return $this->redirect('/TS/profile?msg=update_failed');
         }
-        $att->markAttendance($dep, $date, $mark);
-        $this->redirect('/TS/attendance?date=' . urlencode($date) . '&msg=saved');
-        return;
+
+        if ($act === 'change_password') {
+            $ok = $m->changePassword(
+                $uid,
+                $_POST['current_password'] ?? '',
+                $_POST['new_password'] ?? '',
+                $_POST['confirm_password'] ?? ''
+            );
+            return $this->redirect('/TS/profile?msg=' . ($ok ? 'pw_changed' : 'pw_error'));
+        }
+
+        return $this->redirect('/TS/profile?msg=bad_action');
     }
 
-    $this->view('timekeeper_sltb', 'attendance', [
-        'me'      => $u,
-        'date'    => $date,
-        'staff'   => $staff,
-        'records' => $att->attendanceForDate($dep, $date),
-        'msg'     => $_GET['msg'] ?? null,
+    // GET → load data for the form
+    $meFresh = $m->findById($uid) ?: $me;
+
+    $this->view('timekeeper_sltb','profile',[
+        'me'  => $meFresh,
+        'msg' => $_GET['msg'] ?? null
     ]);
 }
 

@@ -96,3 +96,176 @@ Stack trace:
 [21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 41
 [21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  Undefined variable $buses in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 55
 [21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 55
+[21-Oct-2025 18:14:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_sltb\TimetableModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:81
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->timetables()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'timetables')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 81
+[21-Oct-2025 18:15:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_sltb\ReportModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->reports()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'reports')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 121
+[21-Oct-2025 18:48:11 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "public", expecting end of file in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 67
+[21-Oct-2025 18:48:44 Asia/Colombo] PHP Parse error:  syntax error, unexpected identifier "starts" in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TurnModel.php on line 33
+[21-Oct-2025 19:27:36 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\ntc_admin\BaseModel" not found in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TurnModel.php:7
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\bootstrap\autoload.php(19): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(39): {closure}('App\\models\\time...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->turns()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'turns')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TurnModel.php on line 7
+[21-Oct-2025 19:27:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_sltb\TurnModel::listTurns() in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:59
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->turns()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'turns')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 59
+[21-Oct-2025 19:39:43 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_sltb\TripHistoryModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:88
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 88
+[21-Oct-2025 19:40:09 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_sltb\TriphistoryModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:88
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 88
+[21-Oct-2025 19:40:27 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_sltb\TripHistoryModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:88
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 88
+[21-Oct-2025 19:40:28 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\timekeeper_sltb\TripHistoryModel" not found in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:88
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 88
+[21-Oct-2025 19:40:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\controllers\RuntimeException" not found in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php:47
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('timekeeper_sltb...', Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(94): App\controllers\BaseController->view('timekeeper_sltb', 'history', Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 47
+[21-Oct-2025 19:41:12 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\controllers\RuntimeException" not found in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php:47
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('timekeeper_sltb...', Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(94): App\controllers\BaseController->view('timekeeper_sltb', 'history', Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 47
+[21-Oct-2025 19:48:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\controllers\RuntimeException" not found in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php:47
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('timekeeper_sltb...', Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(103): App\controllers\BaseController->view('timekeeper_sltb', 'history', Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 47
+[21-Oct-2025 19:48:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\controllers\RuntimeException" not found in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php:47
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('timekeeper_sltb...', Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(103): App\controllers\BaseController->view('timekeeper_sltb', 'history', Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->history()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'history')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 47
+[21-Oct-2025 20:28:33 Asia/Colombo] PHP Parse error:  syntax error, unexpected variable "$st" in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TurnModel.php on line 32
+[21-Oct-2025 20:28:44 Asia/Colombo] PHP Parse error:  syntax error, unexpected variable "$st" in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TurnModel.php on line 32
+[21-Oct-2025 20:29:16 Asia/Colombo] PHP Parse error:  syntax error, unexpected variable "$st" in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TurnModel.php on line 32
+[21-Oct-2025 20:46:02 Asia/Colombo] PHP Warning:  include(C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb/../partials/title_banner.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb\dashboard.php on line 4
+[21-Oct-2025 20:46:02 Asia/Colombo] PHP Warning:  include(): Failed opening 'C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb/../partials/title_banner.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb\dashboard.php on line 4
+[21-Oct-2025 21:40:59 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:41:18 Asia/Colombo] PHP Parse error:  syntax error, unexpected token ";" in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:41:37 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:41:39 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:41:39 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:41:40 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:42:11 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:42:12 Asia/Colombo] PHP Warning:  Undefined variable $module in C:\xampp\htdocs\NexBus-1\views\Layouts\staff.php on line 2
+[21-Oct-2025 21:44:41 Asia/Colombo] PHP Warning:  Undefined array key "id" in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 115
+[21-Oct-2025 21:44:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(10): PDO->prepare('SELECT id, full...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(171): App\models\timekeeper_sltb\ProfileModel->findById(0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 10
+[21-Oct-2025 21:46:12 Asia/Colombo] PHP Warning:  Undefined variable $ensureToken in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 163
+[21-Oct-2025 21:46:12 Asia/Colombo] PHP Fatal error:  Uncaught Error: Value of type null is not callable in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:163
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 163
+[21-Oct-2025 21:51:45 Asia/Colombo] PHP Warning:  Undefined variable $ensureToken in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 163
+[21-Oct-2025 21:51:45 Asia/Colombo] PHP Fatal error:  Uncaught Error: Value of type null is not callable in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:163
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 163
+[21-Oct-2025 21:55:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(10): PDO->prepare('SELECT id, full...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(179): App\models\timekeeper_sltb\ProfileModel->findById(54)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 10
+[21-Oct-2025 21:56:09 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_d' in 'field list' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(10): PDO->prepare('SELECT user_d, ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(179): App\models\timekeeper_sltb\ProfileModel->findById(54)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 10
+[21-Oct-2025 21:56:10 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_d' in 'field list' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(10): PDO->prepare('SELECT user_d, ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(179): App\models\timekeeper_sltb\ProfileModel->findById(54)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 10
+[21-Oct-2025 21:56:12 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_d' in 'field list' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(10): PDO->prepare('SELECT user_d, ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(179): App\models\timekeeper_sltb\ProfileModel->findById(54)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 10
+[21-Oct-2025 21:56:20 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(10): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(179): App\models\timekeeper_sltb\ProfileModel->findById(54)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 10
+[21-Oct-2025 21:56:32 Asia/Colombo] PHP Warning:  include(C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb/../partials/title_banner.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb\profile.php on line 7
+[21-Oct-2025 21:56:32 Asia/Colombo] PHP Warning:  include(): Failed opening 'C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb/../partials/title_banner.php' for inclusion (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb\profile.php on line 7
+[21-Oct-2025 21:57:09 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "<", expecting end of file in C:\xampp\htdocs\NexBus-1\views\timekeeper_sltb\profile.php on line 6
+[21-Oct-2025 21:58:49 Asia/Colombo] PHP Fatal error:  Uncaught Error: Undefined constant "BASE_URL" in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\views\Layouts\depot_manager.php(135): require()
+#1 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(68): require('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\NexBus-1\controllers\BaseController.php(8): App\controllers\BaseController->render('depot_manager/f...', Array)
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(84): App\controllers\BaseController->view('depot_manager', 'fleet', Array)
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotManagerController->fleet()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotManagerCon...', 'fleet')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 236
