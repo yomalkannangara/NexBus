@@ -92,7 +92,7 @@
           <th>Type</th>
           <th>Category</th>
           <th>Status</th>
-          <th>Description</th> <!-- was Rating -->
+          <th class="desc-cell">Description</th> <!-- was Rating -->
           <th>Actions</th>
         </tr>
       </thead>
@@ -126,8 +126,8 @@
               </td>
 
               <!-- Description column -->
-              <td>
-                <div class="text-secondary" style="max-width:320px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <td class="desc-cell">
+                <div class="desc-text text-secondary">
                   <?= htmlspecialchars($desc); ?>
                 </div>
               </td>

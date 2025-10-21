@@ -1,0 +1,98 @@
+[21-Oct-2025 00:23:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\bus_owner\BusModel" not found in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php:43
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->fleet()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'fleet')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 43
+[21-Oct-2025 00:24:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\bus_owner\BusModel" not found in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->dashboard()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 27
+[21-Oct-2025 00:24:06 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\bus_owner\BusModel" not found in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php:43
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->fleet()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'fleet')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 43
+[21-Oct-2025 00:27:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\BusModel::operatorId() in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php:146
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(35): App\models\bus_owner\BusModel->getRecent(5)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->dashboard()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'dashboard')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php on line 146
+[21-Oct-2025 00:29:11 Asia/Colombo] PHP Warning:  Undefined array key "reg_no" in C:\xampp\htdocs\NexBus-1\views\bus_owner\dashboard.php on line 102
+[21-Oct-2025 00:29:11 Asia/Colombo] PHP Warning:  Undefined array key "reg_no" in C:\xampp\htdocs\NexBus-1\views\bus_owner\dashboard.php on line 102
+[21-Oct-2025 01:02:12 Asia/Colombo] PHP Warning:  Undefined array key "email" in C:\xampp\htdocs\NexBus-1\views\Layouts\owner.php on line 12
+[21-Oct-2025 01:07:10 Asia/Colombo] Array
+(
+    [user_id] => 55
+    [role] => PrivateBusOwner
+    [private_operator_id] => 1
+    [sltb_depot_id] => 
+    [full_name] => test2
+)
+
+[21-Oct-2025 01:07:10 Asia/Colombo] Array
+(
+    [user_id] => 55
+    [role] => PrivateBusOwner
+    [private_operator_id] => 1
+    [sltb_depot_id] => 
+    [full_name] => test2
+)
+
+[21-Oct-2025 01:07:12 Asia/Colombo] Array
+(
+    [user_id] => 55
+    [role] => PrivateBusOwner
+    [private_operator_id] => 1
+    [sltb_depot_id] => 
+    [full_name] => test2
+)
+
+[21-Oct-2025 01:07:12 Asia/Colombo] Array
+(
+    [user_id] => 55
+    [role] => PrivateBusOwner
+    [private_operator_id] => 1
+    [sltb_depot_id] => 
+    [full_name] => test2
+)
+
+[21-Oct-2025 01:31:34 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-21', '2025-10-21')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-21', '2025-10-21')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[21-Oct-2025 07:48:35 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-21', '2025-10-21')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-21', '2025-10-21')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[21-Oct-2025 13:37:52 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-21', '2025-10-21')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(150): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-21', '2025-10-21')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  Undefined variable $routes in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 41
+[21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 41
+[21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  Undefined variable $buses in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 55
+[21-Oct-2025 13:56:58 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 55

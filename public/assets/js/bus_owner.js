@@ -641,4 +641,16 @@ if (dlg) {
     });
   }
 }
+document.addEventListener('DOMContentLoaded', () => {
+  const pwForm = document.querySelector('form[action="change_password"]');
+  if (pwForm) {
+    pwForm.addEventListener('submit', e => {
+      const npw = pwForm.querySelector('[name="new_password"]').value.trim();
+      if (npw.length < 6) {
+        alert('Password must be at least 6 characters.');
+        e.preventDefault();
+      }
+    });
+  }
+});
 

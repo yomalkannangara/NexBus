@@ -9,13 +9,7 @@
     <h2 class="page-title">Dashboard</h2>
     <p class="page-subtitle">Welcome to NTC Fleet Management System</p>
   </div>
-  <div class="header-date">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <rect x="3" y="4" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-      <path d="M7 2v4M13 2v4M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    Today: <?= date('l j F Y'); ?>
-  </div>
+
 </header>
 
 <div class="stats-grid">
@@ -105,8 +99,8 @@
               };
             ?>
             <tr>
-              <td><strong><?= htmlspecialchars($b['reg_no'] ?? ''); ?></strong></td>
-              <td class="text-secondary">—</td>
+              <td><strong><?= htmlspecialchars($b['bus_number'] ?? ''); ?></strong></td>
+              <td class="text-secondary"><?= htmlspecialchars($b['route'] ?? ''); ?></td>
               <td><span class="status-badge <?= $cls; ?>"><?= htmlspecialchars($status); ?></span></td>
             </tr>
             <?php endforeach; ?>

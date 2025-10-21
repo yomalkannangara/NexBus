@@ -240,5 +240,34 @@ public function reports()
         'msg'          => $_GET['msg'] ?? null,
     ]);
 }
+public function profile()
+{
+    $m = new \App\models\bus_owner\ProfileModel();
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $act = $_POST['action'] ?? '';
+
+        if ($act === 'update_profile') {
+            $ok = $m->updateProfile($_POST);
+            return $this->redirect('/B/profile?msg=' . ($ok ? 'updated' : 'update_failed'));
+        }
+
+        if ($act === 'change_password') {
+            $ok = $m->changePassword($_POST);
+            return $this->redirect('/B/profile?msg=' . ($ok ? 'pw_changed' : 'pw_error'));
+        }
+
+        if ($act === 'delete_account') {
+            $ok = $m->deleteAccount();
+            session_destroy();
+            return $this->redirect('/login?msg=' . ($ok ? 'account_deleted' : 'delete_failed'));
+        }
+    }
+
+    $this->view('bus_owner', 'profile', [
+        'me'  => $m->getProfile(),
+        'msg' => $_GET['msg'] ?? null
+    ]);
+}
 
 }

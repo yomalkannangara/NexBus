@@ -451,3 +451,136 @@ Stack trace:
   thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 44
 [20-Oct-2025 17:32:31 Asia/Colombo] PHP Fatal error:  Trait "App\controllers\App\models\bus_owner\ReportModel" not found in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 14
 [20-Oct-2025 17:32:34 Asia/Colombo] PHP Fatal error:  Trait "App\controllers\App\models\bus_owner\ReportModel" not found in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 14
+[20-Oct-2025 22:41:11 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(46): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 46
+[20-Oct-2025 22:41:15 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(46): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 46
+[20-Oct-2025 22:41:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(46): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 46
+[20-Oct-2025 22:41:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(46): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 46
+[20-Oct-2025 22:43:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:44
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(44): PDO->prepare('SELECT COALESCE...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(68): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(70): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 44
+[20-Oct-2025 22:43:38 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(46): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 46
+[20-Oct-2025 22:44:55 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(46): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(131): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 46
+[20-Oct-2025 22:56:51 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\BusModel::getRecent() in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php:35
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->dashboard()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 35
+[20-Oct-2025 22:57:57 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\BusModel::getRecent() in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php:35
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->dashboard()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 35
+[20-Oct-2025 22:58:31 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\BusModel::getRecent() in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php:35
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->dashboard()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'dashboard')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php on line 35
+[20-Oct-2025 22:59:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\bus_owner\FeedbackModel.php:130
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\FeedbackModel.php(130): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(199): App\models\bus_owner\FeedbackModel->getAllIds()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\FeedbackModel.php on line 130
+[20-Oct-2025 23:01:51 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\bus_owner\FeedbackModel.php:130
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\FeedbackModel.php(130): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(199): App\models\bus_owner\FeedbackModel->getAllIds()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->feedback()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'feedback')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\FeedbackModel.php on line 130
+[20-Oct-2025 23:11:05 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php:35
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php(35): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(223): App\models\bus_owner\ReportModel->getPerformanceMetrics()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->reports()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'reports')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 35
+[20-Oct-2025 23:13:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\ReportModel::operatorId() in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php:23
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(223): App\models\bus_owner\ReportModel->getPerformanceMetrics()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 23
+[20-Oct-2025 23:13:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\ReportModel::operatorId() in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php:23
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(223): App\models\bus_owner\ReportModel->getPerformanceMetrics()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 23
+[20-Oct-2025 23:14:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\ReportModel::operatorId() in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php:80
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(224): App\models\bus_owner\ReportModel->topDrivers(10)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\BusOwnerController->reports()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('BusOwnerControl...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 80

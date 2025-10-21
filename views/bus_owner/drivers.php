@@ -10,7 +10,7 @@
   </div>
 
   <div class="header-actions header-actions--tight">
-    <a href="#" id="btnAddDriver" class="add-bus-btn">
+    <a href="#" id="btnAddDriver" class="add-bus-btn" style="margin-right: 5px;">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>

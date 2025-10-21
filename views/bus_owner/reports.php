@@ -45,17 +45,18 @@
     </div>
   </div>
 
-  <div class="stat-card stat-green">
+  <div class="stat-card stat-orange">
     <div class="stat-content">
-      <div class="stat-label">Average Driver Rating</div>
+      <div class="stat-label">Total Complaints</div>
       <div class="stat-value">
-        <?= number_format((float)($metrics['average_rating'] ?? 8.0), 1); ?>
+        <?= (int)($metrics['total_complaints'] ?? 0); ?>
       </div>
-      <div class="stat-change">Filtered average</div>
+      <div class="stat-change">Filtered total</div>
     </div>
     <div class="stat-icon">
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-        <path d="M24 6l6 12 13 2-9.5 9 2.5 13-12-6.5L12 42l2.5-13L5 20l13-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+        <path d="M24 14v12M24 32h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
   </div>
@@ -109,7 +110,7 @@
           <th>Driver Name</th>
           <th>Route</th>
           <th>Delaying Rate</th>
-          <th>Average Driver Rating</th>
+          <th>Complaints</th>
           <th>Speed Violation</th>
           <th>Long Wait Rate</th>
         </tr>
@@ -129,14 +130,8 @@
               <!-- Placeholders to match structure; replace with real fields if you have them -->
               <td><span class="metric-badge metric-green"><?= rand(2,5); ?>%</span></td>
 
-              <td>
-                <div class="rating-with-icon">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="#F59E0B" aria-hidden="true">
-                    <path d="M7 1l1.5 4.5h4.5l-3.5 2.5 1.5 4.5L7 10l-3.5 2.5 1.5-4.5-3.5-2.5h4.5z"/>
-                  </svg>
-                  <span><?= number_format((float)($d['rating'] ?? 0), 1); ?></span>
-                </div>
-              </td>
+              <!-- New Complaints column (replaces rating) -->
+              <td><span class="metric-badge metric-red"><?= (int)($d['complaints'] ?? rand(0, 12)); ?></span></td>
 
               <td><span class="metric-badge metric-orange"><?= rand(0,3); ?></span></td>
               <td><span class="metric-badge metric-green"><?= rand(3,7); ?>%</span></td>

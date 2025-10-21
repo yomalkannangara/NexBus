@@ -9,9 +9,9 @@ $page     = $segments[1] ?? 'dashboard';
 
 // Current user (optional)
 $user    = $_SESSION['user'] ?? null;
-$initial = $user ? strtoupper(substr($user['name'] ?? 'U', 0, 1)) : 'U';
+$initial = $user ? strtoupper(substr($user['full_name'] ?? 'U', 0, 1)) : 'U';
 $email   = $user['email'] ?? 'depot.manager@sltb.lk';
-$name    = $user['name']  ?? 'Depot Manager';
+$name    = $user['full_name']  ?? 'Depot Manager';
 ?>
 <!doctype html>
 <html lang="en" data-theme="<?= htmlspecialchars($_SESSION['prefs']['theme'] ?? 'light') ?>">

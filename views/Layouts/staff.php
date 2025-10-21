@@ -8,7 +8,7 @@ $page     = $segments[1] ?? 'dashboard';
 $user     = $_SESSION['user'] ?? [];
 $initial  = $user ? strtoupper(substr($user['name'] ?? $user['full_name'] ?? 'U', 0, 1)) : '?';
 $email    = $user['email'] ?? '';
-$name     = $user['name']  ?? ($user['full_name'] ?? 'Staff User');
+$name     = $user['full_name']  ?? ($user['full_name'] ?? 'Staff User');
 
 // labels per module
 $roleLabel = match ($module) {

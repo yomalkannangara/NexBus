@@ -5,120 +5,78 @@ use App\models\common\BaseModel;
 
 class DashboardModel extends BaseModel
 {
-    /** Return the depot record (tries sltb_depots first, falls back to depots) */
-    public function depot(int $depotId): ?array
+    /** Get depot id from session (strict) */
+    private function myDepotId(): int
     {
-        if (!$depotId) return null;
-
-        try {
-            $st = $this->pdo->prepare(
-                "SELECT sltb_depot_id AS id, name, code
-                 FROM sltb_depots
-                 WHERE sltb_depot_id=?"
-            );
-            $st->execute([$depotId]);
-            if ($row = $st->fetch()) return $row;
-        } catch (\Throwable $e) {}
-
-        try {
-            $st = $this->pdo->prepare(
-                "SELECT depot_id AS id, name, code
-                 FROM depots
-                 WHERE depot_id=?"
-            );
-            $st->execute([$depotId]);
-            if ($row = $st->fetch()) return $row;
-        } catch (\Throwable $e) {}
-
-        return null;
+        return (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
     }
 
-    /** Small helper: does a table have a given column? */
-    private function colExists(string $table, string $column): bool
+    /** Depot details (uses session depot id if not provided) */
+    public function depot(?int $depotId = null): ?array
     {
-        try {
-            $db = (string)$this->pdo->query("SELECT DATABASE()")->fetchColumn();
-            $st = $this->pdo->prepare(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS
-                 WHERE TABLE_SCHEMA=? AND TABLE_NAME=? AND COLUMN_NAME=?"
-            );
-            $st->execute([$db, $table, $column]);
-            return (int)$st->fetchColumn() > 0;
-        } catch (\Throwable $e) {
-            return false;
-        }
+        $dep = $depotId ?? $this->myDepotId();
+        if ($dep <= 0) return null;
+
+        $st = $this->pdo->prepare(
+            "SELECT sltb_depot_id AS id, name, city, phone
+             FROM sltb_depots
+             WHERE sltb_depot_id = ?"
+        );
+        $st->execute([$dep]);
+        $row = $st->fetch();
+        return $row ?: null;
     }
 
-    /** Which depot column should we use on sltb_buses? (cached) */
-    private function depotColumn(): string
+    /** Today’s cards (Delayed/Breakdown) scoped to session depot */
+    public function todayStats(?int $depotId = null): array
     {
-        static $col = null;
-        if ($col !== null) return $col;
+        $dep = $depotId ?? $this->myDepotId();
+        if ($dep <= 0) return ['delayed'=>0,'breaks'=>0];
 
-        if ($this->colExists('sltb_buses', 'sltb_depot_id')) { $col = 'sltb_depot_id'; return $col; }
-        if ($this->colExists('sltb_buses', 'depot_id'))      { $col = 'depot_id';      return $col; }
-        $col = ''; // none found
-        return $col;
-    }
-
-    /** Build the JOIN fragment with the correct depot filter (or none) */
-    private function busesJoin(int $depotId): array
-    {
-        $join   = "JOIN sltb_buses b ON b.reg_no = tm.bus_reg_no";
-        $params = [];
-
-        $col = $this->depotColumn();
-        if ($col !== '' && $depotId > 0) {
-            $join   .= " AND b.$col = :dep";
-            $params[':dep'] = $depotId;
-        }
-
-        return [$join, $params];
-    }
-
-    public function todayStats(int $depotId): array
-    {
-        // SELECT (spelled correctly) and portable CASE expressions
         $sql = "
-        SELECT
-            SUM(CASE WHEN tm.operational_status = 'Delayed'   THEN 1 ELSE 0 END) AS delayed_cnt,
-            SUM(CASE WHEN tm.operational_status = 'Breakdown' THEN 1 ELSE 0 END) AS breakdown_cnt
-        FROM tracking_monitoring tm
-        %JOIN%
-        WHERE DATE(tm.snapshot_at) = CURDATE()
+            SELECT
+              SUM(CASE WHEN tm.operational_status='Delayed'   THEN 1 ELSE 0 END) AS delayed_cnt,
+              SUM(CASE WHEN tm.operational_status='Breakdown' THEN 1 ELSE 0 END) AS breakdown_cnt
+            FROM tracking_monitoring tm
+            JOIN sltb_buses b
+              ON b.reg_no = tm.bus_reg_no
+             AND b.sltb_depot_id = :dep
+            WHERE tm.operator_type='SLTB'
+              AND tm.snapshot_at >= CURDATE()
+              AND tm.snapshot_at <  CURDATE() + INTERVAL 1 DAY
         ";
-
-        [$join, $params] = $this->busesJoin($depotId);
-        $sql = str_replace('%JOIN%', $join, $sql);
-
         $st = $this->pdo->prepare($sql);
-        $st->execute($params);
-        $row = $st->fetch() ?: [];
+        $st->execute([':dep' => $dep]);
+        $r = $st->fetch() ?: [];
 
         return [
-            'delayed' => (int)($row['delayed_cnt'] ?? 0),
-            'breaks'  => (int)($row['breakdown_cnt'] ?? 0),
+            'delayed' => (int)($r['delayed_cnt'] ?? 0),
+            'breaks'  => (int)($r['breakdown_cnt'] ?? 0),
         ];
     }
 
-    public function delayedToday(int $depotId): array
+    /** Delayed list for today scoped to session depot */
+    public function delayedToday(?int $depotId = null): array
     {
+        $dep = $depotId ?? $this->myDepotId();
+        if ($dep <= 0) return [];
+
         $sql = "
-        SELECT tm.*, r.route_no
-        FROM tracking_monitoring tm
-        %JOIN%
-        LEFT JOIN routes r ON r.route_id = tm.route_id
-        WHERE DATE(tm.snapshot_at) = CURDATE()
-          AND tm.operational_status = 'Delayed'
-        ORDER BY tm.snapshot_at DESC
-        LIMIT 50
+            SELECT tm.*, r.route_no
+            FROM tracking_monitoring tm
+            JOIN sltb_buses b
+              ON b.reg_no = tm.bus_reg_no
+             AND b.sltb_depot_id = :dep
+            LEFT JOIN routes r ON r.route_id = tm.route_id
+            WHERE tm.operator_type='SLTB'
+              AND tm.snapshot_at >= CURDATE()
+              AND tm.snapshot_at <  CURDATE() + INTERVAL 1 DAY
+              AND tm.operational_status='Delayed'
+            ORDER BY tm.snapshot_at DESC
+            LIMIT 50
         ";
-
-        [$join, $params] = $this->busesJoin($depotId);
-        $sql = str_replace('%JOIN%', $join, $sql);
-
         $st = $this->pdo->prepare($sql);
-        $st->execute($params);
+        $st->execute([':dep' => $dep]);
         return $st->fetchAll();
     }
 }

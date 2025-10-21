@@ -40,10 +40,12 @@ class AuthController extends BaseController
         }
 
         $_SESSION['user'] = [
-            'id'    => $user['user_id'],
-            'role'  => $user['role'],
-            'name'  => $user['full_name'],
-            'email' => $user['email']
+            'user_id' => $user['user_id'],
+            'role' => $user['role'],
+            'private_operator_id' => $user['private_operator_id'] ?? null,
+            'sltb_depot_id' => $user['sltb_depot_id'] ?? null,
+            'full_name' => $user['full_name'] ?? null,
+            'email' => $user['email'] ?? null
         ];
 
         $redirect = $_SESSION['intended'] ?? $this->defaultHomeForRole($user['role']);
