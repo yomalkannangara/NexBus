@@ -614,3 +614,65 @@ body{
 .grid-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
 @media (max-width:1000px){ .grid-3{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width:640px){ .grid-3{ grid-template-columns: 1fr; } }
+
+/* ===== Title card (maroon with gold ring) ===== */
+:root{
+  --title-brand:#7a1530; --title-brand-2:#7f1636; --title-gold:#f0c96b;
+}
+.title-card{
+  position:relative;color:#fff;padding:18px 22px;border-radius:14px;
+  background:linear-gradient(180deg,var(--title-brand),var(--title-brand-2));
+  box-shadow:0 0 0 2px var(--title-gold), 0 2px 8px rgba(16,24,40,.08);
+  margin:8px 0 18px;
+}
+.title-card .title-heading{margin:0 0 6px;font-size:28px;font-weight:800;letter-spacing:.2px}
+.title-card .title-sub{margin:0;font-size:14px;opacity:.95}
+.title-card--split{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.title-card .title-meta{text-align:right;line-height:1.35;opacity:.95}
+@media (max-width:640px){.title-card .title-heading{font-size:22px}.title-card--split{flex-direction:column;align-items:flex-start}.title-card .title-meta{text-align:left}}
+
+.mt-4{margin-top:16px} .mt-6{margin-top:24px}
+
+/* ===== Buttons, badges, forms (used here) ===== */
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+.btn-secondary{background:linear-gradient(180deg,#c92c4b,#b82643);color:#fff;border-color:#ffffff24}
+.btn-outline{background:transparent}
+.btn-outline.secondary{color:var(--text);border-color:var(--line)}
+.btn.small{padding:6px 10px;font-size:12px}
+.actions{display:flex;gap:10px}
+.actions-inline{display:flex;gap:8px}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.badge-outline{background:#fff;border:1px solid var(--line)}
+.badge-secondary{color:#1a3d7c}
+.badge-green{background:#e8f7f0;color:#1f7a54}
+.badge-yellow{background:#fff4e6;color:#9a5a00}
+.badge-red{background:#ffe6ea;color:#c92c4b}
+.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.select select,.input{width:100%;height:38px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+.span-2{grid-column:span 2}
+@media (max-width:1100px){ .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:640px){ .form-grid{grid-template-columns:1fr} }
+
+/* ===== Toast ===== */
+.toast{margin:8px 0 12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);font-weight:600}
+.toast.ok{border-color:#c7ecd9;background:#e8f7f0;color:#1f7a54}
+.toast.error{border-color:#ffd1d9;background:#ffe6ea;color:#c92c4b}
+
+/* ===== Modal ===== */
+.modal[aria-hidden="true"]{display:none}
+.modal[aria-hidden="false"]{display:block}
+.modal-open{overflow:hidden}
+.modal__overlay{position:fixed;inset:0;background:rgba(17,24,39,.45);backdrop-filter:saturate(120%) blur(2px);z-index:1000}
+.modal__card{position:fixed;z-index:1001;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(720px,92vw);max-height:88vh;overflow:auto;background:#fff;border:1px solid var(--line);
+  border-radius:16px;box-shadow:0 20px 40px rgba(16,24,40,.20)}
+.modal__head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#7a1530,#7f1636);color:#fff;border-radius:16px 16px 0 0;box-shadow:inset 0 0 0 2px #f0c96b}
+.modal__title{font-weight:800;letter-spacing:.2px}
+.modal__close{border:0;background:transparent;color:#fff;font-size:22px;width:36px;height:36px;line-height:36px;border-radius:10px;cursor:pointer}
+.modal__body{padding:16px}
+.modal__foot{padding:12px 16px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line)}
+.modal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.req{color:#c92c4b}
+@media (max-width:640px){.modal-grid{grid-template-columns:1fr}}

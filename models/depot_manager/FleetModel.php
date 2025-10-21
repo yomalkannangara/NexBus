@@ -3,133 +3,157 @@ namespace App\models\depot_manager;
 
 use PDO;
 use PDOException;
+
 abstract class BaseModel {
     protected PDO $pdo;
-    public function __construct() {
-        $this->pdo = $GLOBALS['db'];   
-    }
+    public function __construct() { $this->pdo = $GLOBALS['db']; }
 }
+
 class FleetModel extends BaseModel
 {
+    private function depotId(): ?int {
+        $u = $_SESSION['user'] ?? [];
+        $cand = $u['sltb_depot_id'] ??  null;
+        return $cand ? (int)$cand : null;
+    }
+    private function hasDepot(): bool { return (bool)$this->depotId(); }
+
+    private function statusOrDefault(?string $s): string {
+        $s = trim((string)$s);
+        return in_array($s, ['Active','Maintenance','Inactive'], true) ? $s : 'Active';
+    }
+
+    private function countSafe(string $sql, array $params): int {
+        try { $st = $this->pdo->prepare($sql); $st->execute($params);
+              return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
+        } catch (PDOException $e) { return 0; }
+    }
+
     public function summaryCards(): array
     {
-        $total       = $this->countSafe("SELECT COUNT(*) c FROM buses");
-        $active      = $this->countSafe("SELECT COUNT(*) c FROM buses WHERE status='Active'");
-        $maintenance = $this->countSafe("SELECT COUNT(*) c FROM buses WHERE status='Maintenance'");
-        $inactive    = $this->countSafe("SELECT COUNT(*) c FROM buses WHERE status IN ('Inactive','OutOfService')");
+        if (!$this->hasDepot()) {
+            return [
+                ['label'=>'Total Buses','value'=>'0','class'=>'primary'],
+                ['label'=>'Active Buses','value'=>'0','class'=>'green'],
+                ['label'=>'In Maintenance','value'=>'0','class'=>'yellow'],
+                ['label'=>'Out of Service','value'=>'0','class'=>'red'],
+            ];
+        }
+        $p = [':d' => $this->depotId()];
+        $total       = $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE sltb_depot_id=:d", $p);
+        $active      = $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE sltb_depot_id=:d AND status='Active'", $p);
+        $maintenance = $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE sltb_depot_id=:d AND status='Maintenance'", $p);
+        $inactive    = $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE sltb_depot_id=:d AND status='Inactive'", $p);
 
         return [
-            ['label' => 'Total Buses',    'value' => (string)$total,       'class' => 'primary'],
-            ['label' => 'Active Buses',   'value' => (string)$active,      'class' => 'green'],
-            ['label' => 'In Maintenance', 'value' => (string)$maintenance, 'class' => 'yellow'],
-            ['label' => 'Out of Service', 'value' => (string)$inactive,    'class' => 'red'],
+            ['label'=>'Total Buses','value'=>(string)$total,'class'=>'primary'],
+            ['label'=>'Active Buses','value'=>(string)$active,'class'=>'green'],
+            ['label'=>'In Maintenance','value'=>(string)$maintenance,'class'=>'yellow'],
+            ['label'=>'Out of Service','value'=>(string)$inactive,'class'=>'red'],
         ];
     }
 
     public function list(): array
     {
+        if (!$this->hasDepot()) return [];
         try {
-            $sql = "SELECT b.id, b.reg_no, r.name AS route, r.route_no, b.status, b.current_location,
-                           b.capacity, b.last_maintenance, b.next_service
-                    FROM buses b
-                    LEFT JOIN routes r ON r.route_id = b.route_id
-                    ORDER BY b.id DESC
-                    LIMIT 200";
-            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        } catch (PDOException $e) {
-            return [];
-        }
+            $sql = "
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    r.route_no, r.name AS route,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id = :d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200";
+            $st = $this->pdo->prepare($sql);
+            $st->bindValue(':d', $this->depotId(), PDO::PARAM_INT);
+            $st->execute();
+            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) { return []; }
     }
 
-    /* Filter dropdown data */
     public function routes(): array
     {
         try {
-            $sql = "SELECT route_id, route_no, name
-                    FROM routes
-                    ORDER BY route_no+0, route_no";
-            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        } catch (PDOException $e) {
-            return [];
-        }
+            return $this->pdo->query("SELECT route_id, route_no, name FROM routes ORDER BY route_no+0, route_no")
+                             ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) { return []; }
     }
 
     public function buses(): array
     {
+        if (!$this->hasDepot()) return [];
         try {
-            $sql = "SELECT id, reg_no FROM buses ORDER BY reg_no";
-            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
-        } catch (PDOException $e) {
-            return [];
-        }
+            $st = $this->pdo->prepare("SELECT reg_no FROM sltb_buses WHERE sltb_depot_id=:d ORDER BY reg_no");
+            $st->bindValue(':d', $this->depotId(), PDO::PARAM_INT);
+            $st->execute();
+            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) { return []; }
     }
 
-    /* CRUD from your previous version kept as-is */
     public function createBus(array $d): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
-            $sql = "INSERT INTO buses (reg_no, route_id, status, current_location, capacity, last_maintenance, next_service, depot_id)
-                    VALUES (:reg_no, :route_id, :status, :loc, :cap, :lm, :ns, :depot_id)";
-            $st = $this->pdo->prepare($sql);
+            $sql = "INSERT INTO sltb_buses (reg_no, sltb_depot_id, chassis_no, capacity, status)
+                    VALUES (:reg_no, :depot, :chassis_no, :capacity, :status)";
+            $st  = $this->pdo->prepare($sql);
             return $st->execute([
-                ':reg_no'   => $d['reg_no'] ?? null,
-                ':route_id' => $d['route_id'] ?? null,
-                ':status'   => $d['status'] ?? 'Active',
-                ':loc'      => $d['current_location'] ?? null,
-                ':cap'      => isset($d['capacity']) ? (int)$d['capacity'] : null,
-                ':lm'       => $d['last_maintenance'] ?? null,
-                ':ns'       => $d['next_service'] ?? null,
-                ':depot_id' => $d['depot_id'] ?? ($_SESSION['user']['depot_id'] ?? null),
+                ':reg_no'     => trim((string)($d['reg_no'] ?? '')),
+                ':depot'      => $this->depotId(),
+                ':chassis_no' => $d['chassis_no'] ?? null,
+                ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
+                ':status'     => $this->statusOrDefault($d['status'] ?? null),
             ]);
-        } catch (PDOException $e) {
-            return false;
-        }
+        } catch (PDOException $e) { return false; }
     }
 
     public function updateBus(array $d): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
-            $sql = "UPDATE buses
-                       SET route_id=:route_id, status=:status, current_location=:loc, capacity=:cap,
-                           last_maintenance=:lm, next_service=:ns
-                     WHERE id=:id";
+            $reg = trim((string)($d['reg_no'] ?? ''));
+            if ($reg === '') return false;
+            $sql = "UPDATE sltb_buses
+                       SET chassis_no=:chassis_no, capacity=:capacity, status=:status
+                     WHERE reg_no=:reg_no AND sltb_depot_id=:depot";
             $st = $this->pdo->prepare($sql);
-            return $st->execute([
-                ':route_id' => $d['route_id'] ?? null,
-                ':status'   => $d['status'] ?? 'Active',
-                ':loc'      => $d['current_location'] ?? null,
-                ':cap'      => isset($d['capacity']) ? (int)$d['capacity'] : null,
-                ':lm'       => $d['last_maintenance'] ?? null,
-                ':ns'       => $d['next_service'] ?? null,
-                ':id'       => (int)($d['id'] ?? 0),
-            ]);
-        } catch (PDOException $e) {
-            return false;
-        }
+            $st->bindValue(':depot', $this->depotId(), PDO::PARAM_INT);
+            $st->bindValue(':reg_no', $reg);
+            $st->bindValue(':chassis_no', $d['chassis_no'] ?? null);
+            $st->bindValue(':capacity', isset($d['capacity']) ? (int)$d['capacity'] : null, PDO::PARAM_INT);
+            $st->bindValue(':status', $this->statusOrDefault($d['status'] ?? null));
+            return $st->execute();
+        } catch (PDOException $e) { return false; }
     }
 
-    public function deleteBus($idOrReg): bool
+    public function deleteBus($regOrId): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
-            if (is_numeric($idOrReg)) {
-                $st = $this->pdo->prepare("DELETE FROM buses WHERE id=?");
-                return $st->execute([(int)$idOrReg]);
-            }
-            $st = $this->pdo->prepare("DELETE FROM buses WHERE reg_no=?");
-            return $st->execute([(string)$idOrReg]);
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
-
-    private function countSafe(string $sql, array $params = []): int
-    {
-        try {
-            $st = $this->pdo->prepare($sql);
-            $st->execute($params);
-            return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
-        } catch (PDOException $e) {
-            return 0;
-        }
+            $st = $this->pdo->prepare("DELETE FROM sltb_buses WHERE reg_no=:reg AND sltb_depot_id=:depot");
+            $st->bindValue(':reg', (string)$regOrId);
+            $st->bindValue(':depot', $this->depotId(), PDO::PARAM_INT);
+            return $st->execute();
+        } catch (PDOException $e) { return false; }
     }
 }
