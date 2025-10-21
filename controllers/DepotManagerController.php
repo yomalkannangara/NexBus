@@ -42,31 +42,50 @@ class DepotManagerController extends BaseController
     /* =========================
        Fleet (buses list & CRUD)
        ========================= */
-    public function fleet()
+// at top of DepotManagerController:
+
+
+
+public function fleet()
     {
         $m = new FleetModel();
 
+        // Handle AJAX/JS-only actions (create, update, delete)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
+            $ok  = false;
 
-            if ($act === 'create_bus') {
-                $m->createBus($_POST);
-                return $this->redirect('/D/fleet?msg=bus_created');
+            if ($act === 'create_bus')    $ok = $m->createBus($_POST);
+            if ($act === 'update_bus')    $ok = $m->updateBus($_POST);
+            if ($act === 'delete_bus')    $ok = $m->deleteBus($_POST['reg_no'] ?? '');
+
+            // If it's an AJAX call, return JSON
+            $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+                      && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                      || (isset($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => (bool)$ok, 'msg' => $ok ? 'success' : 'error']);
+                return;
             }
-            if ($act === 'update_bus') {
-                $m->updateBus($_POST);
-                return $this->redirect('/D/fleet?msg=bus_updated');
-            }
+
+            // Fallback (shouldn't hit if using JS only)
+            return $this->redirect('/M/fleet?msg=' . ($ok ? 'ok' : 'error'));
         }
 
+        // Old GET deletion kept as a harmless fallback (not used by JS flow)
         if (isset($_GET['delete'])) {
-            $m->deleteBus($_GET['delete']); // e.g. bus_id or reg_no
-            return $this->redirect('/D/fleet?msg=bus_deleted');
+            $ok = $m->deleteBus($_GET['delete']);
+            return $this->redirect('/M/fleet?msg=' . ($ok ? 'bus_deleted' : 'bus_error'));
         }
 
         $this->view('depot_manager', 'fleet', [
-            'summary' => $m->summaryCards(), // total/active/maintenance/out-of-service
-            'rows'    => $m->list(),         // table rows
+            'summary' => $m->summaryCards(),
+            'rows'    => $m->list(),
+            'routes'  => $m->routes(),
+            'buses'   => $m->buses(),
+            'msg'     => $_GET['msg'] ?? null,
         ]);
     }
 

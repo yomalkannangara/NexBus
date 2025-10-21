@@ -22,6 +22,7 @@ $name    = $user['name']  ?? 'Depot Manager';
 
   <!-- Depot layout CSS -->
   <link rel="stylesheet" href="/assets/css/depot.css">
+<script src="/assets/js/fleet.js"></script>
 
   <!-- Optional alerts (if you already use these in project) -->
   <link rel="stylesheet" href="/assets/css/alert.css">
