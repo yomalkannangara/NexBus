@@ -65,6 +65,7 @@ $routes = [
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
     '/O/attendance'    => ['DepotOfficerController','attendance'],    // 
+  '/O/profile'       => ['DepotOfficerController','profile'],
     
     '/M'               => ['DepotManagerController','dashboard'],
     '/M/dashboard'     => ['DepotManagerController','dashboard'],

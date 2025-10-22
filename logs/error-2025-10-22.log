@@ -168,3 +168,397 @@ Stack trace:
 #5 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotManagerCon...', 'fleet')
 #6 {main}
   thrown in C:\xampp\htdocs\NexBus-1\views\depot_manager\fleet.php on line 236
+[22-Oct-2025 07:09:55 Asia/Colombo] PHP Warning:  Undefined array key "id" in C:\xampp\htdocs\NexBus-1\models\ntc_admin\ProfileModel.php on line 49
+[22-Oct-2025 07:10:26 Asia/Colombo] PHP Warning:  Undefined array key "id" in C:\xampp\htdocs\NexBus-1\models\ntc_admin\ProfileModel.php on line 49
+[22-Oct-2025 07:10:29 Asia/Colombo] PHP Warning:  Undefined array key "id" in C:\xampp\htdocs\NexBus-1\models\ntc_admin\ProfileModel.php on line 49
+[22-Oct-2025 07:14:36 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(151): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[22-Oct-2025 07:14:42 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(151): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[22-Oct-2025 07:16:08 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php:31
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php(31): PDO->prepare('UPDATE users SE...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(151): App\models\timekeeper_sltb\ProfileModel->updateProfile(54, Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\TimekeeperSltbController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('TimekeeperSltbC...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\ProfileModel.php on line 31
+[22-Oct-2025 07:20:54 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(151): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[22-Oct-2025 07:21:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\SessionGuard" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:24
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(12): App\models\depot_officer\DepotOfficerModel->__construct()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'dashboard')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 24
+[22-Oct-2025 07:26:08 Asia/Colombo] PHP Parse error:  syntax error, unexpected variable "$this", expecting "function" or "const" in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 59
+[22-Oct-2025 07:32:34 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(156): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[22-Oct-2025 07:37:18 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'NB-1001-2025-10-22-Morning' for key 'uniq_bus_day_shift' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:106
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(106): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(39): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 106
+[22-Oct-2025 07:37:22 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'NB-1001-2025-10-22-Morning' for key 'uniq_bus_day_shift' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:106
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(106): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(39): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 106
+[22-Oct-2025 07:39:20 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\TrackingModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:31
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(12): App\models\depot_officer\DepotOfficerModel->__construct()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'trip_logs')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 31
+[22-Oct-2025 07:39:42 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\TrackingModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:31
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(12): App\models\depot_officer\DepotOfficerModel->__construct()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'trip_logs')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 31
+[22-Oct-2025 07:40:11 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\TripLogModel" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:144
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->trip_logs()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'trip_logs')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 144
+[22-Oct-2025 07:40:49 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(171): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[22-Oct-2025 07:41:42 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\controllers\AssignmentModel" not found in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:32
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->assignments()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'assignments')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 32
+[22-Oct-2025 07:42:25 Asia/Colombo] PHP Fatal error:  Cannot use App\models\depot_officer\DepotOfficerModel as DepotOfficerModel because the name is already in use in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 5
+[22-Oct-2025 07:42:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'NB-1001-2025-10-22-Morning' for key 'uniq_bus_day_shift' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:131
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(131): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(39): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 131
+[22-Oct-2025 07:42:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'NB-1001-2025-10-22-Morning' for key 'uniq_bus_day_shift' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:131
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(131): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(39): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 131
+[22-Oct-2025 07:49:51 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                    SUM(CASE WHEN operational_status='Breakdown' TH...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(19): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(171): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 19
+[22-Oct-2025 07:52:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+                SUM(CASE WHEN t.status = 'Cancelled' THEN 1 ELSE ...' at line 11 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(62): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 62
+[22-Oct-2025 07:52:38 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+                SUM(CASE WHEN t.status = 'Cancelled' THEN 1 ELSE ...' at line 11 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(62): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 62
+[22-Oct-2025 07:52:56 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+                SUM(CASE WHEN t.status = 'Cancelled' THEN 1 ELSE ...' at line 11 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(62): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 62
+[22-Oct-2025 07:53:50 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+                SUM(CASE WHEN t.status = 'Cancelled' THEN 1 ELSE ...' at line 11 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:62
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(62): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 62
+[22-Oct-2025 07:54:46 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+            /* treat cancelled as breakdowns (adjust if you store...' at line 12 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:66
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(66): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 66
+[22-Oct-2025 07:54:47 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+            /* treat cancelled as breakdowns (adjust if you store...' at line 12 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:66
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(66): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 66
+[22-Oct-2025 07:54:47 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+            /* treat cancelled as breakdowns (adjust if you store...' at line 12 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:66
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(66): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 66
+[22-Oct-2025 07:55:05 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\ReportModel" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:32
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(13): App\models\depot_officer\DepotOfficerModel->__construct()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(23): App\controllers\DepotOfficerController->__construct()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 32
+[22-Oct-2025 07:55:11 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+            /* treat cancelled as breakdowns (adjust if you store...' at line 12 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:66
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(66): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis('1', '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 66
+[22-Oct-2025 07:57:40 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+            SUM(IF(t.`status` = 'Cancelled', 1, 0)) AS breakdowns...' at line 13 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:64
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(64): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 64
+[22-Oct-2025 07:57:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+
+            SUM(IF(t.`status` = 'Cancelled', 1, 0)) AS breakdowns...' at line 13 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:64
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(64): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 64
+[22-Oct-2025 07:59:15 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:16 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:16 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:16 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:16 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:33 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:34 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:34 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:34 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 07:59:35 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed,
+                SUM(x.breakdown_flag)    AS breakdowns,
+          ...' at line 2 in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:82
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(82): PDO->prepare('\r\n            S...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 82
+[22-Oct-2025 08:02:09 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:75
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(75): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 75
+[22-Oct-2025 08:02:10 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:75
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(75): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 75
+[22-Oct-2025 08:03:54 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php:75
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php(75): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(130): App\models\depot_officer\ReportModel->kpis(1, '2025-10-22', '2025-10-22')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(177): App\models\depot_officer\DepotOfficerModel->kpiSummary(1, '2025-10-22', '2025-10-22')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(29): App\controllers\DepotOfficerController->reports()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(151): run('DepotOfficerCon...', 'reports')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ReportModel.php on line 75
+[22-Oct-2025 08:14:12 Asia/Colombo] PHP Warning:  Undefined array key "category" in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[22-Oct-2025 08:15:13 Asia/Colombo] PHP Warning:  Undefined array key "category" in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16

@@ -45,5 +45,48 @@ class SpecialTimetableModel extends BaseModel
         $st->execute([$depotId]);
         return $st->fetchAll();
     }
+
+    public function updateSpecial(int $depotId, array $d): bool {
+        $ttId  = (int)($d['timetable_id'] ?? 0);
+        $bus   = trim($d['bus_reg_no'] ?? '');
+        $route = (int)($d['route_id'] ?? 0);
+        $from  = $d['effective_from'] ?? null;
+        $to    = $d['effective_to']   ?? null;
+        $depT  = $d['departure_time'] ?? '';
+        $arrT  = $d['arrival_time'] ?? null;
+        $dow   = (int)($d['day_of_week'] ?? -1);
+
+        if ($ttId <= 0 || $dow < 0 || $dow > 6 || !$bus || !$route || !$from || !$depT) return false;
+
+        // Ensure the timetable belongs to this depot
+        $st = $this->pdo->prepare("
+            SELECT COUNT(*) 
+            FROM timetables tt
+            JOIN sltb_buses b ON b.reg_no = tt.bus_reg_no
+            WHERE tt.timetable_id = ? AND tt.operator_type='SLTB' AND b.sltb_depot_id = ?
+        ");
+        $st->execute([$ttId, $depotId]);
+        if (!$st->fetchColumn()) return false;
+
+        // Ensure the new bus is in this depot
+        $st = $this->pdo->prepare("SELECT COUNT(*) FROM sltb_buses WHERE reg_no=? AND sltb_depot_id=?");
+        $st->execute([$bus, $depotId]);
+        if (!$st->fetchColumn()) return false;
+
+        $sql = "UPDATE timetables
+                SET route_id=?, bus_reg_no=?, day_of_week=?, departure_time=?, arrival_time=?, effective_from=?, effective_to=?
+                WHERE timetable_id=? AND operator_type='SLTB'";
+        $st = $this->pdo->prepare($sql);
+        return $st->execute([
+            $route,
+            $bus,
+            $dow,
+            $depT,
+            ($arrT ?: null),
+            $from,
+            ($to ?: null),
+            $ttId
+        ]);
+    }
 }
 ?>

@@ -1,35 +1,103 @@
-<?php /** @var array $buses,$drivers,$routes,$rows,$today */ ?>
-<div class="container">
-<h1>Daily Assignments</h1>
-<?php if(!empty($msg)): ?><div class="notice"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
-<form method="post" class="card" style="padding:12px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
-<input type="hidden" name="action" value="create_assignment">
-<label>Bus<select name="bus_reg_no"><?php foreach($buses as $b): ?><option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no']) ?></option><?php endforeach; ?></select></label>
-<label>Route<select name="route_id"><?php foreach($routes as $r): ?><option value="<?= (int)$r['route_id'] ?>"><?= htmlspecialchars($r['route_no'].' — '.$r['name']) ?></option><?php endforeach; ?></select></label>
-<label>Date<input type="date" name="date" value="<?= htmlspecialchars($today) ?>"></label>
-<label>Depart<input type="time" name="departure_time" required></label>
-<label>Arrive<input type="time" name="arrival_time"></label>
-<div style="grid-column:1/-1"><button type="submit">Assign</button></div>
-</form>
+<?php /** @var array $rows,$buses,$drivers,$conductors,$routes,$msg */ ?>
+<section class="section">
+  <div class="title-card">
+    <h1 class="title-heading">SLTB Daily Bus Assignments</h1>
+    <p class="title-sub">Manage today’s driver and conductor allocations</p>
+  </div>
 
+  <?php if(!empty($msg)): ?>
+    <div class="notice success"><?= htmlspecialchars($msg) ?></div>
+  <?php endif; ?>
 
-<h2 style="margin-top:16px">Today's Timetables</h2>
-<table class="table"><tr><th>ID</th><th>Bus</th><th>Route</th><th>Dep</th><th>Arr</th><th></th></tr>
-<?php foreach($rows as $r): ?>
-<tr>
-<td><?= (int)$r['timetable_id'] ?></td>
-<td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
-<td><?= htmlspecialchars($r['route_no'] ?? '') ?></td>
-<td><?= htmlspecialchars(substr($r['departure_time'],0,5)) ?></td>
-<td><?= htmlspecialchars($r['arrival_time'] ? substr($r['arrival_time'],0,5) : '') ?></td>
-<td>
-<form method="post" style="display:inline" onsubmit="return confirm('Delete assignment?')">
-<input type="hidden" name="action" value="delete_assignment">
-<input type="hidden" name="timetable_id" value="<?= (int)$r['timetable_id'] ?>">
-<button>Delete</button>
-</form>
-</td>
-</tr>
-<?php endforeach; ?>
-</table>
+  <div class="table-card">
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>Bus Number</th>
+          <th>Route</th>
+          <th>Route&nbsp;No</th>
+          <th>Status</th>
+          <th>Capacity</th>
+          <th>Assigned Driver</th>
+          <th>Assigned Conductor</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach($rows as $r): ?>
+          <tr>
+            <td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
+            <td><?= htmlspecialchars($r['route_name'] ?? '-') ?></td>
+            <td><span class="tag"><?= htmlspecialchars($r['route_no'] ?? '-') ?></span></td>
+            <td>
+              <span class="badge <?= strtolower($r['bus_status'] ?? 'Active') ?>">
+                <?= htmlspecialchars($r['bus_status'] ?? 'Active') ?>
+              </span>
+            </td>
+            <td><?= htmlspecialchars(($r['capacity'] ?? '0') . ' seats') ?></td>
+            <td><?= $r['driver_name'] ? htmlspecialchars($r['driver_name']) : '<span class="muted">Unassigned</span>' ?></td>
+            <td><?= $r['conductor_name'] ? htmlspecialchars($r['conductor_name']) : '<span class="muted">Unassigned</span>' ?></td>
+            <td class="actions">
+              <button class="btn-icon edit" title="Edit"><i class="fa fa-edit"></i></button>
+              <form method="post" class="inline" onsubmit="return confirm('Delete this assignment?')">
+                <input type="hidden" name="action" value="delete_assignment">
+                <input type="hidden" name="assignment_id" value="<?= (int)$r['assignment_id'] ?>">
+                <button class="btn-icon delete" title="Delete"><i class="fa fa-trash"></i></button>
+              </form>
+              <button class="btn-icon assign" title="Assign Driver/Conductor"><i class="fa fa-users"></i></button>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+
+  <button id="btnAddAssignment" class="btn-add">+ Add Assignment</button>
+</section>
+
+<!-- Modal Popup -->
+<div id="addModal" class="modal hidden">
+  <div class="modal-content card">
+    <h2>Assign Bus</h2>
+    <form method="post">
+      <input type="hidden" name="action" value="create_assignment">
+      <label>Date <input type="date" name="assigned_date" value="<?= date('Y-m-d') ?>"></label>
+      <label>Shift 
+        <select name="shift">
+          <option>Morning</option><option>Evening</option><option>Night</option>
+        </select>
+      </label>
+      <label>Bus
+        <select name="bus_reg_no" required>
+          <?php foreach($buses as $b): ?>
+            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <label>Driver
+        <select name="sltb_driver_id" required>
+          <?php foreach($drivers as $d): ?>
+            <option value="<?= (int)$d['sltb_driver_id'] ?>"><?= htmlspecialchars($d['full_name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <label>Conductor
+        <select name="sltb_conductor_id" required>
+          <?php foreach($conductors as $c): ?>
+            <option value="<?= (int)$c['sltb_conductor_id'] ?>"><?= htmlspecialchars($c['full_name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" id="closeModal" class="btn-outline">Cancel</button>
+      </div>
+    </form>
+  </div>
 </div>
+
+<script>
+const modal = document.getElementById('addModal');
+document.getElementById('btnAddAssignment').onclick = ()=>modal.classList.remove('hidden');
+document.getElementById('closeModal').onclick = ()=>modal.classList.add('hidden');
+</script>
