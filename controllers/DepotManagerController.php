@@ -11,6 +11,7 @@ use App\models\depot_manager\HealthModel;
 use App\models\depot_manager\DriverModel;
 use App\models\depot_manager\PerformanceModel;
 use App\models\depot_manager\EarningsModel;
+use App\models\depot_manager\ProfileModel;
 
 class DepotManagerController extends BaseController
 {
@@ -228,6 +229,38 @@ public function fleet()
             'top'   => $m->topSummary(),
             'buses' => $m->busIncomeDetail(),
             'month' => $m->monthlyOverview(),
+        ]);
+    }
+
+    /* =========================
+       Profile
+       ========================= */
+    public function profile()
+    {
+        $m = new ProfileModel();
+        $uid = (int)($_SESSION['user']['id'] ?? 0);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $act = $_POST['action'] ?? '';
+            if ($act === 'update_details') {
+                $ok = $m->updateDetails($uid, $_POST);
+                return $this->redirect('/M/profile?' . ($ok ? 'msg=updated' : 'err=' . urlencode($m->getLastError() ?: 'update_failed')));
+            }
+            if ($act === 'change_password') {
+                $ok = $m->changePassword(
+                    $uid,
+                    $_POST['current_password'] ?? '',
+                    $_POST['new_password'] ?? '',
+                    $_POST['confirm_password'] ?? ''
+                );
+                return $this->redirect('/M/profile?' . ($ok ? 'msg=password_changed' : 'err=' . urlencode($m->getLastError() ?: 'password_error')));
+            }
+        }
+
+        $this->view('depot_manager', 'profile', [
+            'account' => $m->getAccount($uid),
+            'msg'     => $_GET['msg'] ?? null,
+            'err'     => $_GET['err'] ?? null,
         ]);
     }
 }

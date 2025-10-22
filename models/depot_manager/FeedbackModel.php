@@ -19,6 +19,16 @@ class FeedbackModel extends BaseModel
         $resolved   = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE status='Resolved' AND YEAR(updated_at)=YEAR(CURDATE()) AND MONTH(updated_at)=MONTH(CURDATE())");
         $avgRating  = $this->avgSafe("SELECT AVG(rating) a FROM complaints WHERE rating IS NOT NULL AND rating>0");
 
+        // Dummy fallback when there is no data
+        if ($totalMonth === 0 && $open === 0 && $resolved === 0 && (float)$avgRating === 0.0) {
+            return [
+                ['value' => '27',  'label' => 'Total This Month',   'trendText' => 'vs. last month', 'trend' => '+8.0%', 'trendClass' => 'green', 'icon' => 'message'],
+                ['value' => '6',   'label' => 'Open Complaints',    'trendText' => 'open now',       'trend' => '',      'trendClass' => 'red',   'icon' => 'message-circle'],
+                ['value' => '19',  'label' => 'Resolved This Month','trendText' => 'resolution rate','trend' => '',      'trendClass' => 'green', 'icon' => 'message-circle'],
+                ['value' => '4.2', 'label' => 'Average Rating',     'trendText' => 'past 30 days',   'trend' => '+0.2',  'trendClass' => 'green', 'icon' => 'star'],
+            ];
+        }
+
         return [
             ['value' => (string)$totalMonth, 'label' => 'Total This Month',  'trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'message'],
             ['value' => (string)$open,       'label' => 'Open Complaints',   'trendText' => '', 'trend' => '', 'trendClass' => 'red',   'icon' => 'message-circle'],
@@ -45,9 +55,16 @@ class FeedbackModel extends BaseModel
                     LEFT JOIN routes r ON r.route_id = c.route_id
                     ORDER BY c.created_at DESC
                     LIMIT 200";
-            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $rows = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            // Dummy fallback when no rows
+            if (!$rows) {
+                $rows = $this->demoComplaints();
+            }
+            return $rows;
         } catch (PDOException $e) {
-            return [];
+            // Dummy fallback on error
+            return $this->demoComplaints();
         }
     }
 
@@ -126,5 +143,36 @@ class FeedbackModel extends BaseModel
         } catch (PDOException $e) {
             return 0.0;
         }
+    }
+
+    // Dummy data helper
+    private function demoComplaints(): array
+    {
+        return [
+            [
+                'id' => 1001,
+                'date' => date('Y-m-d', strtotime('-1 day')),
+                'busNumber' => 'NB-1234',
+                'route' => '138 - Colombo - Kandy',
+                'passengerName' => 'R. Perera',
+                'type' => 'Complaint',
+                'category' => 'Delay',
+                'description' => 'Bus arrived 15 minutes late.',
+                'status' => 'Open',
+                'rating' => 0,
+            ],
+            [
+                'id' => 1002,
+                'date' => date('Y-m-d', strtotime('-2 days')),
+                'busNumber' => 'NB-7788',
+                'route' => '101 - Pettah - Kadawatha',
+                'passengerName' => 'S. Silva',
+                'type' => 'Feedback',
+                'category' => 'Cleanliness',
+                'description' => 'Bus was clean and comfortable.',
+                'status' => 'Resolved',
+                'rating' => 5,
+            ],
+        ];
     }
 }

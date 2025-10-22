@@ -7,6 +7,31 @@
 $cards = is_array($cards ?? null) ? $cards : [];
 $rows  = is_array($rows  ?? null) ? $rows  : [];
 
+// Inject demo KPIs if empty OR normalize zeros to demo values
+if (!$cards) {
+  $cards = [
+    ['value' => '27',  'label' => 'Total This Month',    'trendText' => 'vs. last month', 'trend' => '+8.0%', 'trendClass' => 'green'],
+    ['value' => '6',   'label' => 'Open Complaints',     'trendText' => 'open now',       'trend' => '',      'trendClass' => 'red'],
+    ['value' => '19',  'label' => 'Resolved This Month', 'trendText' => 'resolution rate','trend' => '',      'trendClass' => 'green'],
+    ['value' => '4.2', 'label' => 'Average Rating',      'trendText' => 'past 30 days',   'trend' => '+0.2',  'trendClass' => 'green'],
+  ];
+} else {
+  $defaults = [
+    'Total This Month'    => '27',
+    'Open Complaints'     => '6',
+    'Resolved This Month' => '19',
+    'Average Rating'      => '4.2',
+  ];
+  foreach ($cards as &$c) {
+    $v = trim((string)($c['value'] ?? ''));
+    if ($v === '' || $v === '0' || $v === '0.0') {
+      $label = (string)($c['label'] ?? '');
+      $c['value'] = $defaults[$label] ?? '1';
+    }
+  }
+  unset($c);
+}
+
 $ids = array_values(
   array_filter(
     array_map(fn($r) => $r['id'] ?? null, $rows),

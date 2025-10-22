@@ -22,11 +22,53 @@ class UserModel extends BaseModel {
         return compact('dm','admin','owner','tk');
     }
 
-    public function list(): array {
+    public function list(array $filters = []): array {
         $sql = "SELECT user_id, full_name, email, phone, role, status, last_login, private_operator_id, sltb_depot_id
-                FROM users
-                ORDER BY full_name";
-        return $this->pdo->query($sql)->fetchAll();
+                FROM users";
+        $where = [];
+        $params = [];
+
+        // Role filter
+        if (!empty($filters['role'])) {
+            $where[] = "role = :role";
+            $params[':role'] = $filters['role'];
+        }
+
+        // Status filter
+        if (!empty($filters['status'])) {
+            $where[] = "status = :status";
+            $params[':status'] = $filters['status'];
+        }
+
+        // Linked org filter: '', 'none', 'owner:<id>', 'depot:<id>'
+        if (!empty($filters['link'])) {
+            $link = (string)$filters['link'];
+            if ($link === 'none') {
+                $where[] = "private_operator_id IS NULL AND sltb_depot_id IS NULL";
+            } elseif (str_starts_with($link, 'owner:')) {
+                $id = substr($link, 6);
+                if ($id !== '') {
+                    $where[] = "private_operator_id = :po";
+                    $params[':po'] = $id;
+                }
+            } elseif (str_starts_with($link, 'depot:')) {
+                $id = substr($link, 6);
+                if ($id !== '') {
+                    $where[] = "sltb_depot_id = :dp";
+                    $params[':dp'] = $id;
+                }
+            }
+        }
+
+        if ($where) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $sql .= " ORDER BY full_name";
+
+        $st = $this->pdo->prepare($sql);
+        $st->execute($params);
+        return $st->fetchAll();
     }
 
     public function owners(): array {

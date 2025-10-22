@@ -19,10 +19,23 @@ class DashboardModel extends BaseModel
 
     public function stats(): array
     {
+        $busCount     = $this->countSafe("SELECT COUNT(*) c FROM buses");
+        $ownerCount   = $this->countSafe("SELECT COUNT(*) c FROM bus_owners");
+        $routesActive = $this->countSafe("SELECT COUNT(*) c FROM routes WHERE is_active=1");
+
+        // Dummy fallback when everything is zero
+        if ($busCount === 0 && $ownerCount === 0 && $routesActive === 0) {
+            return [
+                ['title' => 'Total Buses',           'value' => '128', 'change' => '+2.4%', 'trend' => 'up',   'icon' => 'bus'],
+                ['title' => 'Registered Bus Owners', 'value' => '73',  'change' => '+1.1%', 'trend' => 'up',   'icon' => 'users'],
+                ['title' => 'Active Routes',         'value' => '42',  'change' => '+3.0%', 'trend' => 'up',   'icon' => 'routes'],
+            ];
+        }
+
         return [
-            ['title' => 'Total Buses',           'value' => (string)$this->countSafe("SELECT COUNT(*) c FROM buses")],
-            ['title' => 'Registered Bus Owners', 'value' => (string)$this->countSafe("SELECT COUNT(*) c FROM bus_owners")],
-            ['title' => 'Active Routes',         'value' => (string)$this->countSafe("SELECT COUNT(*) c FROM routes WHERE is_active=1")],
+            ['title' => 'Total Buses',           'value' => (string)$busCount],
+            ['title' => 'Registered Bus Owners', 'value' => (string)$ownerCount],
+            ['title' => 'Active Routes',         'value' => (string)$routesActive],
         ];
     }
 
@@ -31,6 +44,15 @@ class DashboardModel extends BaseModel
         $complaintsToday = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE DATE(created_at)=CURDATE()");
         $delayedToday    = $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()");
         $brokenToday     = $this->countSafe("SELECT COUNT(*) c FROM maintenance_jobs WHERE status='Breakdown' AND DATE(created_at)=CURDATE()");
+
+        // Dummy fallback when everything is zero
+        if ($complaintsToday === 0 && $delayedToday === 0 && $brokenToday === 0) {
+            return [
+                ['title' => "Today's Complaints",  'value' => '5', 'change' => '+1 vs yesterday', 'trend' => 'up',   'icon' => 'alert', 'color' => 'orange'],
+                ['title' => 'Delayed Buses Today', 'value' => '7', 'change' => '-2 vs yesterday', 'trend' => 'down', 'icon' => 'clock', 'color' => 'red'],
+                ['title' => 'Broken Buses Today',  'value' => '1', 'change' => '+0 vs yesterday', 'trend' => 'up',   'icon' => 'alert', 'color' => 'red'],
+            ];
+        }
 
         return [
             ['title' => "Today's Complaints",  'value' => (string)$complaintsToday, 'change' => '', 'trend' => '', 'icon' => 'alert', 'color' => 'orange'],

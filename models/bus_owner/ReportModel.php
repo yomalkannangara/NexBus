@@ -33,6 +33,7 @@ class ReportModel extends BaseModel
             'average_rating'   => null,
             'speed_violations' => 0,
             'long_wait_rate'   => 0,
+            'total_complaints' => 0,
         ];
 
         $params = [];
@@ -88,7 +89,50 @@ class ReportModel extends BaseModel
             ? round(($row['long_wait'] / $row['total']) * 100)
             : 0;
 
+        // 5. Total complaints (best-effort across common table names)
+        $metrics['total_complaints'] = $this->countComplaints();
+
         return $metrics;
+    }
+
+    /**
+     * Try to count complaints for current operator across likely feedback tables.
+     * Adjust table/column names if your schema differs.
+     */
+    private function countComplaints(): int
+    {
+        $op = $this->operatorId();
+        $candidates = [
+            // table => operator column candidates (first found used)
+            'passenger_feedback' => ['private_operator_id', 'operator_id'],
+            'feedback'           => ['private_operator_id', 'operator_id'],
+        ];
+
+        foreach ($candidates as $table => $opCols) {
+            try {
+                $params = [];
+                $where = "LOWER(type) = 'complaint'";
+                if ($op) {
+                    // Prefer first matching operator column that exists
+                    foreach ($opCols as $col) {
+                        // Try query with this operator column; fall back if it fails
+                        $sql = "SELECT COUNT(*) FROM {$table} WHERE {$where} AND {$col} = :op";
+                        $st = $this->pdo->prepare($sql);
+                        $st->execute([':op' => $op]);
+                        return (int)$st->fetchColumn();
+                    }
+                }
+                // No operator filter
+                $sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
+                $st = $this->pdo->prepare($sql);
+                $st->execute($params);
+                return (int)$st->fetchColumn();
+            } catch (\Throwable $e) {
+                // Try next candidate table
+            }
+        }
+
+        return 0;
     }
 
     /** 

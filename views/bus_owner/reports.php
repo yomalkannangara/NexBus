@@ -2,6 +2,57 @@
 // Content-only Performance Reports view (structure only)
 // Expects: $top_drivers (array) and optionally $metrics from ReportModel::getPerformanceMetrics()
 // Uses same classes/hooks as your sample.
+
+// Dummy static data for standalone demo (no DB)
+$metrics = [
+  'delayed_buses'    => 42,
+  'total_complaints' => 9,
+  'speed_violations' => 63,
+  'long_wait_rate'   => 14, // percent
+];
+
+$top_drivers = [
+  [
+    'name' => 'Alex Johnson',
+    'assignment_route' => 'Galle Road Express',
+    'delaying_rate' => 2, 'complaints' => 1, 'speed_violations' => 0, 'long_wait_rate' => 3,
+  ],
+  [
+    'name' => 'Priya Kumari',
+    'assignment_route' => 'Kandy City Loop',
+    'delaying_rate' => 3, 'complaints' => 0, 'speed_violations' => 1, 'long_wait_rate' => 4,
+  ],
+  [
+    'name' => 'Michael Perera',
+    'assignment_route' => 'Coastal Line',
+    'delaying_rate' => 1, 'complaints' => 2, 'speed_violations' => 0, 'long_wait_rate' => 2,
+  ],
+  [
+    'name' => 'Sunil Fernando',
+    'assignment_route' => 'Airport Shuttle',
+    'delaying_rate' => 4, 'complaints' => 1, 'speed_violations' => 2, 'long_wait_rate' => 5,
+  ],
+  [
+    'name' => 'Nuwan Silva',
+    'assignment_route' => 'University Route',
+    'delaying_rate' => 2, 'complaints' => 0, 'speed_violations' => 1, 'long_wait_rate' => 3,
+  ],
+  [
+    'name' => 'Ayesha De Zoysa',
+    'assignment_route' => 'Night Line 7',
+    'delaying_rate' => 5, 'complaints' => 3, 'speed_violations' => 2, 'long_wait_rate' => 6,
+  ],
+  [
+    'name' => 'Ravi Jayasinghe',
+    'assignment_route' => 'Hill Country',
+    'delaying_rate' => 2, 'complaints' => 1, 'speed_violations' => 0, 'long_wait_rate' => 4,
+  ],
+  [
+    'name' => 'Tharindu Weerasinghe',
+    'assignment_route' => 'Southern Express',
+    'delaying_rate' => 3, 'complaints' => 2, 'speed_violations' => 1, 'long_wait_rate' => 5,
+  ],
+];
 ?>
 
 <header class="page-header">
@@ -33,7 +84,7 @@
     <div class="stat-content">
       <div class="stat-label">Delayed Buses Today</div>
       <div class="stat-value">
-        <?= (int)($metrics['delayed_buses'] ?? 47); ?>
+        <?= (int)$metrics['delayed_buses']; ?>
       </div>
       <div class="stat-change">Filtered results</div>
     </div>
@@ -49,7 +100,7 @@
     <div class="stat-content">
       <div class="stat-label">Total Complaints</div>
       <div class="stat-value">
-        <?= (int)($metrics['total_complaints'] ?? 0); ?>
+        <?= (int)$metrics['total_complaints']; ?>
       </div>
       <div class="stat-change">Filtered total</div>
     </div>
@@ -65,7 +116,7 @@
     <div class="stat-content">
       <div class="stat-label">Speed Violations</div>
       <div class="stat-value">
-        <?= (int)($metrics['speed_violations'] ?? 75); ?>
+        <?= (int)$metrics['speed_violations']; ?>
       </div>
       <div class="stat-change">Filtered data</div>
     </div>
@@ -80,7 +131,7 @@
     <div class="stat-content">
       <div class="stat-label">Long Wait Times</div>
       <div class="stat-value">
-        <?= (int)($metrics['long_wait_rate'] ?? 15); ?>%
+        <?= (int)$metrics['long_wait_rate']; ?>%
       </div>
       <div class="stat-change">Over 10 minutes</div>
     </div>
@@ -127,14 +178,11 @@
               <td><strong><?= htmlspecialchars($d['name'] ?? ''); ?></strong></td>
               <td><?= htmlspecialchars($d['assignment_route'] ?? ''); ?></td>
 
-              <!-- Placeholders to match structure; replace with real fields if you have them -->
-              <td><span class="metric-badge metric-green"><?= rand(2,5); ?>%</span></td>
-
-              <!-- New Complaints column (replaces rating) -->
-              <td><span class="metric-badge metric-red"><?= (int)($d['complaints'] ?? rand(0, 12)); ?></span></td>
-
-              <td><span class="metric-badge metric-orange"><?= rand(0,3); ?></span></td>
-              <td><span class="metric-badge metric-green"><?= rand(3,7); ?>%</span></td>
+              <!-- Use dummy fields (no randoms) -->
+              <td><span class="metric-badge metric-green"><?= (int)($d['delaying_rate'] ?? 0); ?>%</span></td>
+              <td><span class="metric-badge metric-red"><?= (int)($d['complaints'] ?? 0); ?></span></td>
+              <td><span class="metric-badge metric-orange"><?= (int)($d['speed_violations'] ?? 0); ?></span></td>
+              <td><span class="metric-badge metric-green"><?= (int)($d['long_wait_rate'] ?? 0); ?>%</span></td>
             </tr>
           <?php
             $rank++;

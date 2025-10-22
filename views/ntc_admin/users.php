@@ -24,7 +24,63 @@
   </div>
 </section>
 
+<!-- Filters -->
+<div class="filters">
+  <form method="get" class="filter-grid" action="/A/users">
+    <label>Role
+      <select name="role">
+        <option value="">All</option>
+        <option value="NTCAdmin" <?= (!empty($filters['role']) && $filters['role']==='NTCAdmin')?'selected':'' ?>>NTCAdmin</option>
+        <option value="DepotManager" <?= (!empty($filters['role']) && $filters['role']==='DepotManager')?'selected':'' ?>>DepotManager</option>
+        <option value="DepotOfficer" <?= (!empty($filters['role']) && $filters['role']==='DepotOfficer')?'selected':'' ?>>DepotOfficer</option>
+        <option value="SLTBTimekeeper" <?= (!empty($filters['role']) && $filters['role']==='SLTBTimekeeper')?'selected':'' ?>>SLTBTimekeeper</option>
+        <option value="PrivateTimekeeper" <?= (!empty($filters['role']) && $filters['role']==='PrivateTimekeeper')?'selected':'' ?>>PrivateTimekeeper</option>
+        <option value="PrivateBusOwner" <?= (!empty($filters['role']) && $filters['role']==='PrivateBusOwner')?'selected':'' ?>>PrivateBusOwner</option>
+        <option value="Passenger" <?= (!empty($filters['role']) && $filters['role']==='Passenger')?'selected':'' ?>>Passenger</option>
+      </select>
+    </label>
 
+    <label>Status
+      <select name="status">
+        <option value="">All</option>
+        <option value="Active" <?= (!empty($filters['status']) && $filters['status']==='Active')?'selected':'' ?>>Active</option>
+        <option value="Suspended" <?= (!empty($filters['status']) && $filters['status']==='Suspended')?'selected':'' ?>>Suspended</option>
+      </select>
+    </label>
+
+    <label>Linked org (Depot / Private company)
+      <select name="link">
+        <option value="">Any</option>
+        <option value="none" <?= (!empty($filters['link']) && $filters['link']==='none')?'selected':'' ?>>Unlinked</option>
+        <optgroup label="Private companies">
+          <?php foreach($owners as $o): 
+            $val = 'owner:' . $o['private_operator_id'];
+            $sel = (!empty($filters['link']) && $filters['link']===$val) ? 'selected' : '';
+          ?>
+            <option value="<?= htmlspecialchars($val) ?>" <?= $sel ?>>
+              <?= htmlspecialchars($o['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </optgroup>
+        <optgroup label="SLTB Depots">
+          <?php foreach($depots as $d): 
+            $val = 'depot:' . $d['sltb_depot_id'];
+            $sel = (!empty($filters['link']) && $filters['link']===$val) ? 'selected' : '';
+          ?>
+            <option value="<?= htmlspecialchars($val) ?>" <?= $sel ?>>
+              <?= htmlspecialchars($d['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </optgroup>
+      </select>
+    </label>
+
+    <div class="form-actions">
+      <button class="btn primary" type="submit">Apply</button>
+      <a class="btn" href="/A/users">Reset</a>
+    </div>
+  </form>
+</div>
 
 <div id="addUPanel" class="panel">
   <form method="post" class="form-grid narrow" action="/A/users">

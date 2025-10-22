@@ -38,6 +38,7 @@ $routes = [
     '/register'     => ['AuthController','register'],
 
     // NTC Admin
+    '/A'               => ['NtcAdminController','dashboard'],
     '/A/dashboard'     => ['NtcAdminController','dashboard'],
     '/A/fares'         => ['NtcAdminController','fares'],
     '/A/timetables'    => ['NtcAdminController','timetables'],
@@ -75,7 +76,8 @@ $routes = [
     '/M/drivers'    => ['DepotManagerController','drivers'],    // NEW
     '/M/performance'      => ['DepotManagerController','performance'],      // NEW
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
-    
+    '/M/profile'      => ['DepotManagerController','profile'],      // NEW
+
 
 
   // Private Timekeeper

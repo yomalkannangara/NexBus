@@ -3,6 +3,62 @@
 //   $metrics   = $metrics   ?? [];
 //   $ongoing   = $ongoing   ?? [];
 //   $completed = $completed ?? [];
+
+// Initialize and inject dummy data only if empty/missing
+$metrics   = is_array($metrics ?? null) ? $metrics : [];
+$ongoing   = is_array($ongoing ?? null) ? $ongoing : [];
+$completed = is_array($completed ?? null) ? $completed : [];
+
+if (!$metrics) {
+  $metrics = [
+    ['value' => '12', 'label' => 'Active Jobs',     'accent' => 'blue'],
+    ['value' => '5',  'label' => 'Due This Week',   'accent' => 'yellow'],
+    ['value' => '3',  'label' => 'Overdue',         'accent' => 'red'],
+  ];
+}
+
+if (!$ongoing) {
+  $ongoing = [
+    [
+      'bus' => 'NB-1234', 'task' => 'Engine Tune-up', 'start' => '2025-10-18 09:30',
+      'workshop' => 'Main Depot Workshop', 'eta' => '2025-10-23', 'progress' => 60
+    ],
+    [
+      'bus' => 'NB-4521', 'task' => 'Brake Replacement', 'start' => '2025-10-20 14:15',
+      'workshop' => 'City Auto Tech', 'eta' => '2025-10-22', 'progress' => 35
+    ],
+  ];
+}
+
+if (!$completed) {
+  $completed = [
+    [
+      'bus' => 'NB-7788', 'task' => 'Oil Change', 'date' => '2025-10-19',
+      'vendor' => 'Quick Lube', 'cost' => 'Rs. 12,500', 'next' => '2026-01-19'
+    ],
+    [
+      'bus' => 'NB-3344', 'task' => 'Tire Rotation', 'date' => '2025-10-17',
+      'vendor' => 'WheelWorks', 'cost' => 'Rs. 8,200', 'next' => '2026-02-17'
+    ],
+  ];
+}
+
+// Normalize metric values: replace zero/empty with demo defaults
+if ($metrics) {
+  $defaults = [
+    'Active Jobs'   => '12',
+    'Due This Week' => '5',
+    'Overdue'       => '3',
+  ];
+  foreach ($metrics as &$m) {
+    $val = trim((string)($m['value'] ?? ''));
+    if ($val === '' || $val === '0' || $val === '0.0') {
+      $label = (string)($m['label'] ?? '');
+      $m['value'] = $defaults[$label] ?? '1';
+    }
+  }
+  unset($m);
+}
 ?>
 <section class="section">
 

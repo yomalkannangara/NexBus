@@ -319,11 +319,11 @@ body {
 .stat-icon { opacity: .3; flex-shrink: 0; }
 .stat-icon svg { width: 48px; height: 48px; }
 /* Color variants */
-.stat-maroon { background: linear-gradient(135deg, #8B2332 0%, #6D1B28 100%); color: #fff; }
-.stat-green { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; }
-.stat-yellow { background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%); color: var(--maroon); }
-.stat-orange { background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); color: #fff; }
-.stat-red { background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); color: #fff; }
+.stat-maroon { background: #fff; color: var(--text); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.stat-green { background: #fff; color: var(--text); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.stat-yellow { background: #fff; color: var(--text); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.stat-orange { background: #fff; color: var(--text); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.stat-red { background: #fff; color: var(--text); border: 1px solid var(--gold); border-left: 5px solid var(--gold);}
 
 /* Cards */
 .card {
@@ -382,10 +382,10 @@ body {
   text-decoration: none;
 }
 .quick-action-btn svg { width: 24px; height: 24px; }
-.action-maroon { background: var(--maroon); color: #fff; }
-.action-yellow { background: var(--gold); color: var(--maroon); }
-.action-orange { background: #F97316; color: #fff; }
-.action-green { background: #059669; color: #fff; }
+.action-maroon { background: #fff; color: var(--maroon); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.action-yellow { background: #fff; color: var(--maroon); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.action-orange { background: #fff; color: var(--maroon); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
+.action-green { background: #fff; color: var(--maroon); border: 1px solid var(--gold); border-left: 5px solid var(--gold); }
 .quick-action-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 
 /* Filters + form controls (drivers modal uses these) */

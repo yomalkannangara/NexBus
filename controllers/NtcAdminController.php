@@ -81,11 +81,19 @@ class NtcAdminController extends BaseController {
             }
         }
 
+        // Collect filters from GET
+        $filters = [
+            'role'   => $_GET['role']   ?? '',
+            'status' => $_GET['status'] ?? '',
+            'link'   => $_GET['link']   ?? '',
+        ];
+
         $this->view('ntc_admin','users',[
             'counts'=>$m->counts(),
-            'users'=>$m->list(),
+            'users'=>$m->list($filters),
             'owners'=>$m->owners(),
-            'depots'=>$m->depots()
+            'depots'=>$m->depots(),
+            'filters'=>$filters
         ]);
     }
     public function depots_owners() {
