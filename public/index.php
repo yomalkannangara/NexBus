@@ -1,16 +1,28 @@
 <?php
-// 1. Bootstrap (env, config, db, autoload, session, logging)
-require_once __DIR__ . '/../bootstrap/app.php';
-
-// 2. Current path
+// --- FAVICON SHORT-CIRCUIT (must be first) ---
 $uri  = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = rtrim('/' . ltrim($uri, '/'), '/') ?: '/';
 
-// Default → home
-if ($path === '/') {
-    header('Location: /home'); 
+if ($path === '/favicon.ico') {
+    $ico = __DIR__ . '/assets/images/favicon.ico';
+    if (is_file($ico)) {
+        header('Content-Type: image/x-icon');
+        readfile($ico);
+    } else {
+        http_response_code(204); // quiet "No Content"
+    }
     exit;
 }
+
+// 1. Bootstrap (env, config, db, autoload, session, logging)
+require_once __DIR__ . '/../bootstrap/app.php';
+
+// Default → home (this won't run for /favicon.ico)
+if ($path === '/') {
+    header('Location: /home');
+    exit;
+}
+
 
 // 3. Dispatcher helper
 function run(string $ctrl, string $method): void {

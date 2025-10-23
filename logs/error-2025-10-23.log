@@ -1,0 +1,26 @@
+[23-Oct-2025 08:38:29 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:29 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:37 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:37 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:38 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:39 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:39 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:40 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:40 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:40 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:41 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:38:41 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:52:26 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:52:26 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:52:26 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:52:26 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:52:27 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 08:52:27 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [1130] Host 'localhost' is not allowed to connect to this MariaDB server
+[23-Oct-2025 10:21:08 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'NA-2024-2025-10-23-Morning' for key 'uniq_bus_day_shift' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:131
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(131): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(40): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 131
