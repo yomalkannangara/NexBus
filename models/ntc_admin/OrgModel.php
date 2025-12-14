@@ -12,10 +12,10 @@ abstract class BaseModel {
 class OrgModel extends BaseModel {
 
     public function createDepot(array $d): void {
-        $st = $this->pdo->prepare("INSERT INTO sltb_depots (name, city, phone) VALUES (?,?,?)");
+        $st = $this->pdo->prepare("INSERT INTO sltb_depots (name, address, phone) VALUES (?,?,?)");
         $st->execute([
             $d['name'],
-            $d['city'] ?: null,
+            $d['address'] ?: null,
             $d['phone'] ?: null
         ]);
     }
@@ -34,10 +34,10 @@ class OrgModel extends BaseModel {
         $sql = "
             SELECT d.sltb_depot_id,
                    d.name,
-                   d.city,
+                   d.address,
                    d.phone,
                    COUNT(DISTINCT b.reg_no) AS buses,
-                   u.full_name AS manager,
+                   CONCAT_WS(' ', u.first_name, u.last_name) AS manager,
                    GROUP_CONCAT(DISTINCT r.route_no ORDER BY r.route_no SEPARATOR ', ') AS routes
             FROM sltb_depots d
             LEFT JOIN sltb_buses b 
@@ -50,7 +50,7 @@ class OrgModel extends BaseModel {
                   AND t.operator_type = 'SLTB'
             LEFT JOIN routes r
                    ON r.route_id = t.route_id
-            GROUP BY d.sltb_depot_id, d.name, d.city, d.phone, u.full_name
+            GROUP BY d.sltb_depot_id, d.name, d.address, d.phone, manager
             ORDER BY d.name
         ";
         $rows = $this->pdo->query($sql)->fetchAll();
@@ -69,7 +69,7 @@ class OrgModel extends BaseModel {
                    o.reg_no,
                    o.contact_phone,
                    COUNT(DISTINCT b.reg_no) AS fleet_size,
-                   u.full_name AS owner_name,
+                   CONCAT_WS(' ', u.first_name, u.last_name) AS owner_name,
                    GROUP_CONCAT(DISTINCT r.route_no ORDER BY r.route_no SEPARATOR ', ') AS routes
             FROM private_bus_owners o
             LEFT JOIN private_buses b 
@@ -82,7 +82,7 @@ class OrgModel extends BaseModel {
                   AND t.operator_type = 'Private'
             LEFT JOIN routes r
                    ON r.route_id = t.route_id
-            GROUP BY o.private_operator_id, o.name, o.reg_no, o.contact_phone, u.full_name
+            GROUP BY o.private_operator_id, o.name, o.reg_no, o.contact_phone, owner_name
             ORDER BY o.name
         ";
         $rows = $this->pdo->query($sql)->fetchAll();

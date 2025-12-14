@@ -23,7 +23,7 @@ class UserModel extends BaseModel {
     }
 
     public function list(array $filters = []): array {
-        $sql = "SELECT user_id, full_name, email, phone, role, status, last_login, private_operator_id, sltb_depot_id
+        $sql = "SELECT user_id, first_name, last_name, email, phone, role, status, last_login, private_operator_id, sltb_depot_id
                 FROM users";
         $where = [];
         $params = [];
@@ -64,7 +64,7 @@ class UserModel extends BaseModel {
             $sql .= " WHERE " . implode(" AND ", $where);
         }
 
-        $sql .= " ORDER BY full_name";
+        $sql .= " ORDER BY first_name, last_name";
 
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
@@ -97,18 +97,25 @@ class UserModel extends BaseModel {
                 $depotId = null;
             }
 
+            $employeeId = (int)($d['employee_id'] ?? 0);
+            if ($employeeId <= 0) {
+                throw new \InvalidArgumentException('Employee ID is required');
+            }
+
             // Compute once so both tables share the SAME hash (bcrypt is salted)
             $plainPwd = $d['password'] ?? '123456';
             $pwdHash  = password_hash($plainPwd, PASSWORD_BCRYPT);
 
-            // Insert into users
+            // Insert into users (employee id goes to user_id)
             $st = $this->pdo->prepare("
-                INSERT INTO users (role, full_name, email, phone, password_hash, status, private_operator_id, sltb_depot_id)
-                VALUES (?,?,?,?,?, 'Active', ?, ?)
+                INSERT INTO users (user_id, role, first_name, last_name, email, phone, password_hash, status, private_operator_id, sltb_depot_id)
+                VALUES (?,?,?,?,?,?,?, 'Active', ?, ?)
             ");
             $st->execute([
+                $employeeId,
                 $role,
-                $d['full_name'],
+                $d['first_name'],
+                $d['last_name'],
                 $d['email'] ?: null,
                 $d['phone'] ?: null,
                 $pwdHash,
@@ -116,20 +123,24 @@ class UserModel extends BaseModel {
                 $depotId
             ]);
 
-            $userId = (int)$this->pdo->lastInsertId();
+            $userId = $employeeId;
 
-            // If passenger role → also create/attach a passengers row (linked via passengers.user_id)
+            // If passenger role → also create/attach a passengers row
             if ($role === 'Passenger') {
                 $st2 = $this->pdo->prepare("
-                    INSERT INTO passengers (user_id, email, phone, password_hash)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
+                      first_name=VALUES(first_name),
+                      last_name=VALUES(last_name),
                       email=VALUES(email),
                       phone=VALUES(phone),
                       password_hash=VALUES(password_hash)
                 ");
                 $st2->execute([
                     $userId,
+                    $d['first_name'],
+                    $d['last_name'],
                     $d['email'] ?: null,
                     $d['phone'] ?: null,
                     $pwdHash,
@@ -158,7 +169,8 @@ class UserModel extends BaseModel {
 
             // Normalize linkage fields by role (same rules as create)
             $role       = $d['role'] ?? '';
-            $fullName   = $d['full_name'] ?? '';
+            $firstName  = $d['first_name'] ?? '';
+            $lastName   = $d['last_name'] ?? '';
             $email      = trim($d['email'] ?? '');
             $phone      = trim($d['phone'] ?? '');
             $depotId    = !empty($d['sltb_depot_id']) ? $d['sltb_depot_id'] : null;
@@ -173,15 +185,16 @@ class UserModel extends BaseModel {
                 $depotId = null;
             }
 
-            $sets = "role=:role, full_name=:full_name, email=:email, phone=:phone, private_operator_id=:po, sltb_depot_id=:dp";
+            $sets = "role=:role, first_name=:first_name, last_name=:last_name, email=:email, phone=:phone, private_operator_id=:po, sltb_depot_id=:dp";
             $args = [
-                ':role'      => $role,
-                ':full_name' => $fullName,
-                ':email'     => ($email !== '') ? $email : null,
-                ':phone'     => ($phone !== '') ? $phone : null,
-                ':po'        => $operatorId,
-                ':dp'        => $depotId,
-                ':user_id'   => $userId,
+                ':role'       => $role,
+                ':first_name' => $firstName,
+                ':last_name'  => $lastName,
+                ':email'      => ($email !== '') ? $email : null,
+                ':phone'      => ($phone !== '') ? $phone : null,
+                ':po'         => $operatorId,
+                ':dp'         => $depotId,
+                ':user_id'    => $userId,
             ];
 
             // If password provided, hash once and push to both tables later
@@ -201,14 +214,13 @@ class UserModel extends BaseModel {
 
             // Keep passengers table in sync if role is Passenger
             if ($role === 'Passenger') {
-                // Upsert from the freshly UPDATED users row to guarantee values match
-                // (includes updated hash if password changed)
                 $sqlUpsert = "
-                    INSERT INTO passengers (user_id,full_name, email, phone, password_hash)
-                    SELECT u.user_id, u.full_name, u.email, u.phone, u.password_hash
+                    INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+                    SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone, u.password_hash
                     FROM users u WHERE u.user_id = ?
                     ON DUPLICATE KEY UPDATE
-                        full_name=VALUES(full_name),
+                        first_name=VALUES(first_name),
+                        last_name=VALUES(last_name),
                         email=VALUES(email),
                         phone=VALUES(phone),
                         password_hash=VALUES(password_hash)
