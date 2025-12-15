@@ -49,7 +49,7 @@
   <div class="stat-card stat-orange">
     <div class="stat-content">
       <div class="stat-label">Total Revenue</div>
-      <div class="stat-value">LKR <?= number_format((float)($total_revenue ?? 0)); ?></div>
+      <div class="stat-value"><span class="stat-value-currency">LKR</span> <?= number_format((float)($total_revenue ?? 0)); ?></div>
       <div class="stat-change positive">All time</div>
     </div>
     <div class="stat-icon">

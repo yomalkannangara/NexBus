@@ -70,7 +70,21 @@ class BusOwnerController extends BaseController
         $this->view('bus_owner', 'fleet', ['buses' => $m->all()]);
     }
 
+    /** /B/fleet/assign - Handle driver/conductor assignment */
+    public function fleetAssign()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return $this->redirect('/B/fleet');
+        }
+
+        // Assignment logic would go here
+        // For now, just redirect back
+        return $this->redirect('/B/fleet?msg=assigned');
+    }
+
     /** /O/drivers */
+
+
     public function drivers()
     {
         $m = new DriverModel();
@@ -172,6 +186,57 @@ class BusOwnerController extends BaseController
         }
 
 
+/** /B/earnings/export - Export earnings data as CSV */
+public function exportEarnings()
+{
+    $range = $_GET['range'] ?? '6m';
+    $m = new EarningModel();
+    
+    // Get all earnings
+    $earnings = $m->getAll();
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="earnings_report_' . $range . '_' . date('Y-m-d') . '.csv"');
+    
+    // Open output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for proper Excel UTF-8 encoding
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Write header
+    fputcsv($output, ['Earnings Report', 'Generated: ' . date('Y-m-d H:i:s')]);
+    fputcsv($output, ['']);
+    
+    // Column headers
+    fputcsv($output, ['Date', 'Bus Registration', 'Route', 'Amount (LKR)', 'Type', 'Remarks']);
+    
+    // Write data rows
+    $totalAmount = 0;
+    foreach ($earnings as $e) {
+        $amount = (float)($e['amount'] ?? 0);
+        $totalAmount += $amount;
+        
+        fputcsv($output, [
+            $e['date'] ?? '',
+            $e['bus_reg_no'] ?? 'N/A',
+            $e['route'] ?? 'N/A',
+            number_format($amount, 2),
+            $e['earning_type'] ?? 'Revenue',
+            $e['remarks'] ?? ''
+        ]);
+    }
+    
+    // Summary row
+    fputcsv($output, ['']);
+    fputcsv($output, ['Total Earnings', '', '', number_format($totalAmount, 2), '', '']);
+    
+    fclose($output);
+    exit;
+}
+
+
 /** /O/feedback */
 public function feedback()
 {
@@ -242,6 +307,61 @@ public function reports()
         'msg'          => $_GET['msg'] ?? null,
     ]);
 }
+
+/** /B/reports/export - Export performance data as CSV */
+public function exportReports()
+{
+    $range = $_GET['range'] ?? '6m';
+    $rm = new ReportModel();
+    
+    // Get performance metrics
+    $metrics = $rm->getPerformanceMetrics($range);
+    $topDrivers = $rm->topDrivers(10);
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="performance_report_' . $range . '_' . date('Y-m-d') . '.csv"');
+    
+    // Open output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for proper Excel UTF-8 encoding
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Write metrics section
+    fputcsv($output, ['Performance Metrics', 'Range: ' . $range]);
+    fputcsv($output, ['']);
+    fputcsv($output, ['Metric', 'Value']);
+    fputcsv($output, ['Total Trips', $metrics['total_trips'] ?? 0]);
+    fputcsv($output, ['Total Revenue (LKR)', number_format((float)($metrics['total_revenue'] ?? 0), 2)]);
+    fputcsv($output, ['On-Time Rate (%)', number_format((float)($metrics['ontime_rate'] ?? 0), 1)]);
+    fputcsv($output, ['Average Delay (min)', number_format((float)($metrics['avg_delay'] ?? 0), 1)]);
+    
+    // Separator
+    fputcsv($output, ['']);
+    fputcsv($output, ['']);
+    
+    // Write top drivers section
+    fputcsv($output, ['Top Performing Drivers']);
+    fputcsv($output, ['']);
+    fputcsv($output, ['Rank', 'Driver Name', 'Trips', 'Revenue (LKR)', 'On-Time Rate (%)', 'Avg Rating']);
+    
+    $rank = 1;
+    foreach ($topDrivers as $d) {
+        fputcsv($output, [
+            $rank++,
+            $d['driver_name'] ?? 'N/A',
+            $d['trips'] ?? 0,
+            number_format((float)($d['revenue'] ?? 0), 2),
+            number_format((float)($d['ontime_rate'] ?? 0), 1),
+            number_format((float)($d['avg_rating'] ?? 0), 2)
+        ]);
+    }
+    
+    fclose($output);
+    exit;
+}
+
 public function profile()
 {
     $m = new \App\models\bus_owner\ProfileModel();

@@ -172,3 +172,125 @@
     </div>
   </div>
 </section>
+
+<script>
+// Earnings Page JavaScript - Modal and CRUD Operations
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('earningModal');
+  const form = document.getElementById('earningForm');
+  const btnAdd = document.getElementById('btnAddEarning');
+  const btnClose = document.getElementById('btnCloseEarning');
+  const btnCancel = document.getElementById('btnCancelEarning');
+  const modalTitle = document.getElementById('earningModalTitle');
+  const endpoint = document.getElementById('earningsPage')?.dataset?.endpoint || '<?= BASE_URL; ?>/B/earnings';
+
+  // Open modal for adding new earning
+  if (btnAdd) {
+    btnAdd.addEventListener('click', function() {
+      modalTitle.textContent = 'Add Income Record';
+      form.reset();
+      document.getElementById('f_e_id').value = '';
+      modal.removeAttribute('hidden');
+    });
+  }
+
+  // Close modal
+  function closeModal() {
+    modal.setAttribute('hidden', '');
+    form.reset();
+  }
+
+  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeModal);
+
+  // Close on backdrop click
+  const backdrop = modal?.querySelector('.modal__backdrop');
+  if (backdrop) {
+    backdrop.addEventListener('click', closeModal);
+  }
+
+  // Handle edit button clicks
+  document.querySelectorAll('.js-earning-edit').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const data = JSON.parse(this.dataset.earning || '{}');
+      
+      document.getElementById('f_e_id').value = data.id || '';
+      document.getElementById('f_e_date').value = data.date || '';
+      document.getElementById('f_e_bus').value = data.bus_reg_no || '';
+      document.getElementById('f_e_amount').value = data.amount || '';
+      document.getElementById('f_e_source').value = data.source || '';
+      
+      modalTitle.textContent = 'Edit Income Record';
+      modal.removeAttribute('hidden');
+    });
+  });
+
+  // Handle delete button clicks
+  document.querySelectorAll('.js-earning-del').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.dataset.earningId;
+      if (!id) return;
+      
+      if (confirm('Are you sure you want to delete this earning record?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('earning_id', id);
+        
+        fetch(endpoint, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = endpoint + '?msg=deleted';
+          } else {
+            alert('Error deleting record. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error deleting record. Please try again.');
+        });
+      }
+    });
+  });
+
+  // Handle form submission
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const earningId = document.getElementById('f_e_id').value;
+      
+      // Set action based on whether we're creating or updating
+      formData.append('action', earningId ? 'update' : 'create');
+      
+      fetch(endpoint, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = endpoint + '?msg=' + (earningId ? 'updated' : 'created');
+        } else {
+          alert('Error saving record. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving record. Please try again.');
+      });
+    });
+  }
+
+  // Handle export button
+  const btnExport = document.querySelector('.js-export');
+  if (btnExport) {
+    btnExport.addEventListener('click', function() {
+      const exportUrl = this.dataset.exportHref || '<?= BASE_URL; ?>/B/earnings/export';
+      window.location.href = exportUrl + '?range=6m';
+    });
+  }
+});
+</script>
