@@ -77,7 +77,8 @@
 
     <div class="form-actions">
       <button class="btn primary" type="submit">Apply</button>
-      <a class="btn" href="/A/users">Reset</a>
+      <button type="button" class="btn" onclick="location.href='/A/users'">Reset</button>
+
     </div>
   </form>
 </div>
@@ -86,8 +87,16 @@
   <form method="post" class="form-grid narrow" action="/A/users">
     <input type="hidden" name="action" value="create">
 
-    <label>Full Name
-      <input name="full_name" required>
+    <label>Employee ID
+      <input name="employee_id" required>
+    </label>
+
+    <label>First Name
+      <input name="first_name" required>
+    </label>
+
+    <label>Last Name
+      <input name="last_name" required>
     </label>
 
     <label>Email
@@ -148,8 +157,12 @@
     <input type="hidden" name="action" value="update">
     <input type="hidden" name="user_id" id="edit_user_id">
 
-    <label>Full Name
-      <input name="full_name" id="edit_full_name" required>
+    <label>First Name
+      <input name="first_name" id="edit_first_name" required>
+    </label>
+
+    <label>Last Name
+      <input name="last_name" id="edit_last_name" required>
     </label>
 
     <label>Email
@@ -212,7 +225,7 @@
   <table class="table users">
     <thead>
       <tr>
-        <th>User</th>
+        <th>Name</th>
         <th>Contact</th>
         <th>Role</th>
         <th>Linked Depot/private bus owner</th>
@@ -224,11 +237,11 @@
     </thead>
     <tbody>
       <?php foreach($users as $u): ?>
+        <?php $displayName = trim(($u['first_name'] ?? '').' '.($u['last_name'] ?? '')); ?>
         <tr>
           <td>
-          <div class="avatar"><?= strtoupper(substr(htmlspecialchars($u['full_name']), 0, 1)) ?></div>
           <div class="user-meta">
-            <div class="name"><?=htmlspecialchars($u['full_name'])?></div>
+            <div class="name"><?= htmlspecialchars($displayName) ?></div>
           </div>
       </td>
           <td>
@@ -263,7 +276,8 @@
               title="Edit"
               href="#"
               data-user-id="<?= (int)$u['user_id'] ?>"
-              data-full-name="<?= htmlspecialchars($u['full_name'], ENT_QUOTES) ?>"
+              data-first-name="<?= htmlspecialchars($u['first_name'] ?? '', ENT_QUOTES) ?>"
+              data-last-name="<?= htmlspecialchars($u['last_name'] ?? '', ENT_QUOTES) ?>"
               data-email="<?= htmlspecialchars($u['email'] ?? '', ENT_QUOTES) ?>"
               data-phone="<?= htmlspecialchars($u['phone'] ?? '', ENT_QUOTES) ?>"
               data-role="<?= htmlspecialchars($u['role'], ENT_QUOTES) ?>"

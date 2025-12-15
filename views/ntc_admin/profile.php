@@ -1,13 +1,15 @@
 <?php
 // views/ntc_admin/profile.php
 // Vars expected from controller: $me, $theme, $msg
-$initial = strtoupper(substr($me['name'] ?? 'U', 0, 1));
+$displayName = trim(($me['first_name'] ?? '') . ' ' . ($me['last_name'] ?? ''));
+$displayName = $displayName !== '' ? $displayName : ($me['name'] ?? '');
+$initial = strtoupper(substr($displayName ?: 'U', 0, 1));
 ?>
 <section class="page-hero">
   <div style="display:flex;align-items:center;gap:14px;">
     <div class="profile-avatar-lg" aria-hidden="true"><?= $initial ?></div>
     <div>
-      <h1 style="margin:0"><?= htmlspecialchars($me['name'] ?? '') ?></h1>
+      <h1 style="margin:0"><?= htmlspecialchars($displayName) ?></h1>
       <div class="muted"><?= htmlspecialchars($me['email'] ?? '') ?></div>
       <div style="margin-top:4px">
         <span class="badge-role"><?= htmlspecialchars($me['role'] ?? '') ?></span>
@@ -33,8 +35,12 @@ $initial = strtoupper(substr($me['name'] ?? 'U', 0, 1));
     <form method="post" class="form-grid narrow">
       <input type="hidden" name="action" value="update_profile">
 
-      <label>Full Name
-        <input name="full_name" value="<?= htmlspecialchars($me['name'] ?? '') ?>" required>
+      <label>First Name
+        <input name="first_name" value="<?= htmlspecialchars($me['first_name'] ?? '') ?>" required>
+      </label>
+
+      <label>Last Name
+        <input name="last_name" value="<?= htmlspecialchars($me['last_name'] ?? '') ?>" required>
       </label>
 
       <label>Email

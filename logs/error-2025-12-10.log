@@ -1,0 +1,191 @@
+[10-Dec-2025 11:19:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\ntc_admin\TimetableModel::counts() in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php:51
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php on line 51
+[10-Dec-2025 11:20:01 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\ntc_admin\TimetableModel::counts() in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php:51
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php on line 51
+[10-Dec-2025 11:21:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\ntc_admin\TimetableModel::counts() in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php:51
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php on line 51
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:22:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\timetables.php on line 206
+[10-Dec-2025 11:31:56 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[10-Dec-2025 11:36:46 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[10-Dec-2025 11:58:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'start_seq' in 'field list' in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:67
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(67): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(51): App\models\ntc_admin\TimetableModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 67
+[10-Dec-2025 14:26:22 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:22 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:22 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:22 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:22 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:22 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:43 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 77
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 14:26:44 Asia/Colombo] PHP Warning:  Array to string conversion in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 52
+[10-Dec-2025 15:29:35 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:141
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(141): PDOStatement->execute()
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(72): App\models\ntc_admin\TimetableModel->listTimetables(Array, 50, 0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 141
+[10-Dec-2025 15:29:52 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:141
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(141): PDOStatement->execute()
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(72): App\models\ntc_admin\TimetableModel->listTimetables(Array, 50, 0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 141
+[10-Dec-2025 15:30:22 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:141
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(141): PDOStatement->execute()
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(72): App\models\ntc_admin\TimetableModel->listTimetables(Array, 50, 0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 141
+[10-Dec-2025 15:30:33 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:141
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(141): PDOStatement->execute()
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(72): App\models\ntc_admin\TimetableModel->listTimetables(Array, 50, 0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 141
+[10-Dec-2025 15:32:36 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:143
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(143): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(72): App\models\ntc_admin\TimetableModel->listTimetables(Array, 50, 0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 143
+[10-Dec-2025 15:32:49 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php:143
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php(143): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(72): App\models\ntc_admin\TimetableModel->listTimetables(Array, 50, 0)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->timetables()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(166): run('NtcAdminControl...', 'timetables')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\TimetableModel.php on line 143

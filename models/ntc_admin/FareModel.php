@@ -18,19 +18,25 @@ class FareModel extends BaseModel {
     public function routes(): array {
         return $this->pdo->query("SELECT route_id, route_no, name FROM routes ORDER BY route_no+0, route_no")->fetchAll();
     }
+    private function isActivePrice($value): int {
+        return ($value !== null && $value !== '' && floatval($value) != 0.0) ? 1 : 0;
+    }
     public function create(array $d): void {
+        $super = $d['super_luxury'] ?? null;
+        $lux   = $d['luxury'] ?? null;
+        $semi  = $d['semi_luxury'] ?? null;
+        $norm  = $d['normal_service'] ?? null;
         $sql = "INSERT INTO fares (route_id, stage_number, super_luxury, luxury, semi_luxury, normal_service,
                 is_super_luxury_active, is_luxury_active, is_semi_luxury_active, is_normal_service_active,
                 effective_from, effective_to)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         $st = $this->pdo->prepare($sql);
         $st->execute([
-            $d['route_id'], $d['stage_number'], $d['super_luxury'] ?? null, $d['luxury'] ?? null,
-            $d['semi_luxury'] ?? null, $d['normal_service'] ?? null,
-            !empty($d['is_super_luxury_active']) ? 1 : 0,
-            !empty($d['is_luxury_active']) ? 1 : 0,
-            !empty($d['is_semi_luxury_active']) ? 1 : 0,
-            !empty($d['is_normal_service_active']) ? 1 : 0,
+            $d['route_id'], $d['stage_number'], $super, $lux, $semi, $norm,
+            $this->isActivePrice($super),
+            $this->isActivePrice($lux),
+            $this->isActivePrice($semi),
+            $this->isActivePrice($norm),
             $d['effective_from'], $d['effective_to'] ?: null
         ]);
     }

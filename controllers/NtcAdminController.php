@@ -33,25 +33,75 @@ class NtcAdminController extends BaseController {
         }
         $this->view('ntc_admin','fares',[ 'routes'=>$m->routes(), 'fares'=>$m->all() ]);
     }
-    public function timetables() {
-        $m = new TimetableModel();
-        if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_route') {
-            $m->createRoute($_POST);
-            $this->redirect('/A/timetables?msg=route_created');
-        }
-        if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create') {
-            $m->create($_POST);
-            $this->redirect('/A/timetables?msg=created');
-        }
-        if (isset($_GET['delete'])) {
-            $m->delete($_GET['delete']);
-            $this->redirect('/A/timetables?msg=deleted');
-        }
-        $this->view('ntc_admin','timetables',[
-            'routes'=>$m->routes(), 'rows'=>$m->all(), 'counts'=>$m->counts(), 
-            'owners'=>$m->ownersWithBuses(), 'depots'=>$m->depotsWithBuses(),'buses'=>$m->depotsWithBuses()
-        ]);
+public function timetables() {
+    $m = new TimetableModel();
+
+    // --- create / create route / delete stay the same ---
+    if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_route') {
+        $m->createRoute($_POST);
+        $this->redirect('/A/timetables?msg=route_created');
+        return;
     }
+    if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create') {
+        $m->create($_POST);
+        $this->redirect('/A/timetables?msg=created');
+        return;
+    }
+    if (isset($_GET['delete'])) {
+        $m->delete($_GET['delete']);
+        $this->redirect('/A/timetables?msg=deleted');
+        return;
+    }
+
+    // ---------- FILTERS ----------
+    $routeInput = trim($_GET['q_route'] ?? '');
+    $routeNumber = '';
+    if ($routeInput !== '') {
+        $match = [];
+        if (preg_match('/^[^|\s]+/', $routeInput, $match)) {
+            $routeNumber = $match[0]; // take text before space or "|"
+        } else {
+            $routeNumber = $routeInput;
+        }
+    }
+
+    $filters = [
+        'route'         => $routeNumber,
+        'bus'           => trim($_GET['q_bus'] ?? ''),
+        'operator_type' => trim($_GET['q_op'] ?? ''),
+    ];
+
+    $hasFilters = ($filters['route'] !== '')
+        || ($filters['bus'] !== '')
+        || in_array($filters['operator_type'], ['Private','SLTB'], true);
+
+    // default: 30, with filters: 50
+    $perPage = $hasFilters ? 50 : 30;
+    $page    = max(1, (int)($_GET['page'] ?? 1));
+    $offset  = ($page - 1) * $perPage;
+
+    $result = $m->listTimetables($filters, $perPage, $offset);
+    $total  = $result['total'];
+    $pages  = max(1, (int)ceil($total / $perPage));
+
+    $this->view('ntc_admin','timetables',[
+        'routes'     => $m->routes(),
+        'rows'       => $result['rows'],
+        'counts'     => $m->counts(),
+        'owners'     => $m->ownersWithBuses(),
+        'depots'     => $m->depotsWithBuses(),
+        'buses'      => $m->depotsWithBuses(), // existing
+        'filters'    => $filters,
+        'pagination' => [
+            'page'    => $page,
+            'pages'   => $pages,
+            'total'   => $total,
+            'perPage' => $perPage,
+        ],
+        'busList'    => $m->busList(), // for type-ahead list
+    ]);
+}
+
     public function users() {
         $m = new UserModel();
 
