@@ -554,10 +554,12 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const busId = (busIdInput?.value || '').trim();
-      const drv = (driverInp?.value || '').trim();
-      const con = (condInp?.value || '').trim();
+      const drvVal = (driverInp?.value || '').trim();
+      const conVal = (condInp?.value || '').trim();
+
       if (!busId) { toast('Missing bus ID', false); return; }
-      if (!drv && !con) { toast('Enter driver or conductor', false); return; }
+      // Allow unassigning by selecting "Unassigned" (value 0) or empty
+      // if (!drvVal && !conVal) { toast('Enter driver or conductor', false); return; }
 
       const ok = await postFormOrFallback(form);
       if (ok) {
@@ -567,13 +569,28 @@
         if (row) {
           const tdDriver = row.querySelector('.td-driver');
           const tdCond = row.querySelector('.td-conductor');
-          if (tdDriver) tdDriver.innerHTML = drv ? drv : '<span class="text-secondary">Unassigned</span>';
-          if (tdCond) tdCond.innerHTML = con ? con : '<span class="text-secondary">Unassigned</span>';
+
+          let drvText = drvVal;
+          if (driverInp.tagName === 'SELECT' && driverInp.selectedIndex > -1) {
+            const opt = driverInp.options[driverInp.selectedIndex];
+            drvText = opt.text;
+            if (!drvVal || drvVal === '0') drvText = '';
+          }
+
+          let conText = conVal;
+          if (condInp.tagName === 'SELECT' && condInp.selectedIndex > -1) {
+            const opt = condInp.options[condInp.selectedIndex];
+            conText = opt.text;
+            if (!conVal || conVal === '0') conText = '';
+          }
+
+          if (tdDriver) tdDriver.innerHTML = drvText ? drvText : '<span class="text-secondary">Unassigned</span>';
+          if (tdCond) tdCond.innerHTML = conText ? conText : '<span class="text-secondary">Unassigned</span>';
         }
         // keep button dataset in sync for next open
         if (triggerBtn) {
-          if (drv) triggerBtn.setAttribute('data-driver-id', drv); else triggerBtn.setAttribute('data-driver-id', '0');
-          if (con) triggerBtn.setAttribute('data-conductor-id', con); else triggerBtn.setAttribute('data-conductor-id', '0');
+          triggerBtn.setAttribute('data-driver-id', (drvVal && drvVal !== '0') ? drvVal : '0');
+          triggerBtn.setAttribute('data-conductor-id', (conVal && conVal !== '0') ? conVal : '0');
         }
         close();
         toast('Assignment saved');
@@ -743,43 +760,49 @@
   normalizeBadges();
 })();
 // ------- modal view -------
-const dlg = $('#feedback-dialog');
-if (dlg) {
-  $$('.js-view').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const ref = btn.getAttribute('data-ref') || '';
-      const msg = btn.getAttribute('data-message') || 'No message';
-      const resp = btn.getAttribute('data-response') || '';
+(function () {
+  'use strict';
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-      $('.js-dialog-ref', dlg).textContent = ref;
-      $('.js-dialog-msg', dlg).textContent = msg;
-      const replyEl = $('.js-dialog-reply', dlg);
-      const replyBox = $('.js-dialog-reply-block', dlg);
+  const dlg = $('#feedback-dialog');
+  if (dlg) {
+    $$('.js-view').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ref = btn.getAttribute('data-ref') || '';
+        const msg = btn.getAttribute('data-message') || 'No message';
+        const resp = btn.getAttribute('data-response') || '';
 
-      if (resp && resp.trim() !== '') {
-        replyEl.textContent = resp;
-        replyBox.style.display = '';
-      } else {
-        replyEl.textContent = 'No reply yet.';
-        replyBox.style.display = '';
-      }
+        $('.js-dialog-ref', dlg).textContent = ref;
+        $('.js-dialog-msg', dlg).textContent = msg;
+        const replyEl = $('.js-dialog-reply', dlg);
+        const replyBox = $('.js-dialog-reply-block', dlg);
 
-      if (typeof dlg.showModal === 'function') dlg.showModal();
-      else dlg.setAttribute('open', 'open');
+        if (resp && resp.trim() !== '') {
+          replyEl.textContent = resp;
+          replyBox.style.display = '';
+        } else {
+          replyEl.textContent = 'No reply yet.';
+          replyBox.style.display = '';
+        }
+
+        if (typeof dlg.showModal === 'function') dlg.showModal();
+        else dlg.setAttribute('open', 'open');
+      });
     });
-  });
 
-  const useBtn = $('.js-use-id-btn', dlg);
-  if (useBtn) {
-    useBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const ref = $('.js-dialog-ref', dlg).textContent.trim();
-      [$('.js-ref-select'), $('.js-ref-select-2')].forEach(s => { if (s) s.value = ref; });
-      dlg.close ? dlg.close() : dlg.removeAttribute('open');
-      toast(`Selected feedback ID ${ref}`);
-    });
+    const useBtn = $('.js-use-id-btn', dlg);
+    if (useBtn) {
+      useBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const ref = $('.js-dialog-ref', dlg).textContent.trim();
+        [$('.js-ref-select'), $('.js-ref-select-2')].forEach(s => { if (s) s.value = ref; });
+        dlg.close ? dlg.close() : dlg.removeAttribute('open');
+        toast(`Selected feedback ID ${ref}`);
+      });
+    }
   }
-}
+})();
 document.addEventListener('DOMContentLoaded', () => {
   const pwForm = document.querySelector('form[action="change_password"]');
   if (pwForm) {

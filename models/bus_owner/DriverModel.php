@@ -87,13 +87,21 @@ class DriverModel extends BaseModel
             "INSERT INTO private_drivers (private_operator_id, full_name, license_no, phone, status)
              VALUES (:op, :name, :license, :phone, :status)"
         );
-        return $st->execute([
-            ':op'      => $op,
-            ':name'    => $name,
-            ':license' => $d['license_no'] ?? null,
-            ':phone'   => $d['phone'] ?? null,
-            ':status'  => $d['status'] ?? 'Active',
-        ]);
+        try {
+            return $st->execute([
+                ':op'      => $op,
+                ':name'    => $name,
+                ':license' => $d['license_no'] ?? null,
+                ':phone'   => $d['phone'] ?? null,
+                ':status'  => $d['status'] ?? 'Active',
+            ]);
+        } catch (\PDOException $e) {
+            // Handle duplicate license_no or other constraints
+            if ($e->getCode() == 23000) {
+                return false;
+            }
+            throw $e;
+        }
     }
 
     public function update(int $id, array $d): bool
@@ -118,7 +126,15 @@ class DriverModel extends BaseModel
         ];
         if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
         $st = $this->pdo->prepare($sql);
-        return $st->execute($params);
+        try {
+            return $st->execute($params);
+        } catch (\PDOException $e) {
+            // Duplicate entry
+            if ($e->getCode() == 23000) {
+                return false;
+            }
+            throw $e;
+        }
     }
 
     public function delete(int $id): bool

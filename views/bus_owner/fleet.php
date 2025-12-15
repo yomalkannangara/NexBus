@@ -40,7 +40,8 @@
         <?php if (!empty($buses)): ?>
           <?php foreach ($buses as $b): ?>
             <?php
-              $status = (string)($b['status'] ?? 'Active');
+              // Handle empty string status, not just null
+              $status = !empty($b['status']) ? (string)$b['status'] : 'Active';
               $map    = ['Active'=>'status-active','Maintenance'=>'status-maintenance','Out of Service'=>'status-out'];
               $cls    = $map[$status] ?? 'status-active';
 
@@ -53,6 +54,10 @@
               <td><?= htmlspecialchars($b['route'] ?? ''); ?></td>
               <td><span class="badge badge-yellow"><?= htmlspecialchars($b['route_number'] ?? ''); ?></span></td>
               <td>
+                <?php
+                  // Debug: Output raw status value
+                  // echo "<!-- Status: " . var_export($status, true) . " Class: " . var_export($cls, true) . " -->";
+                ?>
                 <span class="status-badge <?= $cls; ?> js-status-badge">
                   <?= htmlspecialchars($status); ?>
                 </span>
@@ -126,12 +131,32 @@
       <input type="hidden" name="bus_id" id="assign_bus_id" />
       <div class="form-grid">
         <div class="form-field">
-          <label for="assign_driver_id">Driver ID</label>
-          <input type="text" id="assign_driver_id" name="driver_id" placeholder="e.g., 12" />
+          <label for="assign_driver_id">Driver</label>
+          <select id="assign_driver_id" name="driver_id" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">Select Driver</option>
+            <option value="0">Unassigned</option>
+            <?php if (!empty($drivers)): ?>
+              <?php foreach ($drivers as $d): ?>
+                <option value="<?= $d['private_driver_id'] ?>">
+                  <?= htmlspecialchars($d['full_name']) ?> (<?= htmlspecialchars($d['license_no']) ?>)
+                </option>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </select>
         </div>
         <div class="form-field">
-          <label for="assign_conductor_id">Conductor ID</label>
-          <input type="text" id="assign_conductor_id" name="conductor_id" placeholder="e.g., 8" />
+          <label for="assign_conductor_id">Conductor</label>
+          <select id="assign_conductor_id" name="conductor_id" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="">Select Conductor</option>
+            <option value="0">Unassigned</option>
+            <?php if (!empty($conductors)): ?>
+              <?php foreach ($conductors as $c): ?>
+                <option value="<?= $c['private_conductor_id'] ?>">
+                  <?= htmlspecialchars($c['full_name']) ?> (ID: <?= $c['private_conductor_id'] ?>)
+                </option>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </select>
         </div>
       </div>
       <div class="modal__footer">
@@ -240,7 +265,11 @@
       document.getElementById('bus_reg_no').value = busData.bus_number || '';
       document.getElementById('bus_chassis_no').value = busData.chassis_no || '';
       document.getElementById('bus_capacity').value = busData.capacity || '';
-      document.getElementById('bus_status').value = busData.status || 'Active';
+      
+      // Ensure status is never null/undefined - default to 'Active'
+      const statusValue = busData.status || 'Active';
+      document.getElementById('bus_status').value = statusValue;
+      
       document.getElementById('bus_reg_no').disabled = true; // Disable reg_no for edit
       
       actionInput.value = 'update';
@@ -271,16 +300,24 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
+      // Temporarily enable disabled fields so they are included in FormData
+      const disabledFields = Array.from(form.querySelectorAll(':disabled'));
+      disabledFields.forEach(el => el.disabled = false);
+
       const formData = new FormData(form);
+      
+      // Restore disabled state
+      disabledFields.forEach(el => el.disabled = true);
+
       const baseUrl = '<?= BASE_URL; ?>' || '';
       
-      fetch(baseUrl + '/B/fleet', {
+      fetch(baseUrl + '/fleet', {
         method: 'POST',
         body: formData
       })
       .then(response => {
         if (response.ok) {
-          window.location.href = baseUrl + '/B/fleet?msg=saved';
+          window.location.href = baseUrl + '/fleet?msg=saved';
         } else {
           alert('Error saving bus. Please try again.');
         }

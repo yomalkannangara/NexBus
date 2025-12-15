@@ -67,7 +67,12 @@ class BusOwnerController extends BaseController
             return $this->redirect('/B/fleet?msg=deleted');
         }
 
-        $this->view('bus_owner', 'fleet', ['buses' => $m->all()]);
+        $dm = new DriverModel();
+        $this->view('bus_owner', 'fleet', [
+            'buses'      => $m->all(),
+            'drivers'    => $dm->all(),
+            'conductors' => $dm->allConductors()
+        ]);
     }
 
     /** /B/fleet/assign - Handle driver/conductor assignment */
@@ -93,16 +98,17 @@ class BusOwnerController extends BaseController
             $act = $_POST['action'] ?? '';
 
             if ($act === 'create') {
-                if (empty($_POST['private_operator_id'])) {
-                    $_POST['private_operator_id'] = $m->getResolvedOperatorId();
+                if (!$m->create($_POST)) {
+                    return $this->redirect('/B/drivers?msg=error');
                 }
-                $m->create($_POST);
                 return $this->redirect('/B/drivers?msg=created');
             }
 
             if ($act === 'update') {
                 $id = (int)($_POST['private_driver_id'] ?? $_POST['driver_id'] ?? 0);
-                $m->update($id, $_POST);
+                if (!$m->update($id, $_POST)) {
+                    return $this->redirect('/B/drivers?msg=error');
+                }
                 return $this->redirect('/B/drivers?msg=updated');
             }
 
