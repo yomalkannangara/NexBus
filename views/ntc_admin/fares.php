@@ -13,10 +13,7 @@
     <label>Luxury Price <input type="number" step="0.01" name="luxury"></label>
     <label>Semi Luxury Price <input type="number" step="0.01" name="semi_luxury"></label>
     <label>Normal Service Price <input type="number" step="0.01" name="normal_service"></label>
-    <label class="inline"><input type="checkbox" name="is_super_luxury_active"> Super Luxury Active</label>
-    <label class="inline"><input type="checkbox" name="is_luxury_active"> Luxury Active</label>
-    <label class="inline"><input type="checkbox" name="is_semi_luxury_active"> Semi Luxury Active</label>
-    <label class="inline"><input type="checkbox" name="is_normal_service_active" checked> Normal Service Active</label>
+    <!-- active flags now auto-set from non-zero prices -->
     <label>Effective From <input type="date" name="effective_from" required></label>
     <label>Effective To <input type="date" name="effective_to"></label>
     <div class="form-actions"><button class="btn primary">Save</button><button type="button" class="btn" id="cancelAddFare">Cancel</button></div>
