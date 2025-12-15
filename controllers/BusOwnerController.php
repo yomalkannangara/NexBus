@@ -161,20 +161,49 @@ class BusOwnerController extends BaseController
                 $act = $_POST['action'] ?? '';
 
                 if ($act === 'create') {
-                    $m->create($_POST);
-                    return $this->redirect('/B/earnings?msg=created');
+                    $success = $m->create($_POST);
+                    header('Content-Type: application/json');
+                    if ($success) {
+                        // Return success for AJAX
+                        http_response_code(200);
+                        echo json_encode(['success' => true, 'message' => 'Record created successfully']);
+                        exit;
+                    } else {
+                        // Return error for AJAX
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Failed to create record. Please check the bus ownership.']);
+                        exit;
+                    }
                 }
 
                 if ($act === 'update') {
                     $id = (int)($_POST['earning_id'] ?? 0);
-                    $m->update($id, $_POST);
-                    return $this->redirect('/B/earnings?msg=updated');
+                    $success = $m->update($id, $_POST);
+                    header('Content-Type: application/json');
+                    if ($success) {
+                        http_response_code(200);
+                        echo json_encode(['success' => true, 'message' => 'Record updated successfully']);
+                        exit;
+                    } else {
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Failed to update record.']);
+                        exit;
+                    }
                 }
 
                 if ($act === 'delete') {
                     $id = (int)($_POST['earning_id'] ?? 0);
-                    $m->delete($id);
-                    return $this->redirect('/B/earnings?msg=deleted');
+                    $success = $m->delete($id);
+                    header('Content-Type: application/json');
+                    if ($success) {
+                        http_response_code(200);
+                        echo json_encode(['success' => true, 'message' => 'Record deleted successfully']);
+                        exit;
+                    } else {
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Failed to delete record.']);
+                        exit;
+                    }
                 }
             }
 

@@ -4,7 +4,7 @@
 // Uses BASE_URL and posts to data-endpoint (default shown below).
 ?>
 <section id="earningsPage"
-         data-endpoint="<?= BASE_URL; ?>/B/earnings">
+         data-endpoint="<?= BASE_URL; ?>/earnings">
 
   <header class="page-header">
     <div>
@@ -171,7 +171,147 @@
       </form>
     </div>
   </div>
+
+  <!-- Modern Toast Notification -->
+  <div id="toastNotification" class="toast-notification">
+    <div class="toast-icon"></div>
+    <div class="toast-message"></div>
+    <button class="toast-close">&times;</button>
+  </div>
+  
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteConfirmModal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__dialog" style="max-width: 400px; padding: 0;">
+      <div class="modal__header" style="border-bottom: none; padding-bottom: 0;">
+        <h3 class="modal__title" style="color: #991B1B; display: flex; align-items: center; gap: 10px;">
+          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Delete Record
+        </h3>
+        <button type="button" class="modal__close" id="btnCloseDelete">&times;</button>
+      </div>
+      <div class="modal__form" style="padding-top: 10px;">
+        <p style="color: #4B5563; font-size: 15px; margin: 0;">Are you sure you want to delete this earning record? This action cannot be undone.</p>
+      </div>
+      <div class="modal__footer" style="border-top: none; background: #FEF2F2; border-radius: 0 0 16px 16px;">
+        <button type="button" class="btn-secondary" id="btnCancelDelete" style="background: white; border: 1px solid #E5E7EB;">Cancel</button>
+        <button type="button" class="btn-primary" id="btnConfirmDelete" style="background: #DC2626; border: none; color: white;">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
 </section>
+
+<style>
+/* Modern Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 16px 20px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  z-index: 999999;
+  animation: slideInRight 0.3s ease-out;
+  border-left: 4px solid #10B981;
+}
+
+.toast-notification.success {
+  border-left-color: #10B981;
+}
+
+.toast-notification.error {
+  border-left-color: #EF4444;
+}
+
+.toast-notification.show {
+  display: flex;
+}
+
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-notification.success .toast-icon {
+  background: #10B981;
+}
+
+.toast-notification.error .toast-icon {
+  background: #EF4444;
+}
+
+.toast-notification.success .toast-icon::before {
+  content: '✓';
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.toast-notification.error .toast-icon::before {
+  content: '✕';
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.toast-message {
+  flex: 1;
+  color: #1F2937;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.toast-close:hover {
+  color: #4B5563;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+</style>
 
 <script>
 // Earnings Page JavaScript - Modal and CRUD Operations
@@ -182,7 +322,42 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnClose = document.getElementById('btnCloseEarning');
   const btnCancel = document.getElementById('btnCancelEarning');
   const modalTitle = document.getElementById('earningModalTitle');
-  const endpoint = document.getElementById('earningsPage')?.dataset?.endpoint || '<?= BASE_URL; ?>/B/earnings';
+  const endpoint = document.getElementById('earningsPage')?.dataset?.endpoint || '<?= BASE_URL; ?>/earnings';
+  console.log('Earnings endpoint:', endpoint);
+
+  // Modern Toast Notification Function
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toastNotification');
+    
+    // Move to body if not already there to ensure z-index works properly
+    if (toast && toast.parentElement !== document.body) {
+      document.body.appendChild(toast);
+    }
+    
+    const messageEl = toast.querySelector('.toast-message');
+    
+    messageEl.textContent = message;
+    toast.className = 'toast-notification show ' + type;
+    
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+      toast.style.animation = 'slideOutRight 0.3s ease-out';
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.style.animation = '';
+      }, 300);
+    }, 4000);
+  }
+
+  // Close toast on button click
+  document.querySelector('.toast-close')?.addEventListener('click', function() {
+    const toast = document.getElementById('toastNotification');
+    toast.style.animation = 'slideOutRight 0.3s ease-out';
+    setTimeout(() => {
+      toast.classList.remove('show');
+      toast.style.animation = '';
+    }, 300);
+  });
 
   // Open modal for adding new earning
   if (btnAdd) {
@@ -225,35 +400,82 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Handle delete button clicks
+  // Handle delete button clicks - Custom Modal
+  let deleteId = null;
+  const deleteModal = document.getElementById('deleteConfirmModal');
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+  const btnCancelDelete = document.getElementById('btnCancelDelete');
+  const btnCloseDelete = document.getElementById('btnCloseDelete');
+
+  function closeDeleteModal() {
+    deleteModal.setAttribute('hidden', '');
+    deleteId = null;
+  }
+
+  if (btnCancelDelete) btnCancelDelete.addEventListener('click', closeDeleteModal);
+  if (btnCloseDelete) btnCloseDelete.addEventListener('click', closeDeleteModal);
+  
+  // Close delete modal on backdrop click
+  const deleteBackdrop = deleteModal?.querySelector('.modal__backdrop');
+  if (deleteBackdrop) {
+    deleteBackdrop.addEventListener('click', closeDeleteModal);
+  }
+
   document.querySelectorAll('.js-earning-del').forEach(btn => {
     btn.addEventListener('click', function() {
-      const id = this.dataset.earningId;
-      if (!id) return;
+      deleteId = this.dataset.earningId;
+      if (!deleteId) return;
       
-      if (confirm('Are you sure you want to delete this earning record?')) {
-        const formData = new FormData();
-        formData.append('action', 'delete');
-        formData.append('earning_id', id);
-        
-        fetch(endpoint, {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => {
-          if (response.ok) {
-            window.location.href = endpoint + '?msg=deleted';
-          } else {
-            alert('Error deleting record. Please try again.');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Error deleting record. Please try again.');
-        });
+      // Move to body to prevent z-index issues
+      if (deleteModal && deleteModal.parentElement !== document.body) {
+        document.body.appendChild(deleteModal);
       }
+      
+      deleteModal.removeAttribute('hidden');
     });
   });
+
+  // Handle actual deletion
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', function() {
+      if (!deleteId) return;
+
+      // Show loading state
+      const originalText = btnConfirmDelete.textContent;
+      btnConfirmDelete.textContent = 'Deleting...';
+      btnConfirmDelete.disabled = true;
+
+      const formData = new FormData();
+      formData.append('action', 'delete');
+      formData.append('earning_id', deleteId);
+      
+      fetch(endpoint, {
+        method: 'POST',
+        body: formData
+      })
+      .then(async response => {
+        if (response.ok) {
+          const result = await response.json();
+          closeDeleteModal();
+          showToast(result.message || 'Record deleted successfully!', 'success');
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          const error = await response.json();
+          showToast(error.message || 'Error deleting record. Please try again.', 'error');
+          // Reset button
+          btnConfirmDelete.textContent = originalText;
+          btnConfirmDelete.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showToast('Network error. Please try again.', 'error');
+        // Reset button
+        btnConfirmDelete.textContent = originalText;
+        btnConfirmDelete.disabled = false;
+      });
+    });
+  }
 
   // Handle form submission
   if (form) {
@@ -270,16 +492,35 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         body: formData
       })
-      .then(response => {
-        if (response.ok) {
-          window.location.href = endpoint + '?msg=' + (earningId ? 'updated' : 'created');
+      .then(async response => {
+        // Try to parse as JSON first
+        const contentType = response.headers.get('content-type');
+        let result;
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            result = await response.json();
+          } else {
+            // Not JSON, read as text for debugging
+            const text = await response.text();
+            console.error('Server returned non-JSON response:', text);
+            result = { success: false, message: 'Server error. Please check the console for details.' };
+          }
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+          result = { success: false, message: 'Invalid server response' };
+        }
+        
+        if (response.ok && result.success !== false) {
+          showToast(result.message || 'Record saved successfully!', 'success');
+          setTimeout(() => window.location.reload(), 1500);
         } else {
-          alert('Error saving record. Please try again.');
+          showToast(result.message || 'Error saving record. Please check the form and try again.', 'error');
         }
       })
       .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving record. Please try again.');
+        console.error('Fetch error:', error);
+        showToast('Network error: ' + error.message, 'error');
       });
     });
   }
@@ -288,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnExport = document.querySelector('.js-export');
   if (btnExport) {
     btnExport.addEventListener('click', function() {
-      const exportUrl = this.dataset.exportHref || '<?= BASE_URL; ?>/B/earnings/export';
+      const exportUrl = this.dataset.exportHref || '<?= BASE_URL; ?>/earnings/export';
       window.location.href = exportUrl + '?range=6m';
     });
   }

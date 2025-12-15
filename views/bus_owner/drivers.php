@@ -261,9 +261,113 @@
   </div>
 </div>
 
-<style>
-  .driver-modal[hidden]{display:none}
-  .driver-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center}
-  .driver-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4)}
-  .driver-modal__panel{position:relative;width:min(920px,95vw);max-height:90vh;overflow:auto}
-</style>
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="modal" hidden>
+  <div class="modal__backdrop"></div>
+  <div class="modal__dialog" style="max-width: 400px; padding: 0;">
+    <div class="modal__header" style="border-bottom: none; padding-bottom: 0;">
+      <h3 class="modal__title" style="color: #991B1B; display: flex; align-items: center; gap: 10px;">
+        <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span id="deleteModalTitle">Delete Record</span>
+      </h3>
+      <button type="button" class="modal__close" id="btnCloseDelete">&times;</button>
+    </div>
+    <div class="modal__form" style="padding-top: 10px;">
+      <p style="color: #4B5563; font-size: 15px; margin: 0;" id="deleteModalMsg">Are you sure you want to delete this record? This action cannot be undone.</p>
+    </div>
+    <div class="modal__footer" style="border-top: none; background: #FEF2F2; border-radius: 0 0 16px 16px;">
+      <button type="button" class="btn-secondary" id="btnCancelDelete" style="background: white; border: 1px solid #E5E7EB;">Cancel</button>
+      <button type="button" class="btn-primary" id="btnConfirmDelete" style="background: #DC2626; border: none; color: white;">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Driver/Conductor delete handler
+(function() {
+  let deleteType = null; // 'driver' or 'conductor'
+  let deleteId = null;
+  const deleteModal = document.getElementById('deleteConfirmModal');
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+  const btnCancelDelete = document.getElementById('btnCancelDelete');
+  const btnCloseDelete = document.getElementById('btnCloseDelete');
+  const modalTitle = document.getElementById('deleteModalTitle');
+  const modalMsg = document.getElementById('deleteModalMsg');
+
+  function closeDeleteModal() {
+    deleteModal.setAttribute('hidden', '');
+    deleteId = null;
+    deleteType = null;
+  }
+
+  if (btnCancelDelete) btnCancelDelete.addEventListener('click', closeDeleteModal);
+  if (btnCloseDelete) btnCloseDelete.addEventListener('click', closeDeleteModal);
+  
+  const deleteBackdrop = deleteModal?.querySelector('.modal__backdrop');
+  if (deleteBackdrop) deleteBackdrop.addEventListener('click', closeDeleteModal);
+
+  document.querySelectorAll('.js-del').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const driverId = this.getAttribute('data-driver-id');
+      const conductorId = this.getAttribute('data-conductor-id');
+      
+      if (driverId) {
+        deleteType = 'driver';
+        deleteId = driverId;
+        modalTitle.textContent = 'Delete Driver';
+        modalMsg.textContent = 'Are you sure you want to delete this driver? This action cannot be undone.';
+      } else if (conductorId) {
+        deleteType = 'conductor';
+        deleteId = conductorId;
+        modalTitle.textContent = 'Delete Conductor';
+        modalMsg.textContent = 'Are you sure you want to delete this conductor? This action cannot be undone.';
+      } else {
+        return;
+      }
+      
+      if (deleteModal && deleteModal.parentElement !== document.body) {
+        document.body.appendChild(deleteModal);
+      }
+      deleteModal.removeAttribute('hidden');
+    });
+  });
+
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', function() {
+      if (!deleteId || !deleteType) return;
+
+      const originalText = btnConfirmDelete.textContent;
+      btnConfirmDelete.textContent = 'Deleting...';
+      btnConfirmDelete.disabled = true;
+
+      // Submit form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '<?= BASE_URL; ?>/B/drivers';
+      
+      const actionInput = document.createElement('input');
+      actionInput.type = 'hidden';
+      actionInput.name = 'action';
+      
+      const idInput = document.createElement('input');
+      idInput.type = 'hidden';
+      
+      if (deleteType === 'driver') {
+        actionInput.value = 'delete';
+        idInput.name = 'driver_id';
+      } else {
+        actionInput.value = 'delete_conductor';
+        idInput.name = 'conductor_id';
+      }
+      idInput.value = deleteId;
+      
+      form.appendChild(actionInput);
+      form.appendChild(idInput);
+      document.body.appendChild(form);
+      form.submit();
+    });
+  }
+})();
+</script>

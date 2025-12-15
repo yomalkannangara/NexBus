@@ -294,117 +294,88 @@
 })();
 </script>
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="modal" hidden>
+  <div class="modal__backdrop"></div>
+  <div class="modal__dialog" style="max-width: 400px; padding: 0;">
+    <div class="modal__header" style="border-bottom: none; padding-bottom: 0;">
+      <h3 class="modal__title" style="color: #991B1B; display: flex; align-items: center; gap: 10px;">
+        <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        Delete Bus
+      </h3>
+      <button type="button" class="modal__close" id="btnCloseDelete">&times;</button>
+    </div>
+    <div class="modal__form" style="padding-top: 10px;">
+      <p style="color: #4B5563; font-size: 15px; margin: 0;">Are you sure you want to delete this bus? This action cannot be undone.</p>
+    </div>
+    <div class="modal__footer" style="border-top: none; background: #FEF2F2; border-radius: 0 0 16px 16px;">
+      <button type="button" class="btn-secondary" id="btnCancelDelete" style="background: white; border: 1px solid #E5E7EB;">Cancel</button>
+      <button type="button" class="btn-primary" id="btnConfirmDelete" style="background: #DC2626; border: none; color: white;">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // Bus delete handler
 (function() {
-  const deleteBtns = document.querySelectorAll('.js-del-bus');
+  let deleteReg = null;
+  const deleteModal = document.getElementById('deleteConfirmModal');
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+  const btnCancelDelete = document.getElementById('btnCancelDelete');
+  const btnCloseDelete = document.getElementById('btnCloseDelete');
+
+  function closeDeleteModal() {
+    deleteModal.setAttribute('hidden', '');
+    deleteReg = null;
+  }
+
+  if (btnCancelDelete) btnCancelDelete.addEventListener('click', closeDeleteModal);
+  if (btnCloseDelete) btnCloseDelete.addEventListener('click', closeDeleteModal);
   
-  deleteBtns.forEach(btn => {
+  const deleteBackdrop = deleteModal?.querySelector('.modal__backdrop');
+  if (deleteBackdrop) deleteBackdrop.addEventListener('click', closeDeleteModal);
+
+  document.querySelectorAll('.js-del-bus').forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
+      deleteReg = this.getAttribute('data-bus-reg');
+      if (!deleteReg) return;
       
-      const busReg = this.getAttribute('data-bus-reg');
-      
-      // Use the same modern confirmation modal
-      if (typeof showConfirmModal === 'function') {
-        // Modal is defined in bus_owner.js, but we can create our own version here
-        createConfirmModal('Are you sure you want to delete this bus?', () => {
-          // Create and submit form
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = ('<?= BASE_URL; ?>' || '') + '/B/fleet';
-          
-          const actionInput = document.createElement('input');
-          actionInput.type = 'hidden';
-          actionInput.name = 'action';
-          actionInput.value = 'delete';
-          
-          const regInput = document.createElement('input');
-          regInput.type = 'hidden';
-          regInput.name = 'reg_no';
-          regInput.value = busReg;
-          
-          form.appendChild(actionInput);
-          form.appendChild(regInput);
-          document.body.appendChild(form);
-          form.submit();
-        });
+      if (deleteModal && deleteModal.parentElement !== document.body) {
+        document.body.appendChild(deleteModal);
       }
+      deleteModal.removeAttribute('hidden');
     });
   });
-  
-  function createConfirmModal(message, onConfirm) {
-    const modal = document.createElement('div');
-    modal.className = 'confirm-modal';
-    modal.innerHTML = `
-      <div class="confirm-modal__backdrop"></div>
-      <div class="confirm-modal__panel">
-        <div class="confirm-modal__icon">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="22" stroke="#DC2626" stroke-width="2"/>
-            <path d="M24 16v12M24 32h.01" stroke="#DC2626" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <h3 class="confirm-modal__title">Confirm Delete</h3>
-        <div class="confirm-modal__actions">
-          <button class="confirm-modal__btn confirm-modal__btn--cancel">Cancel</button>
-          <button class="confirm-modal__btn confirm-modal__btn--confirm">Delete</button>
-        </div>
-      </div>
-    `;
 
-    if (!document.getElementById('confirm-modal-styles')) {
-      const style = document.createElement('style');
-      style.id = 'confirm-modal-styles';
-      style.textContent = `
-        .confirm-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease-out}
-        .confirm-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
-        .confirm-modal__panel{position:relative;background:#fff;border-radius:16px;padding:40px 32px 32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .2s cubic-bezier(.2,.8,.2,1)}
-        .confirm-modal__icon{display:flex;justify-content:center;margin-bottom:24px}
-        .confirm-modal__title{font-size:22px;font-weight:700;color:#111827;text-align:center;margin:0 0 32px}
-        .confirm-modal__actions{display:flex;gap:12px;justify-content:center}
-        .confirm-modal__btn{padding:11px 32px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
-        .confirm-modal__btn--cancel{background:#F3F4F6;color:#4B5563}
-        .confirm-modal__btn--cancel:hover{background:#E5E7EB;transform:translateY(-1px)}
-        .confirm-modal__btn--confirm{background:#DC2626;color:#fff}
-        .confirm-modal__btn--confirm:hover{background:#B91C1C;transform:translateY(-1px);box-shadow:0 4px 12px rgba(220,38,38,.4)}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes slideUp{from{opacity:0;transform:translateY(20px)scale(.95)}to{opacity:1;transform:translateY(0)scale(1)}}
-      `;
-      document.head.appendChild(style);
-    }
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', function() {
+      if (!deleteReg) return;
 
-    document.body.appendChild(modal);
-    document.body.style.overflow = 'hidden';
+      const originalText = btnConfirmDelete.textContent;
+      btnConfirmDelete.textContent = 'Deleting...';
+      btnConfirmDelete.disabled = true;
 
-    const btnCancel = modal.querySelector('.confirm-modal__btn--cancel');
-    const btnConfirm = modal.querySelector('.confirm-modal__btn--confirm');
-    const backdrop = modal.querySelector('.confirm-modal__backdrop');
-
-    const closeModal = () => {
-      modal.style.animation = 'fadeOut .15s ease-in forwards';
-      setTimeout(() => {
-        if (document.body.contains(modal)) {
-          document.body.removeChild(modal);
-        }
-        document.body.style.overflow = '';
-      }, 150);
-    };
-
-    btnCancel.addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
-    btnConfirm.addEventListener('click', () => {
-      closeModal();
-      if (onConfirm) onConfirm();
+      // Submit form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '<?= BASE_URL; ?>/fleet';
+      
+      const actionInput = document.createElement('input');
+      actionInput.type = 'hidden';
+      actionInput.name = 'action';
+      actionInput.value = 'delete';
+      
+      const regInput = document.createElement('input');
+      regInput.type = 'hidden';
+      regInput.name = 'reg_no';
+      regInput.value = deleteReg;
+      
+      form.appendChild(actionInput);
+      form.appendChild(regInput);
+      document.body.appendChild(form);
+      form.submit();
     });
-
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        closeModal();
-        document.removeEventListener('keydown', handleEsc);
-      }
-    };
-    document.addEventListener('keydown', handleEsc);
   }
 })();
 </script>
