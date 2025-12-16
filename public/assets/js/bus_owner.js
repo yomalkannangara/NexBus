@@ -515,14 +515,14 @@
 
     const btnClose = document.getElementById('assignClose');
     const btnCancel = document.getElementById('assignCancel');
-    const busIdInput = document.getElementById('assign_bus_id');
+    const regNoInput = document.getElementById('assign_reg_no');
     const driverInp = document.getElementById('assign_driver_id');
     const condInp = document.getElementById('assign_conductor_id');
 
     let triggerBtn = null;
 
-    const open = (busId) => {
-      busIdInput && (busIdInput.value = busId || '');
+    const open = (regNo) => {
+      regNoInput && (regNoInput.value = regNo || '');
       if (driverInp) driverInp.value = '';
       if (condInp) condInp.value = '';
       modal.hidden = false;
@@ -537,10 +537,10 @@
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         triggerBtn = btn;
-        const id = btn.getAttribute('data-bus-id') || '';
+        const regNo = btn.getAttribute('data-bus-reg') || '';
         const d = btn.getAttribute('data-driver-id') || '';
         const c = btn.getAttribute('data-conductor-id') || '';
-        open(id);
+        open(regNo);
         if (driverInp) driverInp.value = (d && d !== '0') ? d : '';
         if (condInp) condInp.value = (c && c !== '0') ? c : '';
       });
@@ -598,6 +598,377 @@
     });
   }
 
+  // ---------- fleet: filter & search ----------
+  function setupFleetFilters() {
+    const statusFilter = $('#filter-status');
+    const assignmentFilter = $('#filter-assignment');
+    const routeFilter = $('#filter-route');
+    const capacityFilter = $('#filter-capacity');
+    const searchInput = $('#fleet-search');
+    const table = $('#fleet-table');
+
+    if (!table) return;
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    // Debounce helper
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Main filter function
+    function filterTable() {
+      const status = statusFilter?.value || 'all';
+      const assignment = assignmentFilter?.value || 'all';
+      const route = routeFilter?.value || 'all';
+      const capacity = capacityFilter?.value || 'all';
+      const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      rows.forEach(row => {
+        let visible = true;
+
+        // Status filter
+        if (status !== 'all') {
+          const rowStatus = row.dataset.status || '';
+          visible = visible && (rowStatus === status);
+        }
+
+        // Assignment filter
+        if (assignment !== 'all' && visible) {
+          const hasDriver = row.dataset.driverAssigned === '1';
+          const hasConductor = row.dataset.conductorAssigned === '1';
+
+          switch (assignment) {
+            case 'fully':
+              visible = visible && (hasDriver && hasConductor);
+              break;
+            case 'missing-driver':
+              visible = visible && !hasDriver;
+              break;
+            case 'missing-conductor':
+              visible = visible && !hasConductor;
+              break;
+            case 'unassigned':
+              visible = visible && (!hasDriver && !hasConductor);
+              break;
+          }
+        }
+
+        // Route filter
+        if (route !== 'all' && visible) {
+          const rowRoute = row.dataset.routeNumber || '';
+          visible = visible && (rowRoute === route);
+        }
+
+        // Capacity filter
+        if (capacity !== 'all' && visible) {
+          const cap = parseInt(row.dataset.capacity) || 0;
+          switch (capacity) {
+            case 'small':
+              visible = visible && (cap < 30);
+              break;
+            case 'medium':
+              visible = visible && (cap >= 30 && cap <= 50);
+              break;
+            case 'large':
+              visible = visible && (cap > 50);
+              break;
+          }
+        }
+
+        // Search filter
+        if (searchTerm && visible) {
+          const busNumber = (row.dataset.busNumber || '').toLowerCase();
+          const driverName = (row.dataset.driverName || '').toLowerCase();
+          const conductorName = (row.dataset.conductorName || '').toLowerCase();
+
+          visible = visible && (
+            busNumber.includes(searchTerm) ||
+            driverName.includes(searchTerm) ||
+            conductorName.includes(searchTerm)
+          );
+        }
+
+        // Show/hide row
+        row.style.display = visible ? '' : 'none';
+      });
+
+      // Refresh pagination after filtering
+      if (window.refreshFleetPagination) {
+        window.refreshFleetPagination();
+      }
+    }
+
+    // Attach event listeners
+    if (statusFilter) statusFilter.addEventListener('change', filterTable);
+    if (assignmentFilter) assignmentFilter.addEventListener('change', filterTable);
+    if (routeFilter) routeFilter.addEventListener('change', filterTable);
+    if (capacityFilter) capacityFilter.addEventListener('change', filterTable);
+    if (searchInput) searchInput.addEventListener('input', debounce(filterTable, 300));
+  }
+
+  // ---------- fleet: table sorting and pagination ----------
+  function setupFleetSortingAndPagination() {
+    const table = $('#fleet-table');
+    if (!table) return;
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    // State management
+    let currentSort = { key: null, direction: 'asc' };
+    let currentPage = 1;
+    let rowsPerPage = 10;
+    let allRows = [];
+
+    // Elements
+    const sortableHeaders = $$('th.sortable', table);
+    const rowsPerPageSelect = $('#rows-per-page');
+    const prevBtn = $('#prev-page');
+    const nextBtn = $('#next-page');
+    const pagesContainer = $('#pagination-pages');
+    const statsEl = $('#pagination-stats');
+
+    // Initialize: collect all rows
+    function initRows() {
+      allRows = Array.from(tbody.querySelectorAll('tr'));
+    }
+
+    // Get visible rows (after filters applied by setupFleetFilters)
+    function getVisibleRows() {
+      return allRows.filter(row => row.style.display !== 'none');
+    }
+
+    // Sorting functions
+    function sortRows(rows, sortKey, direction) {
+      const sorted = [...rows].sort((a, b) => {
+        let valA, valB;
+
+        switch (sortKey) {
+          case 'status':
+            valA = (a.dataset.status || '').trim().toLowerCase();
+            valB = (b.dataset.status || '').trim().toLowerCase();
+            break;
+          case 'route_number':
+            valA = (a.dataset.routeNumber || '').trim();
+            valB = (b.dataset.routeNumber || '').trim();
+            break;
+          case 'location':
+            valA = (a.dataset.location || '').trim().toLowerCase();
+            valB = (b.dataset.location || '').trim().toLowerCase();
+            break;
+          default:
+            return 0;
+        }
+
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+      return sorted;
+    }
+
+    // Apply sorting
+    function applySorting() {
+      if (!currentSort.key) return;
+
+      const visibleRows = getVisibleRows();
+      const sorted = sortRows(visibleRows, currentSort.key, currentSort.direction);
+
+      // Re-append sorted rows
+      sorted.forEach(row => tbody.appendChild(row));
+
+      // Update header indicators
+      sortableHeaders.forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.dataset.sortKey === currentSort.key) {
+          th.classList.add(`sort-${currentSort.direction}`);
+        }
+      });
+    }
+
+    // Pagination: calculate page count
+    function getTotalPages() {
+      const visibleRows = getVisibleRows();
+      return Math.ceil(visibleRows.length / rowsPerPage) || 1;
+    }
+
+    // Pagination: render page numbers
+    function renderPageNumbers() {
+      if (!pagesContainer) return;
+
+      pagesContainer.innerHTML = '';
+      const totalPages = getTotalPages();
+
+      if (totalPages <= 1) return;
+
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+      if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      // First page
+      if (startPage > 1) {
+        const btn = document.createElement('button');
+        btn.className = 'page-number';
+        btn.textContent = '1';
+        btn.addEventListener('click', () => goToPage(1));
+        pagesContainer.appendChild(btn);
+
+        if (startPage > 2) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'page-number ellipsis';
+          ellipsis.textContent = '...';
+          pagesContainer.appendChild(ellipsis);
+        }
+      }
+
+      // Page numbers
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-number';
+        if (i === currentPage) btn.classList.add('active');
+        btn.textContent = i;
+        btn.addEventListener('click', () => goToPage(i));
+        pagesContainer.appendChild(btn);
+      }
+
+      // Last page
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'page-number ellipsis';
+          ellipsis.textContent = '...';
+          pagesContainer.appendChild(ellipsis);
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'page-number';
+        btn.textContent = totalPages;
+        btn.addEventListener('click', () => goToPage(totalPages));
+        pagesContainer.appendChild(btn);
+      }
+    }
+
+    // Pagination: show current page
+    function showCurrentPage() {
+      const visibleRows = getVisibleRows();
+      const totalPages = getTotalPages();
+
+      // Ensure current page is within bounds
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIdx = (currentPage - 1) * rowsPerPage;
+      const endIdx = startIdx + rowsPerPage;
+
+      // Hide all rows first
+      allRows.forEach(row => {
+        if (row.style.display !== 'none') {
+          row.style.display = 'none';
+        }
+      });
+
+      // Show only rows for current page
+      visibleRows.forEach((row, idx) => {
+        if (idx >= startIdx && idx < endIdx) {
+          row.style.display = '';
+        }
+      });
+
+      // Update pagination controls
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+
+      // Update stats
+      if (statsEl) {
+        const start = visibleRows.length === 0 ? 0 : startIdx + 1;
+        const end = Math.min(endIdx, visibleRows.length);
+        statsEl.textContent = `Showing ${start}-${end} of ${visibleRows.length}`;
+      }
+
+      renderPageNumbers();
+    }
+
+    // Navigate to specific page
+    function goToPage(page) {
+      currentPage = page;
+      showCurrentPage();
+    }
+
+    // Complete update: sort → paginate
+    function updateTableDisplay() {
+      applySorting();
+      showCurrentPage();
+    }
+
+    // Event: sortable header click
+    sortableHeaders.forEach(th => {
+      th.addEventListener('click', () => {
+        const sortKey = th.dataset.sortKey;
+
+        if (currentSort.key === sortKey) {
+          // Toggle direction
+          currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          // New sort column
+          currentSort.key = sortKey;
+          currentSort.direction = 'asc';
+        }
+
+        updateTableDisplay();
+      });
+    });
+
+    // Event: rows per page change
+    if (rowsPerPageSelect) {
+      rowsPerPageSelect.addEventListener('change', () => {
+        rowsPerPage = parseInt(rowsPerPageSelect.value) || 10;
+        currentPage = 1; // Reset to first page
+        updateTableDisplay();
+      });
+    }
+
+    // Event: previous page
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) goToPage(currentPage - 1);
+      });
+    }
+
+    // Event: next page
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        const totalPages = getTotalPages();
+        if (currentPage < totalPages) goToPage(currentPage + 1);
+      });
+    }
+
+    // Initialize
+    initRows();
+    updateTableDisplay();
+
+    // Expose refresh function for filters
+    window.refreshFleetPagination = function () {
+      currentPage = 1; // Reset to first page when filters change
+      updateTableDisplay();
+    };
+  }
+
   // ---------- boot ----------
   onReady(function () {
     console.info('[app.js] booting…');
@@ -623,6 +994,12 @@
 
     // fleet assign
     safe('setupAssignModal', setupAssignModal);
+
+    // fleet filters & search
+    safe('setupFleetFilters', setupFleetFilters);
+
+    // fleet sorting & pagination
+    safe('setupFleetSortingAndPagination', setupFleetSortingAndPagination);
 
     console.info('[app.js] ready.');
   });

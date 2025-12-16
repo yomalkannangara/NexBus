@@ -16,6 +16,72 @@
   </a>
 </header>
 
+<?php
+// Extract unique routes for the Route filter dropdown
+$uniqueRoutes = [];
+if (!empty($buses)) {
+    foreach ($buses as $b) {
+        $routeNum = $b['route_number'] ?? '';
+        if ($routeNum !== '' && !in_array($routeNum, $uniqueRoutes)) {
+            $uniqueRoutes[] = $routeNum;
+        }
+    }
+    sort($uniqueRoutes);
+}
+?>
+
+<!-- Filter Bar & Search -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label for="filter-status">Status:</label>
+    <select id="filter-status" class="filter-select">
+      <option value="all">All</option>
+      <option value="Active">Active</option>
+      <option value="Maintenance">Maintenance</option>
+      <option value="Out of Service">Out of Service</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="filter-assignment">Assignment:</label>
+    <select id="filter-assignment" class="filter-select">
+      <option value="all">All</option>
+      <option value="fully">Fully Assigned</option>
+      <option value="missing-driver">Missing Driver</option>
+      <option value="missing-conductor">Missing Conductor</option>
+      <option value="unassigned">Unassigned</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="filter-route">Route:</label>
+    <select id="filter-route" class="filter-select">
+      <option value="all">All</option>
+      <?php foreach ($uniqueRoutes as $route): ?>
+        <option value="<?= htmlspecialchars($route); ?>"><?= htmlspecialchars($route); ?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="filter-capacity">Capacity:</label>
+    <select id="filter-capacity" class="filter-select">
+      <option value="all">All</option>
+      <option value="small">Small (&lt;30 seats)</option>
+      <option value="medium">Medium (30-50 seats)</option>
+      <option value="large">Large (&gt;50 seats)</option>
+    </select>
+  </div>
+
+  <div class="search-container">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+      <path d="M12.5 12.5l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <input type="text" id="fleet-search" class="search-input" placeholder="Search by bus number, driver, or conductor...">
+  </div>
+</div>
+
 <!-- Fleet Overview Table -->
 <div class="card">
   <h3 class="card-title">Fleet Overview</h3>
@@ -26,9 +92,15 @@
         <tr>
           <th>Bus Number</th>
           <th>Route</th>
-          <th>Route Number</th>
-          <th>Status</th>
-          <th>Current Location</th>
+          <th class="sortable" data-sort-key="route_number">
+            Route Number <span class="sort-arrow"></span>
+          </th>
+          <th class="sortable" data-sort-key="status">
+            Status <span class="sort-arrow"></span>
+          </th>
+          <th class="sortable" data-sort-key="location">
+            Current Location <span class="sort-arrow"></span>
+          </th>
           <th>Capacity</th>
           <th>Assigned Driver</th>
           <th>Assigned Conductor</th>
@@ -48,8 +120,23 @@
               // new: resolve assigned names with fallbacks
               $drvName  = $b['driver_name']     ?? $b['assigned_driver']   ?? $b['driver']    ?? null;
               $condName = $b['conductor_name']  ?? $b['assigned_conductor']?? $b['conductor'] ?? null;
+              
+              // Data for filtering
+              $hasDriver = !empty($drvName) ? '1' : '0';
+              $hasConductor = !empty($condName) ? '1' : '0';
             ?>
-            <tr data-bus-id="<?= (int)($b['id'] ?? 0); ?>">
+            <tr 
+              data-bus-number="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
+              data-status="<?= htmlspecialchars($status); ?>"
+              data-driver-assigned="<?= $hasDriver; ?>"
+              data-conductor-assigned="<?= $hasConductor; ?>"
+              data-route-number="<?= htmlspecialchars($b['route_number'] ?? ''); ?>"
+              data-location="<?= htmlspecialchars($b['current_location'] ?? ''); ?>"
+              data-capacity="<?= (int)($b['capacity'] ?? 0); ?>"
+              data-bus-number-search="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
+              data-driver-name="<?= htmlspecialchars($drvName ?? ''); ?>"
+              data-conductor-name="<?= htmlspecialchars($condName ?? ''); ?>"
+            >
               <td><strong><?= htmlspecialchars($b['bus_number'] ?? ''); ?></strong></td>
               <td><?= htmlspecialchars($b['route'] ?? ''); ?></td>
               <td><span class="badge badge-yellow"><?= htmlspecialchars($b['route_number'] ?? ''); ?></span></td>
@@ -95,7 +182,7 @@
                     href="#"
                     class="icon-btn js-assign"
                     title="Assign Driver/Conductor"
-                    data-bus-id="<?= (int)($b['id'] ?? 0); ?>"
+                    data-bus-reg="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
                     data-driver-id="<?= isset($b['driver_id']) ? (int)$b['driver_id'] : 0; ?>"
                     data-conductor-id="<?= isset($b['conductor_id']) ? (int)$b['conductor_id'] : 0; ?>"
                   >
@@ -117,6 +204,34 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <label for="rows-per-page">Rows per page:</label>
+      <select id="rows-per-page" class="pagination-select">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+      </select>
+      <span class="pagination-stats" id="pagination-stats">Showing 0-0 of 0</span>
+    </div>
+    <div class="pagination-controls">
+      <button class="pagination-btn" id="prev-page" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Previous
+      </button>
+      <div class="pagination-pages" id="pagination-pages"></div>
+      <button class="pagination-btn" id="next-page" disabled>
+        Next
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- Assign Driver/Conductor Modal -->
@@ -128,7 +243,7 @@
       <button class="modal__close" id="assignClose" aria-label="Close">×</button>
     </div>
     <form class="modal__form" id="assignForm" action="<?= BASE_URL; ?>/fleet/assign" method="POST">
-      <input type="hidden" name="bus_id" id="assign_bus_id" />
+      <input type="hidden" name="reg_no" id="assign_reg_no" />
       <div class="form-grid">
         <div class="form-field">
           <label for="assign_driver_id">Driver</label>

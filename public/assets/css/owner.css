@@ -714,6 +714,117 @@ svg {
   font-size: 13px;
 }
 
+/* Filter Bar & Search */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.filter-select:hover {
+  border-color: var(--maroon);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--maroon);
+  box-shadow: 0 0 0 3px rgba(128, 20, 60, 0.1);
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-left: auto;
+  flex: 1;
+  max-width: 350px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #9CA3AF;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #9CA3AF;
+}
+
+.search-input:hover {
+  border-color: var(--maroon);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--maroon);
+  box-shadow: 0 0 0 3px rgba(128, 20, 60, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .filter-bar {
+    gap: 12px;
+  }
+
+  .search-container {
+    flex: 1 1 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .filter-group {
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .filter-select {
+    min-width: 100px;
+    flex: 1;
+  }
+}
+
 /* Badges */
 .badge {
   display: inline-block;
@@ -1487,4 +1598,206 @@ tr.row-updated {
   #profilePage .export-btn {
     width: 100%;
   }
+}/* ===== Fleet Table Sorting & Pagination Styles ===== */
+
+/* Sortable table headers */
+.data-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.data-table th.sortable:hover {
+    background-color: #F9FAFB;
+    color: var(--maroon);
+}
+
+.data-table th.sortable .sort-arrow {
+    display: inline-block;
+    margin-left: 6px;
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+}
+
+.data-table th.sortable .sort-arrow::before {
+    content: "⇅";
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.data-table th.sortable.sort-asc .sort-arrow::before {
+    content: "▲";
+    color: var(--maroon);
+}
+
+.data-table th.sortable.sort-desc .sort-arrow::before {
+    content: "▼";
+    color: var(--maroon);
+}
+
+.data-table th.sortable.sort-asc .sort-arrow,
+.data-table th.sortable.sort-desc .sort-arrow {
+    opacity: 1;
+}
+
+/* Pagination container */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Pagination info (left side) */
+.pagination-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.pagination-info label {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.pagination-select {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-select:hover {
+    border-color: var(--maroon);
+}
+
+.pagination-select:focus {
+    outline: none;
+    border-color: var(--maroon);
+    box-shadow: 0 0 0 3px rgba(128, 20, 60, 0.1);
+}
+
+.pagination-stats {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Pagination controls (right side) */
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--maroon);
+    color: #fff;
+    border-color: var(--maroon);
+    transform: translateY(-1px);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-btn svg {
+    flex-shrink: 0;
+}
+
+/* Page numbers */
+.pagination-pages {
+    display: flex;
+    gap: 4px;
+}
+
+.page-number {
+    min-width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-number:hover {
+    background: #F9FAFB;
+    border-color: var(--maroon);
+    color: var(--maroon);
+}
+
+.page-number.active {
+    background: var(--maroon);
+    color: #fff;
+    border-color: var(--maroon);
+}
+
+.page-number.ellipsis {
+    border: none;
+    background: transparent;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pagination-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pagination-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .pagination-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .page-number {
+        min-width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
 }

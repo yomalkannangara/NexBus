@@ -82,9 +82,26 @@ class BusOwnerController extends BaseController
             return $this->redirect('/B/fleet');
         }
 
-        // Assignment logic would go here
-        // For now, just redirect back
-        return $this->redirect('/B/fleet?msg=assigned');
+        $regNo = isset($_POST['reg_no']) ? trim($_POST['reg_no']) : '';
+        $driverId = isset($_POST['driver_id']) && $_POST['driver_id'] !== '' && $_POST['driver_id'] !== '0' 
+                    ? (int)$_POST['driver_id'] 
+                    : null;
+        $conductorId = isset($_POST['conductor_id']) && $_POST['conductor_id'] !== '' && $_POST['conductor_id'] !== '0'
+                       ? (int)$_POST['conductor_id'] 
+                       : null;
+
+        if ($regNo === '') {
+            return $this->redirect('/B/fleet?msg=error');
+        }
+
+        $m = new BusModel();
+        $success = $m->assignDriverConductor($regNo, $driverId, $conductorId);
+
+        if ($success) {
+            return $this->redirect('/B/fleet?msg=assigned');
+        } else {
+            return $this->redirect('/B/fleet?msg=error');
+        }
     }
 
     /** /O/drivers */

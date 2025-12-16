@@ -1,0 +1,79 @@
+[16-Dec-2025 00:52:09 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'b.id' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php:52
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php(52): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(72): App\models\bus_owner\BusModel->all()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 52
+[16-Dec-2025 00:56:21 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'b.driver_id' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php:51
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php(51): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(72): App\models\bus_owner\BusModel->all()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 51
+[16-Dec-2025 00:56:22 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'b.driver_id' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php:51
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php(51): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(72): App\models\bus_owner\BusModel->all()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 51
+[16-Dec-2025 00:56:23 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'b.driver_id' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php:51
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php(51): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(72): App\models\bus_owner\BusModel->all()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 51
+[16-Dec-2025 01:25:44 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.users' doesn't exist in C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php:40
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php(40): PDO->prepare('SELECT COALESCE...')
+#1 C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php(58): App\models\bus_owner\DriverModel->resolveOperatorId()
+#2 C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php(60): App\models\bus_owner\DriverModel->operatorId()
+#3 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(170): App\models\bus_owner\DriverModel->getResolvedOperatorId()
+#4 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#5 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#6 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php on line 40
+[16-Dec-2025 01:25:49 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.earnings' doesn't exist in C:\xampp\htdocs\Nexbus-1\models\bus_owner\EarningModel.php:119
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\EarningModel.php(119): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(235): App\models\bus_owner\EarningModel->getAll()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->earnings()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'earnings')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\EarningModel.php on line 119
+[16-Dec-2025 22:30:46 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\ProfileModel.php:22
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\ProfileModel.php(22): PDO->prepare('SELECT u.user_i...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(442): App\models\bus_owner\ProfileModel->getProfile()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->profile()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\ProfileModel.php on line 22
+[16-Dec-2025 22:43:54 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'b.driver_id' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php:51
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php(51): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(72): App\models\bus_owner\BusModel->all()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 51
+[16-Dec-2025 23:07:38 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'b.driver_id' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php:51
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php(51): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(72): App\models\bus_owner\BusModel->all()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 51
+[16-Dec-2025 23:07:54 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Dec-2025 23:07:56 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Dec-2025 23:07:58 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Dec-2025 23:08:09 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[16-Dec-2025 23:08:15 Asia/Colombo] DB Connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
