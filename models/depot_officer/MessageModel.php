@@ -26,7 +26,10 @@ class MessageModel extends BaseModel
     }
 
     public function recent(int $depotId, int $limit=20): array {
-        $sql = "SELECT n.*, u.full_name FROM notifications n
+        // FIXED: Combine first_name + last_name for display
+        $sql = "SELECT n.*, 
+                       CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) AS full_name 
+                FROM notifications n
                 JOIN users u ON u.user_id=n.user_id AND u.sltb_depot_id=?
                 WHERE n.type IN ('Message','Delay','Timetable')
                 ORDER BY n.created_at DESC
@@ -36,4 +39,3 @@ class MessageModel extends BaseModel
         return $st->fetchAll();
     }
 }
-?>

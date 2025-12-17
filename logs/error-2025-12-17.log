@@ -70,3 +70,315 @@ Stack trace:
 #3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'fleet')
 #4 {main}
   thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\BusModel.php on line 51
+[17-Dec-2025 11:31:37 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(27): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotStaff(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(115): App\models\depot_officer\DepotOfficerModel->depotStaff(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 27
+[17-Dec-2025 11:31:43 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(27): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotStaff(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(115): App\models\depot_officer\DepotOfficerModel->depotStaff(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 27
+[17-Dec-2025 11:43:14 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(27): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotStaff(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(115): App\models\depot_officer\DepotOfficerModel->depotStaff(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 27
+[17-Dec-2025 11:45:04 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(27): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotStaff(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(115): App\models\depot_officer\DepotOfficerModel->depotStaff(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 27
+[17-Dec-2025 11:45:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:27
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(27): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotStaff(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(194): App\models\depot_officer\DepotOfficerModel->depotStaff(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 27
+[17-Dec-2025 11:50:49 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(9): PDO->prepare('SELECT a.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(134): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(195): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 9
+[17-Dec-2025 11:50:54 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:50:56 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:50:58 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:00 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:01 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:02 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:03 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:51:04 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 11:52:14 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:9
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(9): PDO->prepare('SELECT a.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(134): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(195): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 9
+[17-Dec-2025 11:52:36 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:34
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(34): PDO->prepare('SELECT n.*, u.f...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(118): App\models\depot_officer\MessageModel->recent(1, 20)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(116): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 34
+[17-Dec-2025 12:05:12 Asia/Colombo] PHP Warning:  Undefined variable $openCompl in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[17-Dec-2025 12:05:12 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[17-Dec-2025 12:05:15 Asia/Colombo] PHP Warning:  Undefined variable $openCompl in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[17-Dec-2025 12:05:15 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[17-Dec-2025 12:05:16 Asia/Colombo] PHP Warning:  Undefined variable $openCompl in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[17-Dec-2025 12:05:16 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_officer\dashboard.php on line 16
+[17-Dec-2025 13:25:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:25:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:25:57 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:26:09 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:30:35 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:31:16 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:36:21 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:36:22 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:36:24 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:36:32 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:36:34 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10
+[17-Dec-2025 13:38:36 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.depot_attendance' doesn't exist in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php:10
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php(10): PDO->prepare('SELECT * FROM d...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(126): App\models\depot_officer\AttendanceModel->forDate(1, '2025-12-17')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(173): App\models\depot_officer\DepotOfficerModel->attendanceForDate(1, '2025-12-17')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AttendanceModel.php on line 10

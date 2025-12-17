@@ -80,7 +80,6 @@ $active = function (string $m, string $p) use ($module, $page): string {
         <a href="/O/assignments" class="menu-item<?= $active('O','assignments') ?>"><i class="icon">🗂️</i>Assignments</a>
         <a href="/O/timetables"  class="menu-item<?= $active('O','timetables')  ?>"><i class="icon">📅</i>Timetables</a>
         <a href="/O/messages"    class="menu-item<?= $active('O','messages')    ?>"><i class="icon">💬</i>Messages</a>
-        <a href="/O/complaints"  class="menu-item<?= $active('O','complaints')  ?>"><i class="icon">🛠️</i>Complaints</a>
         <a href="/O/trip_logs"   class="menu-item<?= $active('O','trip_logs')   ?>"><i class="icon">🧭</i>Trip Logs</a>
         <a href="/O/reports"     class="menu-item<?= $active('O','reports')     ?>"><i class="icon">📈</i>Reports</a>
         <a href="/O/attendance"  class="menu-item<?= $active('O','attendance')  ?>"><i class="icon">🗒️</i>Attendance</a>

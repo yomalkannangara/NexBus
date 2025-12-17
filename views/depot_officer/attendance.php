@@ -12,12 +12,12 @@
 <form method="post">
 <input type="hidden" name="action" value="mark">
 <table class="table"><tr><th>User</th><th>Role</th><th>Absent?</th><th>Notes</th></tr>
-<?php foreach($staff as $s): $rec=$records[$s['user_id']] ?? null; ?>
+<?php foreach($staff as $s): $akey = $s['attendance_key'] ?? ($s['attendance_key'] ?? null); $rec = $records[$akey] ?? null; ?>
 <tr>
 <td><?= htmlspecialchars($s['full_name']) ?></td>
-<td><?= htmlspecialchars($s['role']) ?></td>
-<td><input type="checkbox" name="mark[<?= (int)$s['user_id'] ?>][absent]" value="1" <?= !empty($rec['mark_absent'])?'checked':'' ?>></td>
-<td><input type="text" name="mark[<?= (int)$s['user_id'] ?>][notes]" value="<?= htmlspecialchars($rec['notes'] ?? '') ?>" style="width:100%"></td>
+<td><?= htmlspecialchars($s['type'] ?? $s['role'] ?? '') ?></td>
+<td><input type="checkbox" name="mark[<?= htmlspecialchars($akey) ?>][absent]" value="1" <?= !empty($rec['mark_absent'])?'checked':'' ?>></td>
+<td><input type="text" name="mark[<?= htmlspecialchars($akey) ?>][notes]" value="<?= htmlspecialchars($rec['notes'] ?? '') ?>" style="width:100%"></td>
 </tr>
 <?php endforeach; ?>
 </table>

@@ -85,11 +85,6 @@
 				<h3>Bus Wait Time Distribution</h3>
 				<canvas id="waitTimeChart"></canvas>
 			</div>
-
-			<div class="chart-card">
-				<h3>Complaints by Route</h3>
-				<canvas id="complaintsRouteChart"></canvas>
-			</div>
 		</section>
 	</div>
 
@@ -116,7 +111,6 @@
 	<script src="/assets/js/analytics/speedByBus.js"></script>
 	<script src="/assets/js/analytics/waitTime.js"></script>
 	<script src="/assets/js/analytics/delayedByRoute.js"></script>
-	<script src="/assets/js/analytics/complaintsRoute.js"></script>
 
 </div>
 

@@ -16,7 +16,7 @@ class DepotOfficerController extends \App\controllers\BaseController {
 }
 
 
-    public function dashboard() {
+  public function dashboard() {
         $u   = $this->m->me();
         $dep = $this->m->myDepotId($u);
         $this->view('depot_officer','dashboard',[
@@ -24,7 +24,6 @@ class DepotOfficerController extends \App\controllers\BaseController {
             'depot'=>$this->m->depot($dep),
             'counts'=>$this->m->dashboardCounts($dep),
             'todayDelayed'=>$this->m->delayedToday($dep),
-            'openCompl'=>$this->m->openComplaints($dep,5),
         ]);
     }
 
@@ -118,29 +117,7 @@ public function assignments()
         ]);
     }
 
-    public function complaints() {
-        $u = $this->m->me(); $dep = $this->m->myDepotId($u);
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $act = $_POST['action'] ?? '';
-            if ($act === 'take') {
-                $this->m->assignComplaint($dep, (int)$_POST['complaint_id'], (int)$u['user_id']);
-                return $this->redirect('/O/complaints?msg=taken');
-            }
-            if ($act === 'reply') {
-                $this->m->replyComplaint($dep, (int)$_POST['complaint_id'], $_POST['reply_text'] ?? '', $_POST['status'] ?? 'In Progress');
-                return $this->redirect('/O/complaints?msg=updated');
-            }
-        }
-
-        $this->view('depot_officer','complaints',[
-            'me'=>$u,
-            'open'=>$this->m->complaintsForDepot($dep, 'Open'),
-            'inprog'=>$this->m->complaintsForDepot($dep, 'In Progress'),
-            'mine'=>$this->m->complaintsAssignedTo($dep, (int)($u['user_id'] ?? 0)),
-            'msg'=>$_GET['msg'] ?? null,
-        ]);
-    }
+    
 
 public function trip_logs(): void
 {
@@ -191,7 +168,8 @@ public function trip_logs(): void
         $this->view('depot_officer','attendance',[
             'me'=>$u,
             'date'=>$date,
-            'staff'=>$this->m->depotStaff($dep),
+            // show drivers & conductors for attendance marking
+            'staff'=>$this->m->driversAndConductors($dep),
             'records'=>$this->m->attendanceForDate($dep, $date),
             'msg'=>$_GET['msg'] ?? null,
         ]);
