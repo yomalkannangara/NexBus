@@ -114,9 +114,12 @@ $routes = [
     '/B/dashboard'  => ['BusOwnerController','dashboard'],
     '/B/drivers' => ['BusOwnerController','drivers'],
     '/B/fleet'  => ['BusOwnerController','fleet'],
+    '/B/fleet/assign' => ['BusOwnerController','fleetAssign'],
     '/B/reports'    => ['BusOwnerController','reports'],
+    '/B/reports/export' => ['BusOwnerController','exportReports'],
     '/B/feedback' => ['BusOwnerController','feedback'],
     '/B/earnings'   => ['BusOwnerController','earnings'],
+    '/B/earnings/export' => ['BusOwnerController','exportEarnings'],
     '/B/performance'   => ['BusOwnerController','reports'],
     '/B/profile'    => ['BusOwnerController','profile'],
 ];

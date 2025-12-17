@@ -67,10 +67,46 @@ class BusOwnerController extends BaseController
             return $this->redirect('/B/fleet?msg=deleted');
         }
 
-        $this->view('bus_owner', 'fleet', ['buses' => $m->all()]);
+        $dm = new DriverModel();
+        $this->view('bus_owner', 'fleet', [
+            'buses'      => $m->all(),
+            'drivers'    => $dm->all(),
+            'conductors' => $dm->allConductors()
+        ]);
+    }
+
+    /** /B/fleet/assign - Handle driver/conductor assignment */
+    public function fleetAssign()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return $this->redirect('/B/fleet');
+        }
+
+        $regNo = isset($_POST['reg_no']) ? trim($_POST['reg_no']) : '';
+        $driverId = isset($_POST['driver_id']) && $_POST['driver_id'] !== '' && $_POST['driver_id'] !== '0' 
+                    ? (int)$_POST['driver_id'] 
+                    : null;
+        $conductorId = isset($_POST['conductor_id']) && $_POST['conductor_id'] !== '' && $_POST['conductor_id'] !== '0'
+                       ? (int)$_POST['conductor_id'] 
+                       : null;
+
+        if ($regNo === '') {
+            return $this->redirect('/B/fleet?msg=error');
+        }
+
+        $m = new BusModel();
+        $success = $m->assignDriverConductor($regNo, $driverId, $conductorId);
+
+        if ($success) {
+            return $this->redirect('/B/fleet?msg=assigned');
+        } else {
+            return $this->redirect('/B/fleet?msg=error');
+        }
     }
 
     /** /O/drivers */
+
+
     public function drivers()
     {
         $m = new DriverModel();
@@ -79,16 +115,17 @@ class BusOwnerController extends BaseController
             $act = $_POST['action'] ?? '';
 
             if ($act === 'create') {
-                if (empty($_POST['private_operator_id'])) {
-                    $_POST['private_operator_id'] = $m->getResolvedOperatorId();
+                if (!$m->create($_POST)) {
+                    return $this->redirect('/B/drivers?msg=error');
                 }
-                $m->create($_POST);
                 return $this->redirect('/B/drivers?msg=created');
             }
 
             if ($act === 'update') {
                 $id = (int)($_POST['private_driver_id'] ?? $_POST['driver_id'] ?? 0);
-                $m->update($id, $_POST);
+                if (!$m->update($id, $_POST)) {
+                    return $this->redirect('/B/drivers?msg=error');
+                }
                 return $this->redirect('/B/drivers?msg=updated');
             }
 
@@ -147,20 +184,49 @@ class BusOwnerController extends BaseController
                 $act = $_POST['action'] ?? '';
 
                 if ($act === 'create') {
-                    $m->create($_POST);
-                    return $this->redirect('/B/earnings?msg=created');
+                    $success = $m->create($_POST);
+                    header('Content-Type: application/json');
+                    if ($success) {
+                        // Return success for AJAX
+                        http_response_code(200);
+                        echo json_encode(['success' => true, 'message' => 'Record created successfully']);
+                        exit;
+                    } else {
+                        // Return error for AJAX
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Failed to create record. Please check the bus ownership.']);
+                        exit;
+                    }
                 }
 
                 if ($act === 'update') {
                     $id = (int)($_POST['earning_id'] ?? 0);
-                    $m->update($id, $_POST);
-                    return $this->redirect('/B/earnings?msg=updated');
+                    $success = $m->update($id, $_POST);
+                    header('Content-Type: application/json');
+                    if ($success) {
+                        http_response_code(200);
+                        echo json_encode(['success' => true, 'message' => 'Record updated successfully']);
+                        exit;
+                    } else {
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Failed to update record.']);
+                        exit;
+                    }
                 }
 
                 if ($act === 'delete') {
                     $id = (int)($_POST['earning_id'] ?? 0);
-                    $m->delete($id);
-                    return $this->redirect('/B/earnings?msg=deleted');
+                    $success = $m->delete($id);
+                    header('Content-Type: application/json');
+                    if ($success) {
+                        http_response_code(200);
+                        echo json_encode(['success' => true, 'message' => 'Record deleted successfully']);
+                        exit;
+                    } else {
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'message' => 'Failed to delete record.']);
+                        exit;
+                    }
                 }
             }
 
@@ -170,6 +236,57 @@ class BusOwnerController extends BaseController
                 'buses'    => $m->getMyBuses(false), // false => include all; true => only Active
             ]);
         }
+
+
+/** /B/earnings/export - Export earnings data as CSV */
+public function exportEarnings()
+{
+    $range = $_GET['range'] ?? '6m';
+    $m = new EarningModel();
+    
+    // Get all earnings
+    $earnings = $m->getAll();
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="earnings_report_' . $range . '_' . date('Y-m-d') . '.csv"');
+    
+    // Open output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for proper Excel UTF-8 encoding
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Write header
+    fputcsv($output, ['Earnings Report', 'Generated: ' . date('Y-m-d H:i:s')]);
+    fputcsv($output, ['']);
+    
+    // Column headers
+    fputcsv($output, ['Date', 'Bus Registration', 'Route', 'Amount (LKR)', 'Type', 'Remarks']);
+    
+    // Write data rows
+    $totalAmount = 0;
+    foreach ($earnings as $e) {
+        $amount = (float)($e['amount'] ?? 0);
+        $totalAmount += $amount;
+        
+        fputcsv($output, [
+            $e['date'] ?? '',
+            $e['bus_reg_no'] ?? 'N/A',
+            $e['route'] ?? 'N/A',
+            number_format($amount, 2),
+            $e['earning_type'] ?? 'Revenue',
+            $e['remarks'] ?? ''
+        ]);
+    }
+    
+    // Summary row
+    fputcsv($output, ['']);
+    fputcsv($output, ['Total Earnings', '', '', number_format($totalAmount, 2), '', '']);
+    
+    fclose($output);
+    exit;
+}
 
 
 /** /O/feedback */
@@ -242,6 +359,61 @@ public function reports()
         'msg'          => $_GET['msg'] ?? null,
     ]);
 }
+
+/** /B/reports/export - Export performance data as CSV */
+public function exportReports()
+{
+    $range = $_GET['range'] ?? '6m';
+    $rm = new ReportModel();
+    
+    // Get performance metrics
+    $metrics = $rm->getPerformanceMetrics($range);
+    $topDrivers = $rm->topDrivers(10);
+    
+    // Set headers for CSV download
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="performance_report_' . $range . '_' . date('Y-m-d') . '.csv"');
+    
+    // Open output stream
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for proper Excel UTF-8 encoding
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Write metrics section
+    fputcsv($output, ['Performance Metrics', 'Range: ' . $range]);
+    fputcsv($output, ['']);
+    fputcsv($output, ['Metric', 'Value']);
+    fputcsv($output, ['Total Trips', $metrics['total_trips'] ?? 0]);
+    fputcsv($output, ['Total Revenue (LKR)', number_format((float)($metrics['total_revenue'] ?? 0), 2)]);
+    fputcsv($output, ['On-Time Rate (%)', number_format((float)($metrics['ontime_rate'] ?? 0), 1)]);
+    fputcsv($output, ['Average Delay (min)', number_format((float)($metrics['avg_delay'] ?? 0), 1)]);
+    
+    // Separator
+    fputcsv($output, ['']);
+    fputcsv($output, ['']);
+    
+    // Write top drivers section
+    fputcsv($output, ['Top Performing Drivers']);
+    fputcsv($output, ['']);
+    fputcsv($output, ['Rank', 'Driver Name', 'Trips', 'Revenue (LKR)', 'On-Time Rate (%)', 'Avg Rating']);
+    
+    $rank = 1;
+    foreach ($topDrivers as $d) {
+        fputcsv($output, [
+            $rank++,
+            $d['driver_name'] ?? 'N/A',
+            $d['trips'] ?? 0,
+            number_format((float)($d['revenue'] ?? 0), 2),
+            number_format((float)($d['ontime_rate'] ?? 0), 1),
+            number_format((float)($d['avg_rating'] ?? 0), 2)
+        ]);
+    }
+    
+    fclose($output);
+    exit;
+}
+
 public function profile()
 {
     $m = new \App\models\bus_owner\ProfileModel();

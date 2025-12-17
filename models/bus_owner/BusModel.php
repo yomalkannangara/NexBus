@@ -17,8 +17,14 @@ class BusModel extends BaseModel
                     b.chassis_no,
                     b.capacity,
                     b.status,
+                    b.driver_id,
+                    b.conductor_id,
                     r.name AS route,
                     r.route_no AS route_number,
+                    d.full_name AS driver_name,
+                    d.license_no AS driver_license,
+                    c.full_name AS conductor_name,
+                    c.private_conductor_id AS conductor_id_display,
                     CONCAT('Near ', 
                         ELT(FLOOR(1 + RAND() * 5),
                             'Colombo', 'Galle', 'Nugegoda', 'Panadura', 'Kottawa')
@@ -28,7 +34,11 @@ class BusModel extends BaseModel
                     ON t.bus_reg_no = b.reg_no 
                     AND t.operator_type = 'Private'
                 LEFT JOIN routes r 
-                    ON r.route_id = t.route_id";
+                    ON r.route_id = t.route_id
+                LEFT JOIN private_drivers d
+                    ON d.private_driver_id = b.driver_id
+                LEFT JOIN private_conductors c
+                    ON c.private_conductor_id = b.conductor_id";
 
         $params = [];
         if ($this->hasOperator()) {
@@ -92,6 +102,29 @@ class BusModel extends BaseModel
             $sql .= " AND private_operator_id = :op";
             $params[':op'] = $this->operatorId; // ✅ fixed
         }
+        $st = $this->pdo->prepare($sql);
+        return $st->execute($params);
+    }
+
+    /** Assign driver and/or conductor to a bus */
+    public function assignDriverConductor(string $regNo, ?int $driverId, ?int $conductorId): bool
+    {
+        $sql = "UPDATE private_buses
+                   SET driver_id = :driver_id,
+                       conductor_id = :conductor_id
+                 WHERE reg_no = :reg_no";
+        
+        $params = [
+            ':driver_id' => $driverId,
+            ':conductor_id' => $conductorId,
+            ':reg_no' => $regNo,
+        ];
+
+        if ($this->hasOperator()) {
+            $sql .= " AND private_operator_id = :op";
+            $params[':op'] = $this->operatorId;
+        }
+
         $st = $this->pdo->prepare($sql);
         return $st->execute($params);
     }

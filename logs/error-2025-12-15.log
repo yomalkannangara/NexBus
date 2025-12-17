@@ -1,0 +1,22 @@
+[15-Dec-2025 19:38:21 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\bus_owner\ReportModel::getTopDrivers() in C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php:268
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->exportReports()
+#1 C:\xampp\htdocs\Nexbus-1\public\index.php(168): run('BusOwnerControl...', 'exportReports')
+#2 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php on line 268
+[15-Dec-2025 21:35:43 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'L-PRV-1003' for key 'license_no' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php:95
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php(95): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(99): App\models\bus_owner\DriverModel->create(Array)
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php on line 95
+[15-Dec-2025 21:35:51 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'L-PRV-1003' for key 'license_no' in C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php:95
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php(95): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Nexbus-1\controllers\BusOwnerController.php(99): App\models\bus_owner\DriverModel->create(Array)
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\bus_owner\DriverModel.php on line 95
