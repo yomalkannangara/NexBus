@@ -26,7 +26,7 @@
 
 <!-- Filters -->
 <div class="filters">
-  <form method="get" class="filter-grid" action="/A/users">
+  <form method="get" class="form-inline" action="/A/users">
     <label>Role
       <select name="role">
         <option value="">All</option>
@@ -95,8 +95,8 @@
       <input name="first_name" required>
     </label>
 
-    <label>Last Name
-      <input name="last_name" required>
+    <label>Last Name (optional)
+      <input name="last_name" >
     </label>
 
     <label>Email

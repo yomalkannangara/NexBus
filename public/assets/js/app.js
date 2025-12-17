@@ -158,41 +158,102 @@ document.addEventListener('DOMContentLoaded', function () {
   // ===== Sidebar navigation with animation =====
 
 
+  // ===== Global search (filters both Depots + Owners without reload) =====
+  const searchInput = document.getElementById('globalSearch');
+  const clearBtn    = document.getElementById('clearSearch');
+
+  function debounce(fn, wait) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+  }
+
+  function setQueryParam(q) {
+    const url = new URL(location.href);
+    if (q) url.searchParams.set('q', q);
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url.toString());
+  }
+
+  function filterSection(sectionId, q) {
+    const rows = document.querySelectorAll(`#${sectionId} tbody tr`);
+    const qq = (q || '').toLowerCase();
+    rows.forEach(tr => {
+      const show = !qq || tr.textContent.toLowerCase().includes(qq);
+      tr.style.display = show ? '' : 'none';
+    });
+  }
+
+  function applyFilter(q) {
+    filterSection('depots', q);
+    filterSection('owners', q);
+    setQueryParam(q);
+  }
+
+  if (searchInput) {
+    // Prefill from ?q= and apply on load
+    const qs = new URLSearchParams(location.search);
+    const initialQ = (qs.get('q') || '').trim();
+    if (initialQ) searchInput.value = initialQ;
+    applyFilter(initialQ);
+
+    // Filter as user types
+    searchInput.addEventListener('input', debounce(() => {
+      applyFilter(searchInput.value.trim());
+    }, 150));
+
+    // Prevent form-style Enter submit; just filter
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyFilter(searchInput.value.trim());
+      }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = '';
+        applyFilter('');
+        searchInput.focus();
+      }
+    });
+  }
 });
-  // ===== Edit User (open + prefill) =====
-  document.addEventListener('click', e => {
-    const editBtn = e.target.closest('.btn-edit');
-    if (!editBtn) return;
+// ===== Edit User (open + prefill) =====
+document.addEventListener('click', e => {
+  const editBtn = e.target.closest('.btn-edit');
+  if (!editBtn) return;
 
-    e.preventDefault();
-    // close other panels and open edit
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
-    document.getElementById('editUPanel')?.classList.add('show');
+  e.preventDefault();
+  // close other panels and open edit
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
+  document.getElementById('editUPanel')?.classList.add('show');
 
-    // pull data-* off the clicked button
-    const d = editBtn.dataset;
-    // fill form fields
-    document.getElementById('edit_user_id').value            = d.userId || '';
-    document.getElementById('edit_full_name').value          = d.fullName || '';
-    document.getElementById('edit_email').value              = d.email || '';
-    document.getElementById('edit_phone').value              = d.phone || '';
-    document.getElementById('edit_role').value               = d.role || 'Passenger';
+  // pull data-* off the clicked button
+  const d = editBtn.dataset;
+  // fill form fields
+  document.getElementById('edit_user_id').value            = d.userId || '';
+  document.getElementById('edit_full_name').value          = d.fullName || '';
+  document.getElementById('edit_email').value              = d.email || '';
+  document.getElementById('edit_phone').value              = d.phone || '';
+  document.getElementById('edit_role').value               = d.role || 'Passenger';
 
-    // selects: may be "" or an id
-    const poSel = document.getElementById('edit_private_operator_id');
-    const dpSel = document.getElementById('edit_sltb_depot_id');
-    if (poSel) poSel.value = d.privateOperatorId || '';
-    if (dpSel) dpSel.value = d.sltbDepotId || '';
-    
-    // clear password field each open
-    const pw = document.getElementById('edit_password');
-    if (pw) pw.value = '';
-  });
+  // selects: may be "" or an id
+  const poSel = document.getElementById('edit_private_operator_id');
+  const dpSel = document.getElementById('edit_sltb_depot_id');
+  if (poSel) poSel.value = d.privateOperatorId || '';
+  if (dpSel) dpSel.value = d.sltbDepotId || '';
+  
+  // clear password field each open
+  const pw = document.getElementById('edit_password');
+  if (pw) pw.value = '';
+});
 
-  // Cancel edit
-  document.addEventListener('click', e => {
-    if (e.target.id === 'cancelEditU') {
-      document.getElementById('editUPanel')?.classList.remove('show');
-    }
-  });
+// Cancel edit
+document.addEventListener('click', e => {
+  if (e.target.id === 'cancelEditU') {
+    document.getElementById('editUPanel')?.classList.remove('show');
+  }
+});
 

@@ -8,6 +8,13 @@
   <button class="tab" data-tab="owners">Bus companies</button>
 </div>
 
+<!-- Global Search -->
+<div class="search-bar">
+  <input type="search" id="globalSearch"
+         placeholder="Search depots and companies (name, address, phone, manager, reg no, route)...">
+  <button type="button" class="btn" id="clearSearch">Clear</button>
+</div>
+
 <!-- ONE Toolbar -->
 <div id="toolbar" class="toolbar">
   <button class="btn primary" id="showAddDepot">+ Add Depot</button>

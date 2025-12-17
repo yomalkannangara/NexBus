@@ -488,6 +488,9 @@ input:checked + .slider:before { transform: translateX(20px) }
 .form-inline {
   display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px;
 }
+.filters .form-inline { align-items: center; gap: 12px; }
+.filters .form-inline label { margin-bottom: 0; }
+.filters .form-inline .form-actions { margin-top: 0; }
 .form-inline > label,
 .form-inline > select,
 .form-inline > input {
@@ -530,3 +533,20 @@ input:checked + .slider:before { transform: translateX(20px) }
 .table.full td { vertical-align: top; padding: 10px 12px; }
 .table.full .actions { gap: 4px; }
 .table.full .actions .icon-btn { margin-right: 0; }
+
+/* Search bar (global filter for depots/companies) */
+.search-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 10px 0 14px;
+}
+.search-bar input[type="search"] {
+  width: min(360px, 100%);
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.search-bar button { min-width: 100px; }
