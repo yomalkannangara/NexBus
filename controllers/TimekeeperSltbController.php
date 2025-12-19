@@ -146,21 +146,65 @@ class TimekeeperSltbController extends BaseController
 
         if ($act === 'update_profile') {
             $ok = $m->updateProfile($uid, [
-                'full_name' => trim($_POST['full_name'] ?? ''),
-                'email'     => trim($_POST['email'] ?? ''),
-                'phone'     => trim($_POST['phone'] ?? '')
+                'first_name' => trim($_POST['first_name'] ?? ''),
+                'last_name'  => trim($_POST['last_name'] ?? ''),
+                'email'      => trim($_POST['email'] ?? ''),
+                'phone'      => trim($_POST['phone'] ?? '')
             ]);
 
             if ($ok) {
                 // refresh session cache with latest user fields
                 if ($fresh = $m->findById($uid)) {
-                    $_SESSION['user']['full_name']     = $fresh['full_name']     ?? ($_SESSION['user']['full_name'] ?? null);
+                    $_SESSION['user']['first_name']    = $fresh['first_name']    ?? ($_SESSION['user']['first_name'] ?? null);
+                    $_SESSION['user']['last_name']     = $fresh['last_name']     ?? ($_SESSION['user']['last_name'] ?? null);
                     $_SESSION['user']['email']         = $fresh['email']         ?? ($_SESSION['user']['email'] ?? null);
-                    $_SESSION['user']['sltb_depot_id'] = $fresh['sltb_depot_id'] ?? ($_SESSION['user']['sltb_depot_id'] ?? null);
+                    $_SESSION['user']['phone']         = $fresh['phone']         ?? ($_SESSION['user']['phone'] ?? null);
                 }
                 return $this->redirect('/TS/profile?msg=updated');
             }
             return $this->redirect('/TS/profile?msg=update_failed');
+        }
+
+        if ($act === 'upload_image') {
+            if (!empty($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['profile_image'];
+                $mimeType = mime_content_type($file['tmp_name']);
+                if (!in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'])) {
+                    return $this->redirect('/TS/profile?msg=invalid_image');
+                }
+                $ext = match($mimeType) {
+                    'image/jpeg' => 'jpg',
+                    'image/png' => 'png',
+                    'image/webp' => 'webp',
+                };
+                $filename = "profile_" . $uid . "." . $ext;
+                $uploadDir = dirname(__DIR__) . '/public/uploads/profiles/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $uploadPath = $uploadDir . $filename;
+                if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                    if ($m->updateProfileImage($uid, '/uploads/profiles/' . $filename)) {
+                        if ($fresh = $m->findById($uid)) {
+                            $_SESSION['user']['profile_image'] = $fresh['profile_image'] ?? null;
+                        }
+                        return $this->redirect('/TS/profile?msg=image_updated');
+                    }
+                }
+                return $this->redirect('/TS/profile?msg=upload_failed');
+            }
+            return $this->redirect('/TS/profile?msg=no_file');
+        }
+
+        if ($act === 'delete_image') {
+            if ($m->deleteProfileImage($uid)) {
+                // Delete file from disk if it exists
+                if (!empty($_SESSION['user']['profile_image'])) {
+                    $filePath = dirname(__DIR__) . '/public' . $_SESSION['user']['profile_image'];
+                    if (file_exists($filePath)) unlink($filePath);
+                }
+                $_SESSION['user']['profile_image'] = null;
+                return $this->redirect('/TS/profile?msg=image_deleted');
+            }
+            return $this->redirect('/TS/profile?msg=delete_failed');
         }
 
         if ($act === 'change_password') {
@@ -183,6 +227,7 @@ class TimekeeperSltbController extends BaseController
         'me'  => $meFresh,
         'msg' => $_GET['msg'] ?? null
     ]);
+}
 }
 
 }

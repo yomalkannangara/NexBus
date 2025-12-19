@@ -8,7 +8,7 @@ class ProfileModel extends BaseModel
 {
     public function findById(int $userId): ?array
     {
-        $st = $this->pdo->prepare("SELECT user_id, full_name, email, phone FROM users WHERE user_id=? LIMIT 1");
+        $st = $this->pdo->prepare("SELECT user_id, first_name, last_name, email, phone FROM users WHERE user_id=? LIMIT 1");
         $st->execute([$userId]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
@@ -16,14 +16,15 @@ class ProfileModel extends BaseModel
 
     public function updateProfile(int $userId, array $d): bool
     {
-        $full = trim($d['full_name'] ?? '');
+        $first = trim($d['first_name'] ?? '');
+        $last = trim($d['last_name'] ?? '');
         $email = trim($d['email'] ?? '');
         $phone = trim($d['phone'] ?? '');
-        if ($full === '' || $email === '') return false;
+        if ($first === '' || $last === '' || $email === '') return false;
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
 
-        $st = $this->pdo->prepare("UPDATE users SET full_name=?, email=?, phone=? WHERE user_id=?");
-        return $st->execute([$full, $email, $phone, $userId]);
+        $st = $this->pdo->prepare("UPDATE users SET first_name=?, last_name=?, email=?, phone=? WHERE user_id=?");
+        return $st->execute([$first, $last, $email, $phone, $userId]);
     }
 
     public function changePassword(int $userId, string $current, string $new, string $confirm): bool
@@ -39,4 +40,24 @@ class ProfileModel extends BaseModel
         $up = $this->pdo->prepare("UPDATE users SET password_hash=? WHERE user_id=?");
         return $up->execute([$newHash, $userId]);
     }
+
+    public function updateProfileImage(int $userId, string $imagePath): bool
+    {
+        $st = $this->pdo->prepare("UPDATE users SET profile_image=? WHERE user_id=?");
+        return $st->execute([$imagePath, $userId]);
+    }
+
+    public function deleteProfileImage(int $userId): bool
+    {
+        $st = $this->pdo->prepare("UPDATE users SET profile_image=NULL WHERE user_id=?");
+        return $st->execute([$userId]);
+    }
+
+    public function emailTaken(string $email, int $excludeId): bool
+    {
+        $st = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE email=? AND user_id!=?");
+        $st->execute([$email, $excludeId]);
+        return (int)$st->fetchColumn() > 0;
+    }
 }
+

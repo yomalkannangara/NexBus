@@ -1,0 +1,22 @@
+[19-Dec-2025 09:27:14 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php(11): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(223): App\models\depot_officer\ProfileModel->findById(53)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php on line 11
+[19-Dec-2025 09:36:42 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\depot_officer\ProfileModel::updateProfileImage() in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:229
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->profile()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'profile')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 229
+[19-Dec-2025 09:42:27 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'profile_image' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php:46
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php(46): PDO->prepare('UPDATE users SE...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(229): App\models\depot_officer\ProfileModel->updateProfileImage(53, '/uploads/profil...')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(168): run('DepotOfficerCon...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php on line 46
