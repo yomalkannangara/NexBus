@@ -47,6 +47,39 @@ body { background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%); color: v
 .sidebar-profile { margin-top:auto; }
 .profile-card { display:flex; gap:10px; align-items:center; padding:10px; border-radius:12px; background: rgba(255,255,255,.08); }
 .profile-avatar { width:36px; height:36px; border-radius:50%; background:#fff; color:var(--maroon); display:grid; place-items:center; font-weight:800; }
+
+/* Ensure small avatar images fit and are clipped */
+.profile-avatar { overflow: hidden; }
+.profile-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Container used on profile pages for the larger avatar */
+.profile-image-container { overflow:hidden; border-radius:50%; }
+
+/* Specific rule for profile-image-container to override global avatar */
+.profile-image-container .profile-avatar-lg {
+  display: block !important;
+  width:100% !important;
+  height:100% !important;
+  border-radius:50% !important;
+  overflow:hidden !important;
+  padding:0 !important;
+  margin:0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  place-items: auto !important;
+}
+.profile-image-container .profile-avatar-lg img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+  border-radius:50%;
+}
+.profile-image-container .profile-avatar-lg div {
+  width:100%;
+  height:100%;
+}
 .profile-email { font-size:12px; opacity:.9; }
 .profile-logout { margin-top:10px; display:flex; gap:8px; align-items:center; color:#fff; text-decoration:none; opacity:.9; }
 .profile-logout:hover { opacity:1; }

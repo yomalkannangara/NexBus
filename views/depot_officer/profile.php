@@ -24,23 +24,24 @@ $messages = [
 <section class="page-hero">
   <div style="display:flex;align-items:center;gap:14px;">
     <!-- Profile Image with Camera Overlay (WhatsApp Style) -->
-    <div class="profile-image-container" style="position:relative;width:80px;height:80px;">
-      <div class="profile-avatar-lg" aria-hidden="true" style="width:100%;height:100%;">
-        <?php if ($profileImage): ?>
-          <img src="<?= htmlspecialchars($profileImage) ?>" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-        <?php else: ?>
-          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e0e0e0;border-radius:50%;font-size:32px;color:#666;"><?= htmlspecialchars($initial) ?></div>
-        <?php endif; ?>
-      </div>
-      <!-- Camera Icon Overlay -->
-      <form method="post" enctype="multipart/form-data" style="position:absolute;bottom:0;right:0;margin:0;">
+    <form method="post" enctype="multipart/form-data" style="margin:0;padding:0;">
+      <div class="profile-image-container" style="position:relative;width:80px;height:80px;">
+        <div class="profile-avatar-lg" aria-hidden="true" style="width:100%;height:100%;">
+          <?php if ($profileImage): ?>
+            <img src="<?= htmlspecialchars($profileImage) ?>" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+          <?php else: ?>
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e0e0e0;border-radius:50%;font-size:32px;color:#666;"><?= htmlspecialchars($initial) ?></div>
+          <?php endif; ?>
+        </div>
+        <!-- Hidden file input and action -->
         <input type="hidden" name="action" value="upload_image">
         <input type="file" name="profile_image" accept="image/jpeg,image/png,image/webp" style="display:none;" id="cameraInput">
-        <button type="button" class="camera-btn" title="Change profile picture" onclick="document.getElementById('cameraInput').click();" style="position:absolute;bottom:0;right:0;width:32px;height:32px;border-radius:50%;background:#007bff;border:3px solid white;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;padding:0;">
+        <!-- Camera Icon Overlay -->
+        <button type="button" class="camera-btn" title="Change profile picture" onclick="document.getElementById('cameraInput').click();" style="position:absolute;top:50%;left:50%;width:32px;height:32px;border-radius:50%;background:#007bff;border:3px solid white;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;padding:0;z-index:1000;">
           📷
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
     
     <div>
       <h1 style="margin:0"><?= htmlspecialchars($displayName) ?></h1>
@@ -66,10 +67,85 @@ $messages = [
 <script>
   document.getElementById('cameraInput').addEventListener('change', function() {
     if (this.files.length > 0) {
-      this.form.submit();
+      this.closest('form').submit();
     }
   });
 </script>
+
+<!-- AJAX profile update: submit form and refresh UI without full reload -->
+<script>
+  (function(){
+    try {
+      const actionInput = document.querySelector('form.form-grid.narrow input[name="action"][value="update_profile"]');
+      if (!actionInput) return;
+      const form = actionInput.closest('form');
+      form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        const fd = new FormData(form);
+        const opts = {
+          method: 'POST',
+          body: fd,
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        };
+        let res;
+        try {
+          res = await fetch(window.location.pathname, opts);
+        } catch (err) {
+          form.submit();
+          return;
+        }
+        let data;
+        try { data = await res.json(); } catch (e) { data = null; }
+        if (!data) { form.submit(); return; }
+        document.querySelectorAll('.alert').forEach(n=>n.remove());
+        if (data.ok) {
+          const u = data.user || {};
+          const displayName = ((u.first_name||'') + ' ' + (u.last_name||'')).trim() || u.name || 'User';
+          const titleEl = document.querySelector('.page-hero h1');
+          if (titleEl) titleEl.textContent = displayName;
+          const emailEl = document.querySelector('.page-hero .muted');
+          if (emailEl) emailEl.textContent = u.email || '';
+          form.querySelector('input[name="first_name"]').value = u.first_name || '';
+          form.querySelector('input[name="last_name"]').value = u.last_name || '';
+          form.querySelector('input[name="email"]').value = u.email || '';
+          form.querySelector('input[name="phone"]').value = u.phone || '';
+
+          const msgDiv = document.createElement('div');
+          msgDiv.className = 'alert success';
+          msgDiv.textContent = 'Profile updated successfully.';
+          const hero = document.querySelector('.page-hero');
+          if (hero && hero.parentNode) hero.parentNode.insertBefore(msgDiv, hero.nextSibling);
+        } else {
+          const msgDiv = document.createElement('div');
+          msgDiv.className = 'alert warn';
+          msgDiv.textContent = data.msg || 'Could not update profile.';
+          const hero = document.querySelector('.page-hero');
+          if (hero && hero.parentNode) hero.parentNode.insertBefore(msgDiv, hero.nextSibling);
+        }
+      });
+    } catch (e) {
+      // no-op
+    }
+  })();
+</script>
+
+<style>
+  .profile-image-container .camera-btn {
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+  .profile-image-container:hover .camera-btn {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+  }
+</style>
 
 <div class="grid-2">
   <!-- LEFT COLUMN: PROFILE + PASSWORD -->

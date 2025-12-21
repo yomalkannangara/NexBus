@@ -196,6 +196,10 @@ public function trip_logs(): void
                     'phone'      => trim($_POST['phone'] ?? ''),
                 ]);
 
+                // Detect AJAX/JSON request
+                $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                    || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false);
+
                 if ($ok) {
                     // refresh session copy (optional but keeps UI consistent)
                     if ($fresh = $m->findById($uid)) {
@@ -204,8 +208,22 @@ public function trip_logs(): void
                         $_SESSION['user']['email']      = $fresh['email']      ?? ($_SESSION['user']['email'] ?? '');
                         $_SESSION['user']['phone']      = $fresh['phone']      ?? ($_SESSION['user']['phone'] ?? '');
                     }
+
+                    if ($isAjax) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['ok' => true, 'user' => $fresh ?? $_SESSION['user']]);
+                        return;
+                    }
+
                     return $this->redirect('/O/profile?msg=updated');
                 }
+
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['ok' => false, 'msg' => 'update_failed']);
+                    return;
+                }
+
                 return $this->redirect('/O/profile?msg=update_failed');
             }
 
@@ -269,6 +287,27 @@ public function trip_logs(): void
         $this->view('depot_officer','profile', [
             'me'  => $meFresh,
             'msg' => $_GET['msg'] ?? null,
+        ]);
+    }
+
+    public function bus_profile()
+    {
+        $busReg = $_GET['bus_reg_no'] ?? null;
+        if (!$busReg) {
+            return $this->redirect('?module=depot_officer&page=dashboard');
+        }
+
+        $m = new \App\models\depot_officer\BusProfileModel();
+        $bus = $m->getBusByReg($busReg);
+        if (empty($bus)) {
+            return $this->redirect('?module=depot_officer&page=dashboard');
+        }
+
+        $this->view('depot_officer','bus_profile',[
+            'bus'        => $bus,
+            'tracking'   => $m->getTracking($busReg),
+            'assignments'=> $m->getAssignments($busReg),
+            'trips'      => $m->getTrips($busReg),
         ]);
     }
 }
