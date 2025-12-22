@@ -200,15 +200,77 @@ body {
 .status.active { background: #ecfdf5; color: #16a34a }
 .status.suspended { background: #fef2f2; color: #b91c1c }
 
-.actions { display: flex; gap: 6px }
-.icon-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 8px; background: #fff;
-  border: 2px solid #e2e8f0; margin-right: 6px;
+/* Users: status column as a toggle button (improved) */
+.status-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: 800 12px/1 var(--font, inherit);
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #fff;
+  transition: background .15s ease, border-color .15s ease, filter .15s ease, transform .05s ease;
 }
-.icon-btn.warn { border-color: #fbbf24 }
-.icon-btn.danger { border-color: #f87171 }
-.icon-btn.info { border-color: #93c5fd }
+.status-btn:hover{ filter: brightness(.98); }
+.status-btn:active{ transform: translateY(1px); }
+.status-btn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--gold);
+}
+.status-btn.active{
+  background: #ecfdf5;
+  color: #16a34a;
+  border-color: rgba(16,185,129,.25);
+}
+.status-btn.suspended{
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: rgba(185,28,28,.25);
+}
+
+/* Users: status as a boxed button like Update/Delete */
+.btn.status-box{
+  min-width: auto;
+  padding: 6px 12px;
+  border-radius: 10px;                 /* match the compact button look */
+  font-weight: 400;                   /* override the earlier 800 */
+  transition: background .15s ease, border-color .15s ease, filter .15s ease, transform .05s ease;
+}
+.btn.status-box:hover{ filter: brightness(.98); }
+.btn.status-box:active{ transform: translateY(1px); }
+.btn.status-box:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-color: var(--gold);
+}
+
+/* status variants */
+.btn.status-box.active{
+  background: #ecfdf5;
+  color: #16a34a;
+  border-color: rgba(16,185,129,.35);
+}
+.btn.status-box.suspended{
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: rgba(185,28,28,.35);
+}
+
+/* Ensure Users actions align like timetable rows */
+.table.users td.actions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* If older users-only button styles exist, neutralize them for the new scheme */
+/* .status-btn{ */ /* legacy - keep from affecting new status-box */
+  /* all: unset; */
+}
 
 /* ---------------- PANELS + FORMS ---------------- */
 .filters,
@@ -531,22 +593,290 @@ input:checked + .slider:before { transform: translateX(20px) }
 .table.full tbody tr + tr { border-top: 1px solid var(--border); }
 .table.full tbody tr:hover { background: #fafafa; }
 .table.full td { vertical-align: top; padding: 10px 12px; }
-.table.full .actions { gap: 4px; }
-.table.full .actions .icon-btn { margin-right: 0; }
+/* new condensed variant for inner accordions */
+.table.full.condensed th,
+.table.full.condensed td { padding: 8px 10px; font-size: 13px; }
 
-/* Search bar (global filter for depots/companies) */
-.search-bar {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin: 10px 0 14px;
-}
-.search-bar input[type="search"] {
-  width: min(360px, 100%);
-  padding: 8px 12px;
+/* Route accordion */
+.route-accordion { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.route-card {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
-.search-bar button { min-width: 100px; }
+.route-head {
+  width: 100%; border: none; background: linear-gradient(90deg, #fff, #f9f4e6);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; cursor: pointer;
+}
+.route-head-main { text-align: left; }
+.route-title { font-weight: 700; color: var(--maroon); margin-bottom: 4px; }
+.route-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #555; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: #f5f6f8; border: 1px solid var(--border); font-weight: 600;
+}
+.route-chevron { transition: transform .25s ease; color: #8b5c00; font-size: 14px; }
+.route-card.open .route-chevron { transform: rotate(180deg); }
+.route-body { display: none; padding: 0 12px 12px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height .4s ease, opacity .35s ease; }
+.route-card.open .route-body { display: block; max-height: 900px; opacity: 1; }
+.route-legend {
+  margin: 6px 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f5f6f8;
+  border: 1px dashed var(--border);
+  font-size: 13px;
+  color: #374151;
+}
+
+/* Day grouping inside routes */
+.day-block {
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px 0;
+  background: #fff;
+}
+.day-title {
+  font-weight: 700;
+  color: var(--maroon);
+  margin: 0 0 6px;
+}
+.day-table { margin: 0; }
+
+/* Operator row highlighting (text-only color) */
+.op-row { transition: color .25s ease, box-shadow .25s ease; }
+.op-row.op-private td { color: #0f4fa8; }
+.op-row.op-sltb td    { color: #b32020; }
+.op-row:hover { box-shadow: inset 0 1px 0 rgba(0, 0, 0, .04); }
+
+/* ---------------- FARE ACCORDION ---------------- */
+.fare-accordion { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.fare-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.fare-head {
+  width: 100%; border: none; background: linear-gradient(90deg, #fff, #f9f4e6);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; cursor: pointer;
+}
+.fare-head-main { text-align: left; }
+.fare-title { font-weight: 500; font-size: 15px; color: var(--maroon); margin-bottom: 4px; }
+.fare-meta { font-size: 12px; color: #111; display: flex; flex-wrap: wrap; gap: 6px; }
+.fare-chevron { transition: transform .25s ease; color: #8b5c00; font-size: 14px; }
+.fare-card.open .fare-chevron { transform: rotate(180deg); }
+.fare-body { display: none; padding: 0 12px 12px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height .4s ease, opacity .35s ease; }
+.fare-card.open .fare-body { display: block; max-height: 900px; opacity: 1; }
+/* scoped small delete button */
+.fare-card .btn.danger {
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: auto;
+}
+/* fares page sizing to match timetable */
+.fare-card .fare-title { font-size: 15px; font-weight: 500; color: var(--maroon); }
+.fare-card .fare-meta { font-size: 12px; color: #111; }
+.fare-card .pill {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  background: #e1f5fe;
+  border: 1px solid #c5e9fb;
+  color: #111;
+}
+.fare-card .table.full th,
+.fare-card .table.full td {
+  font-size: 14px;
+  padding: 12px 14px;
+  color: #111;
+}
+.fare-card .table.full th { font-weight: 600; }
+
+/* Fares: update button look (scoped) */
+.fare-card .fare-update-btn{
+  padding: 4px 8px;              /* match delete size */
+  font-size: 12px;
+  min-width: auto;
+  border-color: #2563eb;         /* blue border */
+  color: #2563eb;                /* blue text */
+}
+.fare-card .fare-update-btn:hover{
+  background: rgba(37, 99, 235, 0.06);
+}
+
+/* ===== Week popup (Today schedules) ===== */
+.popup-week{
+  position:absolute;
+  z-index: 2000;
+  width: 260px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--thickshadow);
+  padding: 10px 10px 12px;
+  display:none;
+}
+.popup-week.show{ display:block; }
+.popup-week .wk-head{
+  font-weight: 700;
+  color: var(--maroon);
+  font-size: 13px;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  margin-bottom: 8px;
+}
+.popup-week .wk-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 10px;
+}
+.popup-week .wk-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#f5f6f8;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.popup-week .wk-day{ color:#374151; font-weight: 600; }
+.popup-week .wk-val{ color:#111827; font-weight: 800; }
+
+/* Timetables: update button look (scoped) */
+.route-card .timetable-update-btn{
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: auto;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+.route-card .timetable-update-btn:hover{
+  background: rgba(37, 99, 235, 0.06);
+}
+
+/* Timetables: delete button look (match update size) */
+.route-card .btn.danger{
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: auto;
+}
+.route-card .btn.danger:hover{
+  background: rgba(204, 51, 51, 0.06);
+}
+
+/* Timetables: action buttons side-by-side */
+.route-card .day-table td:last-child{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* ===== Global Search Bar (remade) ===== */
+.search-bar{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 10px 12px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.search-bar input[type="search"],
+.search-bar input#globalSearch{
+  flex: 1 1 auto;
+  margin: 0;
+  min-height: 40px;
+
+  border: 1px solid #d9c78a;
+  border-radius: 10px;
+  padding: 9px 12px;
+
+  outline: none;
+}
+
+.search-bar input[type="search"]:focus,
+.search-bar input#globalSearch:focus{
+  border-color: var(--gold);
+  box-shadow: 0 0 0 
+}
+
+.search-bar .btn,
+.search-bar button{
+  flex: 0 0 auto;
+  min-width: 86px;
+  min-height: 40px;
+  padding: 9px 12px;
+  margin: 0;
+}
+
+@media (max-width: 640px){
+  .search-bar{
+    flex-wrap: wrap;
+  }
+  .search-bar .btn,
+  .search-bar button{
+    width: 100%;
+  }
+}
+
+/* ===== City accordion (depots_owners) ===== */
+.city-accordion { margin-top: 10px; }
+.city-card .route-title { font-size: 16px; }
+.city-card .route-meta .pill { background: #f5f6f8; }
+.city-card .route-legend { margin-top: 10px; }
+
+/* Ensure actions align like timetable page */
+.table.full td.actions,
+.table.full .actions { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+
+/* Users table: make action buttons SAME size */
+.table.users td.actions .btn{
+  min-width: auto;          /* override global 90px */
+  padding: 6px 12px;        /* same as both buttons */
+  font-size: 12px;          /* match timetable compact look */
+  line-height: 1.1;
+  border-radius: 10px;
+}
+
+/* Users: Update button = gold (scoped so timetable page stays blue) */
+.table.users td.actions .timetable-update-btn{
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #111;
+}
+.table.users td.actions .timetable-update-btn:hover{
+  filter: brightness(.97);
+  background: var(--gold);
+}
+
+/* Users: Delete button sizing (ensure matches Update) */
+.table.users td.actions .btn.danger{
+  padding: 6px 12px;  /* ensure same */
+  font-size: 12px;
+  min-width: auto;
+}
+
+/* Users: Status button should match same box sizing */
+.table.users .btn.status-box{
+  padding: 6px 12px;
+  font-size: 12px;
+  min-width: auto;
+  border-radius: 10px;
+}
+
+/* REMOVE/disable this unsafe reset (it can break other pages) */
+/* .status-btn{ all: unset; } */

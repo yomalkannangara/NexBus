@@ -232,7 +232,6 @@
         <th>Status</th>
         <th>Last Login</th>
         <th>Action</th>
-
       </tr>
     </thead>
     <tbody>
@@ -267,14 +266,21 @@
               }
             ?>
           </td>
-          <td><span class="status <?= strtolower($u['status']) ?>"><?=htmlspecialchars($u['status'])?></span></td>
-          <td><?=htmlspecialchars($u['last_login'])?></td>
           <td>
-            <!-- Edit opens the modal and prefills via data-* -->
+            <form method="post" class="inline-form inline" style="display:inline"
+                  onsubmit="return confirm('<?= $u['status']==='Active' ? 'Suspend this user?' : 'Unsuspend this user?' ?>');">
+              <input type="hidden" name="action" value="<?= $u['status']==='Active' ? 'suspend' : 'unsuspend' ?>">
+              <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
+              <button class="btn status-box <?= strtolower($u['status']) ?>" type="submit">
+                <?= htmlspecialchars($u['status']) ?>
+              </button>
+            </form>
+          </td>
+          <td class="actions">
             <a
-              class="icon-btn warn btn-edit"
-              title="Edit"
+              class="btn danger btn-edit"
               href="#"
+              title="Update"
               data-user-id="<?= (int)$u['user_id'] ?>"
               data-first-name="<?= htmlspecialchars($u['first_name'] ?? '', ENT_QUOTES) ?>"
               data-last-name="<?= htmlspecialchars($u['last_name'] ?? '', ENT_QUOTES) ?>"
@@ -283,22 +289,13 @@
               data-role="<?= htmlspecialchars($u['role'], ENT_QUOTES) ?>"
               data-private-operator-id="<?= htmlspecialchars((string)($u['private_operator_id'] ?? ''), ENT_QUOTES) ?>"
               data-sltb-depot-id="<?= htmlspecialchars((string)($u['sltb_depot_id'] ?? ''), ENT_QUOTES) ?>"
-            >✎</a>
+            >Update</a>
 
-            <!-- Suspend/Unsuspend posts to controller -->
-            <form method="post" class="inline-form" style="display:inline" onsubmit="return confirm('<?= $u['status']==='Active' ? 'Suspend this user?' : 'Unsuspend this user?' ?>');">
-              <input type="hidden" name="action" value="<?= $u['status']==='Active' ? 'suspend' : 'unsuspend' ?>">
-              <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
-              <button class="icon-btn info" title="<?= $u['status']==='Active' ? 'Suspend' : 'Unsuspend' ?>" type="submit">
-                <?= $u['status']==='Active' ? '⏸' : '▶' ?>
-              </button>
-            </form>
-
-            <!-- Delete posts to controller -->
-            <form method="post" class="inline-form" style="display:inline" onsubmit="return confirm('Delete this user? This cannot be undone.');">
+            <form method="post" class="inline-form inline" style="display:inline"
+                  onsubmit="return confirm('Delete this user? This cannot be undone.');">
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
-              <button class="icon-btn danger" title="Delete" type="submit">🗑</button>
+              <button class="btn danger" type="submit">Delete</button>
             </form>
           </td>
         </tr>

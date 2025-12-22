@@ -8,6 +8,7 @@ use App\models\ntc_admin\TimetableModel;
 use App\models\ntc_admin\UserModel;
 use App\models\ntc_admin\OrgModel;
 use App\models\ntc_admin\ProfileModel; // add at top with the other use lines
+use App\models\ntc_admin\RouteModel;
 
 
 class NtcAdminController extends BaseController {
@@ -31,7 +32,47 @@ class NtcAdminController extends BaseController {
             $m->delete($_GET['delete']);
             $this->redirect('/A/fares?msg=deleted');
         }
-        $this->view('ntc_admin','fares',[ 'routes'=>$m->routes(), 'fares'=>$m->all() ]);
+        if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='update') {
+            $m->update($_POST);
+            $this->redirect('/A/fares?msg=updated');
+        }
+
+        $routes = $m->routes();
+        $routeLookup = [];
+        foreach ($routes as $r) {
+            $routeLookup[$r['route_id']] = $r;
+        }
+
+        $routeGroups = [];
+        foreach ($m->all() as $f) {
+            $rid = $f['route_id'];
+            if (!isset($routeGroups[$rid])) {
+                $routeGroups[$rid] = [
+                    'route_id'     => $rid,
+                    'route_no'     => $routeLookup[$rid]['route_no'] ?? '',
+                    'name'         => $routeLookup[$rid]['name'] ?? '',
+                    'active_types' => [],
+                    'fares'        => [],
+                ];
+            }
+            $typeFlags = [
+                'super_luxury'    => (int)$f['is_super_luxury_active'] === 1,
+                'luxury'          => (int)$f['is_luxury_active'] === 1,
+                'semi_luxury'     => (int)$f['is_semi_luxury_active'] === 1,
+                'normal_service'  => (int)$f['is_normal_service_active'] === 1,
+            ];
+            foreach ($typeFlags as $k => $on) {
+                if ($on && !in_array($k, $routeGroups[$rid]['active_types'], true)) {
+                    $routeGroups[$rid]['active_types'][] = $k;
+                }
+            }
+            $routeGroups[$rid]['fares'][] = $f;
+        }
+
+        $this->view('ntc_admin','fares',[
+            'routes'      => $routes,
+            'routeGroups' => $routeGroups
+        ]);
     }
 public function timetables() {
     $m = new TimetableModel();
@@ -52,6 +93,11 @@ public function timetables() {
         $this->redirect('/A/timetables?msg=deleted');
         return;
     }
+    if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='update') {
+        $m->update($_POST);
+        $this->redirect('/A/timetables?msg=updated');
+        return;
+    }
 
     // ---------- FILTERS ----------
     $routeInput = trim($_GET['q_route'] ?? '');
@@ -65,15 +111,27 @@ public function timetables() {
         }
     }
 
+    // normalize day-of-week: '' or 0..6
+    $dayRaw = trim($_GET['q_dow'] ?? '');
+    $daySel = '';
+    if ($dayRaw !== '') {
+        $d = (int)$dayRaw;
+        if ($d < 0) $d = 0;
+        if ($d > 6) $d = 6;
+        $daySel = (string)$d;
+    }
+
     $filters = [
         'route'         => $routeNumber,
         'bus'           => trim($_GET['q_bus'] ?? ''),
         'operator_type' => trim($_GET['q_op'] ?? ''),
+        'dow'           => $daySel,
     ];
 
     $hasFilters = ($filters['route'] !== '')
         || ($filters['bus'] !== '')
-        || in_array($filters['operator_type'], ['Private','SLTB'], true);
+        || in_array($filters['operator_type'], ['Private','SLTB'], true)
+        || ($filters['dow'] !== '');
 
     // default: 30, with filters: 50
     $perPage = $hasFilters ? 50 : 30;
@@ -148,16 +206,43 @@ public function timetables() {
     }
     public function depots_owners() {
         $m = new OrgModel();
-        $this->view('ntc_admin','depots_owners',[ 'depots'=>$m->depots(), 'owners'=>$m->owners() ]);
-         
-        if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_depot') {
-            $m->createDepot($_POST);
-            $this->redirect('/A/depots_owners?msg=depot_created');
+
+        // POST creates (handle first)
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $act = $_POST['action'] ?? '';
+            if ($act === 'create_depot') {
+                $m->createDepot($_POST);
+                $this->redirect('/A/depots_owners?msg=depot_created');
+                return;
+            }
+            if ($act === 'create_owner') {
+                $m->createOwner($_POST);
+                $this->redirect('/A/depots_owners?msg=owner_created');
+                return;
+            }
         }
-        if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='create_owner') {
-            $m->createowner($_POST);
-            $this->redirect('/A/depots_owners?msg=owner_created');
-        }        
+
+        // GET deletes
+        if (isset($_GET['delete_depot'])) {
+            $id = (int)$_GET['delete_depot'];
+            if ($id > 0) $m->deleteDepot($id);
+            $this->redirect('/A/depots_owners?msg=depot_deleted');
+            return;
+        }
+        if (isset($_GET['delete_owner'])) {
+            $id = (int)$_GET['delete_owner'];
+            if ($id > 0) $m->deleteOwner($id);
+            $this->redirect('/A/depots_owners?msg=owner_deleted');
+            return;
+        }
+
+        // Render last
+        $this->view('ntc_admin', 'depots_owners', [
+            'depots' => $m->depots(),
+            'owners' => $m->owners(),
+            // optional: pass schedules if you wire it later
+            // 'scheduleRows' => $m->scheduleRowsLite(),
+        ]);
     }
 
     public function profile() {
@@ -233,5 +318,87 @@ public function analytics() {
         )
     ]);
 }
+
+    /**
+     * Routes management page (list + simple create/toggle/delete)
+     */
+    public function routes() {
+        $m = new RouteModel();
+
+        // Handle create / update / toggle
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $act = $_POST['action'] ?? '';
+            if ($act === 'create_route') {
+                try {
+                    $m->create($_POST);
+                    return $this->redirect('/A/routes?msg=created');
+                } catch (\Throwable $e) {
+                    return $this->redirect('/A/routes?err=' . urlencode($e->getMessage()));
+                }
+            }
+            if ($act === 'update_route') {
+                try {
+                    $m->update($_POST);
+                    return $this->redirect('/A/routes?msg=updated');
+                } catch (\Throwable $e) {
+                    return $this->redirect('/A/routes?err=' . urlencode($e->getMessage()));
+                }
+            }
+            if ($act === 'toggle_active') {
+                $routeId = (int)($_POST['route_id'] ?? 0);
+                $active  = (int)($_POST['is_active'] ?? 1) === 1;
+                if ($routeId > 0) {
+                    $m->setActive($routeId, $active);
+                }
+                return $this->redirect('/A/routes?msg=status_updated');
+            }
+        }
+
+        // Handle delete via GET for consistency with other pages
+        if (isset($_GET['delete'])) {
+            $id = (int)$_GET['delete'];
+            if ($id > 0) {
+                try {
+                    $m->delete($id);
+                    return $this->redirect('/A/routes?msg=deleted');
+                } catch (\Throwable $e) {
+                    return $this->redirect('/A/routes?err=' . urlencode('Delete failed: ' . $e->getMessage()));
+                }
+            }
+        }
+
+        // Filters
+        $filters = [
+            'q'      => trim($_GET['q_route'] ?? ''),
+            'active' => isset($_GET['q_active']) && $_GET['q_active'] !== '' ? $_GET['q_active'] : '',
+        ];
+
+        // pagination
+        $perPage = 30;
+        $page    = max(1, (int)($_GET['page'] ?? 1));
+        $offset  = ($page - 1) * $perPage;
+
+        $result = $m->listPaged($filters, $perPage, $offset);
+        $rows   = $result['rows'];
+        $total  = (int)$result['total'];
+        $pages  = max(1, (int)ceil($total / $perPage));
+
+        // full list for datalist suggestions
+        $routeOptions = $m->list([]);
+
+        $this->view('ntc_admin', 'routes', [
+            'rows'         => $rows,
+            'filters'      => $filters,
+            'routeOptions' => $routeOptions,
+            'pagination'   => [
+                'page'    => $page,
+                'pages'   => $pages,
+                'total'   => $total,
+                'perPage' => $perPage,
+            ],
+            'msg'          => $_GET['msg'] ?? null,
+            'err'          => $_GET['err'] ?? null,
+        ]);
+    }
 }
 ?>

@@ -54,6 +54,7 @@ $routes = [
     '/A/dashboard'     => ['NtcAdminController','dashboard'],
     '/A/fares'         => ['NtcAdminController','fares'],
     '/A/timetables'    => ['NtcAdminController','timetables'],
+  '/A/routes'        => ['NtcAdminController','routes'],
     '/A/users'         => ['NtcAdminController','users'],
     '/A/depots_owners' => ['NtcAdminController','depots_owners'],
     '/A/analytics'     => ['NtcAdminController','analytics'],

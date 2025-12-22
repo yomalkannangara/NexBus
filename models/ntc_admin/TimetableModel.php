@@ -109,9 +109,9 @@ class TimetableModel extends BaseModel
 
         // Route filter (by route_no only)
         if (!empty($filters['route'])) {
-            $routeNumber          = trim((string)$filters['route']);
+            $routeNumber            = trim((string)$filters['route']);
             if ($routeNumber !== '') {
-                $whereParts[]    = "r.route_no LIKE :route_no";
+                $whereParts[]      = "r.route_no LIKE :route_no";
                 $params['route_no'] = '%' . $routeNumber . '%';
             }
         }
@@ -124,25 +124,25 @@ class TimetableModel extends BaseModel
 
         // Operator type filter
         if (!empty($filters['operator_type']) && in_array($filters['operator_type'], ['Private','SLTB'], true)) {
-            $whereParts[]           = "t.operator_type = :op";
-            $params['op']           = $filters['operator_type'];
+            $whereParts[]   = "t.operator_type = :op";
+            $params['op']   = $filters['operator_type'];
+        }
+
+        // Day-of-week filter (allow 0..6, note '' means all)
+        if (array_key_exists('dow', $filters) && $filters['dow'] !== '' && $filters['dow'] !== null) {
+            $whereParts[]   = "t.day_of_week = :dow";
+            $params['dow']  = (int)$filters['dow'];
         }
 
         $whereSql = $whereParts ? (' WHERE ' . implode(' AND ', $whereParts)) : '';
 
-        // Normalize limit/offset
-        $limit  = max(1, (int)$limit);
-        $offset = max(0, (int)$offset);
-
-        // ---- data query ----
+        // ---- data query: fetch all to allow route-based pagination in the view ----
         $sql = "SELECT t.*, r.route_no, r.stops_json
                 $baseFrom
                 $whereSql
-                ORDER BY r.route_no+0, r.route_no, t.day_of_week, t.departure_time
-                LIMIT $limit OFFSET $offset";
+                ORDER BY r.route_no+0, r.route_no, t.day_of_week, t.departure_time";
 
         $st = $this->pdo->prepare($sql);
-        // execute with named params (route/bus/op)
         $st->execute($params);
 
         $rows = $st->fetchAll();
@@ -435,5 +435,39 @@ class TimetableModel extends BaseModel
     {
         $st = $this->pdo->prepare("DELETE FROM timetables WHERE timetable_id = ?");
         $st->execute([$id]);
+    }
+
+    public function update(array $d): void
+    {
+        // minimal validation (keep consistent with create() checks)
+        if (empty($d['timetable_id'])) {
+            $this->showAlert('Missing timetable id.');
+        }
+        if (empty($d['departure_time'])) {
+            $this->showAlert('Departure time is required.');
+        }
+
+        $sql = "UPDATE timetables SET
+                    operator_type=?,
+                    route_id=?,
+                    bus_reg_no=?,
+                    day_of_week=?,
+                    departure_time=?,
+                    arrival_time=?,
+                    effective_from=?,
+                    effective_to=?
+                WHERE timetable_id=?";
+        $st = $this->pdo->prepare($sql);
+        $st->execute([
+            $d['operator_type'],
+            $d['route_id'],
+            trim((string)$d['bus_reg_no']),
+            (int)$d['day_of_week'],
+            $d['departure_time'],
+            ($d['arrival_time'] ?? '') !== '' ? $d['arrival_time'] : null,
+            ($d['effective_from'] ?? '') !== '' ? $d['effective_from'] : null,
+            ($d['effective_to'] ?? '') !== '' ? $d['effective_to'] : null,
+            (int)$d['timetable_id'],
+        ]);
     }
 }
