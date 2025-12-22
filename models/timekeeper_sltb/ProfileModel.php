@@ -7,7 +7,7 @@ use PDO;
 class ProfileModel extends BaseModel
 {
     public function findById(int $id): ?array {
-        $st = $this->pdo->prepare("SELECT user_id, full_name, email, phone, sltb_depot_id FROM users WHERE user_id=? LIMIT 1");
+        $st = $this->pdo->prepare("SELECT user_id, first_name, last_name, email, phone, profile_image, role, status FROM users WHERE user_id=? LIMIT 1");
         $st->execute([$id]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
@@ -20,28 +20,39 @@ class ProfileModel extends BaseModel
     }
 
     public function updateProfile(int $id, array $d): bool {
-        $full = trim($d['full_name'] ?? '');
+        $first = trim($d['first_name'] ?? '');
+        $last = trim($d['last_name'] ?? '');
         $email= trim($d['email'] ?? '');
         $phone= trim($d['phone'] ?? '');
 
-        if ($full === '' || $email === '') return false;
+        if ($first === '' || $last === '' || $email === '') return false;
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
         if ($this->emailTaken($email, $id)) return false;
 
-        $st = $this->pdo->prepare("UPDATE users SET full_name=?, email=?, phone=?, updated_at=NOW() WHERE id=?");
-        return $st->execute([$full, $email, $phone, $id]);
+        $st = $this->pdo->prepare("UPDATE users SET first_name=?, last_name=?, email=?, phone=? WHERE user_id=?");
+        return $st->execute([$first, $last, $email, $phone, $id]);
+    }
+
+    public function updateProfileImage(int $id, string $imagePath): bool {
+        $st = $this->pdo->prepare("UPDATE users SET profile_image=? WHERE user_id=?");
+        return $st->execute([$imagePath, $id]);
     }
 
     public function changePassword(int $id, string $current, string $new, string $confirm): bool {
         if ($new === '' || $new !== $confirm || strlen($new) < 8) return false;
 
-        $st = $this->pdo->prepare("SELECT password_hash FROM users WHERE id=?");
+        $st = $this->pdo->prepare("SELECT password_hash FROM users WHERE user_id=?");
         $st->execute([$id]);
         $hash = $st->fetchColumn();
         if (!$hash || !password_verify($current, (string)$hash)) return false;
 
         $newHash = password_hash($new, PASSWORD_DEFAULT);
-        $up = $this->pdo->prepare("UPDATE users SET password_hash=?, updated_at=NOW() WHERE id=?");
+        $up = $this->pdo->prepare("UPDATE users SET password_hash=? WHERE user_id=?");
         return $up->execute([$newHash, $id]);
+    }
+
+    public function deleteProfileImage(int $id): bool {
+        $st = $this->pdo->prepare("UPDATE users SET profile_image=NULL WHERE user_id=?");
+        return $st->execute([$id]);
     }
 }

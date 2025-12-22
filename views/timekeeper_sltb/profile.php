@@ -1,99 +1,144 @@
-
-
-<div class="title-banner">
-    <h1>My Profile</h1>
-    <p><?= htmlspecialchars($me['full_name'] ?? 'My Name') ?> — <?= htmlspecialchars($me['email'] ?? 'myemail@example.com') ?></p>
-</div>
 <?php
-/** @var array $me */
-/** @var string|null $msg */
+// views/timekeeper_sltb/profile.php
+$me  = $me ?? ($_SESSION['user'] ?? []);
+$msg = $msg ?? null;
+$displayName = trim(($me['first_name'] ?? '') . ' ' . ($me['last_name'] ?? ''));
+$displayName = $displayName !== '' ? $displayName : ($me['name'] ?? 'SLTB Timekeeper');
+$initial = strtoupper(substr($displayName ?: 'U', 0, 1));
+$profileImage = $me['profile_image'] ?? null;
 
-$flash = [
-  'updated'       => 'Profile updated successfully.',
-  'update_failed' => 'Could not update profile.',
-  'pw_changed'    => 'Password changed.',
-  'pw_error'      => 'Password change failed. Check current password or requirements.',
-  'bad_action'    => 'Unsupported action.',
+$messages = [
+    'updated'       => 'Profile updated successfully.',
+    'update_failed' => 'Could not update profile.',
+    'image_updated' => 'Profile image uploaded successfully.',
+    'upload_failed' => 'Failed to upload image.',
+    'image_deleted' => 'Profile image deleted successfully.',
+    'delete_failed' => 'Failed to delete image.',
+    'invalid_image' => 'Invalid image file. Please use JPG, PNG, or WebP.',
+    'no_file'       => 'No file selected.',
+    'pw_changed'    => 'Password changed successfully.',
+    'pw_error'      => 'Password change failed. Check current password or requirements.',
+    'bad_action'    => 'Invalid action.',
 ];
 ?>
-<div class="tk" style="padding-top:12px;">
-  <?php if (!empty($msg) && isset($flash[$msg])): ?>
-    <div class="notice"><?= htmlspecialchars($flash[$msg]) ?></div>
+<section class="page-hero">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <!-- Profile Image with Camera Overlay (WhatsApp Style) -->
+    <div class="profile-image-container" style="position:relative;width:80px;height:80px;">
+      <div class="profile-avatar-lg" aria-hidden="true" style="width:100%;height:100%;">
+        <?php if ($profileImage): ?>
+          <img src="<?= htmlspecialchars($profileImage) ?>" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        <?php else: ?>
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e0e0e0;border-radius:50%;font-size:32px;color:#666;"><?= htmlspecialchars($initial) ?></div>
+        <?php endif; ?>
+      </div>
+      <!-- Camera Icon Overlay -->
+      <form method="post" enctype="multipart/form-data" style="position:absolute;bottom:0;right:0;margin:0;">
+        <input type="hidden" name="action" value="upload_image">
+        <input type="file" name="profile_image" accept="image/jpeg,image/png,image/webp" style="display:none;" id="cameraInput">
+        <button type="button" class="camera-btn" title="Change profile picture" onclick="document.getElementById('cameraInput').click();" style="position:absolute;bottom:0;right:0;width:32px;height:32px;border-radius:50%;background:#007bff;border:3px solid white;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;padding:0;">
+          📷
+        </button>
+      </form>
+    </div>
+    
+    <div>
+      <h1 style="margin:0"><?= htmlspecialchars($displayName) ?></h1>
+      <div class="muted"><?= htmlspecialchars($me['email'] ?? '') ?></div>
+      <div style="margin-top:4px">
+        <span class="badge-role"><?= htmlspecialchars($me['role'] ?? 'SLTB Timekeeper') ?></span>
+        <?php if (!empty($me['status'])): ?>
+          <span class="badge-status <?= strtolower($me['status']) ?>"><?= htmlspecialchars($me['status']) ?></span>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+  <p>Update your account details, profile picture, and change your password.</p>
+
+  <?php if (!empty($msg) && isset($messages[$msg])): ?>
+    <div class="alert <?= in_array($msg, ['updated','image_updated','image_deleted','pw_changed']) ? 'success' : 'warn' ?>">
+      <?= htmlspecialchars($messages[$msg]) ?>
+    </div>
   <?php endif; ?>
+</section>
 
-  <div class="cards">
-    <!-- Account details -->
-    <div class="card accent-gold">
-      <h3 style="margin:0 0 6px;">Account</h3>
-      <p class="small" style="margin:0 0 12px;color:var(--muted)">Update your name, email, and phone.</p>
+<!-- Auto-submit image upload -->
+<script>
+  document.getElementById('cameraInput').addEventListener('change', function() {
+    if (this.files.length > 0) {
+      this.form.submit();
+    }
+  });
+</script>
 
-      <form method="post" class="grid-3" style="grid-template-columns:1fr;gap:10px;">
-        <input type="hidden" name="action" value="update_profile">
+<div class="grid-2">
+  <!-- LEFT COLUMN: PROFILE + PASSWORD -->
+  <section class="panel show">
+    <!-- Profile Details Section -->
+    <div class="panel-head"><h2>Profile</h2></div>
+    <form method="post" class="form-grid narrow">
+      <input type="hidden" name="action" value="update_profile">
 
-        <label>
-          <div class="small">Full name</div>
-          <input type="text" name="full_name" value="<?= htmlspecialchars($me['full_name'] ?? '') ?>" required>
-        </label>
+      <label>First Name
+        <input name="first_name" value="<?= htmlspecialchars($me['first_name'] ?? '') ?>" required>
+      </label>
 
-        <label>
-          <div class="small">Email</div>
-          <input type="email" name="email" value="<?= htmlspecialchars($me['email'] ?? '') ?>" required>
-        </label>
+      <label>Last Name
+        <input name="last_name" value="<?= htmlspecialchars($me['last_name'] ?? '') ?>" required>
+      </label>
 
-        <label>
-          <div class="small">Phone</div>
-          <input type="text" name="phone" value="<?= htmlspecialchars($me['phone'] ?? '') ?>">
-        </label>
+      <label>Email
+        <input type="email" name="email" value="<?= htmlspecialchars($me['email'] ?? '') ?>" required>
+      </label>
 
-        <div style="display:flex;gap:8px;margin-top:6px;">
-          <button type="submit" class="button">Save changes</button>
-          <a href="/TS/dashboard" class="button outline">Cancel</a>
-        </div>
-      </form>
-    </div>
+      <label>Phone
+        <input name="phone" value="<?= htmlspecialchars($me['phone'] ?? '') ?>">
+      </label>
 
-    <!-- Password -->
-    <div class="card accent-primary">
-      <h3 style="margin:0 0 6px;">Change password</h3>
-      <p class="small" style="margin:0 0 12px;color:var(--muted)">Use at least 8 characters.</p>
+      <div class="form-actions">
+        <button class="btn primary">Save Changes</button>
+        <?php if ($profileImage): ?>
+          <form method="post" style="display:inline;">
+            <input type="hidden" name="action" value="delete_image">
+            <button type="submit" class="btn warn" onclick="return confirm('Delete your profile picture?');">Delete Image</button>
+          </form>
+        <?php endif; ?>
+        <a href="/TS/dashboard" class="btn">Cancel</a>
+      </div>
+    </form>
 
-      <form method="post" class="grid-3" style="grid-template-columns:1fr;gap:10px;" id="pwForm">
-        <input type="hidden" name="action" value="change_password">
+    <hr class="sep">
 
-        <label>
-          <div class="small">Current password</div>
-          <input type="password" name="current_password" required>
-        </label>
+    <!-- Change Password Section -->
+    <div class="panel-head"><h2>Change Password</h2></div>
+    <form method="post" class="form-grid narrow">
+      <input type="hidden" name="action" value="change_password">
 
-        <label>
-          <div class="small">New password</div>
-          <input type="password" name="new_password" minlength="8" required>
-        </label>
+      <label>Current Password
+        <input type="password" name="current_password" required>
+      </label>
 
-        <label>
-          <div class="small">Confirm new password</div>
-          <input type="password" name="confirm_password" minlength="8" required>
-        </label>
+      <label>New Password
+        <input type="password" name="new_password" required minlength="8">
+      </label>
 
-        <div style="display:flex;gap:8px;margin-top:6px;">
-          <button type="submit" class="button">Update password</button>
-          <button type="button" class="button outline" id="pwShow">Show</button>
-        </div>
-      </form>
-    </div>
+      <label>Confirm New Password
+        <input type="password" name="confirm_password" required minlength="8">
+      </label>
+
+      <div class="form-actions">
+        <button class="btn warn">Update Password</button>
+      </div>
+    </form>
+  </section>
+
+</div>
+
+<!-- Account Actions -->
+<div class="panel" style="margin-top:16px">
+  <div class="panel-head"><h2>Account</h2></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a href="/logout" class="btn danger">⇦ Logout</a>
   </div>
 </div>
 
-<script>
-  // toggle password visibility
-  (function(){
-    const btn = document.getElementById('pwShow');
-    if(!btn) return;
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#pwForm input[type="password"], #pwForm input[type="text"]').forEach(inp => {
-        inp.type = (inp.type === 'password') ? 'text' : 'password';
-      });
-      btn.textContent = btn.textContent === 'Show' ? 'Hide' : 'Show';
-    });
-  })();
-</script>

@@ -14,7 +14,6 @@ class DepotOfficerModel extends BaseModel
     private AssignmentModel $assign;
     private SpecialTimetableModel $special;
     private MessageModel $msg;
-    private ComplaintModel $compl;
     private TrackingModel $track;
     private ReportModel $report;
     private AttendanceModel $att;
@@ -27,7 +26,6 @@ class DepotOfficerModel extends BaseModel
         $this->assign  = new AssignmentModel();
         $this->special = new SpecialTimetableModel();
         $this->msg     = new MessageModel();
-        $this->compl   = new ComplaintModel();
         $this->track   = new TrackingModel();
         $this->report  = new ReportModel();
         $this->att     = new AttendanceModel();
@@ -96,12 +94,12 @@ public function depot(int $depotId): ?array {
     public function depotBuses(int $depotId): array { return $this->lookup->depotBuses($depotId); }
     public function depotDrivers(int $depotId): array { return $this->lookup->depotDrivers($depotId); }
     public function depotStaff(int $depotId): array { return $this->lookup->depotStaff($depotId); }
+    public function driversAndConductors(int $depotId): array { return $this->lookup->depotDriversAndConductors($depotId); }
     public function routes(): array { return $this->lookup->routes(); }
 
     // Dashboard
     public function dashboardCounts(int $depotId): array { return $this->dash->counts($depotId); }
     public function delayedToday(int $depotId): array { return $this->dash->delayedToday($depotId); }
-    public function openComplaints(int $depotId, int $limit=5): array { return $this->dash->openComplaints($depotId, $limit); }
 
     // Assignments
     public function todayAssignments(int $depotId): array { return $this->assign->todayAssignments($depotId); }
@@ -117,12 +115,6 @@ public function depot(int $depotId): ?array {
     public function sendMessage(int $depotId, array $userIds, string $text): bool { return $this->msg->send($depotId,$userIds,$text); }
     public function recentMessages(int $depotId, int $myId, int $limit=20): array { return $this->msg->recent($depotId,$limit); }
 
-    // Complaints
-    public function complaintsForDepot(int $depotId, string $status): array { return $this->compl->listByStatus($depotId,$status); }
-    public function complaintsAssignedTo(int $depotId, int $userId): array { return $this->compl->listAssignedTo($depotId,$userId); }
-    public function assignComplaint(int $depotId, int $complaintId, int $userId): void { $this->compl->take($depotId,$complaintId,$userId); }
-    public function replyComplaint(int $depotId, int $complaintId, string $reply, string $status): void { $this->compl->reply($depotId,$complaintId,$reply,$status); }
-
     // Tracking
     public function trackingLogs(int $depotId, string $from, string $to): array { return $this->track->logs($depotId,$from,$to); }
 
@@ -133,7 +125,9 @@ public function depot(int $depotId): ?array {
     // Attendance
     public function attendanceForDate(int $depotId, string $date): array { return $this->att->forDate($depotId,$date); }
     public function markAttendanceBulk(int $depotId, string $date, array $mark): void {
-        $validStaff = array_column($this->lookup->depotStaff($depotId),'user_id');
-        $this->att->markBulk($depotId,$date,$mark,$validStaff);
+        // Only allow marking attendance for drivers and conductors (by attendance_key)
+        $rows = $this->lookup->depotDriversAndConductors($depotId);
+        $validKeys = array_column($rows, 'attendance_key');
+        $this->att->markBulk($depotId, $date, $mark, $validKeys);
     }
 }

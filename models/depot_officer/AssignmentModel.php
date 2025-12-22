@@ -59,6 +59,7 @@ public function allToday(int $depotId): array {
             ) tt ON tt.bus_reg_no = a.bus_reg_no
 
             LEFT JOIN routes r ON r.route_id = tt.route_id
+            /* include stops_json so we can compute start/end destinations */
 
             /* latest tracking snapshot for today (single row) */
             LEFT JOIN tracking_monitoring tm ON tm.track_id = (
@@ -74,18 +75,66 @@ public function allToday(int $depotId): array {
             ORDER BY a.shift, a.bus_reg_no";
     $st = $this->pdo->prepare($sql);
     $st->execute([$depotId, $depotId]);  // depotId used twice (pick + bus join)
-    return $st->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+    // compute route start/end from stops_json (if available)
+    foreach ($rows as &$row) {
+        $stops = json_decode($row['stops_json'] ?? '[]', true) ?: [];
+        $first = $stops[0] ?? null;
+        $last  = $stops[count($stops) - 1] ?? null;
+        $start = is_array($first) ? ($first['stop'] ?? '') : $first;
+        $end   = is_array($last) ? ($last['stop'] ?? '') : $last;
+        $row['route_start'] = $start ?: '';
+        $row['route_end']   = $end ?: '';
+        $row['route_display'] = trim(($row['route_no'] ?? '') . ' | ' . ($row['route_start'] ?: '-') . ' → ' . ($row['route_end'] ?: '-'));
+    }
+    return $rows;
 }
 
 
     /** Dropdown data */
     public function buses(int $depotId): array {
-        $st = $this->pdo->prepare(
-            "SELECT reg_no FROM sltb_buses 
-             WHERE sltb_depot_id=? AND status='Active' ORDER BY reg_no"
-        );
-        $st->execute([$depotId]);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+                // Return active buses along with their primary route (if any)
+                   $sql = "SELECT b.reg_no,
+                               r.route_no,
+                               r.stops_json
+                           FROM sltb_buses b
+                         LEFT JOIN (
+                                 /* pick one timetable row per bus for today (earliest dep) */
+                                 SELECT t1.bus_reg_no, t1.route_id
+                                 FROM timetables t1
+                                 JOIN (
+                                     SELECT bus_reg_no, MIN(departure_time) AS dep
+                                     FROM timetables
+                                     WHERE operator_type='SLTB'
+                                         AND day_of_week = DAYOFWEEK(CURDATE())-1
+                                         AND effective_from <= CURDATE()
+                                         AND (effective_to IS NULL OR effective_to >= CURDATE())
+                                     GROUP BY bus_reg_no
+                                 ) m ON m.bus_reg_no = t1.bus_reg_no AND m.dep = t1.departure_time
+                                 WHERE t1.operator_type='SLTB'
+                                     AND t1.day_of_week = DAYOFWEEK(CURDATE())-1
+                                     AND t1.effective_from <= CURDATE()
+                                     AND (t1.effective_to IS NULL OR t1.effective_to >= CURDATE())
+                         ) tt ON tt.bus_reg_no = b.reg_no
+                         LEFT JOIN routes r ON r.route_id = tt.route_id
+                                 WHERE b.sltb_depot_id = ? AND b.status='Active'
+                            ORDER BY b.reg_no";
+                $st = $this->pdo->prepare($sql);
+                $st->execute([$depotId]);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+                // compute route_display from stops_json
+                foreach ($rows as &$r) {
+                    $stops = json_decode($r['stops_json'] ?? '[]', true) ?: [];
+                    $first = $stops[0] ?? null;
+                    $last  = $stops[count($stops) - 1] ?? null;
+                    $start = is_array($first) ? ($first['stop'] ?? '') : $first;
+                    $end   = is_array($last) ? ($last['stop'] ?? '') : $last;
+                    $r['route_name'] = trim($start . ' → ' . $end);
+                    $r['route_start'] = $start ?: '';
+                    $r['route_end']   = $end ?: '';
+                }
+                return $rows;
     }
     public function drivers(int $depotId): array {
         $st = $this->pdo->prepare(
@@ -118,18 +167,31 @@ public function allToday(int $depotId): array {
 
     /** Create new assignment (relies on DB UNIQUE(bus_reg_no,assigned_date,shift)) */
     public function create(array $d, int $depotId): bool {
+        $assigned_date = $d['assigned_date'] ?? date('Y-m-d');
+        $shift = $d['shift'] ?? 'Morning';
+        $bus = $d['bus_reg_no'] ?? '';
+        $driver = (int)($d['sltb_driver_id'] ?? 0);
+        $conductor = (int)($d['sltb_conductor_id'] ?? 0);
+
         $sql = "INSERT INTO sltb_assignments
                     (assigned_date, shift, bus_reg_no, sltb_driver_id, sltb_conductor_id, sltb_depot_id)
                 VALUES (?,?,?,?,?,?)";
         $st = $this->pdo->prepare($sql);
-        return $st->execute([
-            $d['assigned_date'] ?? date('Y-m-d'),
-            $d['shift'] ?? 'Morning',
-            $d['bus_reg_no'] ?? '',
-            (int)($d['sltb_driver_id'] ?? 0),
-            (int)($d['sltb_conductor_id'] ?? 0),
-            $depotId
-        ]);
+        try {
+            return (bool)$st->execute([$assigned_date, $shift, $bus, $driver, $conductor, $depotId]);
+        } catch (\PDOException $e) {
+            // If duplicate key (same bus/date/shift), perform an UPDATE instead
+            $code = $e->getCode();
+            if ($code === '23000' || strpos($e->getMessage(), 'Duplicate') !== false) {
+                $upd = "UPDATE sltb_assignments
+                           SET sltb_driver_id = ?, sltb_conductor_id = ?
+                         WHERE bus_reg_no = ? AND assigned_date = ? AND shift = ? AND sltb_depot_id = ?";
+                $ust = $this->pdo->prepare($upd);
+                return (bool)$ust->execute([$driver, $conductor, $bus, $assigned_date, $shift, $depotId]);
+            }
+            // rethrow unexpected errors
+            throw $e;
+        }
     }
 
     /** Re-assign staff (update existing row) */

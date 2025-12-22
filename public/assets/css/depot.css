@@ -694,3 +694,87 @@ body{
   color: var(--gold);
   border-color: #f0c96b;
 }
+/* ============= LETTER FILTERS (Alpha Filter) ============= */
+.alpha-filter-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.alpha-filter-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.alpha-filter-header strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alpha-filter-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.alpha-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alpha-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.alpha-btn.active {
+  background: var(--gold);
+  color: var(--brand);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.alpha-btn.active:hover {
+  background: #f3d27b;
+}
+
+.alpha-filter-search {
+  width: 100%;
+  max-width: 300px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.alpha-filter-search::placeholder {
+  color: var(--muted);
+}
+
+.alpha-filter-search:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(122, 15, 46, 0.08);
+}

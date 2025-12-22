@@ -72,7 +72,6 @@ $routes = [
      // Depot Officer
     '/O'               => ['DepotOfficerController','dashboard'],
     '/O/dashboard'     => ['DepotOfficerController','dashboard'],
-    '/O/complaints'    => ['DepotOfficerController','complaints'],
     '/O/reports'       => ['DepotOfficerController','reports'],
     '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
