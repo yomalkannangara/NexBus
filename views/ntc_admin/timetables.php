@@ -1,6 +1,6 @@
 <?php
 // defaults so view doesn't break
-$filters = $filters ?? ['route' => '', 'bus' => '', 'operator_type' => ''];
+$filters = $filters ?? ['route' => '', 'bus' => '', 'operator_type' => '', 'dow' => ''];
 $pagination = $pagination ?? [
     'page'    => 1,
     'pages'   => 1,
@@ -14,11 +14,41 @@ if (!function_exists('tt_query_url')) {
         if (!empty($filters['route']))         $params['q_route'] = $filters['route'];
         if (!empty($filters['bus']))           $params['q_bus']   = $filters['bus'];
         if (!empty($filters['operator_type'])) $params['q_op']    = $filters['operator_type'];
+        // include day-of-week even if it is "0"
+        if (array_key_exists('dow', $filters) && $filters['dow'] !== '' && $filters['dow'] !== null) {
+            $params['q_dow'] = $filters['dow'];
+        }
         if ($page > 1)                         $params['page']    = $page;
         $qs = http_build_query($params);
         return '/A/timetables' . ($qs ? ('?' . $qs) : '');
     }
 }
+
+$grouped = [];
+$dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+foreach (($rows ?? []) as $r) {
+    $rid = $r['route_id'] ?? ($r['route_display'] ?? uniqid('r'));
+    if (!isset($grouped[$rid])) {
+        $grouped[$rid] = [
+            'title'     => $r['route_display'] ?? '',
+            'rows'      => [],
+            'buses'     => [],
+            'dayCounts' => array_fill(0, 7, 0),
+        ];
+    }
+    $grouped[$rid]['rows'][] = $r;
+    if (!empty($r['bus_reg_no'])) $grouped[$rid]['buses'][$r['bus_reg_no']] = true;
+    $grouped[$rid]['dayCounts'][(int)$r['day_of_week']]++;
+}
+
+// route-based pagination (10 routes/page)
+$routesPerPage = 10;
+$routeList     = array_values($grouped); // ensure numeric indexing
+$routeTotal    = count($routeList);
+$routePages    = max(1, (int)ceil($routeTotal / $routesPerPage));
+$routePageRaw  = (int)($_GET['page'] ?? 1);
+$routePage     = min(max(1, $routePageRaw), $routePages);
+$routeSlice    = array_slice($routeList, ($routePage - 1) * $routesPerPage, $routesPerPage);
 ?>
 
 <section class="page-hero">
@@ -155,77 +185,52 @@ if (!function_exists('tt_query_url')) {
   </form>
 </div>
 
-<!-- ADD ROUTE PANEL -->
-<div id="addRoutePanel" class="panel">
-  <form method="post" class="form-grid form-compact form-inline">
-    <input type="hidden" name="action" value="create_route">
+<!-- EDIT TIMETABLE PANEL -->
+<div id="editTTPanel" class="panel">
+  <form method="post" class="form-grid form-compact">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="timetable_id" id="edit_tt_id">
 
-    <label>Route No <input name="route_no" required></label>
+    <fieldset style="grid-column:1/-1;border:1px dashed #e8d39a;border-radius:8px;padding:10px;margin-bottom:6px">
+      <legend>Operator Link</legend>
+      <div class="form-grid">
+        <label>Operator Type
+          <select name="operator_type" id="edit_operator_type" required>
+            <option value="Private">Private</option>
+            <option value="SLTB">SLTB</option>
+          </select>
+        </label>
 
-    <label>Active
-      <select name="is_active">
-        <option value="1" selected>Yes</option>
-        <option value="0">No</option>
-      </select>
-    </label>
+        <label>Route
+          <select name="route_id" id="edit_route_id" required>
+            <?php foreach($routes as $r): ?>
+              <option value="<?= htmlspecialchars($r['route_id']) ?>"><?= htmlspecialchars($r['label']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
 
-    <fieldset class="stops-fieldset">
-      <div class="fieldset-head">
-        <legend>Stops</legend>
-        <button type="button" class="btn" onclick="addStop()">+ Add Stop</button>
+        <label>Bus Reg No
+          <input type="text" name="bus_reg_no" id="edit_bus_reg_no" required>
+        </label>
+
+        <label>Day of Week
+          <select name="day_of_week" id="edit_day_of_week" required>
+            <option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option>
+            <option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option>
+            <option value="6">Sat</option>
+          </select>
+        </label>
       </div>
-      <div id="stopsContainer"></div>
     </fieldset>
 
-    <textarea name="stops_json" id="stops_json" hidden></textarea>
-
-    <script>
-      let stops = [];
-
-      function addStop(stopName = "") {
-        const index = stops.length + 1;
-        const container = document.getElementById("stopsContainer");
-
-        const row = document.createElement("div");
-        row.className = "form-grid stop-row";
-        row.innerHTML = `
-          <label>Seq <input type="number" value="${index}" readonly></label>
-          <label>Stop <input type="text" value="${stopName}" oninput="updateStops()"></label>
-          <button type="button" class="btn danger" onclick="removeStop(${index-1})">X</button>
-        `;
-        container.appendChild(row);
-
-        stops.push({ seq: index, stop: stopName });
-        updateStops();
-      }
-
-      function removeStop(i) {
-        stops.splice(i, 1);
-        redrawStops();
-      }
-
-      function redrawStops() {
-        const container = document.getElementById("stopsContainer");
-        container.innerHTML = "";
-        const oldStops = [...stops];
-        stops = [];
-        oldStops.forEach(s => addStop(s.stop));
-        updateStops();
-      }
-
-      function updateStops() {
-        const inputs = document.querySelectorAll("#stopsContainer input[type=text]");
-        inputs.forEach((input, i) => {
-          stops[i].seq = i + 1;
-          stops[i].stop = input.value.trim();
-        });
-        document.getElementById("stops_json").value = JSON.stringify(stops);
-      }
-    </script>
+    <label>Departure Time <input type="time" name="departure_time" id="edit_departure_time" required></label>
+    <label>Arrival Time <input type="time" name="arrival_time" id="edit_arrival_time"></label>
+    <label>Effective From <input type="date" name="effective_from" id="edit_effective_from"></label>
+    <label>Effective To <input type="date" name="effective_to" id="edit_effective_to"></label>
 
     <div class="form-actions">
-      <button class="btn primary">Save Route</button>
-      <button type="button" class="btn" id="cancelAddRoute">Cancel</button>
+      <button class="btn primary">Update</button>
+      <button type="button" class="btn" id="cancelEditTT">Cancel</button>
     </div>
   </form>
 </div>
@@ -236,13 +241,12 @@ if (!function_exists('tt_query_url')) {
     <h2>Bus Schedules</h2>
     <div>
       <button class="btn primary" id="showAddTT">+ Add Schedule</button>
-      <button class="btn primary" id="showAddRoute">+ Add Route</button>
     </div>
   </div>
 
   <!-- FILTER BAR -->
   <form method="get" action="/A/timetables"
-        style="display:grid;grid-template-columns:2fr 2fr 1.2fr auto;gap:8px;margin-bottom:12px;align-items:flex-end">
+        style="display:grid;grid-template-columns:2fr 2fr 1.2fr 1.2fr auto;gap:8px;margin-bottom:12px;align-items:flex-end">
     <div>
       <label>Route</label>
       <input type="text"
@@ -282,66 +286,126 @@ if (!function_exists('tt_query_url')) {
       </select>
     </div>
 
+    <div>
+      <label>Day</label>
+      <select name="q_dow">
+        <?php
+          $dowSel = (string)($filters['dow'] ?? '');
+          $days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        ?>
+        <option value="" <?= $dowSel === '' ? 'selected' : '' ?>>All</option>
+        <?php for ($i=0; $i<7; $i++): ?>
+          <option value="<?= $i ?>" <?= $dowSel === (string)$i ? 'selected' : '' ?>><?= $days[$i] ?></option>
+        <?php endfor; ?>
+      </select>
+    </div>
+
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn primary" type="submit">Apply</button>
       <a class="btn" href="/A/timetables">Reset</a>
     </div>
   </form>
 
-  <table class="table users">
-    <thead>
-      <tr>
-        <th>Route</th>
-        <th>Operator</th>
-        <th>Bus</th>
-        <th>DOW</th>
-        <th>Departure</th>
-        <th>Arrival</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
+  <!-- replace flat table with accordion -->
+  <div class="route-accordion">
+    <?php foreach($routeSlice as $g): ?>
+      <?php
+        $busCount   = count($g['buses']);
+        $daySummary = [];
+        $dayGroups  = [];
+        foreach ($g['rows'] as $rr) {
+          $didx = (int)$rr['day_of_week'];
+          $dayGroups[$didx][] = $rr;
+        }
+        ksort($dayGroups);
+        foreach ($g['dayCounts'] as $i => $cnt) {
+          if ($cnt > 0) $daySummary[] = "{$dayNames[$i]}: {$cnt}";
+        }
+      ?>
+      <article class="route-card">
+        <button class="route-head route-toggle" type="button" aria-expanded="false">
+          <div class="route-head-main">
+            <div class="route-title"><?= htmlspecialchars($g['title']) ?></div>
+            <div class="route-meta">
+              <span class="pill">Schedules: <?= count($g['rows']) ?></span>
+              <span class="pill">Buses: <?= $busCount ?></span>
+              <span class="pill">Per-day: <?= $daySummary ? implode(' · ', $daySummary) : 'No schedules' ?></span>
+            </div>
+          </div>
+          <span class="route-chevron" aria-hidden="true">▾</span>
+        </button>
 
-    <tbody>
-      <?php foreach($rows as $r): ?>
-        <tr>
-          <td class="name"><?= htmlspecialchars($r['route_display']) ?></td>
-          <td><?= htmlspecialchars($r['operator_type']) ?></td>
-          <td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
-          <td><?= ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][$r['day_of_week']] ?></td>
-          <td><?= htmlspecialchars(substr($r['departure_time'],0,5)) ?></td>
-          <td><?= htmlspecialchars($r['arrival_time'] ? substr($r['arrival_time'],0,5) : '') ?></td>
+        <div class="route-body">
+          <?php foreach($dayGroups as $dIdx => $list): ?>
+            <div class="day-block">
+              <div class="day-title"><?= $dayNames[$dIdx] ?? '' ?> (<?= count($list) ?>)</div>
+              <table class="table full condensed day-table">
+                <thead>
+                  <tr>
+                    <th>Bus</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th style="width:110px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach($list as $r): ?>
+                    <tr class="op-row <?= $r['operator_type']==='SLTB' ? 'op-sltb' : 'op-private' ?>">
+                      <td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
+                      <td><?= htmlspecialchars(substr($r['departure_time'],0,5)) ?></td>
+                      <td><?= htmlspecialchars($r['arrival_time'] ? substr($r['arrival_time'],0,5) : '') ?></td>
+                      <td>
+                        <a href="#"
+                           class="btn timetable-update-btn btn-edit-tt"
+                           data-tt-id="<?= htmlspecialchars($r['timetable_id']) ?>"
+                           data-operator-type="<?= htmlspecialchars($r['operator_type']) ?>"
+                           data-route-id="<?= htmlspecialchars($r['route_id']) ?>"
+                           data-bus-reg-no="<?= htmlspecialchars($r['bus_reg_no']) ?>"
+                           data-day-of-week="<?= htmlspecialchars($r['day_of_week']) ?>"
+                           data-departure-time="<?= htmlspecialchars($r['departure_time']) ?>"
+                           data-arrival-time="<?= htmlspecialchars($r['arrival_time'] ?? '') ?>"
+                           data-effective-from="<?= htmlspecialchars($r['effective_from'] ?? '') ?>"
+                           data-effective-to="<?= htmlspecialchars($r['effective_to'] ?? '') ?>">
+                          Update
+                        </a>
+                        <a class="btn danger"
+                           href="?module=ntc_admin&page=timetables&delete=<?= htmlspecialchars($r['timetable_id']) ?>"
+                           onclick="return confirm('Delete schedule?')">Delete</a>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </article>
+    <?php endforeach; ?>
 
-          <td>
-            <a class="btn danger"
-               href="?module=ntc_admin&page=timetables&delete=<?= htmlspecialchars($r['timetable_id']) ?>"
-               onclick="return confirm('Delete schedule?')">Delete</a>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-      <?php if (empty($rows)): ?>
-        <tr>
-          <td colspan="7" style="text-align:center;color:#777;padding:12px">
-            No schedules found for the selected filters.
-          </td>
-        </tr>
-      <?php endif; ?>
-    </tbody>
-  </table>
+    <?php if (empty($rows)): ?>
+      <div style="text-align:center;color:#777;padding:12px">
+        No schedules found for the selected filters.
+      </div>
+    <?php endif; ?>
+  </div>
+
+  <div class="route-legend">
+    Operator coding: Private schedules (blue text) and SLTB schedules (red text). Displaying up to 10 routes per page.
+  </div>
 
   <!-- PAGINATION -->
-  <?php if (($pagination['pages'] ?? 1) > 1): ?>
+  <?php if ($routePages > 1): ?>
     <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-items:center">
-      <?php if ($pagination['page'] > 1): ?>
-        <a class="btn" href="<?= htmlspecialchars(tt_query_url($pagination['page'] - 1, $filters)) ?>">&laquo; Prev</a>
+      <?php if ($routePage > 1): ?>
+        <a class="btn" href="<?= htmlspecialchars(tt_query_url($routePage - 1, $filters)) ?>">&laquo; Prev</a>
       <?php endif; ?>
 
       <span style="font-size:12px;color:#555">
-        Page <?= (int)$pagination['page'] ?> of <?= (int)$pagination['pages'] ?>
-        (<?= (int)$pagination['total'] ?> schedules)
+        Page <?= (int)$routePage ?> of <?= (int)$routePages ?> (<?= (int)$routeTotal ?> routes)
       </span>
 
-      <?php if ($pagination['page'] < $pagination['pages']): ?>
-        <a class="btn" href="<?= htmlspecialchars(tt_query_url($pagination['page'] + 1, $filters)) ?>">Next &raquo;</a>
+      <?php if ($routePage < $routePages): ?>
+        <a class="btn" href="<?= htmlspecialchars(tt_query_url($routePage + 1, $filters)) ?>">Next &raquo;</a>
       <?php endif; ?>
     </div>
   <?php endif; ?>
@@ -385,3 +449,134 @@ if (!function_exists('tt_query_url')) {
     }
   });
 </script>
+
+<style>
+  /* Accordion styles */
+  .route-accordion {
+    margin-top: 12px;
+  }
+
+  .route-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .route-head {
+    background-color: #f9f9f9;
+    cursor: pointer;
+    padding: 12px 16px;
+    position: relative;
+  }
+
+  .route-head:hover {
+    background-color: #f1f1f1;
+  }
+
+  .route-title {
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+  .route-meta {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .pill {
+    background-color: #e1f5fe;
+    border-radius: 12px;
+    padding: 4px 8px;
+    margin-right: 8px;
+    display: inline-block;
+    font-size: 12px;
+  }
+
+  .route-chevron {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    font-size: 18px;
+    line-height: 1;
+    transition: transform 0.3s;
+  }
+
+  .route-toggle[aria-expanded="true"] .route-chevron {
+    transform: rotate(-180deg);
+  }
+
+  .route-body {
+    display: none;
+    padding: 0 16px 16px;
+  }
+
+  .route-toggle[aria-expanded="true"] + .route-body {
+    display: block;
+  }
+
+  /* Condensed table styles */
+  .table.full {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .table.full th,
+  .table.full td {
+    border: 1px solid #e0e0e0;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .table.full th {
+    background-color: #f1f1f1;
+    font-weight: 500;
+  }
+
+  .table.full tbody tr:hover {
+    background-color: #fafafa;
+  }
+
+  /* Override some existing styles for the condensed tables */
+  .table.users {
+    margin-top: 0;
+  }
+
+  .table.users th,
+  .table.users td {
+    padding: 10px 12px;
+  }
+
+  /* New styles for operator rows */
+  .op-row {
+    transition: background-color 0.3s;
+  }
+
+  .op-private {
+    background-color: #e8f5e9;
+  }
+
+  .op-sltb {
+    background-color: #fce4ec;
+  }
+
+  /* New styles for day groups in accordion */
+  .day-block {
+    margin-top: 8px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+  }
+
+  .day-title {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .day-table {
+    margin-top: 4px;
+  }
+</style>

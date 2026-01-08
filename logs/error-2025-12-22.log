@@ -1,0 +1,52 @@
+[22-Dec-2025 16:19:00 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php(19): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(35): App\models\ntc_admin\FareModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->fares()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(170): run('NtcAdminControl...', 'fares')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php on line 19
+[22-Dec-2025 16:22:44 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.stops' doesn't exist in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php(39): PDO->query('SELECT\n        ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(35): App\models\ntc_admin\FareModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->fares()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(170): run('NtcAdminControl...', 'fares')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php on line 39
+[22-Dec-2025 16:22:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.stops' doesn't exist in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php(39): PDO->query('SELECT\n        ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(35): App\models\ntc_admin\FareModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->fares()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(170): run('NtcAdminControl...', 'fares')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php on line 39
+[22-Dec-2025 16:22:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.stops' doesn't exist in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php:39
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php(39): PDO->query('SELECT\n        ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(35): App\models\ntc_admin\FareModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->fares()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(170): run('NtcAdminControl...', 'fares')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\FareModel.php on line 39
+[22-Dec-2025 16:42:56 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php:48
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php(48): PDO->query('SELECT r.route_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(27): App\Models\Passenger\HomeModel->nextBuses(NULL, NULL, 12)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\PassengerController->home()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(170): run('PassengerContro...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php on line 48
+[22-Dec-2025 18:36:41 Asia/Colombo] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\NexBus-1\views\Layouts\admin.php:90) in C:\xampp\htdocs\NexBus-1\controllers\BaseController.php on line 95
+[22-Dec-2025 19:37:25 Asia/Colombo] PHP Parse error:  syntax error, unexpected identifier "Passenger", expecting "]" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 39
+[22-Dec-2025 19:37:26 Asia/Colombo] PHP Parse error:  syntax error, unexpected identifier "Passenger", expecting "]" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 39
+[22-Dec-2025 19:37:27 Asia/Colombo] PHP Parse error:  syntax error, unexpected identifier "Passenger", expecting "]" in C:\xampp\htdocs\NexBus-1\views\ntc_admin\users.php on line 39
+[22-Dec-2025 19:40:33 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`nexbus`.`staff_attendance`, CONSTRAINT `fk_att_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)) in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php:257
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php(257): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(187): App\models\ntc_admin\UserModel->delete(19)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->users()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(170): run('NtcAdminControl...', 'users')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\UserModel.php on line 257

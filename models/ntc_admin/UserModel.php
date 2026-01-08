@@ -251,9 +251,41 @@ class UserModel extends BaseModel {
     }
 
     public function delete(int $userId): void {
-        // With passengers.user_id → users.user_id FK (ON DELETE RESTRICT by your Part A),
-        // this will fail if a passenger row exists. That’s intentional for data safety.
-        $st = $this->pdo->prepare('DELETE FROM users WHERE user_id = :user_id');
-        $st->execute([':user_id' => $userId]);
+        $this->pdo->beginTransaction();
+        try {
+            // Try hard-delete first (works only if no FK references)
+            $st = $this->pdo->prepare('DELETE FROM users WHERE user_id = :user_id');
+            try {
+                $st->execute([':user_id' => $userId]);
+                $this->pdo->commit();
+                return;
+            } catch (\PDOException $e) {
+                // FK constraint (23000/1451) -> fallback to soft-delete
+                if (($e->getCode() ?? '') !== '23000') {
+                    throw $e;
+                }
+            }
+
+            // Soft-delete: keep row to satisfy FKs, but disable account + anonymize PII
+            $suffix = gmdate('YmdHis');
+            $email  = "deleted+{$userId}@{$suffix}.invalid";
+
+            $st2 = $this->pdo->prepare("
+                UPDATE users
+                SET status='Suspended',
+                    first_name='Deleted',
+                    last_name='User',
+                    email=:email,
+                    phone=NULL,
+                    password_hash=NULL
+                WHERE user_id=:user_id
+            ");
+            $st2->execute([':email' => $email, ':user_id' => $userId]);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }
