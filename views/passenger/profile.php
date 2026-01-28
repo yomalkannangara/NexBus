@@ -22,9 +22,16 @@ $me = $me ?? null;
 
     <div class="grid-2">
       <div class="field">
-        <label class="req">Full name</label>
+        <label class="req">First name</label>
         <div class="select-wrap no-caret">
-          <input type="text" name="full_name" value="<?= htmlspecialchars($me['full_name'] ?? '') ?>" required>
+          <input type="text" name="first_name" value="<?= htmlspecialchars($me['first_name'] ?? '') ?>" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="req">Last name</label>
+        <div class="select-wrap no-caret">
+          <input type="text" name="last_name" value="<?= htmlspecialchars($me['last_name'] ?? '') ?>" required>
         </div>
       </div>
 

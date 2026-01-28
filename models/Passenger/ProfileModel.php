@@ -16,8 +16,8 @@ class ProfileModel {
     /** Load combined view of user + passenger by user_id. */
     public function findByUserId(int $userId): ?array {
         $sql = "SELECT 
-                    u.user_id, u.role, u.full_name AS u_full_name, u.email AS u_email, u.phone AS u_phone, u.status,
-                    p.passenger_id, p.full_name AS p_full_name, p.email AS p_email, p.phone AS p_phone
+                    u.user_id, u.role, u.first_name, u.last_name, u.email, u.phone, u.status,
+                    p.passenger_id
                 FROM users u
                 LEFT JOIN passengers p ON p.user_id = u.user_id
                 WHERE u.user_id = ?";
@@ -26,17 +26,13 @@ class ProfileModel {
         $row = $st->fetch();
         if (!$row) return null;
 
-        // Normalize to a single set of fields prioritizing passenger values if present
-        $fullName = $row['p_full_name'] ?: $row['u_full_name'];
-        $email    = $row['p_email']     ?: $row['u_email'];
-        $phone    = $row['p_phone']     ?: $row['u_phone'];
-
         return [
             'user_id'      => (int)$row['user_id'],
             'passenger_id' => $row['passenger_id'] ? (int)$row['passenger_id'] : null,
-            'full_name'    => $fullName,
-            'email'        => $email,
-            'phone'        => $phone,
+            'first_name'   => $row['first_name'],
+            'last_name'    => $row['last_name'],
+            'email'        => $row['email'],
+            'phone'        => $row['phone'],
             'status'       => $row['status'] ?? 'Active',
             'role'         => $row['role'] ?? 'Passenger',
         ];
@@ -56,25 +52,25 @@ class ProfileModel {
 
     /** Update both users and passengers in a single transaction. */
     public function updateProfile(int $userId, array $d): array {
-        $full = trim($d['full_name'] ?? '');
+        $first = trim($d['first_name'] ?? '');
+        $last = trim($d['last_name'] ?? '');
         $email = trim($d['email'] ?? '');
         $phone = trim($d['phone'] ?? '');
 
-        if ($full === '' || $email === '') {
-            return ['ok' => false, 'error' => 'Full name and Email are required.'];
+        if ($first === '' || $last === '' || $email === '') {
+            return ['ok' => false, 'error' => 'First name, Last name, and Email are required.'];
         }
 
         try {
             $this->pdo->beginTransaction();
 
-            // Users
-            $su = $this->pdo->prepare("UPDATE users SET full_name=?, email=?, phone=? WHERE user_id=?");
-            $su->execute([$full, $email, $phone ?: null, $userId]);
+            $su = $this->pdo->prepare("UPDATE users SET first_name=?, last_name=?, email=?, phone=? WHERE user_id=?");
+            $su->execute([$first, $last, $email, $phone ?: null, $userId]);
 
             // Passengers (ensure row exists first)
             $pid = $this->ensurePassengerForUser($userId);
-            $sp = $this->pdo->prepare("UPDATE passengers SET full_name=?, email=?, phone=? WHERE passenger_id=?");
-            $sp->execute([$full, $email, $phone ?: null, $pid]);
+            $sp = $this->pdo->prepare("UPDATE passengers SET first_name=?, last_name=?, email=?, phone=? WHERE passenger_id=?");
+            $sp->execute([$first, $last, $email, $phone ?: null, $pid]);
 
             $this->pdo->commit();
             return ['ok' => true];
@@ -145,7 +141,7 @@ class ProfileModel {
 
             $sp = $this->pdo->prepare(
                 "UPDATE passengers 
-                   SET full_name='Deleted User', email=?, phone=NULL, password_hash=NULL
+                   SET first_name='Deleted', last_name='User', email=?, phone=NULL, password_hash=NULL
                  WHERE user_id=?"
             );
             $sp->execute([$anon, $userId]);
@@ -173,7 +169,7 @@ class ProfileModel {
 
             $sp = $this->pdo->prepare(
                 "UPDATE passengers 
-                   SET full_name='Deleted User', email=?, phone=NULL, password_hash=NULL
+                   SET first_name='Deleted', last_name='User', email=?, phone=NULL, password_hash=NULL
                  WHERE user_id=?"
             );
             $sp->execute([$anon, $userId]);

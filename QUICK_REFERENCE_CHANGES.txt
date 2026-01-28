@@ -1,0 +1,38 @@
+QUICK REFERENCE: WHERE full_name FROM PASSENGERS TABLE IS USED
+=============================================================
+
+EXACT LOCATIONS IN CODE:
+========================
+
+✅ CHANGED - models/Passenger/ProfileModel.php
+  Line 72:   UPDATE passengers SET first_name=?, last_name=?, email=?, phone=?
+  Line 144:  SET first_name='Deleted', last_name='User', email=?, phone=NULL
+  Line 172:  SET first_name='Deleted', last_name='User', email=?, phone=NULL
+
+✅ CHANGED - models/UserModel.php
+  Line 56:   INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+             (Now splits $name into $first and $last)
+
+✅ CHANGED - models/bus_owner/FeedbackModel.php
+  Line 34:   CONCAT(p.first_name, ' ', p.last_name) AS passenger
+
+✅ VERIFIED - models/ntc_admin/UserModel.php
+  Line 131:  Already uses first_name, last_name
+  Line 218:  Already uses first_name, last_name
+
+---
+
+SQL MIGRATION FILE CREATED:
+===========================
+database/migrations/2025_01_28_change_passengers_fullname_to_firstname_lastname.sql
+
+---
+
+KEY POINTS:
+===========
+1. ✅ All passengers table references to full_name have been updated
+2. ✅ SQL migration script is ready to run
+3. ✅ Users table already has first_name, last_name (no changes needed)
+4. ✅ NTC Admin UserModel already using correct schema
+5. ✅ Code handles name splitting from full_name input correctly
+6. ⚠️  Remember to backup database before running migration

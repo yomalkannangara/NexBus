@@ -18,6 +18,14 @@ class FleetModel extends BaseModel
     }
     private function hasDepot(): bool { return (bool)$this->depotId(); }
 
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+
     private function statusOrDefault(?string $s): string {
         $s = trim((string)$s);
         return in_array($s, ['Active','Maintenance','Inactive'], true) ? $s : 'Active';
@@ -60,7 +68,7 @@ class FleetModel extends BaseModel
             $sql = "
                 SELECT
                     sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
-                    r.route_no, r.name AS route,
+                    r.route_no, r.stops_json,
                     CONCAT(tm.lat, ',', tm.lng) AS current_location,
                     NULL AS last_maintenance, NULL AS next_service
                 FROM sltb_buses sb
@@ -87,15 +95,23 @@ class FleetModel extends BaseModel
             $st = $this->pdo->prepare($sql);
             $st->bindValue(':d', $this->depotId(), PDO::PARAM_INT);
             $st->execute();
-            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as &$r) {
+                $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+            }
+            return $rows;
         } catch (PDOException $e) { return []; }
     }
 
     public function routes(): array
     {
         try {
-            return $this->pdo->query("SELECT route_id, route_no, name FROM routes ORDER BY route_no+0, route_no")
+            $rows = $this->pdo->query(\"SELECT route_id, route_no, stops_json FROM routes ORDER BY route_no+0, route_no\")
                              ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as &$r) {
+                $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+            }
+            return $rows;
         } catch (PDOException $e) { return []; }
     }
 

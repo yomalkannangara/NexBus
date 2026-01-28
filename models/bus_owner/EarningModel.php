@@ -5,6 +5,14 @@ use PDO;
 
 class EarningModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return \"$first - $last\";
+    }
+
     /** Resolve operator ID */
     private function operatorId(): ?int
     {
@@ -106,7 +114,7 @@ class EarningModel extends BaseModel
                     e.amount,
                     e.source,
                     r.route_no AS route_number,
-                    r.name AS route
+                    r.stops_json
                 FROM earnings e
                 JOIN private_buses b ON b.reg_no = e.bus_reg_no
                 LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no
@@ -118,7 +126,11 @@ class EarningModel extends BaseModel
 
         $st = $this->pdo->prepare($sql);
         $st->execute([':op' => $op]);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        return $rows;
     }
 
     /** Get buses owned by this operator (active only or all) */

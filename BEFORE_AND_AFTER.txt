@@ -1,0 +1,179 @@
+BEFORE & AFTER COMPARISON: PASSENGERS TABLE SCHEMA CHANGES
+===========================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ BEFORE (Mismatch):
+─────────────────────────────────────────────────────────────────────────
+users table:                          passengers table:
+  user_id                               passenger_id
+  first_name  ◄────────────────────────► full_name  ❌ MISMATCH
+  last_name                               email
+  email                                   phone
+  phone                                   password_hash
+  password_hash
+
+
+✅ AFTER (Aligned):
+─────────────────────────────────────────────────────────────────────────
+users table:                          passengers table:
+  user_id                               passenger_id
+  first_name  ◄────────────────────────► first_name  ✓ ALIGNED
+  last_name   ◄────────────────────────► last_name   ✓ ALIGNED
+  email                                   email
+  phone                                   phone
+  password_hash                           password_hash
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CODE CHANGES: SPECIFIC LOCATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE 1: models/Passenger/ProfileModel.php
+──────────────────────────────────────────
+
+UPDATE PROFILE (Line 72):
+─────────────────────────
+❌ BEFORE:
+   UPDATE passengers SET full_name=?, email=?, phone=? WHERE passenger_id=?
+   execute: [$first, $email, $phone]
+
+✅ AFTER:
+   UPDATE passengers SET first_name=?, last_name=?, email=?, phone=? WHERE passenger_id=?
+   execute: [$first, $last, $email, $phone]
+
+
+SOFT DELETE (Line 144):
+────────────────────────
+❌ BEFORE:
+   SET full_name='Deleted User', email=?, phone=NULL
+
+✅ AFTER:
+   SET first_name='Deleted', last_name='User', email=?, phone=NULL
+
+
+HARD DELETE (Line 172):
+────────────────────────
+❌ BEFORE:
+   SET full_name='Deleted User', email=?, phone=NULL
+
+✅ AFTER:
+   SET first_name='Deleted', last_name='User', email=?, phone=NULL
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE 2: models/UserModel.php
+─────────────────────────────
+
+CREATE PASSENGER (Line 56-62):
+──────────────────────────────
+❌ BEFORE:
+   $st2 = $this->pdo->prepare("
+       INSERT INTO passengers (user_id, full_name, email, phone, password_hash)
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+       full_name = VALUES(full_name),
+       ...
+   ");
+   $st2->execute([$userId, $name, $email, ...]);
+
+✅ AFTER:
+   $first = explode(' ', trim($name))[0];
+   $last = implode(' ', array_slice(explode(' ', trim($name)), 1));
+   $st2 = $this->pdo->prepare("
+       INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+       first_name = VALUES(first_name),
+       last_name = VALUES(last_name),
+       ...
+   ");
+   $st2->execute([$userId, $first, $last, $email, ...]);
+
+KEY CHANGE: Splits full_name input into first_name and last_name
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE 3: models/bus_owner/FeedbackModel.php
+──────────────────────────────────────────
+
+GET FEEDBACK (Line 34):
+─────────────────────────
+❌ BEFORE:
+   SELECT
+       ...
+       p.full_name AS passenger,
+       ...
+   FROM complaints c
+   LEFT JOIN passengers p ON p.passenger_id = c.passenger_id
+
+✅ AFTER:
+   SELECT
+       ...
+       CONCAT(p.first_name, ' ', p.last_name) AS passenger,
+       ...
+   FROM complaints c
+   LEFT JOIN passengers p ON p.passenger_id = c.passenger_id
+
+KEY CHANGE: Uses CONCAT() to combine first_name and last_name in output
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE 4: models/ntc_admin/UserModel.php
+───────────────────────────────────────
+
+✅ NO CHANGES REQUIRED - Already correct!
+
+Line 131 (create method):
+   INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+   ✓ Already using first_name, last_name
+
+Line 218 (update method):
+   INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+   ✓ Already using first_name, last_name
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATA EXAMPLES: HOW DATA SPLITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Input: "John Doe"
+  old:  full_name = "John Doe"
+  new:  first_name = "John", last_name = "Doe"
+
+Input: "Maria Garcia Santos"
+  old:  full_name = "Maria Garcia Santos"
+  new:  first_name = "Maria", last_name = "Garcia Santos"
+
+Input: "Deleted User" (soft/hard delete)
+  old:  full_name = "Deleted User"
+  new:  first_name = "Deleted", last_name = "User"
+
+SQL Backfill:
+  SUBSTRING_INDEX(full_name, ' ', 1)     → first_name (everything before first space)
+  SUBSTRING() + LOCATE(' ')              → last_name (everything after first space)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPACT SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FEATURES USING PASSENGERS TABLE:
+  ✅ Passenger registration      → Updated
+  ✅ Profile management          → Updated
+  ✅ Feedback/Complaints         → Updated (CONCAT in query)
+  ✅ Favorites/Preferences       → No change (uses passenger_id FK only)
+  ✅ NTC Admin user management   → Already correct
+
+AREAS NOT AFFECTED:
+  • Views using users.full_name  → No change needed
+  • Driver/Conductor tables       → No change needed
+  • Other staff-related code      → No change needed
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

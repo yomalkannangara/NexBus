@@ -12,6 +12,14 @@ class FeedbackModel extends BaseModel
     }
     private function hasOperator(): bool { return (bool)$this->operatorId(); }
 
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+
     private function idFromRef(string $refOrId): int {
         $refOrId = trim($refOrId);
         if ($refOrId === '') return 0;
@@ -31,9 +39,9 @@ class FeedbackModel extends BaseModel
                     c.description, 
                     c.status, 
                     c.reply_text,
-                    p.full_name AS passenger,
+                    CONCAT(p.first_name, ' ', p.last_name) AS passenger,
                     r.route_no, 
-                    r.name AS route_name
+                    r.stops_json
                 FROM complaints c
                 LEFT JOIN passengers p  ON p.passenger_id = c.passenger_id
                 LEFT JOIN routes     r  ON r.route_id     = c.route_id
@@ -64,8 +72,9 @@ class FeedbackModel extends BaseModel
 
         return array_map(function ($r) {
             $bus = $r['bus_reg_no'] ?? '';
+            $routeName = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
             $routeLabel = ($r['route_no'] ?? '') !== '' 
-                ? trim(($r['route_no'] ?? '').' - '.($r['route_name'] ?? ''))
+                ? trim(($r['route_no'] ?? '').' - '.$routeName)
                 : '';
             $passengerLabel = trim((string)($r['passenger'] ?? ''));
             if ($passengerLabel === '' && isset($r['passenger_id'])) {

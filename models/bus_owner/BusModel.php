@@ -5,6 +5,14 @@ use PDO;
 
 class BusModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+
     /**
      * Get all buses belonging to the logged-in owner,
      * joined with timetables and routes to show route info.
@@ -19,7 +27,7 @@ class BusModel extends BaseModel
                     b.status,
                     b.driver_id,
                     b.conductor_id,
-                    r.name AS route,
+                    r.stops_json,
                     r.route_no AS route_number,
                     d.full_name AS driver_name,
                     d.license_no AS driver_license,
@@ -50,7 +58,11 @@ class BusModel extends BaseModel
 
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        return $rows;
     }
 
     /** Create a new private bus */

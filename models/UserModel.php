@@ -52,18 +52,22 @@ class UserModel
 
             // 2) Insert/Update passengers (FK: passengers.user_id → users.user_id)
             //    Mirrors your example's ON DUPLICATE KEY pattern
+            $first = explode(' ', trim($name))[0];
+            $last = implode(' ', array_slice(explode(' ', trim($name)), 1));
             $st2 = $this->pdo->prepare("
-                INSERT INTO passengers (user_id, full_name, email, phone, password_hash)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                full_name     = VALUES(full_name),
+                first_name    = VALUES(first_name),
+                last_name     = VALUES(last_name),
                 email         = VALUES(email),
                 phone         = VALUES(phone),
                 password_hash = VALUES(password_hash)
             ");
             $st2->execute([
                 $userId,
-                $name,
+                $first,
+                $last,
                 $email,
                 ($phone !== '' ? $phone : null),
                 $pwdHash

@@ -1,0 +1,42 @@
+[28-Jan-2026 13:52:02 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1932 Table 'nexbus.routes' doesn't exist in engine in C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php:16
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php(16): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(24): App\Models\Passenger\HomeModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\PassengerController->home()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('PassengerContro...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php on line 16
+[28-Jan-2026 15:26:47 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php:48
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php(48): PDO->query('SELECT r.route_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(27): App\Models\Passenger\HomeModel->nextBuses(NULL, NULL, 12)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\PassengerController->home()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('PassengerContro...', 'home')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\HomeModel.php on line 48
+[28-Jan-2026 15:32:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\TimetableModel.php:19
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\TimetableModel.php(19): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(137): App\Models\Passenger\TimetableModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\PassengerController->timetable()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('PassengerContro...', 'timetable')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\TimetableModel.php on line 19
+[28-Jan-2026 15:45:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.full_name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\Passenger\ProfileModel.php:24
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\Passenger\ProfileModel.php(24): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\PassengerController.php(262): App\Models\Passenger\ProfileModel->findByUserId(45)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\PassengerController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('PassengerContro...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\Passenger\ProfileModel.php on line 24
+[28-Jan-2026 16:09:27 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 233
+[28-Jan-2026 16:09:36 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 233
+[28-Jan-2026 16:10:10 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TripEntryModel.php:37
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TripEntryModel.php(37): PDO->prepare('SELECT\r\n    t.t...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php(89): App\models\timekeeper_sltb\TripEntryModel->todayList()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\TimekeeperSltbController->entry()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('TimekeeperSltbC...', 'entry')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\timekeeper_sltb\TripEntryModel.php on line 37
