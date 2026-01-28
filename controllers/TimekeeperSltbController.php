@@ -152,6 +152,10 @@ class TimekeeperSltbController extends BaseController
                 'phone'      => trim($_POST['phone'] ?? '')
             ]);
 
+            // Determine if this is an AJAX/JSON request
+            $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false);
+
             if ($ok) {
                 // refresh session cache with latest user fields
                 if ($fresh = $m->findById($uid)) {
@@ -160,8 +164,22 @@ class TimekeeperSltbController extends BaseController
                     $_SESSION['user']['email']         = $fresh['email']         ?? ($_SESSION['user']['email'] ?? null);
                     $_SESSION['user']['phone']         = $fresh['phone']         ?? ($_SESSION['user']['phone'] ?? null);
                 }
+
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['ok' => true, 'user' => $fresh ?? $_SESSION['user']]);
+                    return;
+                }
+
                 return $this->redirect('/TS/profile?msg=updated');
             }
+
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'msg' => 'update_failed']);
+                return;
+            }
+
             return $this->redirect('/TS/profile?msg=update_failed');
         }
 
@@ -229,5 +247,3 @@ class TimekeeperSltbController extends BaseController
     ]);
 }
 }
-
-

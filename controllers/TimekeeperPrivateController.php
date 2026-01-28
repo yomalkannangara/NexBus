@@ -122,6 +122,9 @@ public function trip_entry()
                     'phone'      => trim($_POST['phone'] ?? '')
                 ]);
 
+                $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                    || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false);
+
                 if ($ok) {
                     if ($fresh = $m->findById($uid)) {
                         $_SESSION['user']['first_name'] = $fresh['first_name'] ?? $_SESSION['user']['first_name'] ?? '';
@@ -129,8 +132,22 @@ public function trip_entry()
                         $_SESSION['user']['email']      = $fresh['email']      ?? $_SESSION['user']['email'] ?? '';
                         $_SESSION['user']['phone']      = $fresh['phone']      ?? $_SESSION['user']['phone'] ?? '';
                     }
+
+                    if ($isAjax) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['ok' => true, 'user' => $fresh ?? $_SESSION['user']]);
+                        return;
+                    }
+
                     return $this->redirect('/TP/profile?msg=updated');
                 }
+
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['ok' => false, 'msg' => 'update_failed']);
+                    return;
+                }
+
                 return $this->redirect('/TP/profile?msg=update_failed');
             }
 

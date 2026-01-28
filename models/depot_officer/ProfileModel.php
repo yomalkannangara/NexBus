@@ -8,7 +8,7 @@ class ProfileModel extends BaseModel
 {
     public function findById(int $userId): ?array
     {
-        $st = $this->pdo->prepare("SELECT user_id, first_name, last_name, email, phone FROM users WHERE user_id=? LIMIT 1");
+        $st = $this->pdo->prepare("SELECT user_id, first_name, last_name, email, phone, profile_image, role, status FROM users WHERE user_id=? LIMIT 1");
         $st->execute([$userId]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
