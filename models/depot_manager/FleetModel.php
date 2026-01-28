@@ -106,11 +106,13 @@ class FleetModel extends BaseModel
     public function routes(): array
     {
         try {
-            $rows = $this->pdo->query(\"SELECT route_id, route_no, stops_json FROM routes ORDER BY route_no+0, route_no\")
-                             ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $rows = $this->pdo->query("SELECT route_id, route_no, stops_json FROM routes ORDER BY route_no+0, route_no")
+                              ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            
             foreach ($rows as &$r) {
                 $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
             }
+            
             return $rows;
         } catch (PDOException $e) { return []; }
     }

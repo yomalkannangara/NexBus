@@ -12,6 +12,14 @@ abstract class BaseModel {
 
 class FeedbackModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+    
     public function cards(): array
     {
         $totalMonth = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE())");
@@ -43,7 +51,7 @@ class FeedbackModel extends BaseModel
             $sql = "SELECT c.id,
                            DATE(c.created_at) AS date,
                            b.reg_no AS busNumber,
-                           CONCAT(r.route_no, ' - ', r.name) AS route,
+                           r.stops_json,
                            c.passenger_name AS passengerName,
                            CASE WHEN c.type IS NULL OR c.type='' THEN 'Complaint' ELSE c.type END AS type,
                            c.category,
@@ -56,6 +64,10 @@ class FeedbackModel extends BaseModel
                     ORDER BY c.created_at DESC
                     LIMIT 200";
             $rows = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            
+            foreach ($rows as &$r) {
+                $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+            }
 
             // Dummy fallback when no rows
             if (!$rows) {

@@ -5,6 +5,14 @@ use App\models\common\BaseModel;
 
 class DepotLookupModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+    
     public function depot(int $depotId): ?array {
         $st = $this->pdo->prepare("SELECT * FROM sltb_depots WHERE sltb_depot_id=?");
         $st->execute([$depotId]);
@@ -62,9 +70,15 @@ class DepotLookupModel extends BaseModel
     }
 
     public function routes(): array {
-        return $this->pdo->query("SELECT route_id, route_no, name
+        $rows = $this->pdo->query("SELECT route_id, route_no, stops_json
                                   FROM routes
                                   WHERE is_active=1
                                   ORDER BY route_no+0, route_no")->fetchAll();
+        
+        foreach ($rows as &$r) {
+            $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        
+        return $rows;
     }
 }

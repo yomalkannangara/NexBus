@@ -166,12 +166,18 @@ public function allToday(int $depotId): array {
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
     public function routes(): array {
-        return $this->pdo->query(
-            "SELECT route_id, route_no, name 
+        $rows = $this->pdo->query(
+            "SELECT route_id, route_no, stops_json 
                FROM routes 
               WHERE is_active=1 
            ORDER BY route_no+0, route_no"
         )->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($rows as &$r) {
+            $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        
+        return $rows;
     }
 
     /** Create new assignment (relies on DB UNIQUE(bus_reg_no,assigned_date,shift)) */

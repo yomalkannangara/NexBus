@@ -176,7 +176,7 @@ class BusModel extends BaseModel
                     b.chassis_no,
                     b.capacity,
                     b.status,
-                    r.name AS route,
+                    r.stops_json,
                     r.route_no AS route_number
                 FROM private_buses b
                 LEFT JOIN timetables t 
@@ -195,7 +195,11 @@ class BusModel extends BaseModel
 
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        return $rows;
     }
 }
 ?>

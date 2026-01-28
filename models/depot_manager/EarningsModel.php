@@ -16,9 +16,9 @@ class EarningsModel extends BaseModel
         if (empty($stops)) return 'Unknown';
         $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
         $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
-        return \"$first - $last\";
+        return "$first - $last";
     }
-
+    
     /* ==================== Top summary (daily, highest, lowest) ==================== */
     public function topSummary(): array
     {
@@ -77,13 +77,13 @@ class EarningsModel extends BaseModel
                 SELECT
                     b.id,
                     b.reg_no,
-                    r.name AS route,
+                    r.stops_json,
                     SUM(CASE WHEN DATE(e.date)=CURDATE() THEN e.amount ELSE 0 END) AS daily,
                     SUM(CASE WHEN DATE(e.date) >= :wstart THEN e.amount ELSE 0 END) AS weekly
                 FROM buses b
                 LEFT JOIN earnings e ON e.bus_id=b.id
                 LEFT JOIN routes r   ON r.route_id=b.route_id
-                GROUP BY b.id, b.reg_no, r.name
+                GROUP BY b.id, b.reg_no, r.stops_json
                 ORDER BY weekly DESC
                 LIMIT 200
             ";
@@ -102,7 +102,7 @@ class EarningsModel extends BaseModel
                 $eff    = $maxWeekly > 0 ? (100.0 * $weekly / $maxWeekly) : 0.0;
                 $out[] = [
                     'number' => (string)($r['reg_no'] ?? ''),
-                    'route'  => (string)($r['route']  ?? '—'),
+                    'route'  => $this->getRouteDisplayName($r['stops_json'] ?? '[]'),
                     'daily'  => $this->rupees($daily),
                     'weekly' => $this->rupees($weekly),
                     'eff'    => number_format($eff, 0) . '%',

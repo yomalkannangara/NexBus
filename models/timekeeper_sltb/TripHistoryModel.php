@@ -6,6 +6,14 @@ use PDO;
 
 class TripHistoryModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+    
     /** Logged depot id from session */
     private function depotId(): int {
         $u = $_SESSION['user'] ?? [];
@@ -16,7 +24,7 @@ class TripHistoryModel extends BaseModel
     public function routesForDepot(): array {
         $depot = $this->depotId();
         $sql = "
-          SELECT DISTINCT r.route_id, r.route_no, r.name
+          SELECT DISTINCT r.route_id, r.route_no, r.stops_json
           FROM sltb_trips st
           JOIN routes r     ON r.route_id = st.route_id
           JOIN sltb_buses b ON b.reg_no   = st.bus_reg_no
@@ -25,7 +33,13 @@ class TripHistoryModel extends BaseModel
         ";
         $st = $this->pdo->prepare($sql);
         $st->execute([':d'=>$depot]);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($rows as &$r) {
+            $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        
+        return $rows;
     }
 
     /**
@@ -41,7 +55,7 @@ class TripHistoryModel extends BaseModel
         SELECT
             st.trip_date                                       AS date,
             r.route_no,
-            r.name                                             AS route_name,
+            r.stops_json,
             st.turn_no,
             st.bus_reg_no,
             TIME_FORMAT(COALESCE(st.departure_time, st.scheduled_departure_time),'%H:%i') AS dep_time,
@@ -97,6 +111,12 @@ class TripHistoryModel extends BaseModel
 
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($rows as &$r) {
+            $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        
+        return $rows;
     }
 }
