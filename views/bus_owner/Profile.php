@@ -18,10 +18,16 @@
       <input type="hidden" name="action" value="update_profile">
 
       <div class="filter-group">
-        <label class="filter-label">Full Name</label>
-        <input type="text" name="full_name" class="search-input" 
-               value="<?= htmlspecialchars($me['full_name'] ?? '') ?>" required>
+         <label class="filter-label">First Name</label>
+         <input type="text" name="first_name" class="search-input" 
+           value="<?= htmlspecialchars($me['first_name'] ?? '') ?>" required>
       </div>
+
+            <div class="filter-group">
+         <label class="filter-label">Last Name</label>
+         <input type="text" name="last_name" class="search-input" 
+           value="<?= htmlspecialchars($me['last_name'] ?? '') ?>" required>
+            </div>
 
       <div class="filter-group">
         <label class="filter-label">Email</label>

@@ -122,3 +122,7 @@ Stack trace:
 #3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
 #4 {main}
   thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 169
+[28-Jan-2026 18:29:57 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to a member function query() on array in Command line code:1
+Stack trace:
+#0 {main}
+  thrown in Command line code on line 1

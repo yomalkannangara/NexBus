@@ -10,15 +10,26 @@
 
     <!-- Same classes/CSS/JS pattern as login -->
     <form method="post" action="/register" class="auth-form">
-      <!-- Full name -->
-      <label class="field-label">Full name</label>
+      <!-- First name -->
+      <label class="field-label">First name</label>
       <div class="field">
         <span class="icon">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" fill="currentColor"/>
           </svg>
         </span>
-        <input type="text" name="full_name" placeholder="Enter your full name" required />
+        <input type="text" name="first_name" placeholder="Enter your first name" required />
+      </div>
+
+      <!-- Last name -->
+      <label class="field-label">Last name</label>
+      <div class="field">
+        <span class="icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" fill="currentColor"/>
+          </svg>
+        </span>
+        <input type="text" name="last_name" placeholder="Enter your last name" required />
       </div>
 
       <!-- Username (email under the hood, to match login) -->

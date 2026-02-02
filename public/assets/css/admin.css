@@ -169,6 +169,10 @@ body {
   justify-content: space-between;
   margin-bottom: 12px;
 }
+.table-panel-head h2,
+.table-panel-head h3{
+  margin: 0;
+}
 .table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin: 0; padding: 0 }
 .table thead th {
   padding: 8px 10px; text-align: left; color: var(--maroon); font-weight: 700;
@@ -695,13 +699,16 @@ input:checked + .slider:before { transform: translateX(20px) }
   border: 1px solid #c5e9fb;
   color: #111;
 }
-.fare-card .table.full th,
-.fare-card .table.full td {
-  font-size: 14px;
-  padding: 12px 14px;
-  color: #111;
+.fare-card .table.full {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden; /* keeps rounded corners on the header */
 }
-.fare-card .table.full th { font-weight: 600; }
+.fare-card .table.full thead th{
+  background: #f9f4e6; /* subtle warm header like timetable areas */
+  border-bottom: 1px solid var(--border);
+}
 
 /* Fares: update button look (scoped) */
 .fare-card .fare-update-btn{

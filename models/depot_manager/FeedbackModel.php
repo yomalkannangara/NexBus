@@ -12,6 +12,27 @@ abstract class BaseModel {
 
 class FeedbackModel extends BaseModel
 {
+    private ?bool $complaintsHasRating = null;
+
+    private function complaintsHasRating(): bool
+    {
+        if ($this->complaintsHasRating !== null) return $this->complaintsHasRating;
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT COUNT(*) c
+                   FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'complaints'
+                    AND COLUMN_NAME = 'rating'"
+            );
+            $st->execute();
+            $this->complaintsHasRating = ((int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0)) > 0;
+        } catch (PDOException $e) {
+            $this->complaintsHasRating = false;
+        }
+        return $this->complaintsHasRating;
+    }
+
     private function getRouteDisplayName(string $stopsJson): string {
         $stops = json_decode($stopsJson, true) ?: [];
         if (empty($stops)) return 'Unknown';
@@ -24,8 +45,10 @@ class FeedbackModel extends BaseModel
     {
         $totalMonth = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE())");
         $open       = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE status IN ('Open','In Progress')");
-        $resolved   = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE status='Resolved' AND YEAR(updated_at)=YEAR(CURDATE()) AND MONTH(updated_at)=MONTH(CURDATE())");
-        $avgRating  = $this->avgSafe("SELECT AVG(rating) a FROM complaints WHERE rating IS NOT NULL AND rating>0");
+        $resolved   = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE status='Resolved' AND resolved_at IS NOT NULL AND YEAR(resolved_at)=YEAR(CURDATE()) AND MONTH(resolved_at)=MONTH(CURDATE())");
+        $avgRating  = $this->complaintsHasRating()
+            ? $this->avgSafe("SELECT AVG(rating) a FROM complaints WHERE rating IS NOT NULL AND rating>0")
+            : 0.0;
 
         // Dummy fallback when there is no data
         if ($totalMonth === 0 && $open === 0 && $resolved === 0 && (float)$avgRating === 0.0) {
@@ -48,21 +71,26 @@ class FeedbackModel extends BaseModel
     public function list(): array
     {
         try {
-            $sql = "SELECT c.id,
-                           DATE(c.created_at) AS date,
-                           b.reg_no AS busNumber,
-                           r.stops_json,
-                           c.passenger_name AS passengerName,
-                           CASE WHEN c.type IS NULL OR c.type='' THEN 'Complaint' ELSE c.type END AS type,
-                           c.category,
-                           c.description,
-                           c.status,
-                           IFNULL(c.rating, 0) AS rating
-                    FROM complaints c
-                    LEFT JOIN buses b  ON b.id = c.bus_id
-                    LEFT JOIN routes r ON r.route_id = c.route_id
-                    ORDER BY c.created_at DESC
-                    LIMIT 200";
+            $ratingSelect = $this->complaintsHasRating() ? "IFNULL(c.rating, 0) AS rating" : "0 AS rating";
+            // Align to actual schema: complaints has complaint_id, passenger_id, bus_reg_no, assigned_to_user_id, resolved_at, reply_text
+            $sql = "SELECT c.complaint_id AS id,
+                   DATE(c.created_at) AS date,
+                   c.bus_reg_no AS busNumber,
+                   r.stops_json,
+                   CONCAT(COALESCE(p.first_name,''), CASE WHEN p.last_name IS NULL OR p.last_name='' THEN '' ELSE CONCAT(' ', p.last_name) END) AS passengerName,
+                   CASE WHEN LOWER(COALESCE(c.category,''))='complaint' THEN 'Complaint' ELSE 'Feedback' END AS type,
+                   c.category,
+                   c.description,
+                   c.status,
+                   c.resolved_at,
+                   c.reply_text,
+                   {$ratingSelect}
+                FROM complaints c
+                LEFT JOIN passengers p ON p.passenger_id = c.passenger_id
+                LEFT JOIN routes r ON r.route_id = c.route_id
+                ORDER BY c.created_at DESC
+                LIMIT 200";
+
             $rows = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
             
             foreach ($rows as &$r) {
@@ -83,7 +111,7 @@ class FeedbackModel extends BaseModel
     public function assign(array $d): bool
     {
         try {
-            $sql = "UPDATE complaints SET assigned_to=:uid, status='In Progress', updated_at=NOW() WHERE id=:id";
+            $sql = "UPDATE complaints SET assigned_to_user_id=:uid, status='In Progress' WHERE complaint_id=:id";
             $st  = $this->pdo->prepare($sql);
             return $st->execute([
                 ':uid' => (int)($d['user_id'] ?? 0),
@@ -97,12 +125,16 @@ class FeedbackModel extends BaseModel
     public function resolve(array $d): bool
     {
         try {
-            $sql = "UPDATE complaints SET status='Resolved', resolution_note=:note, updated_at=NOW(), resolved_at=NOW() WHERE id=:id";
+            // Use complaints.reply_text for any staff message and resolved_at for resolved timestamp.
+            $note = trim((string)($d['note'] ?? ''));
+            $sql = "UPDATE complaints
+                       SET status='Resolved',
+                           resolved_at=NOW()" . ($note !== '' ? ", reply_text=:note" : "") . "
+                     WHERE complaint_id=:id";
             $st  = $this->pdo->prepare($sql);
-            return $st->execute([
-                ':note' => $d['note'] ?? null,
-                ':id'   => (int)($d['complaint_id'] ?? 0),
-            ]);
+            $params = [':id' => (int)($d['complaint_id'] ?? 0)];
+            if ($note !== '') $params[':note'] = $note;
+            return $st->execute($params);
         } catch (PDOException $e) {
             return false;
         }
@@ -111,7 +143,10 @@ class FeedbackModel extends BaseModel
     public function close(array $d): bool
     {
         try {
-            $sql = "UPDATE complaints SET status='Closed', updated_at=NOW() WHERE id=:id";
+            $sql = "UPDATE complaints
+                       SET status='Closed',
+                           resolved_at=COALESCE(resolved_at, NOW())
+                     WHERE complaint_id=:id";
             $st  = $this->pdo->prepare($sql);
             return $st->execute([':id' => (int)($d['complaint_id'] ?? 0)]);
         } catch (PDOException $e) {
@@ -122,13 +157,22 @@ class FeedbackModel extends BaseModel
     public function reply(array $d): bool
     {
         try {
-            $sql = "INSERT INTO complaint_replies (complaint_id, user_id, message, created_at)
-                    VALUES (:cid, :uid, :msg, NOW())";
+            // Store the response in complaints.reply_text (single latest reply).
+            $msg = trim((string)($d['message'] ?? ''));
+            if ($msg === '') return false;
+
+            $uid = (int)($_SESSION['user']['id'] ?? $_SESSION['user']['user_id'] ?? 0);
+
+            $sql = "UPDATE complaints
+                       SET reply_text = :msg,
+                           assigned_to_user_id = COALESCE(assigned_to_user_id, :uid),
+                           status = CASE WHEN status='Open' THEN 'In Progress' ELSE status END
+                     WHERE complaint_id = :cid";
             $st  = $this->pdo->prepare($sql);
             return $st->execute([
                 ':cid' => (int)($d['complaint_id'] ?? 0),
-                ':uid' => (int)($_SESSION['user']['id'] ?? 0),
-                ':msg' => $d['message'] ?? '',
+                ':uid' => $uid ?: null,
+                ':msg' => $msg,
             ]);
         } catch (PDOException $e) {
             return false;

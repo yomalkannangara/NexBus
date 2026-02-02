@@ -6,6 +6,26 @@ use App\models\common\BaseModel;
 
 class FeedbackModel extends BaseModel
 {
+    private ?bool $complaintsHasRating = null;
+
+    private function complaintsHasRating(): bool {
+        if ($this->complaintsHasRating !== null) return $this->complaintsHasRating;
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT COUNT(*) c
+                   FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'complaints'
+                    AND COLUMN_NAME = 'rating'"
+            );
+            $st->execute();
+            $this->complaintsHasRating = ((int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0)) > 0;
+        } catch (\Throwable $e) {
+            $this->complaintsHasRating = false;
+        }
+        return $this->complaintsHasRating;
+    }
+
     private function operatorId(): ?int {
         $u = $_SESSION['user'] ?? null;
         return isset($u['private_operator_id']) ? (int)$u['private_operator_id'] : null;
@@ -30,6 +50,7 @@ class FeedbackModel extends BaseModel
     /** Owner-scoped feedback list */
     public function getAll(): array
     {
+        $ratingSelect = $this->complaintsHasRating() ? 'IFNULL(c.rating, 0) AS rating' : '0 AS rating';
         $sql = "SELECT 
                     c.complaint_id,
                     c.passenger_id,
@@ -39,6 +60,8 @@ class FeedbackModel extends BaseModel
                     c.description, 
                     c.status, 
                     c.reply_text,
+                    c.resolved_at,
+                    {$ratingSelect},
                     CONCAT(p.first_name, ' ', p.last_name) AS passenger,
                     r.route_no, 
                     r.stops_json
@@ -87,12 +110,13 @@ class FeedbackModel extends BaseModel
                 'date'         => $r['date'],
                 'bus_or_route' => $bus !== '' ? $bus : $routeLabel,
                 'passenger'    => $passengerLabel,
-                'type'         => 'Complaint',
+                'type'         => (strcasecmp((string)($r['category'] ?? ''), 'complaint') === 0) ? 'Complaint' : 'Feedback',
                 'category'     => $r['category'] ?? '',
                 'status'       => $r['status'] ?? 'Open',
-                'rating'       => 0,
+                'rating'       => (int)($r['rating'] ?? 0),
                 'message'      => $r['description'] ?? '',
                 'response'     => $r['reply_text'] ?? '',
+                'resolved_at'  => $r['resolved_at'] ?? null,
             ];
         }, $rows);
     }
@@ -128,6 +152,7 @@ class FeedbackModel extends BaseModel
         $ids = $st->fetchAll(PDO::FETCH_COLUMN);
 
         return array_map(fn($id) => [
+            'id'       => (int)$id,
             'ref_code' => 'C'.str_pad((string)$id, 6, '0', STR_PAD_LEFT)
         ], $ids);
     }

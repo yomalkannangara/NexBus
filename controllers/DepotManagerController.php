@@ -103,19 +103,19 @@ public function fleet()
 
             if ($act === 'assign') {
                 $m->assign($_POST);
-                return $this->redirect('/D/feedback?msg=assigned');
+                return $this->redirect('/M/feedback?msg=assigned');
             }
             if ($act === 'resolve') {
                 $m->resolve($_POST);
-                return $this->redirect('/D/feedback?msg=resolved');
+                return $this->redirect('/M/feedback?msg=resolved');
             }
             if ($act === 'close') {
                 $m->close($_POST);
-                return $this->redirect('/D/feedback?msg=closed');
+                return $this->redirect('/M/feedback?msg=closed');
             }
             if ($act === 'reply') {
                 $m->reply($_POST);
-                return $this->redirect('/D/feedback?msg=replied');
+                return $this->redirect('/M/feedback?msg=replied');
             }
         }
 

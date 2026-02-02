@@ -88,6 +88,20 @@
     <textarea name="description" required placeholder="Please provide details..."></textarea>
   </div>
 
+  <!-- Rating (optional) -->
+  <div class="field" id="ratingField">
+    <label>Rating (Optional)</label>
+    <div class="select-wrap">
+      <select name="rating" id="ratingSelect">
+        <option value="">Select rating (1-5)</option>
+        <?php for ($i = 5; $i >= 1; $i--): ?>
+          <option value="<?= $i ?>"><?= $i ?></option>
+        <?php endfor; ?>
+      </select>
+    </div>
+    <p class="muted" style="margin:8px 0 0">Tip: Rating is mainly for feedback (not required for complaints).</p>
+  </div>
+
   <div class="form-actions">
     <button class="btn">Submit</button>
   </div>
@@ -131,6 +145,9 @@
       <div class="fav-meta" style="margin-top:8px">
         <span class="meta-item">Bus: <?= htmlspecialchars($row['bus_reg_no'] ?? '—') ?></span>
         <span class="meta-item">Type: <?= htmlspecialchars($row['operator_type'] ?? '—') ?></span>
+        <?php if (!empty($row['rating'])): ?>
+          <span class="meta-item">Rating: <?= (int)$row['rating'] ?>/5</span>
+        <?php endif; ?>
         <span class="muted">#<?= (int)($row['complaint_id'] ?? 0) ?></span>
       </div>
 
@@ -150,3 +167,22 @@
 <?php else: ?>
   <div class="card"><p class="muted" style="margin:0">No submissions yet.</p></div>
 <?php endif; ?>
+
+<script>
+  // Keep UI minimal: disable rating when "Complaint" is selected.
+  (function () {
+    const ratingSelect = document.getElementById('ratingSelect');
+    const typeRadios = document.querySelectorAll('input[name="type"]');
+    if (!ratingSelect || !typeRadios.length) return;
+
+    function sync() {
+      const selected = document.querySelector('input[name="type"]:checked');
+      const isComplaint = selected && selected.value === 'complaint';
+      ratingSelect.disabled = !!isComplaint;
+      if (isComplaint) ratingSelect.value = '';
+    }
+
+    typeRadios.forEach(r => r.addEventListener('change', sync));
+    sync();
+  })();
+</script>

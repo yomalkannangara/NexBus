@@ -97,7 +97,7 @@ ksort($ownersByCity);
 
 <!-- Depots (City accordion) -->
 <section id="depots" class="tabcontent show">
-  <div class="table-section">
+  <div class="table-panel">
     <div class="table-panel-head">
       <h3>Depots by City</h3>
     </div>
@@ -180,7 +180,7 @@ ksort($ownersByCity);
 
 <!-- Owners (City accordion) -->
 <section id="owners" class="tabcontent">
-  <div class="table-section">
+  <div class="table-panel">
     <div class="table-panel-head">
       <h3>Bus companies by City</h3>
     </div>

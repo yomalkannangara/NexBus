@@ -20,7 +20,11 @@ class ProfileModel {
 
     /** Fresh copy from DB (optional re-hydrate). */
     public function findById(int $userId): ?array {
-        $sql = "SELECT user_id AS id, full_name AS name, email, phone, role, status
+        $sql = "SELECT user_id AS id,
+                   first_name,
+                   last_name,
+                   CONCAT(first_name, ' ', COALESCE(last_name, '')) AS name,
+                   email, phone, role, status
                 FROM users WHERE user_id = ? LIMIT 1";
         $st = $this->db->prepare($sql);
         $st->execute([$userId]);
@@ -39,18 +43,36 @@ class ProfileModel {
         $me = $this->sessionUser();
         if (!$me) return false;
 
-        $name  = trim($post['full_name'] ?? ($me['name'] ?? ''));
+        $first = trim($post['first_name'] ?? ($me['first_name'] ?? ''));
+        $last  = trim($post['last_name'] ?? ($me['last_name'] ?? ''));
         $email = trim($post['email'] ?? ($me['email'] ?? ''));
         $phone = trim($post['phone'] ?? ($me['phone'] ?? ''));
 
+        $id = (int)($me['id'] ?? $me['user_id'] ?? 0);
+        if ($id <= 0) return false;
+        if ($first === '') return false;
+
         // (Optional) validations here (email format, unique email, length caps)
-        $sql = "UPDATE users SET full_name=:name, email=:email, phone=:phone WHERE user_id=:id LIMIT 1";
+        $sql = "UPDATE users
+                   SET first_name=:first_name,
+                       last_name=:last_name,
+                       email=:email,
+                       phone=:phone
+                 WHERE user_id=:id LIMIT 1";
         $st  = $this->db->prepare($sql);
-        $ok  = $st->execute([':name'=>$name, ':email'=>$email, ':phone'=>$phone, ':id'=>(int)$me['id']]);
+        $ok  = $st->execute([
+            ':first_name' => $first,
+            ':last_name'  => ($last !== '' ? $last : null),
+            ':email'      => ($email !== '' ? $email : null),
+            ':phone'      => ($phone !== '' ? $phone : null),
+            ':id'         => $id,
+        ]);
 
         if ($ok) {
             // sync session (you said: “get it all from the session”)
-            $_SESSION['user']['name']  = $name;
+            $_SESSION['user']['first_name'] = $first;
+            $_SESSION['user']['last_name']  = $last;
+            $_SESSION['user']['name']  = trim($first . ' ' . $last);
             $_SESSION['user']['email'] = $email;
             $_SESSION['user']['phone'] = $phone;
         }

@@ -148,7 +148,7 @@ class ProfileModel {
 
             $su = $this->pdo->prepare(
                 "UPDATE users 
-                   SET full_name='Deleted User', email=?, phone=NULL, password_hash=NULL, status='Suspended'
+                                     SET first_name='Deleted', last_name='User', email=?, phone=NULL, password_hash=NULL, status='Suspended'
                  WHERE user_id=?"
             );
             $su->execute([$anon, $userId]);

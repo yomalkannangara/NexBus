@@ -39,6 +39,12 @@ $ids = array_values(
   )
 );
 
+// Determine correct action URL from current path (router uses /M/feedback for depot manager)
+$uriPath  = parse_url($_SERVER['REQUEST_URI'] ?? '/M/feedback', PHP_URL_PATH) ?: '/M/feedback';
+$segments = array_values(array_filter(explode('/', $uriPath)));
+$moduleSeg = $segments[0] ?? 'M';
+$feedbackAction = '/' . $moduleSeg . '/feedback';
+
 function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <section class="section">
@@ -82,34 +88,101 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
     <?php endif; ?>
   </div>
 
-  <!-- Quick Response -->
+  <!-- Quick Response (wired to controller actions) -->
   <div class="card mt-6">
     <div class="card__head">
       <div class="card__title primary">Quick Response</div>
     </div>
     <div class="card__body">
-      <div class="form-grid">
-        <div class="select">
-          <select>
-            <option>Select Feedback ID</option>
-            <?php foreach ($ids as $id): ?>
-              <option><?= h((string)$id) ?></option>
-            <?php endforeach; ?>
-          </select>
+      <form method="post" action="<?= h($feedbackAction) ?>" class="grid grid-3 gap-4" style="align-items:start">
+        <div class="stack" style="gap:10px">
+          <div class="muted small">Select feedback/complaint</div>
+          <div class="select">
+            <select name="complaint_id" id="q_complaint_id" required>
+              <option value="">Select Feedback ID</option>
+              <?php foreach ($ids as $id): ?>
+                <option value="<?= h((string)$id) ?>"><?= h((string)$id) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="muted small">Action note / reply (saved to complaints.reply_text)</div>
+          <textarea class="textarea" name="message" id="q_message" placeholder="Type reply or resolution note..."></textarea>
+          <div class="muted small">Tip: Use Reply for normal responses. Resolve will also set Resolved timestamp.</div>
         </div>
-        <div class="select">
-          <select>
-            <option>Change Status</option>
-            <option>Open</option>
-            <option>In Progress</option>
-            <option>Under Review</option>
-            <option>Resolved</option>
-          </select>
+
+        <div class="stack" style="gap:10px">
+          <div class="muted small">Selected details</div>
+          <div class="pill" style="display:block" id="q_details">Select an item to preview details here.</div>
+          <div class="pill" style="display:block" id="q_current_reply">Reply: —</div>
         </div>
-        <button class="btn btn-secondary">Update Status</button>
+
+        <div class="stack" style="gap:10px">
+          <div class="muted small">Actions</div>
+          <button class="btn btn-primary" type="submit" name="action" value="reply">Send Reply</button>
+          <button class="btn btn-secondary" type="submit" name="action" value="resolve">Mark Resolved</button>
+          <button class="btn btn-outline" type="submit" name="action" value="close">Close</button>
+          <p class="muted" style="margin:0">Close keeps any existing reply.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage panel (populated by table selection) -->
+  <div class="card mt-6" id="manageCard" style="display:none">
+    <div class="card__head">
+      <div class="card__title primary">Manage Feedback</div>
+    </div>
+    <div class="card__body">
+      <div class="grid grid-3 gap-4">
+        <div class="stack">
+          <div class="muted small">ID</div>
+          <div class="primary fw-600" id="m_id">—</div>
+        </div>
+        <div class="stack">
+          <div class="muted small">Bus / Route</div>
+          <div class="fw-600" id="m_bus">—</div>
+          <div class="muted small" id="m_route">—</div>
+        </div>
+        <div class="stack">
+          <div class="muted small">Passenger / Status</div>
+          <div class="fw-600" id="m_passenger">—</div>
+          <div class="muted small" id="m_status">—</div>
+        </div>
       </div>
-      <textarea class="textarea" placeholder="Enter response or notes..."></textarea>
-      <button class="btn btn-primary mt-12">Send Response</button>
+
+      <div class="grid grid-2 gap-4 mt-4">
+        <div>
+          <div class="muted small">Description</div>
+          <div class="pill" style="display:block; margin-top:8px" id="m_desc">—</div>
+        </div>
+        <div>
+          <div class="muted small">Current Reply</div>
+          <div class="pill" style="display:block; margin-top:8px" id="m_reply">—</div>
+        </div>
+      </div>
+
+      <div class="grid grid-3 gap-4 mt-4" style="align-items:start">
+        <form method="post" action="<?= h($feedbackAction) ?>" class="stack" style="gap:10px">
+          <input type="hidden" name="action" value="reply">
+          <input type="hidden" name="complaint_id" id="m_reply_id" value="">
+          <textarea class="textarea" name="message" id="m_reply_msg" placeholder="Type reply..." required></textarea>
+          <button class="btn btn-primary">Save Reply</button>
+        </form>
+
+        <form method="post" action="<?= h($feedbackAction) ?>" class="stack" style="gap:10px">
+          <input type="hidden" name="action" value="resolve">
+          <input type="hidden" name="complaint_id" id="m_resolve_id" value="">
+          <textarea class="textarea" name="note" id="m_resolve_note" placeholder="Optional resolution note"></textarea>
+          <button class="btn btn-secondary">Resolve</button>
+        </form>
+
+        <form method="post" action="<?= h($feedbackAction) ?>" class="stack" style="gap:10px">
+          <input type="hidden" name="action" value="close">
+          <input type="hidden" name="complaint_id" id="m_close_id" value="">
+          <p class="muted" style="margin:0">Close without changing reply.</p>
+          <button class="btn btn-outline">Close</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -183,7 +256,11 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
               </td>
               <td>
                 <div class="actions-inline">
-                  <button class="btn btn-outline small">View</button>
+                  <button
+                    class="btn btn-outline small js-manage"
+                    type="button"
+                    data-id="<?= h($rid) ?>"
+                  >Manage</button>
                 </div>
               </td>
             </tr>
@@ -196,3 +273,77 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
     </div>
   </div>
 </section>
+
+<script>
+  // Minimal JS: populate Manage panel from PHP-provided rows
+  const FEEDBACK_ROWS = <?= json_encode($rows, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+
+  function pickRow(id) {
+    id = String(id);
+    return FEEDBACK_ROWS.find(r => String(r.id) === id);
+  }
+
+  function showManage(row) {
+    const card = document.getElementById('manageCard');
+    if (!card) return;
+
+    document.getElementById('m_id').textContent = row?.id ?? '—';
+    document.getElementById('m_bus').textContent = row?.busNumber ?? '—';
+    document.getElementById('m_route').textContent = row?.route ?? '—';
+    document.getElementById('m_passenger').textContent = row?.passengerName ?? '—';
+    document.getElementById('m_status').textContent = row?.status ?? '—';
+
+    document.getElementById('m_desc').innerHTML = row?.description ? esc(row.description).replace(/\n/g,'<br>') : '—';
+    document.getElementById('m_reply').innerHTML = row?.reply_text ? esc(row.reply_text).replace(/\n/g,'<br>') : '—';
+
+    document.getElementById('m_reply_id').value = row?.id ?? '';
+    document.getElementById('m_resolve_id').value = row?.id ?? '';
+    document.getElementById('m_close_id').value = row?.id ?? '';
+
+    // Pre-fill resolve note with current reply (optional convenience)
+    const curReply = row?.reply_text ?? '';
+    const noteEl = document.getElementById('m_resolve_note');
+    if (noteEl && !noteEl.value) noteEl.value = curReply;
+
+    card.style.display = '';
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Quick Response preview
+  function showQuickPreview(row) {
+    const details = document.getElementById('q_details');
+    const curReply = document.getElementById('q_current_reply');
+    if (!details || !curReply) return;
+
+    const parts = [];
+    parts.push(`<div><strong>#${esc(row?.id ?? '')}</strong> — ${esc(row?.status ?? '')}</div>`);
+    parts.push(`<div class="muted small">${esc(row?.type ?? '')} • ${esc(row?.category ?? '')}</div>`);
+    parts.push(`<div class="muted small">Bus: ${esc(row?.busNumber ?? '—')} • Route: ${esc(row?.route ?? '—')}</div>`);
+    parts.push(`<div class="muted small">Passenger: ${esc(row?.passengerName ?? '—')}</div>`);
+    if (row?.description) {
+      parts.push(`<div style="margin-top:8px">${esc(row.description).replace(/\n/g,'<br>')}</div>`);
+    }
+    details.innerHTML = parts.join('');
+    curReply.innerHTML = `Reply: ${row?.reply_text ? esc(row.reply_text).replace(/\n/g,'<br>') : '—'}`;
+  }
+
+  const qSel = document.getElementById('q_complaint_id');
+  if (qSel) {
+    qSel.addEventListener('change', () => {
+      const row = pickRow(qSel.value);
+      if (row) showQuickPreview(row);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-manage');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    const row = pickRow(id);
+    if (row) showManage(row);
+  });
+</script>

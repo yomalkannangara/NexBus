@@ -9,9 +9,11 @@ $page     = $segments[1] ?? 'dashboard';
 
 // Current user (optional)
 $user    = $_SESSION['user'] ?? null;
-$initial = $user ? strtoupper(substr($user['full_name'] ?? 'U', 0, 1)) : 'U';
+$displayName = $user ? trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) : '';
+$displayName = $displayName !== '' ? $displayName : ($user['name'] ?? ($user['full_name'] ?? ''));
+$initial = $user ? strtoupper(substr($displayName !== '' ? $displayName : 'U', 0, 1)) : 'U';
 $email   = $user['email'] ?? 'depot.manager@sltb.lk';
-$name    = $user['full_name']  ?? 'Depot Manager';
+$name    = $displayName !== '' ? $displayName : 'Depot Manager';
 ?>
 <!doctype html>
 <html lang="en" data-theme="<?= htmlspecialchars($_SESSION['prefs']['theme'] ?? 'light') ?>">
