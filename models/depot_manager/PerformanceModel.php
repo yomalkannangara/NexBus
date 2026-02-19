@@ -11,6 +11,14 @@ abstract class BaseModel {
 }
 class PerformanceModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+    
     /* ---------- KPI cards ---------- */
     public function cards(): array
     {
@@ -127,11 +135,11 @@ class PerformanceModel extends BaseModel
     {
         try {
             $sql = "
-                SELECT r.route_no, r.name, COUNT(*) c
+                SELECT r.route_no, r.stops_json, COUNT(*) c
                 FROM trip_performance p
                 JOIN routes r ON r.route_id = p.route_id
                 WHERE p.driver_id = :id
-                GROUP BY r.route_id, r.route_no, r.name
+                GROUP BY r.route_id, r.route_no, r.stops_json
                 ORDER BY c DESC
                 LIMIT 1
             ";
@@ -140,7 +148,7 @@ class PerformanceModel extends BaseModel
             $row = $st->fetch(PDO::FETCH_ASSOC);
             if ($row) {
                 $no = trim((string)($row['route_no'] ?? ''));
-                $nm = trim((string)($row['name'] ?? ''));
+                $nm = $this->getRouteDisplayName($row['stops_json'] ?? '[]');
                 return $no && $nm ? "{$no} — {$nm}" : ($no ?: ($nm ?: '—'));
             }
         } catch (PDOException $e) { /* ignore */ }

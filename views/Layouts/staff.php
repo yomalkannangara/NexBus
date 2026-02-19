@@ -7,9 +7,11 @@ $module   = $segments[0] ?? '';              // 'O' (Depot Officer), 'TP' (Priva
 $page     = $segments[1] ?? 'dashboard';
 
 $user     = $_SESSION['user'] ?? [];
-$initial  = $user ? strtoupper(substr($user['name'] ?? $user['full_name'] ?? 'U', 0, 1)) : '?';
+$displayName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+$displayName = $displayName !== '' ? $displayName : ($user['name'] ?? ($user['full_name'] ?? ''));
+$initial  = $user ? strtoupper(substr($displayName !== '' ? $displayName : 'U', 0, 1)) : '?';
 $email    = $user['email'] ?? '';
-$name     = $user['full_name']  ?? ($user['full_name'] ?? 'Staff User');
+$name     = $displayName !== '' ? $displayName : 'Staff User';
   $profileHref = in_array($module, ['O','TP','TS'], true) ? ("/$module/profile") : "/home";
 
 // labels per module

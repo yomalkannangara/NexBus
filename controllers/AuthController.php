@@ -40,12 +40,16 @@ class AuthController extends BaseController
         }
 
         $_SESSION['user'] = [
-            'user_id' => $user['user_id'],
+            // Keep both keys for compatibility across the codebase.
+            'user_id' => (int)$user['user_id'],
+            'id' => (int)$user['user_id'],
             'role' => $user['role'],
             'private_operator_id' => $user['private_operator_id'] ?? null,
             'sltb_depot_id' => $user['sltb_depot_id'] ?? null,
-            'full_name' => $user['full_name'] ?? null,
-            'email' => $user['email'] ?? null
+            'first_name' => $user['first_name'] ?? null,
+            'last_name' => $user['last_name'] ?? null,
+            'email' => $user['email'] ?? null,
+            'phone' => $user['phone'] ?? null,
         ];
 
         $redirect = $_SESSION['intended'] ?? $this->defaultHomeForRole($user['role']);
@@ -66,13 +70,14 @@ class AuthController extends BaseController
         }
 
         // POST → create passenger user
-        $fullName = trim($_POST['full_name'] ?? '');
+        $firstName = trim($_POST['first_name'] ?? '');
+        $lastName  = trim($_POST['last_name'] ?? '');
         $email    = trim($_POST['email'] ?? '');
         $phone    = trim($_POST['phone'] ?? '');
         $pwd      = $_POST['password'] ?? '';
         $pwd2     = $_POST['confirm_password'] ?? '';
 
-        if ($fullName === '' || $email === '' || $pwd === '' || $pwd2 === '') {
+        if ($firstName === '' || $lastName === '' || $email === '' || $pwd === '' || $pwd2 === '') {
             header('Location: /register?error=All fields are required');
             exit;
         }
@@ -88,7 +93,8 @@ class AuthController extends BaseController
         }
 
         $userId = $um->createPassenger([
-            'full_name' => $fullName,
+            'first_name' => $firstName,
+            'last_name'  => $lastName,
             'email'     => $email,
             'phone'     => $phone !== '' ? $phone : null,
             'password'  => $pwd
@@ -101,10 +107,13 @@ class AuthController extends BaseController
 
         // auto-login new passenger
         $_SESSION['user'] = [
-            'id'    => $userId,
-            'role'  => 'Passenger',
-            'name'  => $fullName,
-            'email' => $email
+            'user_id' => (int)$userId,
+            'id'      => (int)$userId,
+            'role'    => 'Passenger',
+            'first_name' => $firstName,
+            'last_name'  => $lastName,
+            'email'   => $email,
+            'phone'   => ($phone !== '' ? $phone : null),
         ];
 
         header('Location: ' . $this->defaultHomeForRole('Passenger'));

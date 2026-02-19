@@ -95,9 +95,11 @@ $isStaffRole = in_array($role, ['DepotOfficer','SLTBTimekeeper','PrivateTimekeep
 
       <?php
       $user = $_SESSION['user'] ?? null;
-      $initial = $user ? strtoupper(substr($user['full_name'] ?? 'G', 0, 1)) : '?';
+      $displayName = $user ? trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) : '';
+      $displayName = $displayName !== '' ? $displayName : ($user['name'] ?? ($user['full_name'] ?? ''));
+      $initial = $user ? strtoupper(substr($displayName !== '' ? $displayName : 'G', 0, 1)) : '?';
       $email   = $user['email'] ?? 'admin@ntc.gov.lk';
-      $name    = $user['full_name']  ?? 'Admin User';
+      $name    = $displayName !== '' ? $displayName : 'Admin User';
       $role    = $user['role']  ?? '';
       ?>
       <div class="sidebar-profile">

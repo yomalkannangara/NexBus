@@ -34,18 +34,27 @@ class FavouritesModel extends BaseModel {
           return $row ?: null;
       }
 
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+
       public function onlyFavs(int $userId): array {
-          $sql = "SELECT r.route_id, r.route_no, r.name, r.is_active,
-                        f.favourite_id, f.notify_enabled
-                    FROM passenger_favourites f
-                    JOIN routes r ON r.route_id = f.route_id
-                  WHERE f.passenger_id = ?
-                ORDER BY r.route_no";
+          $sql = "SELECT r.route_id, r.route_no, r.stops_json, r.is_active,
+                       f.favourite_id, f.notify_enabled
+                   FROM passenger_favourites f
+                   JOIN routes r ON r.route_id = f.route_id
+                 WHERE f.passenger_id = ?
+             ORDER BY r.route_no";
           $st = $this->pdo->prepare($sql);
           $st->execute([$userId]);
           $rows = $st->fetchAll();
 
           foreach ($rows as &$r) {
+              $r['name'] = $this->getRouteDisplayName($r['stops_json']);
               $latest = $this->latestBusForRoute((int)$r['route_id']);
               $r['latest_bus'] = $latest['bus_reg_no'] ?? null;
               $r['operator_type'] = $latest['operator_type'] ?? null;
@@ -55,8 +64,10 @@ class FavouritesModel extends BaseModel {
       }
 
 public function allRoutes(): array {
-    $sql = "SELECT route_id, route_no, name, is_active FROM routes ORDER BY route_no+0, route_no";
-    return $this->pdo->query($sql)->fetchAll();
+    $sql = "SELECT route_id, route_no, stops_json, is_active FROM routes ORDER BY route_no+0, route_no";
+    $rows = $this->pdo->query($sql)->fetchAll();
+    foreach ($rows as &$r) $r['name'] = $this->getRouteDisplayName($r['stops_json']);
+    return $rows;
 }
 
 public function add(int $userId, int $routeId): bool {

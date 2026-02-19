@@ -5,12 +5,20 @@ use PDO;
 
 class TripEntryModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+
     /** Same shape as your SLTB markup expects */
     public function todayList(): array
     {
         $sql = "SELECT
             tt.timetable_id,
-            r.route_no, r.name AS route_name,
+            r.route_no, r.stops_json,
             tt.bus_reg_no,
             TIME(tt.departure_time) AS sched_dep,
             TIME(tt.arrival_time)   AS sched_arr,
@@ -25,7 +33,11 @@ class TripEntryModel extends BaseModel
         ORDER BY TIME(tt.departure_time), r.route_no+0, r.route_no";
         $st = $this->pdo->prepare($sql);
         $st->execute([':op'=>$this->opId]);
-        return $st->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        return $rows;
     }
 
     /** Insert into private_trips for today; compute next turn_no per bus */

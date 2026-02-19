@@ -1,263 +1,203 @@
 <?php
-// Content-only Feedback view (owner) - IMPROVED UI
+// Bus Owner Feedback (Private only)
+// Vars from controller:
+//   $feedback_refs (id + ref_code)
+//   $feedback_list
+
+$feedback_refs = is_array($feedback_refs ?? null) ? $feedback_refs : [];
+$feedback_list = is_array($feedback_list ?? null) ? $feedback_list : [];
+
+function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
-<section id="feedbackPage" data-endpoint="<?= BASE_URL; ?>/B/feedback">
 
-<header class="page-header">
-  <div>
-    <h2 class="page-title">Passenger Feedback System</h2>
-    <p class="page-subtitle">Track and manage passenger complaints and feedback</p>
-  </div>
-</header>
+<section id="feedbackPage">
 
-<!-- Success/Error Notification Area -->
-<div id="feedbackNotification" class="feedback-notification" style="display: none;"></div>
-
-<!-- Quick Response Section - Improved Layout -->
-<div class="card">
-  <h3 class="card-title">Quick Response Actions</h3>
-
-  <div class="feedback-actions-grid">
-    <!-- Left Column: Update Status -->
-    <div class="feedback-action-card">
-      <div class="action-card-header">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="color: var(--maroon);">
-          <path d="M9 12l-2-2m0 0l-2 2m2-2v6m8-6a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <h4 class="action-card-title">Update Status</h4>
-      </div>
-      
-      <form class="action-form js-update-status-form" data-action="update_status" method="post" novalidate>
-        <div class="form-group">
-          <label class="form-label">Select Feedback to Update *</label>
-          <select class="form-select js-ref-select" name="feedback_ref" required>
-            <option value="">Choose a feedback ID...</option>
-            <?php if (!empty($feedback_refs)): ?>
-              <?php foreach ($feedback_refs as $r): ?>
-                <option value="<?= htmlspecialchars($r['ref_code']); ?>">
-                  <?= htmlspecialchars($r['ref_code']); ?>
-                </option>
-              <?php endforeach; ?>
-            <?php endif; ?>
-          </select>
-          <span class="form-error" id="statusFeedbackError" style="display: none;">Please select a feedback ID</span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Select New Status *</label>
-          <select class="form-select js-status-select" name="status" required>
-            <option value="">Choose status...</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
-            <option value="Open">Open</option>
-          </select>
-          <span class="form-error" id="statusValueError" style="display: none;">Please select a status</span>
-        </div>
-
-        <button class="update-status-btn" type="submit" disabled>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
-            <path d="M12 5l-6 6-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Update Status
-        </button>
-      </form>
+  <header class="page-header">
+    <div>
+      <h2 class="page-title">Passenger Feedback & Complaints</h2>
+      <p class="page-subtitle">Private buses only (your operator)</p>
     </div>
+  </header>
 
-    <!-- Right Column: Send Response -->
-    <div class="feedback-action-card">
-      <div class="action-card-header">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="color: var(--maroon);">
-          <path d="M3 8l7-7 7 7M10 1v16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <h4 class="action-card-title">Send Response</h4>
+  <!-- Quick Response (single selector, like depot manager) -->
+  <div class="card">
+    <h3 class="card-title">Quick Response</h3>
+
+    <form method="post" action="/B/feedback" class="filter-grid" style="grid-template-columns: 1.2fr 1.8fr 1fr; align-items:start; gap:14px;">
+      <div class="filter-group">
+        <label class="filter-label">Select Feedback ID *</label>
+        <select name="complaint_id" id="q_complaint_id" class="search-input" required>
+          <option value="">Choose an ID...</option>
+          <?php foreach ($feedback_refs as $r): ?>
+            <option value="<?= (int)($r['id'] ?? 0) ?>"><?= h($r['ref_code'] ?? '') ?></option>
+          <?php endforeach; ?>
+        </select>
+        <div class="muted" style="margin-top:6px">Tip: Reply sets status to In Progress automatically.</div>
       </div>
 
-      <form class="action-form js-send-response-form" data-action="send_response" method="post" novalidate>
-        <div class="form-group">
-          <label class="form-label">Select Feedback to Respond *</label>
-          <select class="form-select js-ref-select-2" name="feedback_ref" required>
-            <option value="">Choose a feedback ID...</option>
-            <?php if (!empty($feedback_refs)): ?>
-              <?php foreach ($feedback_refs as $r): ?>
-                <option value="<?= htmlspecialchars($r['ref_code']); ?>">
-                  <?= htmlspecialchars($r['ref_code']); ?>
-                </option>
-              <?php endforeach; ?>
-            <?php endif; ?>
-          </select>
-          <span class="form-error" id="responseFeedbackError" style="display: none;">Please select a feedback ID</span>
-        </div>
+      <div class="filter-group">
+        <label class="filter-label">Reply / Note</label>
+        <textarea name="message" id="q_message" class="search-input" rows="4" placeholder="Type reply or note (saved to complaints.reply_text)..."></textarea>
+        <div class="muted" style="margin-top:6px" id="q_preview">Select an item to preview details.</div>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">Your Response *</label>
-          <textarea class="form-textarea js-response" name="response" placeholder="Type your response to the passenger here..." rows="5" required></textarea>
-          <span class="form-hint">Be professional and helpful in your response</span>
-          <span class="form-error" id="responseTextError" style="display: none;">Please enter a response</span>
-        </div>
+      <div class="filter-actions" style="align-self:end; display:flex; flex-direction:column; gap:10px;">
+        <button class="export-btn" type="submit" name="action" value="reply">Send Reply</button>
+        <button class="export-btn" type="submit" name="action" value="resolve">Resolve</button>
+        <button class="export-btn" type="submit" name="action" value="close">Close</button>
+      </div>
+    </form>
+  </div>
 
-        <button class="send-response-btn" type="submit" disabled>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
-            <path d="M14 2L7 9M14 2l-4 12-3-7-7-3 14-4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Send Response
-        </button>
-      </form>
+  <!-- Manage panel (opens from table Manage button) -->
+  <div class="card" id="manageCard" style="margin-top:16px; display:none;">
+    <h3 class="card-title">Manage Selected Item</h3>
+    <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:14px;">
+      <div>
+        <div class="muted">Details</div>
+        <div class="card" style="margin-top:10px; padding:12px;">
+          <div><strong id="m_ref">—</strong> <span class="muted" id="m_status">—</span></div>
+          <div class="muted" style="margin-top:6px" id="m_meta">—</div>
+          <div style="margin-top:10px" id="m_desc">—</div>
+        </div>
+      </div>
+      <div>
+        <div class="muted">Reply</div>
+        <div class="card" style="margin-top:10px; padding:12px;">
+          <div class="muted" id="m_current_reply">Reply: —</div>
+          <form method="post" action="/B/feedback" style="margin-top:10px;">
+            <input type="hidden" name="complaint_id" id="m_id" value="">
+            <textarea class="search-input" name="message" id="m_message" rows="4" placeholder="Type reply..." required></textarea>
+            <div class="filter-actions" style="margin-top:10px; display:flex; gap:10px;">
+              <button class="export-btn" type="submit" name="action" value="reply">Save Reply</button>
+              <button class="export-btn" type="submit" name="action" value="resolve">Resolve</button>
+              <button class="export-btn" type="submit" name="action" value="close">Close</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Selected Feedback Details (Shows after selection) -->
-<div id="selectedFeedbackDetails" class="card feedback-details-card" style="display: none;">
-  <div class="feedback-details-header">
-    <h4 class="feedback-details-title">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="margin-right: 8px; color: var(--maroon);">
-        <path d="M9 11v-1m0-4h.01M17 9a8 8 0 11-16 0 8 8 0 0116 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Selected Feedback Details
-    </h4>
-    <button class="close-details-btn" onclick="document.getElementById('selectedFeedbackDetails').style.display='none'">×</button>
-  </div>
-  <div class="feedback-details-content" id="feedbackDetailsContent">
-    <!-- Content will be populated via JavaScript -->
-  </div>
-</div>
+  <!-- Table -->
+  <div class="card" style="margin-top:16px;">
+    <h3 class="card-title">Recent Feedback & Complaints</h3>
 
-<!-- Recent Feedback Table -->
-<div class="card">
-  <h3 class="card-title">Recent Feedback & Complaints</h3>
-
-  <div class="table-container">
-    <table class="data-table" id="feedback-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Date</th>
-          <th>Bus/Route</th>
-          <th>Passenger</th>
-          <th>Type</th>
-          <th>Category</th>
-          <th>Status</th>
-          <th class="desc-cell">Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
+    <div class="table-container">
+      <table class="data-table" id="feedback-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Bus/Route</th>
+            <th>Passenger</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Rating</th>
+            <th>Reply</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
         <?php if (!empty($feedback_list)): ?>
           <?php foreach ($feedback_list as $f): ?>
             <?php
-              $ref   = (string)($f['ref_code']  ?? '');
-              $msg   = (string)($f['message']   ?? 'No message');
-              $resp  = (string)($f['response']  ?? '');
-              $type  = (string)($f['type']      ?? 'Complaint');
-              $stat  = (string)($f['status']    ?? 'Open');
-              $desc  = $msg;
+              $id    = (int)($f['id'] ?? 0);
+              $ref   = (string)($f['ref_code'] ?? ('C'.str_pad((string)$id, 6, '0', STR_PAD_LEFT)));
+              $stat  = (string)($f['status'] ?? 'Open');
+              $rate  = (int)($f['rating'] ?? 0);
+              $reply = trim((string)($f['response'] ?? ''));
+              $replyShort = $reply !== '' ? (strlen($reply) > 60 ? substr($reply, 0, 60) . '…' : $reply) : '—';
             ?>
-            <tr data-ref="<?= htmlspecialchars($ref); ?>">
-              <td><strong><?= htmlspecialchars($ref); ?></strong></td>
-              <td><?= htmlspecialchars($f['date'] ?? ''); ?></td>
-              <td><div><strong><?= htmlspecialchars($f['bus_or_route'] ?? ''); ?></strong></div></td>
-              <td><?= htmlspecialchars($f['passenger'] ?? ''); ?></td>
+            <tr>
+              <td><strong><?= h($ref) ?></strong></td>
+              <td><?= h((string)($f['date'] ?? '')) ?></td>
+              <td><strong><?= h((string)($f['bus_or_route'] ?? '')) ?></strong></td>
+              <td><?= h((string)($f['passenger'] ?? '')) ?></td>
+              <td><?= h((string)($f['type'] ?? '')) ?></td>
+              <td><?= h((string)($f['category'] ?? '')) ?></td>
+              <td><?= h($stat) ?></td>
+              <td><?= $rate > 0 ? h((string)$rate) . '/5' : '—' ?></td>
+              <td><?= h($replyShort) ?></td>
               <td>
-                <span class="type-badge js-type-badge">
-                  <?= htmlspecialchars($type); ?>
-                </span>
-              </td>
-              <td><?= htmlspecialchars($f['category'] ?? ''); ?></td>
-              <td>
-                <span class="status-badge js-status-badge" data-status="<?= htmlspecialchars($stat); ?>">
-                  <?= htmlspecialchars($stat); ?>
-                </span>
-              </td>
-
-              <!-- Description column -->
-              <td class="desc-cell">
-                <div class="desc-text text-secondary">
-                  <?= htmlspecialchars($desc); ?>
-                </div>
-              </td>
-
-              <td>
-                <div class="action-buttons">
-                  <button class="icon-btn js-view"
-                          type="button"
-                          title="View"
-                          data-ref="<?= htmlspecialchars($ref); ?>"
-                          data-message="<?= htmlspecialchars($msg); ?>"
-                          data-response="<?= htmlspecialchars($resp); ?>">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                      <path d="M1 9s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="2"/>
-                      <circle cx="9" cy="9" r="2" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  class="export-btn js-manage"
+                  data-id="<?= $id ?>"
+                >Manage</button>
               </td>
             </tr>
           <?php endforeach; ?>
         <?php else: ?>
-          <tr>
-            <td colspan="9" style="text-align:center;padding:40px;color:#6B7280;">
-              No feedback records found.
-            </td>
-          </tr>
+          <tr><td colspan="10" style="text-align:center;padding:24px;color:#6B7280;">No feedback records found.</td></tr>
         <?php endif; ?>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 
-<!-- View dialog with improved styling -->
-<dialog id="feedback-dialog" class="feedback-dialog">
-  <div class="feedback-dialog-content">
-    <div class="feedback-dialog-header">
-      <h3 class="feedback-dialog-title">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="margin-right: 8px;">
-          <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" fill="currentColor"/>
-        </svg>
-        Feedback <span class="js-dialog-ref feedback-ref-badge"></span>
-      </h3>
-      <button class="dialog-close-btn" value="close" type="button" onclick="document.getElementById('feedback-dialog').close()">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
-    
-    <div class="feedback-dialog-body">
-      <div class="feedback-section">
-        <div class="feedback-section-header">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M16 2H2a1 1 0 00-1 1v10a1 1 0 001 1h3l3 3 3-3h3a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <strong>Passenger Complaint</strong>
-        </div>
-        <p class="js-dialog-msg feedback-message"></p>
-      </div>
-      
-      <div class="feedback-section js-dialog-reply-block">
-        <div class="feedback-section-header">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M16 2H2a1 1 0 00-1 1v10a1 1 0 001 1h3l3 3 3-3h3a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M5 8h8M5 11h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <strong>Owner Response</strong>
-        </div>
-        <p class="js-dialog-reply feedback-response"></p>
-      </div>
-    </div>
-    
-    <div class="feedback-dialog-footer">
-      <button class="dialog-btn dialog-btn-secondary" value="close" onclick="document.getElementById('feedback-dialog').close()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
-          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        Close
-      </button>
-      <button class="dialog-btn dialog-btn-primary js-use-id-btn" value="use">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right: 6px;">
-          <path d="M13 5l-7 7-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+  <script>
+    const ROWS = <?= json_encode($feedback_list, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+    const refs = <?= json_encode($feedback_refs, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function findRowById(id) {
+      return ROWS.find(r => String(r.id) === String(id));
+    }
+    function refForId(id) {
+      const hit = refs.find(r => String(r.id) === String(id));
+      return hit?.ref_code || ('C' + String(id).padStart(6, '0'));
+    }
+
+    // Quick preview
+    const qSel = document.getElementById('q_complaint_id');
+    const qPrev = document.getElementById('q_preview');
+    if (qSel && qPrev) {
+      qSel.addEventListener('change', () => {
+        const row = findRowById(qSel.value);
+        if (!row) {
+          qPrev.textContent = 'Select an item to preview details.';
+          return;
+        }
+        const parts = [];
+        parts.push(`<div><strong>${esc(refForId(row.id))}</strong> — ${esc(row.status)}</div>`);
+        parts.push(`<div class="muted" style="margin-top:4px">Bus/Route: ${esc(row.bus_or_route)} • Passenger: ${esc(row.passenger)}</div>`);
+        parts.push(`<div class="muted" style="margin-top:4px">Type: ${esc(row.type)} • Category: ${esc(row.category)} • Rating: ${row.rating ? esc(row.rating) + '/5' : '—'}</div>`);
+        if (row.message) parts.push(`<div style="margin-top:8px">${esc(row.message).replace(/\n/g,'<br>')}</div>`);
+        if (row.response) parts.push(`<div class="muted" style="margin-top:8px"><strong>Reply:</strong><br>${esc(row.response).replace(/\n/g,'<br>')}</div>`);
+        qPrev.innerHTML = parts.join('');
+      });
+    }
+
+    // Manage panel
+    function showManage(row) {
+      const card = document.getElementById('manageCard');
+      if (!card) return;
+
+      document.getElementById('m_ref').textContent = refForId(row.id);
+      document.getElementById('m_status').textContent = row.status || '';
+      document.getElementById('m_meta').textContent = `Bus/Route: ${row.bus_or_route || '—'} | Passenger: ${row.passenger || '—'} | Rating: ${row.rating ? row.rating + '/5' : '—'}`;
+      document.getElementById('m_desc').innerHTML = row.message ? esc(row.message).replace(/\n/g,'<br>') : '—';
+      document.getElementById('m_current_reply').innerHTML = `Reply: ${row.response ? esc(row.response).replace(/\n/g,'<br>') : '—'}`;
+      document.getElementById('m_id').value = row.id;
+      document.getElementById('m_message').value = '';
+
+      card.style.display = '';
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.js-manage');
+      if (!btn) return;
+      const row = findRowById(btn.getAttribute('data-id'));
+      if (row) showManage(row);
+    });
+  </script>
+
+</section>
         Use this ID
       </button>
     </div>

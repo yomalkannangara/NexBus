@@ -14,7 +14,8 @@ class ProfileModel
         $u = $_SESSION['user'] ?? [];
         return [
             'id'        => $u['id']        ?? $userId,
-            'full_name' => $u['full_name'] ?? '',
+            'first_name' => $u['first_name'] ?? '',
+            'last_name'  => $u['last_name'] ?? '',
             'email'     => $u['email']     ?? '',
             'phone'     => $u['phone']     ?? '',
         ];
@@ -22,11 +23,12 @@ class ProfileModel
 
     public function updateDetails(int $userId, array $data): bool
     {
-        $name  = trim($data['full_name'] ?? '');
+        $first = trim($data['first_name'] ?? '');
+        $last  = trim($data['last_name'] ?? '');
         $email = trim($data['email'] ?? '');
         $phone = trim($data['phone'] ?? '');
 
-        if ($name === '') { $this->lastError = 'Name is required'; return false; }
+        if ($first === '') { $this->lastError = 'First name is required'; return false; }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $this->lastError = 'Invalid email'; return false; }
 
         // TODO: persist to DB
@@ -35,7 +37,8 @@ class ProfileModel
         // $stmt->execute([$name, $email, $phone, $userId]);
 
         // Keep session in sync
-        $_SESSION['user']['full_name'] = $name;
+        $_SESSION['user']['first_name'] = $first;
+        $_SESSION['user']['last_name']  = $last;
         $_SESSION['user']['email']     = $email;
         $_SESSION['user']['phone']     = $phone;
 

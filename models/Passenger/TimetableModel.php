@@ -10,13 +10,20 @@ abstract class BaseModel {
 
 class TimetableModel extends BaseModel
 {
+    private function getRouteDisplayName(string $stopsJson): string {
+        $stops = json_decode($stopsJson, true) ?: [];
+        if (empty($stops)) return 'Unknown';
+        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
+        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
+        return "$first - $last";
+    }
+
     /** Routes for dropdown */
     public function routes(): array {
-        $sql = "SELECT route_id, route_no, name
-                  FROM routes
-                 WHERE is_active=1
-              ORDER BY route_no+0, route_no";
-        return $this->pdo->query($sql)->fetchAll();
+        $sql = "SELECT route_id, route_no, stops_json FROM routes WHERE is_active=1 ORDER BY route_no+0, route_no";
+        $rows = $this->pdo->query($sql)->fetchAll();
+        foreach ($rows as &$r) $r['name'] = $this->getRouteDisplayName($r['stops_json']);
+        return $rows;
     }
 
     /** All stops for a route (decoded from routes.stops_json) */
@@ -61,7 +68,7 @@ class TimetableModel extends BaseModel
         $sql = "SELECT tt.timetable_id, tt.operator_type, tt.route_id, tt.bus_reg_no,
                        tt.day_of_week, tt.departure_time, tt.arrival_time,
                        tt.start_seq, tt.end_seq,
-                       r.route_no, r.name AS route_name
+                       r.route_no, r.stops_json
                   FROM timetables tt
                   JOIN routes r ON r.route_id = tt.route_id
                  WHERE tt.route_id = ?
@@ -78,7 +85,11 @@ class TimetableModel extends BaseModel
         $sql .= " ORDER BY tt.departure_time ASC";
         $st = $this->pdo->prepare($sql);
         $st->execute($args);
-        return $st->fetchAll() ?: [];
+        $rows = $st->fetchAll() ?: [];
+        foreach ($rows as &$r) {
+            $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+        }
+        return $rows;
     }
 
     /** Rough minutes between hh:mm:ss times (same-day) */

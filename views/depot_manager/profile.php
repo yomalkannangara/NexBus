@@ -1,6 +1,7 @@
 <?php
 $acct = $account ?? [
-  'full_name' => $_SESSION['user']['full_name'] ?? '',
+  'first_name' => $_SESSION['user']['first_name'] ?? '',
+  'last_name'  => $_SESSION['user']['last_name'] ?? '',
   'email'     => $_SESSION['user']['email'] ?? '',
   'phone'     => $_SESSION['user']['phone'] ?? '',
 ];
@@ -31,8 +32,12 @@ $role = $_SESSION['user']['role'] ?? 'Depot Manager';
       <input type="hidden" name="action" value="update_details">
       <div class="form-grid">
         <div class="form-group">
-          <label>Full name <span class="req">*</span></label>
-          <input class="input" type="text" name="full_name" required value="<?= htmlspecialchars($acct['full_name']) ?>">
+          <label>First name <span class="req">*</span></label>
+          <input class="input" type="text" name="first_name" required value="<?= htmlspecialchars($acct['first_name']) ?>">
+        </div>
+        <div class="form-group">
+          <label>Last name</label>
+          <input class="input" type="text" name="last_name" value="<?= htmlspecialchars($acct['last_name']) ?>">
         </div>
         <div class="form-group">
           <label>Email <span class="req">*</span></label>

@@ -297,6 +297,30 @@ public function feedback()
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $act = $_POST['action'] ?? '';
 
+        // New UI actions (kept private-only by model)
+        if ($act === 'reply') {
+            $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+            $msg = $_POST['message'] ?? ($_POST['response'] ?? '');
+            // Mark in progress when replying
+            if ($id !== '') $m->updateStatus((string)$id, 'In Progress');
+            $m->sendResponse((string)$id, (string)$msg);
+            return $this->redirect('/B/feedback?msg=replied');
+        }
+
+        if ($act === 'resolve') {
+            $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+            $note = $_POST['note'] ?? ($_POST['message'] ?? ($_POST['response'] ?? ''));
+            if ($id !== '') $m->updateStatus((string)$id, 'Resolved');
+            if (trim((string)$note) !== '') $m->sendResponse((string)$id, (string)$note);
+            return $this->redirect('/B/feedback?msg=resolved');
+        }
+
+        if ($act === 'close') {
+            $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+            if ($id !== '') $m->updateStatus((string)$id, 'Closed');
+            return $this->redirect('/B/feedback?msg=closed');
+        }
+
         if ($act === 'update_status') {
             $m->updateStatus(
                 $_POST['feedback_ref'] ?? ($_POST['id'] ?? ''),

@@ -20,15 +20,16 @@ class UserModel
         return $row ?: null;
     }
 
-    /** Create Passenger user (users + passengers) using the same pattern as your example. */
+    /** Create Passenger user (users + passengers) without using a full_name column. */
     public function createPassenger(array $d): int
     {
-        $name  = trim($d['full_name'] ?? '');
+        $firstName = trim($d['first_name'] ?? '');
+        $lastName  = trim($d['last_name'] ?? '');
         $email = trim($d['email'] ?? '');
         $phone = trim($d['phone'] ?? '');
         $pwd   = $d['password'] ?? '';
 
-        if ($name === '' || $email === '' || $pwd === '') return 0;
+        if ($firstName === '' || $lastName === '' || $email === '' || $pwd === '') return 0;
 
         // Compute ONCE so both tables share the same hash (like your example)
         $pwdHash = password_hash($pwd, PASSWORD_BCRYPT);
@@ -38,11 +39,12 @@ class UserModel
 
             // 1) Insert into users
             $st = $this->pdo->prepare("
-                INSERT INTO users (role, full_name, email, phone, password_hash, status)
-                VALUES ('Passenger', ?, ?, ?, ?, 'Active')
+                INSERT INTO users (role, first_name, last_name, email, phone, password_hash, status)
+                VALUES ('Passenger', ?, ?, ?, ?, ?, 'Active')
             ");
             $st->execute([
-                $name,
+                $firstName,
+                $lastName,
                 $email,
                 ($phone !== '' ? $phone : null),
                 $pwdHash
@@ -53,17 +55,19 @@ class UserModel
             // 2) Insert/Update passengers (FK: passengers.user_id → users.user_id)
             //    Mirrors your example's ON DUPLICATE KEY pattern
             $st2 = $this->pdo->prepare("
-                INSERT INTO passengers (user_id, full_name, email, phone, password_hash)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO passengers (user_id, first_name, last_name, email, phone, password_hash)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                full_name     = VALUES(full_name),
+                first_name    = VALUES(first_name),
+                last_name     = VALUES(last_name),
                 email         = VALUES(email),
                 phone         = VALUES(phone),
                 password_hash = VALUES(password_hash)
             ");
             $st2->execute([
                 $userId,
-                $name,
+                $firstName,
+                $lastName,
                 $email,
                 ($phone !== '' ? $phone : null),
                 $pwdHash
@@ -93,7 +97,8 @@ class UserModel
         }
 
         $set = [
-            'full_name = :full_name',
+            'first_name = :first_name',
+            'last_name = :last_name',
             'email = :email',
             'phone = :phone',
             'role = :role',
@@ -101,7 +106,8 @@ class UserModel
             'sltb_depot_id = :sltb_depot_id',
         ];
         $params = [
-            ':full_name' => $data['full_name'],
+            ':first_name' => $data['first_name'],
+            ':last_name' => ($data['last_name'] ?? null),
             ':email' => $data['email'] !== '' ? $data['email'] : null,
             ':phone' => $data['phone'] !== '' ? $data['phone'] : null,
             ':role' => $data['role'],

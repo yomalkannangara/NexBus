@@ -14,7 +14,11 @@ class ProfileModel extends BaseModel
         $uid = $this->currentUserId();
         if (!$uid) return null;
 
-        $sql = "SELECT u.user_id, u.full_name, u.email, u.phone, pbo.name AS company_name, 
+        $sql = "SELECT u.user_id,
+                       u.first_name,
+                       u.last_name,
+                       CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) AS full_name,
+                       u.email, u.phone, pbo.name AS company_name, 
                        pbo.reg_no, pbo.contact_phone, pbo.contact_email
                 FROM users u
                 LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = u.private_operator_id
@@ -29,14 +33,25 @@ class ProfileModel extends BaseModel
         $uid = $this->currentUserId();
         if (!$uid) return false;
 
+        $first = trim((string)($d['first_name'] ?? ''));
+        $last  = trim((string)($d['last_name'] ?? ''));
+        $email = trim((string)($d['email'] ?? ''));
+        $phone = trim((string)($d['phone'] ?? ''));
+
+        if ($first === '' || $email === '') return false;
+
         $this->pdo->beginTransaction();
 
         try {
             // update users
             $st = $this->pdo->prepare("UPDATE users 
-                SET full_name=?, email=?, phone=? WHERE user_id=?");
+                SET first_name=?, last_name=?, email=?, phone=? WHERE user_id=?");
             $st->execute([
-                trim($d['full_name'] ?? ''), trim($d['email'] ?? ''), trim($d['phone'] ?? ''), $uid
+                $first,
+                ($last !== '' ? $last : null),
+                $email,
+                ($phone !== '' ? $phone : null),
+                $uid
             ]);
 
             // update private_bus_owners

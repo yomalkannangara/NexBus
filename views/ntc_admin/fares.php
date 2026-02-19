@@ -47,7 +47,11 @@
   </form>
 </div>
 
-<section class="table-section"><h2>Fare Stages</h2>
+<section class="table-panel">
+  <div class="table-panel-head">
+    <h2>Fare Stages</h2>
+  </div>
+
   <?php if (empty($routeGroups)): ?>
     <p>No fare stages defined yet.</p>
   <?php else: ?>

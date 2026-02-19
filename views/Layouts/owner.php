@@ -8,9 +8,11 @@ $module = $segments[0] ?? 'B';
 $page   = $segments[1] ?? 'dashboard';
 
 $user    = $_SESSION['user'] ?? null;
-$initial = $user ? strtoupper(substr($user['full_name'] ?? 'B', 0, 1)) : '?';
+$displayName = $user ? trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) : '';
+$displayName = $displayName !== '' ? $displayName : ($user['name'] ?? ($user['full_name'] ?? ''));
+$initial = $user ? strtoupper(substr($displayName !== '' ? $displayName : 'B', 0, 1)) : '?';
 $email   = $user['email'] ?? 'owner@nexbus.lk';
-$name    = $user['full_name']  ?? 'Bus Owner';
+$name    = $displayName !== '' ? $displayName : 'Bus Owner';
 
 if (!defined('BASE_URL')) define('BASE_URL', '/B');
 ?>
