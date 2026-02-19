@@ -3,7 +3,7 @@
 // Usage: php run_sql.php /full/path/to/file.sql
 
 require_once __DIR__ . '/../Support/Env.php';
-Env::load(__DIR__ . '/..');
+\App\Support\Env::load(__DIR__ . '/..');
 $config = require __DIR__ . '/../config/database.php';
 
 $dsn = sprintf('%s:host=%s;port=%s;dbname=%s;charset=%s',

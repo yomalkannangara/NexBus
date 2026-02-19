@@ -1,0 +1,696 @@
+[12-Jan-2026 11:24:18 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'profile_image' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php(11): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(285): App\models\depot_officer\ProfileModel->findById(53)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php on line 11
+[12-Jan-2026 12:40:11 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 12:40:15 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:26:57 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:29:26 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S21]: Column already exists: 1060 Duplicate column name 'route_id' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:29:27 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S21]: Column already exists: 1060 Duplicate column name 'route_id' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:29:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S21]: Column already exists: 1060 Duplicate column name 'route_id' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:30:44 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:30:54 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:30:58 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S21]: Column already exists: 1060 Duplicate column name 'route_id' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:37:12 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:37:15 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:37:47 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:41:30 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:42:16 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:42:20 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:45:55 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:45:57 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:46:00 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:46:02 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 13:48:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:76
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(76): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(59): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 76
+[12-Jan-2026 13:50:21 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:65
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(65): PDO->query('SELECT route_id...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->routes()
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(95): App\models\depot_officer\DepotOfficerModel->routes()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 65
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:20 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:01:23 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:41 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 14:40:43 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:50 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 15:19:52 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:44 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:45 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:46 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:29:47 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:07 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:10 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:12 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:15 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:35 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 17:49:36 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:13 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:16 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\assignments.php on line 18
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 8
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56
+[12-Jan-2026 18:12:17 Asia/Colombo] PHP Warning:  Undefined array key "name" in C:\xampp\htdocs\NexBus-1\views\depot_officer\timetables.php on line 56

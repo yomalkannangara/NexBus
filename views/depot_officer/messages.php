@@ -77,10 +77,18 @@ function getStaffDisplayName($person) {
     alpha.addEventListener('click', (ev)=>{
         const btn = ev.target.closest('.alpha-btn');
         if (!btn) return;
+        
+        // Update active state
+        document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
         const letter = btn.dataset.letter || 'all';
         applyFilter(letter);
     });
 
-    search.addEventListener('input', ()=>applyFilter(document.querySelector('.alpha-btn[data-letter].active')?.dataset?.letter || 'all'));
+    search.addEventListener('input', ()=>{
+        const activeLetter = document.querySelector('.alpha-btn.active')?.dataset?.letter || 'all';
+        applyFilter(activeLetter);
+    });
 })();
 </script>

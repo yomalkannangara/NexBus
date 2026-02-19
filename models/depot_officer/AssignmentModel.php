@@ -18,7 +18,7 @@ public function allToday(int $depotId): array {
                 d.full_name AS driver_name,
                 c.full_name AS conductor_name,
                 r.route_no,
-                r.name AS route_name,
+                r.stops_json,
                 tm.lat,
                 tm.lng,
                 tm.snapshot_at
@@ -59,7 +59,6 @@ public function allToday(int $depotId): array {
             ) tt ON tt.bus_reg_no = a.bus_reg_no
 
             LEFT JOIN routes r ON r.route_id = tt.route_id
-            /* include stops_json so we can compute start/end destinations */
 
             /* latest tracking snapshot for today (single row) */
             LEFT JOIN tracking_monitoring tm ON tm.track_id = (
@@ -86,6 +85,7 @@ public function allToday(int $depotId): array {
         $end   = is_array($last) ? ($last['stop'] ?? '') : $last;
         $row['route_start'] = $start ?: '';
         $row['route_end']   = $end ?: '';
+        $row['route_name']  = trim($start . ' → ' . $end);
         $row['route_display'] = trim(($row['route_no'] ?? '') . ' | ' . ($row['route_start'] ?: '-') . ' → ' . ($row['route_end'] ?: '-'));
     }
     return $rows;
@@ -158,7 +158,7 @@ public function allToday(int $depotId): array {
     }
     public function routes(): array {
         return $this->pdo->query(
-            "SELECT route_id, route_no, name 
+            "SELECT route_id, route_no, stops_json 
                FROM routes 
               WHERE is_active=1 
            ORDER BY route_no+0, route_no"

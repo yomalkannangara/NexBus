@@ -1,0 +1,8 @@
+[08-Jan-2026 16:53:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'profile_image' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php:11
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php(11): PDO->prepare('SELECT user_id,...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(285): App\models\depot_officer\ProfileModel->findById(53)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->profile()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'profile')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\ProfileModel.php on line 11

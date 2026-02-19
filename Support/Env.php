@@ -3,7 +3,7 @@ namespace App\Support;
 
 class Env
 {
-    public static function load(string $path = null): void
+    public static function load(?string $path = null): void
     {
         // if only folder passed → append ".env"
         if ($path === null) {

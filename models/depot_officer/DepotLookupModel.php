@@ -62,7 +62,7 @@ class DepotLookupModel extends BaseModel
     }
 
     public function routes(): array {
-        return $this->pdo->query("SELECT route_id, route_no, name
+        return $this->pdo->query("SELECT route_id, route_no, stops_json
                                   FROM routes
                                   WHERE is_active=1
                                   ORDER BY route_no+0, route_no")->fetchAll();

@@ -108,7 +108,7 @@ class BusProfileModel extends BaseModel
     {
         $today = date('Y-m-d');
         $yday  = date('Y-m-d', strtotime('-1 day'));
-        $2day  = date('Y-m-d', strtotime('-2 days'));
+        $twoday  = date('Y-m-d', strtotime('-2 days'));
 
         return [
             ['bus_reg_no'=>'NA-1234','trip_date'=>$today,'route_no'=>'138','turn_no'=>1,'departure_time'=>'07:35','arrival_time'=>'08:45','status'=>'Completed'],

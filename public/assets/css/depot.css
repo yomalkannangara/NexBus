@@ -694,87 +694,114 @@ body{
   color: var(--gold);
   border-color: #f0c96b;
 }
-/* ============= LETTER FILTERS (Alpha Filter) ============= */
+/* ============= LETTER FILTERS (Clean Grid Layout) ============= */
+
 .alpha-filter-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 16px 0;
-}
-
-.alpha-filter-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.alpha-filter-header strong {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.alpha-filter-buttons {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.alpha-btn {
-  min-width: 32px;
-  height: 32px;
-  padding: 6px 8px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 16px;
+  margin: 20px 0;
+  padding: 18px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f5f7fb 100%);
+  border-radius: 14px;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.04);
+}
+
+/* ---------- Header row (title + search) ---------- */
+.alpha-filter-top {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.alpha-btn:hover {
-  border-color: var(--brand);
-  color: var(--brand);
+.alpha-filter-top strong {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.85;
 }
 
-.alpha-btn.active {
-  background: var(--gold);
-  color: var(--brand);
-  border-color: var(--gold);
-  font-weight: 700;
-}
-
-.alpha-btn.active:hover {
-  background: #f3d27b;
-}
-
+/* ---------- Search ---------- */
 .alpha-filter-search {
   width: 100%;
   max-width: 300px;
-  padding: 8px 10px;
+  padding: 10px 14px;
   font-size: 13px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   border-radius: 10px;
   background: #fff;
   color: var(--text);
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
 }
 
 .alpha-filter-search::placeholder {
   color: var(--muted);
+  opacity: 0.6;
 }
 
 .alpha-filter-search:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(122, 15, 46, 0.08);
+  box-shadow: 0 0 0 4px rgba(122, 15, 46, 0.1);
+}
+
+/* ---------- Alphabet grid ---------- */
+.alpha-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 10px;
+}
+
+/* ---------- Letter buttons ---------- */
+.alpha-btn {
+  height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.alpha-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(122, 15, 46, 0.12);
+}
+
+/* ---------- Active state ---------- */
+.alpha-btn.active {
+  background: linear-gradient(180deg, var(--brand), var(--brand-2));
+  color: #fff;
+  border-color: var(--brand-3);
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(122, 15, 46, 0.25);
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 640px) {
+  .alpha-filter-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .alpha-filter-search {
+    max-width: 100%;
+  }
+
+  .alpha-filter-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
