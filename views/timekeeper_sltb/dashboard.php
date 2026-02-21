@@ -44,6 +44,15 @@
   </div>
 </div>
 
+<style>
+  @media (max-width: 1024px) {
+    .grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr !important; gap: 12px !important; margin: 12px 0 !important; }
+  }
+</style>
+
 <!-- Map placeholder panel -->
 <div class="card">
   <div style="display:flex;align-items:center;gap:8px;font-weight:600;color:#4a0e25;margin-bottom:10px;">

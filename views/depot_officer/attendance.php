@@ -14,12 +14,12 @@
 	<div class="alpha-filter-wrapper">
 		<div class="alpha-filter-header">
 			<strong>Filter by letter:</strong>
-			<span id="attendance-alpha" class="alpha-filter-buttons">
-				<button type="button" class="alpha-btn active" data-letter="all">All</button>
+			<select id="attendance-letter" class="alpha-select" aria-label="Filter by initial letter">
+				<option value="all">All</option>
 				<?php foreach(range('A','Z') as $letter): ?>
-					<button type="button" class="alpha-btn" data-letter="<?= $letter ?>"><?= $letter ?></button>
+					<option value="<?= $letter ?>"><?= $letter ?></option>
 				<?php endforeach; ?>
-			</span>
+			</select>
 		</div>
 		<input type="text" id="attendance-search" class="alpha-filter-search" placeholder="Search name or role...">
 	</div>
@@ -40,7 +40,7 @@
 <script>
 // Alphabet + search filter for attendance rows
 ;(function(){
-	const alphaWrap = document.getElementById('attendance-alpha');
+	const alphaSelect = document.getElementById('attendance-letter');
 	const search = document.getElementById('attendance-search');
 	const rows = Array.from(document.querySelectorAll('.table tbody tr'));
 
@@ -56,19 +56,14 @@
 		});
 	}
 
-	alphaWrap.addEventListener('click', (ev)=>{
-		const btn = ev.target.closest('.alpha-btn');
-		if (!btn) return;
-		const letter = btn.dataset.letter || 'all';
-		// highlight active
-		Array.from(alphaWrap.querySelectorAll('.alpha-btn')).forEach(b=>b.classList.remove('active'));
-		btn.classList.add('active');
+	alphaSelect.addEventListener('change', ()=>{
+		const letter = alphaSelect.value || 'all';
 		applyFilter(letter);
 	});
 
 	search.addEventListener('input', ()=>{
-		const active = alphaWrap.querySelector('.alpha-btn.active');
-		applyFilter(active ? active.dataset.letter : 'all');
+		const letter = alphaSelect.value || 'all';
+		applyFilter(letter);
 	});
 })();
 </script>

@@ -23,21 +23,21 @@
           <tr class="row" data-tt="<?= (int)$r['timetable_id'] ?>"
               data-sdep="<?= htmlspecialchars($r['sched_dep']) ?>"
               data-sarr="<?= htmlspecialchars($r['sched_arr'] ?? '') ?>">
-            <td class="mono"><?= htmlspecialchars(substr($r['sched_dep'],0,5).' → '.substr($r['sched_arr'] ?? '—',0,5)) ?></td>
-            <td>
+            <td class="mono" data-label="Time"><?= htmlspecialchars(substr($r['sched_dep'],0,5).' → '.substr($r['sched_arr'] ?? '—',0,5)) ?></td>
+            <td data-label="Route">
               <div class="route">
                 <div class="route-no"><?= htmlspecialchars($r['route_no']) ?></div>
                 <div class="route-name"><?= htmlspecialchars($r['route_name']) ?></div>
               </div>
             </td>
-            <td class="mono"><?= htmlspecialchars($r['bus_reg_no']) ?></td>
-            <td>
-              <span class="badge js-badge <A?= $already?'gray':($isCurrent?'green':'blue') ?>">
+            <td class="mono" data-label="Bus"><?= htmlspecialchars($r['bus_reg_no']) ?></td>
+            <td data-label="Status">
+              <span class="badge js-badge <?= $already?'gray':($isCurrent?'green':'blue') ?>">
                 <?= $already ? 'Recorded' : ($isCurrent ? 'Current' : 'Scheduled') ?>
               </span>
             </td>
-            <td>
-              <button class="btn btn-start" data-action="start" <?= $already?'disabled':''; ?>>Start</button>
+            <td data-label="Action">
+              <button class="btn btn-start" data-action="start" data-tt="<?= (int)$r['timetable_id'] ?>" <?= $already?'disabled':''; ?>>Start</button>
             </td>
           </tr>
         <?php endforeach; ?>

@@ -26,6 +26,23 @@
   <button class="button">Filter</button>
 </form>
 
+<style>
+  @media (max-width: 768px) {
+    form[class*="grid-3"] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+    form[class*="grid-3"] button {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 640px) {
+    form[class*="grid-3"] {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+  }
+</style>
+
 <div class="card" style="margin-bottom:10px;">
   <div class="card-title">Trip Records (<?= (int)($count ?? 0) ?> results)</div>
   <div class="table-wrap" style="overflow:auto;">
@@ -54,13 +71,13 @@
                        : ($status==='Cancelled' ? 'badge-red' : 'badge-gray'));
           ?>
           <tr>
-            <td style="padding:8px 10px;"><?= htmlspecialchars($r['date'] ?? '') ?></td>
-            <td style="padding:8px 10px;"><?= htmlspecialchars($route) ?></td>
-            <td style="padding:8px 10px;"><?= (int)($r['turn_no'] ?? 0) ?></td>
-            <td style="padding:8px 10px;"><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></td>
-            <td style="padding:8px 10px;"><?= htmlspecialchars($r['dep_time'] ?? '') ?></td>
-            <td style="padding:8px 10px;"><?= htmlspecialchars($r['arr_time'] ?? '—') ?></td>
-            <td style="padding:8px 10px;">
+            <td style="padding:8px 10px;" data-label="Date"><?= htmlspecialchars($r['date'] ?? '') ?></td>
+            <td style="padding:8px 10px;" data-label="Route"><?= htmlspecialchars($route) ?></td>
+            <td style="padding:8px 10px;" data-label="Turn #"><?= (int)($r['turn_no'] ?? 0) ?></td>
+            <td style="padding:8px 10px;" data-label="Bus ID"><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></td>
+            <td style="padding:8px 10px;" data-label="Depart"><?= htmlspecialchars($r['dep_time'] ?? '') ?></td>
+            <td style="padding:8px 10px;" data-label="Arrive"><?= htmlspecialchars($r['arr_time'] ?? '—') ?></td>
+            <td style="padding:8px 10px;" data-label="Status">
               <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($status) ?></span>
             </td>
           </tr>

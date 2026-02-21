@@ -2,9 +2,14 @@
    staff.css (final) — shared layout + pages
    Uses your design tokens only
    ======================================================= */
-@import url('/assets/css/admin.css');
 
 /* ---------- Tokens ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box
+}
+
 :root {
   --bg: #f6f7f9;
   --card: #fff;
@@ -24,24 +29,187 @@
 }
 
 /* ---------- App shell / layout ---------- */
-body { background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%); color: var(--text); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Arial;
+  font-size: 14px;
+  line-height: 1.5;
+}
 
-.app-shell { display:grid; grid-template-columns:260px 1fr; min-height: calc(100vh - 62px); }
+.app-shell { 
+  position: fixed;
+  inset: 64px 0 0 0;
+  z-index: 999;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+}
 
-/* Sidebar */
+main#content {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+/* Desktop styles (default) */
 .sidebar {
-  background: linear-gradient(180deg, var(--maroon) 0%, var(--maroon-2) 100%);
-  color:#fff; padding:16px 14px; display:flex; flex-direction:column; gap:16px;
+  position: relative;
+  width: 250px;
+  background: var(--maroon-2);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 14px;
 }
-.sidebar .sb-title { font-weight:700; letter-spacing:.2px; }
-.sidebar .sb-sub { opacity:.85; }
-.menu { display:flex; flex-direction:column; gap:6px; }
+
+.sidebar-toggle {
+  display: none;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .topbar { padding: 12px 12px; }
+  .app-shell { 
+    position: relative;
+    inset: auto;
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .sidebar { 
+    position: fixed; 
+    left: -260px; 
+    top: 64px; 
+    width: 260px; 
+    height: calc(100vh - 64px); 
+    z-index: 999; 
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.1);
+  }
+  .sidebar.open { left: 0; }
+  .sidebar-toggle {
+    display: flex;
+  }
+  .brand {
+    flex: 1;
+    min-width: 0;
+  }
+  .topbar .logo {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  .topbar .logo img { width: 36px; height: 36px; }
+  .topbar .app { font-size: 14px; }
+  .topbar .sub { display: none; }
+  .topbar .right {
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .topbar .user { display: none; }
+  .topbar .date { display: none; }
+  main#content {
+    width: 100%;
+    min-height: auto;
+    overflow-y: auto;
+    padding: 16px;
+  }
+}
+
+/* Topbar - Fixed with admin styling */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  z-index: 1000;
+  background: var(--primary);
+  color: #fff;
+  border-bottom: 4px solid var(--gold);
+}
+
+.topbar .brand { display: flex; gap: 12px; align-items: center }
+.topbar .logo {
+  font-size: 28px; width: 42px; height: 42px; border-radius: 50%;
+  background: #fff; box-shadow: inset 0 0 0 3px var(--gold)
+}
+.topbar .logo img { width: 42px; height: 42px }
+.topbar .app { font-weight: 700 }
+.topbar .sub { font-size: 12px; opacity: .9 }
+.topbar .right { display: flex; gap: 12px; align-items: center; }
+.topbar .user { font-weight: 600 }
+.topbar .date { font-size: 12px; opacity: .9 }
+
+/* Hamburger menu button - hidden by default */
+.sidebar-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 12px;
+  z-index: 1001;
+}
+
+.sidebar-toggle span {
+  width: 24px;
+  height: 2.5px;
+  background: #fff;
+  margin: 4px 0;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.sidebar-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.sidebar-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(8px, -8px);
+}
+
+/* Ensure hamburger is visible on small screens (final override for order issues) */
+@media (max-width: 768px) {
+  .sidebar-toggle { display: flex !important; }
+}
+
+
+.sidebar-head {
+  display: flex; gap: 10px; align-items: center;
+  padding: 6px 6px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1)
+}
+.mini-logo { font-size:28px; }
+.sb-title { font-weight: 700 }
+.sb-sub { font-size: 12px; opacity: .8 }
+.menu { display:flex; flex-direction:column; gap:6px; margin-top: 6px }
 .menu .menu-item {
-  display:flex; align-items:center; gap:10px; padding:10px 12px;
-  border-radius:12px; color:#fff; text-decoration:none; opacity:.95;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; color: #fff; text-decoration: none; font-size: 14px;
+  border-radius: 6px; transition: background .2s ease;
 }
-.menu .menu-item:hover { opacity:1; background: rgba(255,255,255,.08); }
-.menu .menu-item.active { background: var(--gold); color: var(--maroon); }
+.menu .menu-item .icon { flex: 0 0 18px; display: grid; place-items: center }
+.menu .menu-item:hover { background: rgba(255, 255, 255, .15) }
+.menu .menu-item.active {
+  color: var(--gold);
+  background: rgba(255, 255, 255, .15);
+  border-right: 3px solid var(--gold)
+}
 
 /* Sidebar profile */
 .sidebar-profile { margin-top:auto; }
@@ -80,9 +248,33 @@ body { background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%); color: v
   width:100%;
   height:100%;
 }
-.profile-email { font-size:12px; opacity:.9; }
-.profile-logout { margin-top:10px; display:flex; gap:8px; align-items:center; color:#fff; text-decoration:none; opacity:.9; }
-.profile-logout:hover { opacity:1; }
+.profile-email {
+  color: #8fc5ff; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-profile { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.profile-logout {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 10px auto 0; /* center horizontally */
+  padding: 10px 18px; font-size: 14px; font-weight: 700;
+  color: #fff; background: linear-gradient(135deg, #aa1b23, #b61c29);
+  border-radius: 10px; text-decoration: none; transition: all .22s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
+  border: none; cursor: pointer;
+  width: calc(100% - 36px); max-width: 260px; display: inline-flex;
+}
+.profile-logout:hover {
+  background: linear-gradient(135deg, #b61c29, #c72a35);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .22);
+}
+
+/* Sidebar footer */
+.sidebar-foot {
+  margin-top: auto; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, .1);
+  font-size: 12px; opacity: .9;
+  font-size:11px; color:rgba(255,255,255,.7); text-align:center;
+}
+.version { font-size:10px; margin-top:4px; opacity:.6; }
 
 /* ---------- Page Title Banner ---------- */
 .title-banner{
@@ -93,6 +285,20 @@ body { background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%); color: v
 }
 .title-banner h1{ margin:0 0 8px; font-size:22px; font-weight:600; line-height:1.6; }
 .title-banner p{ margin:0; font-size:14px; opacity:.92; }
+
+@media (max-width: 640px) {
+  .title-banner {
+    padding: 18px 20px 16px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+  }
+  .title-banner h1 {
+    font-size: 18px;
+  }
+  .title-banner p {
+    font-size: 12px;
+  }
+}
 
 /* ---------- Cards & accents ---------- */
 .card{
@@ -156,6 +362,46 @@ input:focus-visible, select:focus-visible { outline:0; box-shadow: 0 0 0 4px var
   background:#fffdf5; /* subtle striping */
 }
 
+@media (max-width: 640px) {
+  .table {
+    border-radius: 8px;
+    overflow: visible;
+  }
+  .table thead {
+    display: none;
+  }
+  .table tbody tr {
+    display: block;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .table tbody tr:nth-child(even) td {
+    background: #fff9ec;
+  }
+  .table tbody td {
+    display: block;
+    padding: 10px 12px 10px 50%;
+    text-align: left;
+    border-bottom: 1px solid #f1f1f1;
+    position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .table tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 12px;
+    top: 10px;
+    font-weight: 700;
+    color: var(--maroon);
+    width: 40%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
 /* ---------- Trip Entry / Turns tables ---------- */
 .tk{ padding:16px; }
 .table-wrap{ overflow:auto; }
@@ -164,6 +410,33 @@ input:focus-visible, select:focus-visible { outline:0; box-shadow: 0 0 0 4px var
 .tk-table thead th{
   font-size:13px; color:#555; text-transform:uppercase; letter-spacing:.03em;
   background:#fff7e6; border-bottom:1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .tk-table { min-width: 100%; font-size: 12px; }
+  .tk-table th, .tk-table td { padding: 8px; }
+  .tk-table tbody tr { display: block; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; }
+  .tk-table thead { display: none; }
+  .tk-table tbody td {
+    display: block;
+    text-align: left;
+    padding: 8px 8px 8px 50%;
+    position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .tk-table tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    font-weight: 700;
+    color: var(--maroon);
+    text-align: left;
+    width: 42%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
 }
 
 /* badges + buttons used on these pages */

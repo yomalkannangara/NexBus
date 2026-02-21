@@ -20,12 +20,12 @@ function getStaffDisplayName($person) {
     <div class="alpha-filter-wrapper">
         <div class="alpha-filter-header">
             <strong>Filter by letter:</strong>
-            <span id="alpha-filter" class="alpha-filter-buttons">
-                <button type="button" class="alpha-btn active" data-letter="all">All</button>
+            <select id="alpha-letter" class="alpha-select" aria-label="Filter recipients by initial">
+                <option value="all">All</option>
                 <?php foreach(range('A','Z') as $letter): ?>
-                    <button type="button" class="alpha-btn" data-letter="<?= $letter ?>"><?= $letter ?></button>
+                    <option value="<?= $letter ?>"><?= $letter ?></option>
                 <?php endforeach; ?>
-            </span>
+            </select>
         </div>
         <input type="text" id="staff-search" class="alpha-filter-search" placeholder="Search name...">
     </div>
@@ -52,7 +52,7 @@ function getStaffDisplayName($person) {
 // Alphabet filter for recipients select
 ;(function(){
     const select = document.getElementById('recipients');
-    const alpha = document.getElementById('alpha-filter');
+    const alpha = document.getElementById('alpha-letter');
     const search = document.getElementById('staff-search');
     const opts = Array.from(select.options);
 
@@ -74,21 +74,14 @@ function getStaffDisplayName($person) {
         });
     }
 
-    alpha.addEventListener('click', (ev)=>{
-        const btn = ev.target.closest('.alpha-btn');
-        if (!btn) return;
-        
-        // Update active state
-        document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        const letter = btn.dataset.letter || 'all';
+    alpha.addEventListener('change', ()=>{
+        const letter = alpha.value || 'all';
         applyFilter(letter);
     });
 
     search.addEventListener('input', ()=>{
-        const activeLetter = document.querySelector('.alpha-btn.active')?.dataset?.letter || 'all';
-        applyFilter(activeLetter);
+        const letter = alpha.value || 'all';
+        applyFilter(letter);
     });
 })();
 </script>

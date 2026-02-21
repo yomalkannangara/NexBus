@@ -53,6 +53,11 @@ $active = function (string $m, string $p) use ($module, $page): string {
 </head>
 <body>
 <header class="topbar">
+  <button id="sidebar-toggle" class="sidebar-toggle" title="Menu" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
   <div class="brand">
     <div class="logo"><img src="/assets/images/logo.png" alt="NexBus Logo"></div>
     <div>
@@ -125,6 +130,37 @@ $active = function (string $m, string $p) use ($module, $page): string {
     <?php require $contentViewFile; ?>
   </main>
 </div>
+<script>
+// Mobile sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.getElementById('sidebar-toggle');
+  const sidebar = document.querySelector('.sidebar');
+  const content = document.getElementById('content');
+
+  if (!toggle || !sidebar) return;
+
+  toggle.addEventListener('click', function() {
+    toggle.classList.toggle('active');
+    sidebar.classList.toggle('open');
+  });
+
+  // Close sidebar when clicking on a link
+  sidebar.querySelectorAll('.menu-item, .profile-card, .profile-logout').forEach(link => {
+    link.addEventListener('click', function() {
+      toggle.classList.remove('active');
+      sidebar.classList.remove('open');
+    });
+  });
+
+  // Close sidebar when clicking on main content (only on mobile)
+  if (window.innerWidth <= 768) {
+    content.addEventListener('click', function() {
+      toggle.classList.remove('active');
+      sidebar.classList.remove('open');
+    });
+  }
+});
+</script>
 </body>
   <script src="/assets/js/timekeeper.js"></script>
 
