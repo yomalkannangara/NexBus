@@ -6,6 +6,29 @@ use PDO;
 
 class AssignmentModel extends BaseModel
 {
+    private array $columnCache = [];
+
+    private function columnExists(string $table, string $column): bool {
+        $key = $table . ':' . $column;
+        if (array_key_exists($key, $this->columnCache)) return $this->columnCache[$key];
+        $st = $this->pdo->prepare("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?");
+        $st->execute([$table, $column]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        $exists = !empty($row) && ((int)($row['c'] ?? 0) > 0);
+        $this->columnCache[$key] = $exists;
+        return $exists;
+    }
+
+    private function tableExists(string $table): bool {
+        $key = 'table:' . $table;
+        if (array_key_exists($key, $this->columnCache)) return $this->columnCache[$key];
+        $st = $this->pdo->prepare("SELECT COUNT(*) AS c FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?");
+        $st->execute([$table]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        $exists = !empty($row) && ((int)($row['c'] ?? 0) > 0);
+        $this->columnCache[$key] = $exists;
+        return $exists;
+    }
     private function getRouteDisplayName(string $stopsJson): string {
         $stops = json_decode($stopsJson, true) ?: [];
         if (empty($stops)) return 'Unknown';
@@ -181,30 +204,109 @@ public function allToday(int $depotId): array {
     }
 
     /** Create new assignment (relies on DB UNIQUE(bus_reg_no,assigned_date,shift)) */
-    public function create(array $d, int $depotId): bool {
+    public function create(array $d, int $depotId): mixed {
         $assigned_date = $d['assigned_date'] ?? date('Y-m-d');
         $shift = $d['shift'] ?? 'Morning';
         $bus = $d['bus_reg_no'] ?? '';
         $driver = (int)($d['sltb_driver_id'] ?? 0);
         $conductor = (int)($d['sltb_conductor_id'] ?? 0);
 
-        $sql = "INSERT INTO sltb_assignments
-                    (assigned_date, shift, bus_reg_no, sltb_driver_id, sltb_conductor_id, sltb_depot_id)
-                VALUES (?,?,?,?,?,?)";
+        $overrideRemark = trim((string)($d['override_remark'] ?? '')) ?: null;
+        $overriddenBy = $_SESSION['user']['user_id'] ?? null;
+        $now = date('Y-m-d H:i:s');
+
+        // --- Prevent same driver/conductor being assigned to different buses on same date ---
+        // If overrideRemark is provided we allow the operation but will record an audit row.
+        $prevBusForDriver = null;
+        if ($driver) {
+            $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND shift=? AND sltb_depot_id=? AND sltb_driver_id=? LIMIT 1");
+            $st->execute([$assigned_date, $shift, $depotId, $driver]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($row && ($row['bus_reg_no'] ?? '') !== $bus) {
+                $prevBusForDriver = $row['bus_reg_no'] ?? null;
+                if (!$overrideRemark) {
+                    return 'conflict_driver::' . ($row['bus_reg_no'] ?? '');
+                }
+            }
+        }
+
+        $prevBusForConductor = null;
+        if ($conductor) {
+            $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND shift=? AND sltb_depot_id=? AND sltb_conductor_id=? LIMIT 1");
+            $st->execute([$assigned_date, $shift, $depotId, $conductor]);
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($row && ($row['bus_reg_no'] ?? '') !== $bus) {
+                $prevBusForConductor = $row['bus_reg_no'] ?? null;
+                if (!$overrideRemark) {
+                    return 'conflict_conductor::' . ($row['bus_reg_no'] ?? '');
+                }
+            }
+        }
+
+        // Build INSERT dynamically depending on whether override columns exist
+        $baseCols = ['assigned_date','shift','bus_reg_no','sltb_driver_id','sltb_conductor_id','sltb_depot_id'];
+        $values = [$assigned_date, $shift, $bus, $driver, $conductor, $depotId];
+        if ($this->columnExists('sltb_assignments','override_remark')) {
+            $baseCols[] = 'override_remark';
+            $baseCols[] = 'overridden_by';
+            $baseCols[] = 'override_at';
+            $values[] = $overrideRemark;
+            $values[] = $overriddenBy;
+            $values[] = $overrideRemark ? $now : null;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($baseCols), '?'));
+        $sql = "INSERT INTO sltb_assignments (" . implode(',', $baseCols) . ") VALUES ($placeholders)";
         $st = $this->pdo->prepare($sql);
         try {
-            return (bool)$st->execute([$assigned_date, $shift, $bus, $driver, $conductor, $depotId]);
+            $ok = (bool)$st->execute($values);
+            // record audit only if audit table exists and an override was provided
+            if ($ok && $overrideRemark && $this->tableExists('sltb_assignment_overrides')) {
+                // fetch assignment_id for audit
+                $aidSt = $this->pdo->prepare("SELECT assignment_id FROM sltb_assignments WHERE bus_reg_no=? AND assigned_date=? AND shift=? AND sltb_depot_id=? LIMIT 1");
+                $aidSt->execute([$bus, $assigned_date, $shift, $depotId]);
+                $aidRow = $aidSt->fetch(PDO::FETCH_ASSOC);
+                $assignmentId = $aidRow['assignment_id'] ?? null;
+                $previous = array_filter(array_unique([$prevBusForDriver, $prevBusForConductor]));
+                $previousStr = $previous ? implode(',', $previous) : null;
+                if ($assignmentId) {
+                    $ins = $this->pdo->prepare("INSERT INTO sltb_assignment_overrides (assignment_id, assigned_date, shift, bus_reg_no, previous_bus_reg_no, driver_id, conductor_id, override_remark, overridden_by, override_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+                    $ins->execute([$assignmentId, $assigned_date, $shift, $bus, $previousStr, $driver ?: null, $conductor ?: null, $overrideRemark, $overriddenBy, $now]);
+                }
+            }
+            return $ok;
         } catch (\PDOException $e) {
             // If duplicate key (same bus/date/shift), perform an UPDATE instead
             $code = $e->getCode();
             if ($code === '23000' || strpos($e->getMessage(), 'Duplicate') !== false) {
-                $upd = "UPDATE sltb_assignments
-                           SET sltb_driver_id = ?, sltb_conductor_id = ?
-                         WHERE bus_reg_no = ? AND assigned_date = ? AND shift = ? AND sltb_depot_id = ?";
+                $setParts = ['sltb_driver_id = ?', 'sltb_conductor_id = ?'];
+                $updValues = [$driver, $conductor];
+                if ($this->columnExists('sltb_assignments','override_remark')) {
+                    $setParts[] = 'override_remark = ?';
+                    $setParts[] = 'overridden_by = ?';
+                    $setParts[] = 'override_at = ?';
+                    $updValues[] = $overrideRemark;
+                    $updValues[] = $overriddenBy;
+                    $updValues[] = $overrideRemark ? $now : null;
+                }
+                $upd = "UPDATE sltb_assignments SET " . implode(', ', $setParts) . " WHERE bus_reg_no = ? AND assigned_date = ? AND shift = ? AND sltb_depot_id = ?";
                 $ust = $this->pdo->prepare($upd);
-                return (bool)$ust->execute([$driver, $conductor, $bus, $assigned_date, $shift, $depotId]);
+                $updValues = array_merge($updValues, [$bus, $assigned_date, $shift, $depotId]);
+                $ok = (bool)$ust->execute($updValues);
+                if ($ok && $overrideRemark && $this->tableExists('sltb_assignment_overrides')) {
+                    $aidSt = $this->pdo->prepare("SELECT assignment_id FROM sltb_assignments WHERE bus_reg_no=? AND assigned_date=? AND shift=? AND sltb_depot_id=? LIMIT 1");
+                    $aidSt->execute([$bus, $assigned_date, $shift, $depotId]);
+                    $aidRow = $aidSt->fetch(PDO::FETCH_ASSOC);
+                    $assignmentId = $aidRow['assignment_id'] ?? null;
+                    $previous = array_filter(array_unique([$prevBusForDriver, $prevBusForConductor]));
+                    $previousStr = $previous ? implode(',', $previous) : null;
+                    if ($assignmentId) {
+                        $ins = $this->pdo->prepare("INSERT INTO sltb_assignment_overrides (assignment_id, assigned_date, shift, bus_reg_no, previous_bus_reg_no, driver_id, conductor_id, override_remark, overridden_by, override_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+                        $ins->execute([$assignmentId, $assigned_date, $shift, $bus, $previousStr, $driver ?: null, $conductor ?: null, $overrideRemark, $overriddenBy, $now]);
+                    }
+                }
+                return $ok;
             }
-            // rethrow unexpected errors
             throw $e;
         }
     }

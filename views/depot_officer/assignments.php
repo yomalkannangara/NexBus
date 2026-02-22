@@ -5,8 +5,14 @@
     <p class="title-sub">Manage today’s driver and conductor allocations</p>
   </div>
 
-  <?php if(!empty($msg)): ?>
-    <div class="notice success"><?= htmlspecialchars($msg) ?></div>
+  <?php if(!empty($msg) && $msg === 'created'): ?>
+    <div class="notice success">Assignment created successfully.</div>
+  <?php elseif(!empty($_GET['msg']) && $_GET['msg'] === 'conflict_driver'): ?>
+    <div class="notice warning">Driver already assigned to bus <strong><?= htmlspecialchars($_GET['exists'] ?? '') ?></strong> on this date. <button id="btnOverrideDriver" class="btn small">Override</button></div>
+  <?php elseif(!empty($_GET['msg']) && $_GET['msg'] === 'conflict_conductor'): ?>
+    <div class="notice warning">Conductor already assigned to bus <strong><?= htmlspecialchars($_GET['exists'] ?? '') ?></strong> on this date. <button id="btnOverrideConductor" class="btn small">Override</button></div>
+  <?php elseif(!empty($msg)): ?>
+    <div class="notice"><?= htmlspecialchars($msg) ?></div>
   <?php endif; ?>
 
   <div class="table-card">
@@ -81,11 +87,12 @@
         </select>
       </label>
       <label>Bus
-        <select name="bus_reg_no" id="bus-select" required>
+        <input list="buses" name="bus_reg_no" id="bus-select" required placeholder="Type or pick bus reg no">
+        <datalist id="buses">
           <?php foreach($buses as $b): ?>
-            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no']) ?></option>
+            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars(($b['reg_no'] . ' — ' . ($b['route_name'] ?? ''))) ?></option>
           <?php endforeach; ?>
-        </select>
+        </datalist>
       </label>
       <label>Route Number <input type="text" id="bus-route-no" readonly></label>
       <label>Destination <input type="text" id="bus-route-name" readonly></label>
@@ -102,6 +109,10 @@
             <option value="<?= (int)$c['sltb_conductor_id'] ?>"><?= htmlspecialchars($c['full_name']) ?></option>
           <?php endforeach; ?>
         </select>
+      </label>
+      <label id="label-override-remark" style="display:none;">
+        Override remark
+        <textarea name="override_remark" id="override-remark" placeholder="Explain why you are overriding the existing assignment" style="width:100%;min-height:80px;"></textarea>
       </label>
       <div class="modal-actions">
         <button type="submit" class="btn-primary">Save</button>
@@ -138,6 +149,15 @@ function fillBusRoute() {
 }
 busSelect.addEventListener('change', fillBusRoute);
 fillBusRoute();
+
+// Show override remark/UI when override button clicked
+const overrideLabel = document.getElementById('label-override-remark');
+function showOverride() {
+  if (overrideLabel) overrideLabel.style.display = 'block';
+  if (modal) modal.classList.remove('hidden');
+}
+document.getElementById('btnOverrideDriver')?.addEventListener('click', showOverride);
+document.getElementById('btnOverrideConductor')?.addEventListener('click', showOverride);
 
 // Table filtering by route number and destination
   const filterRoute = document.getElementById('filter-route');

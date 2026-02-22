@@ -1593,3 +1593,94 @@ ALTER TABLE `private_trips`
 ALTER TABLE `sltb_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
 ALTER TABLE `private_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
 
+-- --------------------------------------------------------
+-- Migration appended on 2026-02-22: assignment override fields
+-- Adds columns to record when an assignment is overridden and why
+ALTER TABLE `sltb_assignments`
+  ADD COLUMN `override_remark` TEXT DEFAULT NULL AFTER `sltb_depot_id`,
+  ADD COLUMN `overridden_by` int(11) DEFAULT NULL AFTER `override_remark`,
+  ADD COLUMN `override_at` datetime DEFAULT NULL AFTER `overridden_by`;
+
+ALTER TABLE `sltb_assignments`
+  ADD INDEX `idx_overridden_by` (`overridden_by`);
+
+-- Note: optionally add a FK to users.overridden_by if desired
+-- ALTER TABLE `sltb_assignments` ADD CONSTRAINT `fk_sla_overridden_by` FOREIGN KEY (`overridden_by`) REFERENCES `users`(`user_id`);
+
+ 
+-- --------------------------------------------------------
+-- Migration appended on 2026-02-22: create audit table for assignment overrides
+CREATE TABLE `sltb_assignment_overrides` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `assignment_id` int(11) DEFAULT NULL,
+  `assigned_date` date NOT NULL,
+  `shift` enum('Morning','Evening','Night') DEFAULT 'Morning',
+  `bus_reg_no` varchar(20) NOT NULL,
+  `previous_bus_reg_no` varchar(20) DEFAULT NULL,
+  `driver_id` int(11) DEFAULT NULL,
+  `conductor_id` int(11) DEFAULT NULL,
+  `override_remark` text DEFAULT NULL,
+  `overridden_by` int(11) DEFAULT NULL,
+  `override_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `sltb_assignment_overrides`
+  ADD INDEX `idx_overridden_by` (`overridden_by`),
+  ADD INDEX `idx_assignment` (`assignment_id`);
+
+-- Optional FK constraints (uncomment to enable):
+-- ALTER TABLE `sltb_assignment_overrides`
+--   ADD CONSTRAINT `fk_aov_overridden_by` FOREIGN KEY (`overridden_by`) REFERENCES `users`(`user_id`),
+--   ADD CONSTRAINT `fk_aov_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `sltb_assignments`(`assignment_id`);
+
+
+
+-- STEP 2D — SQL migration  (run once on your database)
+
+
+-- 1. Widen the notifications.type ENUM so 'Urgent' and 'Breakdown' are valid.
+--    (Safe to run again — MySQL ignores it if the values already exist.)
+ALTER TABLE notifications
+    MODIFY COLUMN `type` ENUM(
+        'Message',
+        'Delay',
+        'Timetable',
+        'Alert',
+        'Urgent',
+        'Breakdown',
+        'System'
+    ) NOT NULL DEFAULT 'Message';
+
+-- 2. Add a performance index so the depot inbox query stays fast even with
+--    thousands of notification rows.
+--    (CREATE INDEX … IF NOT EXISTS requires MySQL 8+; use the plain form on 5.7)
+CREATE INDEX IF NOT EXISTS idx_notif_depot_type_time
+    ON notifications (user_id, type, created_at);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- OPTIONAL (for a future richer messages table — skip for now):
+-- ─────────────────────────────────────────────────────────────────────────────
+/*
+CREATE TABLE IF NOT EXISTS depot_messages (
+    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    depot_id     INT UNSIGNED NOT NULL,
+    sender_id    INT UNSIGNED NOT NULL,
+    scope        ENUM('individual','role','depot') NOT NULL DEFAULT 'individual',
+    priority     ENUM('normal','urgent','critical') NOT NULL DEFAULT 'normal',
+    body         TEXT NOT NULL,
+    related_type VARCHAR(40)  NULL,   -- 'assignment' | 'trip' | 'bus'
+    related_id   INT UNSIGNED NULL,
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_dm_depot (depot_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS depot_message_recipients (
+    message_id INT UNSIGNED NOT NULL,
+    user_id    INT UNSIGNED NOT NULL,
+    read_at    DATETIME NULL,
+    ack_at     DATETIME NULL,
+    PRIMARY KEY (message_id, user_id),
+    INDEX idx_dmr_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+*/

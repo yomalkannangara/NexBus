@@ -1,0 +1,16 @@
+[22-Feb-2026 13:56:53 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'override_remark' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:226
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(226): PDO->prepare('INSERT INTO slt...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(39): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 226
+[22-Feb-2026 13:58:06 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'override_remark' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:226
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(226): PDO->prepare('INSERT INTO slt...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(39): App\models\depot_officer\AssignmentModel->create(Array, 1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 226
