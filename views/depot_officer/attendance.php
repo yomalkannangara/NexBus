@@ -1,9 +1,15 @@
 <?php /** @var array $staff,$records */ ?>
 <style>
+/* ─── Font & Base Styles (Matching Admin) ────────────────────────── */
+body {
+    font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Arial;
+    color: #2b2b2b;
+}
+
 /* ─── Attendance Page Styles ─────────────────────────────────────────── */
 .attendance-page {
     padding: 24px;
-    background: #f9fafb;
+    background: #f6f7f9;
     min-height: 100vh;
 }
 
@@ -13,9 +19,10 @@
 
 .attendance-header h1 {
     font-size: 28px;
-    font-weight: 800;
-    color: #1f2937;
+    font-weight: 700;
+    color: #2b2b2b;
     margin: 0 0 12px 0;
+    font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Arial;
 }
 
 .notice {
@@ -26,6 +33,7 @@
     border: 1px solid #6ee7b7;
     margin-bottom: 16px;
     font-weight: 600;
+    font-size: 13px;
 }
 
 /* ─── Filter Bar (Compact with Collapsible Panel) ───────────────────── */
@@ -33,10 +41,10 @@
     display: flex;
     gap: 12px;
     align-items: center;
-    background: white;
+    background: #fff;
     padding: 12px 16px;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 28px rgba(17, 24, 39, .08);
     margin-bottom: 24px;
 }
 
@@ -46,11 +54,12 @@
     border: 1px solid #d1d5db;
     border-radius: 8px;
     color: #374151;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 13px;
     cursor: pointer;
     transition: all .15s;
     white-space: nowrap;
+    font-family: inherit;
 }
 
 .attendance-filter-toggle:hover {
@@ -59,9 +68,9 @@
 }
 
 .attendance-filter-toggle.active {
-    background: linear-gradient(135deg, #7f1d1d, #a01c2e);
+    background: linear-gradient(135deg, #80143c, #80143c);
     color: white;
-    border-color: #7f1d1d;
+    border-color: #80143c;
 }
 
 .attendance-filters input[type="text"] {
@@ -76,19 +85,19 @@
 
 .attendance-filters input[type="text"]:focus {
     outline: none;
-    border-color: #7f1d1d;
-    box-shadow: 0 0 0 3px rgba(127,29,29,.1);
+    border-color: #80143c;
+    box-shadow: 0 0 0 3px rgba(128, 20, 60, .1);
 }
 
 /* ─── Collapsible Filter Panel ───────────────────────────────────────── */
 .attendance-filter-panel {
     display: none;
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: #fff;
+    border: 1px solid #d1d5db;
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 28px rgba(17, 24, 39, .08);
 }
 
 .attendance-filter-panel.active {
@@ -121,6 +130,7 @@
     font-weight: 600;
     color: #374151;
     font-size: 13px;
+    font-family: inherit;
 }
 
 .attendance-filter-panel input[type="date"],
@@ -135,8 +145,8 @@
 .attendance-filter-panel input[type="date"]:focus,
 .attendance-filter-panel select:focus {
     outline: none;
-    border-color: #7f1d1d;
-    box-shadow: 0 0 0 3px rgba(127,29,29,.1);
+    border-color: #80143c;
+    box-shadow: 0 0 0 3px rgba(128, 20, 60, .1);
 }
 
 .attendance-filter-panel-actions {
@@ -147,16 +157,17 @@
 
 .attendance-filter-panel-actions button {
     padding: 8px 16px;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 12px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: all .15s;
+    font-family: inherit;
 }
 
 .attendance-filter-panel-actions .btn-apply {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: #80143c;
     color: white;
 }
 
@@ -176,9 +187,9 @@
 
 /* ─── Table Styles ──────────────────────────────────────────────────── */
 .attendance-table-wrapper {
-    background: white;
+    background: #fff;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 28px rgba(17, 24, 39, .08);
     overflow: hidden;
 }
 
@@ -186,10 +197,11 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    font-family: inherit;
 }
 
 .attendance-table thead {
-    background: linear-gradient(135deg, #7f1d1d 0%, #a01c2e 100%);
+    background: #80143c;
     color: white;
 }
 
@@ -208,7 +220,7 @@
 }
 
 .attendance-table tbody tr:hover {
-    background-color: #f9fafb;
+    background-color: #f6f7f9;
 }
 
 .attendance-table td {
@@ -217,8 +229,8 @@
 }
 
 .attendance-table td:nth-child(1) {
-    font-weight: 700;
-    color: #111827;
+    font-weight: 600;
+    color: #2b2b2b;
 }
 
 .attendance-table td:nth-child(2) {
@@ -254,11 +266,12 @@
     border-radius: 8px;
     background: white;
     color: #374151;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 12px;
     cursor: pointer;
     transition: all .15s;
     white-space: nowrap;
+    font-family: inherit;
 }
 
 .attendance-btn:hover {
@@ -276,6 +289,23 @@
     background: #fecaca;
 }
 
+/* ─── Shifts Input ──────────────────────────────────────────────────── */
+.attendance-shifts-input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    text-align: center;
+}
+
+.attendance-shifts-input:focus {
+    outline: none;
+    border-color: #80143c;
+    box-shadow: 0 0 0 3px rgba(128, 20, 60, .1);
+}
+
 /* ─── Notes Input ──────────────────────────────────────────────────── */
 .attendance-notes {
     width: 100%;
@@ -289,23 +319,24 @@
 
 .attendance-notes:focus {
     outline: none;
-    border-color: #7f1d1d;
-    box-shadow: 0 0 0 3px rgba(127,29,29,.1);
+    border-color: #80143c;
+    box-shadow: 0 0 0 3px rgba(128, 20, 60, .1);
 }
 
 /* ─── Save Button ──────────────────────────────────────────────────── */
 .attendance-save-btn {
     margin-top: 24px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: #80143c;
     color: white;
     border: none;
     border-radius: 10px;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     transition: opacity .15s;
-    box-shadow: 0 4px 12px rgba(16,185,129,.3);
+    box-shadow: 0 10px 28px rgba(17, 24, 39, .08);
+    font-family: inherit;
 }
 
 .attendance-save-btn:hover {
@@ -416,7 +447,7 @@
                         data-role="<?= htmlspecialchars(strtolower($s['type'] ?? $s['role'] ?? '')) ?>"
                         data-akey="<?= htmlspecialchars($akey) ?>">
                         <td>
-                            <strong><?= htmlspecialchars($s['full_name'] ?? ($s['first_name'] . ' ' . $s['last_name'])) ?></strong>
+                            <?= htmlspecialchars($s['full_name'] ?? ($s['first_name'] . ' ' . $s['last_name'])) ?>
                         </td>
                         <td>
                             <span style="font-size:11px;text-transform:capitalize;"><?= htmlspecialchars($s['type'] ?? $s['role'] ?? '') ?></span>
@@ -438,8 +469,11 @@
                                    value="<?= $isAbsent ? '1' : '0' ?>">
                         </td>
                         <td>
-                            <strong style="font-size:14px;color:#7f1d1d;"><?= $shifts ?></strong>
-                            <span style="font-size:12px;color:#9ca3af;"> shift<?= $shifts !== 1 ? 's' : '' ?></span>
+                            <input type="number" name="mark[<?= htmlspecialchars($akey) ?>][shifts]" 
+                                   class="attendance-shifts-input"
+                                   min="0" max="3"
+                                   placeholder="0"
+                                   value="<?= $shifts ?>">
                         </td>
                         <td>
                             <input type="text" name="mark[<?= htmlspecialchars($akey) ?>][notes]" 
