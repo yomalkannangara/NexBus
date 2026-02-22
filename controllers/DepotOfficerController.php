@@ -138,7 +138,7 @@ public function assignments()
             $text      = trim($_POST['message'] ?? '');
             $priority  = in_array($_POST['priority'] ?? '', ['normal','urgent','critical'], true)
                          ? $_POST['priority'] : 'normal';
-            $scope     = in_array($_POST['scope'] ?? '', ['individual','role','depot'], true)
+            $scope     = in_array($_POST['scope'] ?? '', ['individual','role','depot','bus','route'], true)
                          ? $_POST['scope'] : 'individual';
             $allDepot  = ($_POST['all_depot'] ?? '0') === '1';
             $to        = array_values(array_filter(array_map('intval', (array)($_POST['to'] ?? []))));
@@ -148,6 +148,7 @@ public function assignments()
                   : false;
 
             $this->redirect('/O/messages?msg=' . ($ok ? 'sent' : 'error'));
+            return;
         }
 
         // ── Render ────────────────────────────────────────────────────────
@@ -155,10 +156,13 @@ public function assignments()
                   ? $_GET['filter'] : 'all';
 
         $this->view('depot_officer', 'messages', [
-            'me'     => $u,
-            'staff'  => $this->m->depotStaff($dep),
-            'recent' => $this->m->recentMessages($dep, $uid, 50, $filter),
-            'msg'    => $_GET['msg'] ?? null,
+            'me'         => $u,
+            'staff'      => $this->m->depotStaff($dep),
+            'roles'      => $this->m->availableRoles($dep),
+            'buses'      => $this->m->depotBusesForMessaging($dep),
+            'routes'     => $this->m->depotRoutesForMessaging($dep),
+            'recent'     => $this->m->recentMessages($dep, $uid, 50, $filter),
+            'msg'        => $_GET['msg'] ?? null,
         ]);
     }
 

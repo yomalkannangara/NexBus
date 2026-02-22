@@ -131,4 +131,35 @@ public function depot(int $depotId): ?array {
         $validKeys = array_column($rows, 'attendance_key');
         $this->att->markBulk($depotId, $date, $mark, $validKeys);
     }
+
+    // Messaging helpers for recipient selection (role/bus/route queries for UI)
+    public function availableRoles(int $depotId): array {
+        $st = $this->pdo->prepare("SELECT DISTINCT role FROM users WHERE sltb_depot_id=? ORDER BY role");
+        $st->execute([$depotId]);
+        return array_column($st->fetchAll(PDO::FETCH_ASSOC), 'role');
+    }
+
+    public function depotBusesForMessaging(int $depotId): array {
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT bus_id, bus_registration_no FROM sltb_buses WHERE sltb_depot_id=? ORDER BY bus_registration_no"
+            );
+            $st->execute([$depotId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    public function depotRoutesForMessaging(int $depotId): array {
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT route_id, route_name FROM sltb_routes WHERE sltb_depot_id=? ORDER BY route_name"
+            );
+            $st->execute([$depotId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
 }

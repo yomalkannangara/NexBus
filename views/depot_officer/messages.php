@@ -578,6 +578,8 @@ $flashMessages = [
                     <div class="msg-scope-tabs">
                         <button type="button" class="msg-scope-tab active" data-scope="individual">Individual</button>
                         <button type="button" class="msg-scope-tab" data-scope="role">By Role</button>
+                        <button type="button" class="msg-scope-tab" data-scope="bus">By Bus</button>
+                        <button type="button" class="msg-scope-tab" data-scope="route">By Route</button>
                         <button type="button" class="msg-scope-tab" data-scope="depot">All Depot</button>
                     </div>
 
@@ -603,14 +605,55 @@ $flashMessages = [
                     <!-- By Role -->
                     <div class="msg-scope-panel" id="scope-role">
                         <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
-                            <?php foreach (array_keys($byRole) as $roleName): ?>
+                            <?php foreach ($roles as $roleName): ?>
                             <label class="msg-recipient-item" style="border:1px solid #e9e3da;border-radius:8px;cursor:pointer;">
-                                <input type="checkbox" name="role_scope[]" value="<?= htmlspecialchars($roleName) ?>" onchange="updateRoleScope()">
+                                <input type="checkbox" name="to[]" value="<?= htmlspecialchars($roleName) ?>" class="role-cb" onchange="updateRoleTags()">
                                 <span class="ri-name"><?= htmlspecialchars($roleName) ?></span>
-                                <span style="font-size:10px;color:#9ca3af"><?= count($byRole[$roleName]) ?> staff</span>
+                                <span style="font-size:10px;color:#9ca3af"><?= count(array_filter($staff, fn($s) => $s['role'] === $roleName)) ?> staff</span>
                             </label>
                             <?php endforeach; ?>
                         </div>
+                        <div class="msg-selected-tags" id="selectedRoleTags"></div>
+                    </div>
+
+                    <!-- By Bus -->
+                    <div class="msg-scope-panel" id="scope-bus">
+                        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                            <?php if (!empty($buses)): ?>
+                                <?php foreach ($buses as $b): 
+                                    $bid = (int)($b['bus_id'] ?? 0);
+                                    $breg = htmlspecialchars($b['bus_registration_no'] ?? '');
+                                ?>
+                                <label class="msg-recipient-item" style="border:1px solid #e9e3da;border-radius:8px;cursor:pointer;">
+                                    <input type="checkbox" name="to[]" value="<?= $bid ?>" class="bus-cb" onchange="updateBusTags()">
+                                    <span class="ri-name">🚌 <?= $breg ?></span>
+                                </label>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="padding:10px;color:#9ca3af;font-size:12px;">No buses assigned to your depot.</div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="msg-selected-tags" id="selectedBusTags"></div>
+                    </div>
+
+                    <!-- By Route -->
+                    <div class="msg-scope-panel" id="scope-route">
+                        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                            <?php if (!empty($routes)): ?>
+                                <?php foreach ($routes as $r):
+                                    $rid = (int)($r['route_id'] ?? 0);
+                                    $rname = htmlspecialchars($r['route_name'] ?? '');
+                                ?>
+                                <label class="msg-recipient-item" style="border:1px solid #e9e3da;border-radius:8px;cursor:pointer;">
+                                    <input type="checkbox" name="to[]" value="<?= $rid ?>" class="route-cb" onchange="updateRouteTags()">
+                                    <span class="ri-name">🛣️ <?= $rname ?></span>
+                                </label>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="padding:10px;color:#9ca3af;font-size:12px;">No routes assigned to your depot.</div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="msg-selected-tags" id="selectedRouteTags"></div>
                     </div>
 
                     <!-- All Depot -->
@@ -810,32 +853,80 @@ document.getElementById('recipientSearch').addEventListener('input', function() 
     });
 });
 
-/* ─── Role scope → hidden checkboxes ───────────────────────────────── */
+/* ─── Role scope → tags ───────────────────────────────────────────────── */
 const staffByRole = <?php
     $jsRoles = [];
-    foreach ($byRole as $r => $members) {
-        $jsRoles[$r] = array_map(fn($m) => (int)($m['user_id'] ?? 0), $members);
+    foreach ($staff as $m) {
+        $r = $m['role'] ?? 'Other';
+        if (!isset($jsRoles[$r])) $jsRoles[$r] = [];
+        $jsRoles[$r][] = (int)($m['user_id'] ?? 0);
     }
     echo json_encode($jsRoles, JSON_UNESCAPED_UNICODE);
 ?>;
 
-window.updateRoleScope = function() {
-    // remove old role-generated checkboxes
-    document.querySelectorAll('.role-generated-cb').forEach(el => el.remove());
-    const checked = document.querySelectorAll('input[name="role_scope[]"]:checked');
-    const seen = new Set();
+window.updateRoleTags = function() {
+    const checked = document.querySelectorAll('.role-cb:checked');
+    const tags = document.getElementById('selectedRoleTags');
+    tags.innerHTML = '';
     checked.forEach(cb => {
-        const ids = staffByRole[cb.value] || [];
-        ids.forEach(uid => {
-            if (!seen.has(uid)) {
-                seen.add(uid);
-                const inp = document.createElement('input');
-                inp.type = 'hidden'; inp.name = 'to[]'; inp.value = uid;
-                inp.className = 'role-generated-cb';
-                document.getElementById('composeForm').appendChild(inp);
-            }
-        });
+        const tag = document.createElement('span');
+        tag.className = 'msg-tag';
+        tag.innerHTML = esc(cb.value) + '<span class="msg-tag-rm" onclick="removeRoleTag(\'' + esc(cb.value) + '\')">×</span>';
+        tags.appendChild(tag);
     });
+};
+
+window.removeRoleTag = function(role) {
+    const cb = document.querySelector('.role-cb[value="' + role + '"]');
+    if (cb) { cb.checked = false; updateRoleTags(); }
+};
+
+/* ─── Bus scope → tags ──────────────────────────────────────────────── */
+const busesByKey = <?php 
+    echo json_encode(array_map(fn($b) => ['id' => (int)($b['bus_id'] ?? 0), 'reg' => $b['bus_registration_no'] ?? ''], $buses ?? []), JSON_UNESCAPED_UNICODE);
+?>;
+
+window.updateBusTags = function() {
+    const checked = document.querySelectorAll('.bus-cb:checked');
+    const tags = document.getElementById('selectedBusTags');
+    tags.innerHTML = '';
+    checked.forEach(cb => {
+        const bus = busesByKey.find(b => b.id === parseInt(cb.value));
+        const label = bus ? bus.reg : 'Bus ' + cb.value;
+        const tag = document.createElement('span');
+        tag.className = 'msg-tag';
+        tag.innerHTML = '🚌 ' + esc(label) + '<span class="msg-tag-rm" onclick="removeBusTag(' + cb.value + ')">×</span>';
+        tags.appendChild(tag);
+    });
+};
+
+window.removeBusTag = function(busId) {
+    const cb = document.querySelector('.bus-cb[value="' + busId + '"]');
+    if (cb) { cb.checked = false; updateBusTags(); }
+};
+
+/* ─── Route scope → tags ────────────────────────────────────────────── */
+const routesByKey = <?php 
+    echo json_encode(array_map(fn($r) => ['id' => (int)($r['route_id'] ?? 0), 'name' => $r['route_name'] ?? ''], $routes ?? []), JSON_UNESCAPED_UNICODE);
+?>;
+
+window.updateRouteTags = function() {
+    const checked = document.querySelectorAll('.route-cb:checked');
+    const tags = document.getElementById('selectedRouteTags');
+    tags.innerHTML = '';
+    checked.forEach(cb => {
+        const route = routesByKey.find(r => r.id === parseInt(cb.value));
+        const label = route ? route.name : 'Route ' + cb.value;
+        const tag = document.createElement('span');
+        tag.className = 'msg-tag';
+        tag.innerHTML = '🛣️ ' + esc(label) + '<span class="msg-tag-rm" onclick="removeRouteTag(' + cb.value + ')">×</span>';
+        tags.appendChild(tag);
+    });
+};
+
+window.removeRouteTag = function(routeId) {
+    const cb = document.querySelector('.route-cb[value="' + routeId + '"]');
+    if (cb) { cb.checked = false; updateRouteTags(); }
 };
 
 /* ─── Templates ─────────────────────────────────────────────────────── */

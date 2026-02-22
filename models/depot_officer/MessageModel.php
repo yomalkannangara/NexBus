@@ -6,21 +6,71 @@ use PDO;
 
 class MessageModel extends BaseModel
 {
+    /**
+     * Expand recipient IDs based on scope.
+     * scope='individual': use provided userIds as-is.
+     * scope='role': userIds are role names (DepotOfficer, Driver, Conductor, etc); expand to all users with that role in depot.
+     * scope='route': userIds are route_ids; expand to all drivers/conductors assigned to those routes.
+     * scope='bus': userIds are bus_ids; expand to all drivers/conductors assigned to those buses.
+     */
+    public function expandRecipients(int $depotId, array $userIds, string $scope='individual'): array {
+        if (empty($userIds)) return [];
+
+        $okIds = [];
+
+        if ($scope === 'individual') {
+            // Validate user IDs belong to this depot
+            $in = implode(',', array_fill(0, count($userIds), '?'));
+            $st = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=? AND user_id IN ($in)");
+            $st->execute(array_merge([$depotId], array_map('intval',$userIds)));
+            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+
+        } elseif ($scope === 'role') {
+            // userIds are role names; expand to all users with that role in depot
+            $in = implode(',', array_fill(0, count($userIds), '?'));
+            $st = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=? AND role IN ($in)");
+            $st->execute(array_merge([$depotId], $userIds));
+            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+
+        } elseif ($scope === 'route') {
+            // userIds are route_ids; expand to drivers/conductors assigned to those routes
+            $routeIds = array_map('intval', $userIds);
+            $in = implode(',', array_fill(0, count($routeIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT u.user_id FROM users u
+                 JOIN sltb_assignments a ON (a.sltb_driver_id=u.user_id OR a.sltb_conductor_id=u.user_id)
+                 WHERE u.sltb_depot_id=? AND a.route_id IN ($in)"
+            );
+            $st->execute(array_merge([$depotId], $routeIds));
+            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+
+        } elseif ($scope === 'bus') {
+            // userIds are bus_ids; expand to drivers/conductors assigned to those buses
+            $busIds = array_map('intval', $userIds);
+            $in = implode(',', array_fill(0, count($busIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT u.user_id FROM users u
+                 JOIN sltb_assignments a ON (a.sltb_driver_id=u.user_id OR a.sltb_conductor_id=u.user_id)
+                 WHERE u.sltb_depot_id=? AND a.bus_id IN ($in)"
+            );
+            $st->execute(array_merge([$depotId], $busIds));
+            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        return array_unique(array_map('intval', $okIds));
+    }
+
     public function send(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false): bool {
         $text = trim($text);
         if (!$text) return false;
 
-        // If allDepot: get all users in this depot; else use provided userIds
+        // Expand recipients based on scope
         if ($allDepot) {
             $st = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=?");
             $st->execute([$depotId]);
             $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
         } else {
-            if (empty($userIds)) return false;
-            $in = implode(',', array_fill(0, count($userIds), '?'));
-            $chk = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=? AND user_id IN ($in)");
-            $chk->execute(array_merge([$depotId], array_map('intval',$userIds)));
-            $okIds = $chk->fetchAll(PDO::FETCH_COLUMN);
+            $okIds = $this->expandRecipients($depotId, $userIds, $scope);
         }
         
         if (!$okIds) return false;
