@@ -1535,3 +1535,61 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- --------------------------------------------------------
+-- Additional migrations appended on 2026-02-22
+-- Migration: Add arrival_depot_id and completed_by to sltb_trips
+-- Purpose: Enforce Option B business rule (only the timekeeper at the
+-- route's designated ending depot may complete a trip). This section
+-- adds storage columns; enforcement logic is implemented in PHP models.
+
+ALTER TABLE `sltb_trips`
+  ADD COLUMN `arrival_depot_id` int(11) DEFAULT NULL AFTER `arrival_time`,
+  ADD COLUMN `completed_by` int(11) DEFAULT NULL AFTER `arrival_depot_id`;
+
+ALTER TABLE `sltb_trips`
+  ADD INDEX `idx_arrival_depot` (`arrival_depot_id`),
+  ADD INDEX `idx_completed_by` (`completed_by`);
+
+-- Optional foreign keys (uncomment if referential integrity desired):
+-- ALTER TABLE `sltb_trips`
+--   ADD CONSTRAINT `fk_sltbtrips_arrival_depot` FOREIGN KEY (`arrival_depot_id`) REFERENCES `sltb_depots`(`sltb_depot_id`),
+--   ADD CONSTRAINT `fk_sltbtrips_completed_by` FOREIGN KEY (`completed_by`) REFERENCES `users`(`user_id`);
+
+-- Notes:
+-- - The application resolves a route's last stop token (route.stops_json)
+--   and attempts to match it to sltb_depots.code or sltb_depots.name when
+--   validating who can complete a trip.
+-- - If route stop tokens don't map to depots in your dataset, populate
+--   `sltb_depots.code` or adjust the matching logic in TurnModel::complete().
+
+-- --------------------------------------------------------
+-- Additional migration appended on 2026-02-22: private_trips completion fields
+ALTER TABLE `private_trips`
+  ADD COLUMN `arrival_depot_id` int(11) DEFAULT NULL AFTER `arrival_time`,
+  ADD COLUMN `completed_by` int(11) DEFAULT NULL AFTER `arrival_depot_id`;
+
+ALTER TABLE `private_trips`
+  ADD INDEX `idx_arrival_depot` (`arrival_depot_id`),
+  ADD INDEX `idx_completed_by` (`completed_by`);
+
+-- Optional FKs (uncomment if desired):
+-- ALTER TABLE `private_trips`
+--   ADD CONSTRAINT `fk_ptrips_arrival_depot` FOREIGN KEY (`arrival_depot_id`) REFERENCES `sltb_depots`(`sltb_depot_id`),
+--   ADD CONSTRAINT `fk_ptrips_completed_by` FOREIGN KEY (`completed_by`) REFERENCES `users`(`user_id`);
+
+-- --------------------------------------------------------
+-- Additional cancellation columns appended on 2026-02-22
+ALTER TABLE `sltb_trips`
+  ADD COLUMN `cancelled_by` int(11) DEFAULT NULL AFTER `completed_by`,
+  ADD COLUMN `cancel_reason` text DEFAULT NULL AFTER `cancelled_by`,
+  ADD COLUMN `cancelled_at` timestamp NULL DEFAULT NULL AFTER `cancel_reason`;
+
+ALTER TABLE `private_trips`
+  ADD COLUMN `cancelled_by` int(11) DEFAULT NULL AFTER `completed_by`,
+  ADD COLUMN `cancel_reason` text DEFAULT NULL AFTER `cancelled_by`,
+  ADD COLUMN `cancelled_at` timestamp NULL DEFAULT NULL AFTER `cancel_reason`;
+
+ALTER TABLE `sltb_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
+ALTER TABLE `private_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
+

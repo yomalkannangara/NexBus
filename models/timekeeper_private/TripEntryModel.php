@@ -24,12 +24,13 @@ class TripEntryModel extends BaseModel
             TIME(tt.arrival_time)   AS sched_arr,
             (CURRENT_TIME() BETWEEN TIME(tt.departure_time)
                                AND IFNULL(TIME(tt.arrival_time),'23:59:59')) AS is_current,
-            EXISTS(SELECT 1 FROM private_trips p
-                    WHERE p.timetable_id=tt.timetable_id AND p.trip_date=CURDATE()
-                  ) AS already_today
+            p.private_trip_id AS trip_id,
+            p.status AS trip_status,
+            (p.private_trip_id IS NOT NULL) AS already_today
         FROM timetables tt
         JOIN private_buses pb ON pb.reg_no=tt.bus_reg_no AND pb.private_operator_id=:op
         JOIN routes r ON r.route_id=tt.route_id
+        LEFT JOIN private_trips p ON p.timetable_id = tt.timetable_id AND p.trip_date = CURDATE()
         ORDER BY TIME(tt.departure_time), r.route_no+0, r.route_no";
         $st = $this->pdo->prepare($sql);
         $st->execute([':op'=>$this->opId]);
@@ -101,5 +102,27 @@ class TripEntryModel extends BaseModel
         ]);
 
         return ['ok'=>$ok, 'turn'=>$turn];
+    }
+
+    /** Cancel an in-progress private trip from the starting (operator) page. */
+    public function cancel(int $tripId, ?string $reason=null): array
+    {
+        $reasonText = trim((string)($reason ?? ''));
+        if ($reasonText === '') return ['ok'=>false,'msg'=>'no_reason'];
+
+        $trip = $this->pdo->prepare("SELECT private_trip_id, status, private_operator_id FROM private_trips WHERE private_trip_id=:id AND trip_date=CURDATE()");
+        $trip->execute([':id'=>$tripId]);
+        $t = $trip->fetch(PDO::FETCH_ASSOC);
+        if (!$t) return ['ok'=>false,'msg'=>'no_trip'];
+        if ($t['status'] !== 'InProgress') return ['ok'=>false,'msg'=>'not_in_progress'];
+        // only operator that started the trip may cancel from entry page
+        if ((int)$t['private_operator_id'] !== $this->opId) return ['ok'=>false,'msg'=>'not_authorized'];
+
+        $upd = $this->pdo->prepare(
+            "UPDATE private_trips SET status='Cancelled', cancelled_by=:user, cancel_reason=:reason, cancelled_at=CURRENT_TIMESTAMP()
+             WHERE private_trip_id=:id AND status='InProgress'"
+        );
+        $upd->execute([':user'=>($_SESSION['user']['user_id'] ?? null), ':reason'=>$reasonText, ':id'=>$tripId]);
+        return ['ok'=>$upd->rowCount() > 0, 'msg'=>$upd->rowCount()>0 ? null : 'update_failed'];
     }
 }

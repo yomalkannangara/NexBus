@@ -22,7 +22,9 @@
         ?>
           <tr class="row" data-tt="<?= (int)$r['timetable_id'] ?>"
               data-sdep="<?= htmlspecialchars($r['sched_dep']) ?>"
-              data-sarr="<?= htmlspecialchars($r['sched_arr'] ?? '') ?>">
+              data-sarr="<?= htmlspecialchars($r['sched_arr'] ?? '') ?>"
+              data-trip-id="<?= htmlspecialchars((string)($r['trip_id'] ?? '')) ?>"
+              data-trip-status="<?= htmlspecialchars((string)($r['trip_status'] ?? '')) ?>">
             <td class="mono" data-label="Time"><?= htmlspecialchars(substr($r['sched_dep'],0,5).' → '.substr($r['sched_arr'] ?? '—',0,5)) ?></td>
             <td data-label="Route">
               <div class="route">
@@ -38,6 +40,9 @@
             </td>
             <td data-label="Action">
               <button class="btn btn-start" data-action="start" data-tt="<?= (int)$r['timetable_id'] ?>" <?= $already?'disabled':''; ?>>Start</button>
+              <?php if (!empty($r['trip_id']) && ($r['trip_status'] ?? '') === 'InProgress'): ?>
+                <button class="btn btn-cancel" data-action="cancel" data-trip-id="<?= (int)$r['trip_id'] ?>">Cancel</button>
+              <?php endif; ?>
             </td>
           </tr>
         <?php endforeach; ?>

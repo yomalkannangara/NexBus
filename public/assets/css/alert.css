@@ -5,8 +5,29 @@
   background:#101522; color:#f2f5f9; border:1px solid rgba(255,255,255,.08);
   border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,.35); overflow:hidden;
 }
+.ap-modal-input { width:min(420px, calc(100vw - 20px)); }
+.ap-modal-input .ap-body textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  background: #141b2f;
+  color: #f2f5f9;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+.ap-modal-input .ap-body textarea::placeholder {
+  color: rgba(242, 245, 249, 0.5);
+}
+.ap-modal-input .ap-body textarea:focus {
+  outline: none;
+  border-color: var(--ap-primary);
+  box-shadow: 0 0 0 3px rgba(42, 108, 255, 0.1);
+}
 .ap-head{ padding:12px 16px; font-weight:700; border-bottom:1px solid rgba(255,255,255,.06); }
-.ap-body{ padding:14px 16px; line-height:1.45; white-space:pre-wrap; }
+.ap-body{ padding:14px 16px; line-height:1.45; }
 .ap-foot{ padding:12px 16px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(255,255,255,.06); }
 .ap-btn{
   border:1px solid rgba(255,255,255,.12); background:#141b2f; color:#e7ecf6;
@@ -14,3 +35,58 @@
 }
 .ap-btn.primary{ background:var(--ap-primary); border-color:var(--ap-primary); color:#fff; }
 .ap-btn:active{ transform:translateY(1px); }
+
+/* Toast notifications */
+.ap-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: #2a6cff;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+.ap-toast-success { background: #4caf50; }
+.ap-toast-error { background: #f44336; }
+.ap-toast-info { background: #2196f3; }
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .ap-modal, .ap-modal-input {
+    width: calc(100vw - 16px);
+    max-height: 80vh;
+  }
+  .ap-modal-input .ap-body textarea {
+    min-height: 100px;
+  }
+  .ap-foot {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .ap-btn {
+    flex: 1;
+    min-width: 100px;
+  }
+  .ap-toast {
+    top: auto;
+    bottom: 20px;
+    left: 10px;
+    right: 10px;
+    width: calc(100vw - 20px);
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(400px); opacity: 0; }
+}

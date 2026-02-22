@@ -9,9 +9,9 @@ class ReportModel extends BaseModel
     public function __construct() {}
 
     /** Public: KPI summary (keeps your signature) */
-    public function kpis(int $depotId, string $from, string $to): array
+    public function kpis(int $depotId, string $from, string $to, array $filters = []): array
     {
-        $rows = $this->filterTrips($this->seedTrips(), $depotId, $from, $to);
+        $rows = $this->filterTrips($this->seedTrips(), $depotId, $from, $to, $filters);
 
         $delayed = 0;
         $breakdowns = 0;
@@ -34,9 +34,9 @@ class ReportModel extends BaseModel
     }
 
     /** Public: CSV export (keeps your signature) */
-    public function csv(int $depotId, string $from, string $to): string
+    public function csv(int $depotId, string $from, string $to, array $filters = []): string
     {
-        $rows = $this->filterTrips($this->seedTrips(), $depotId, $from, $to);
+        $rows = $this->filterTrips($this->seedTrips(), $depotId, $from, $to, $filters);
 
         $out = fopen('php://temp','r+');
         fputcsv($out, ['trip_date','bus_reg_no','route_no','status','delay_min','departure_time','arrival_time']);
@@ -83,16 +83,23 @@ class ReportModel extends BaseModel
         ];
     }
 
-    /** Filter by depot + date range (inclusive) */
-    private function filterTrips(array $rows, int $depotId, string $from, string $to): array
+    /** Filter by depot + date range (inclusive) + optional filters */
+    private function filterTrips(array $rows, int $depotId, string $from, string $to, array $filters = []): array
     {
         $fromTs = strtotime($from.' 00:00:00');
         $toTs   = strtotime($to.' 23:59:59');
 
-        return array_values(array_filter($rows, function($r) use ($depotId,$fromTs,$toTs){
+        return array_values(array_filter($rows, function($r) use ($depotId,$fromTs,$toTs, $filters){
             if ((int)$r['sltb_depot_id'] !== (int)$depotId) return false;
             $t = strtotime(($r['trip_date'] ?? date('Y-m-d')).' 12:00:00');
-            return ($t >= $fromTs && $t <= $toTs);
+            if (!($t >= $fromTs && $t <= $toTs)) return false;
+
+            // Optional filters
+            if (!empty($filters['route']) && ($r['route_no'] ?? '') !== $filters['route']) return false;
+            if (!empty($filters['bus_id']) && ($r['bus_reg_no'] ?? '') !== $filters['bus_id']) return false;
+            if (!empty($filters['status']) && ($r['status'] ?? '') !== $filters['status']) return false;
+
+            return true;
         }));
     }
 

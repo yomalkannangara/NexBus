@@ -81,6 +81,8 @@
       }, { once:true });
     });
   }
+  // expose confirmPretty for external callers
+  window.confirmPretty = confirmPretty;
 
   // ---------- auto-patch inline confirm patterns ----------
   function patchInlineConfirms(ctx=document){
@@ -145,4 +147,136 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => { ensureRoot(); patchInlineConfirms(); }, { once:true });
   } else { ensureRoot(); patchInlineConfirms(); }
+
+  // ---------- toast notifications (top-right on desktop) ----------
+  window.showNotification = function(message, type='info', duration=4000) {
+    ensureRoot();
+    // On narrow screens show a blocking modal-style notification
+    if (window.innerWidth <= 640) {
+      const root = document.getElementById('ap-root');
+      const wrap = document.createElement('div');
+      wrap.className = 'ap-backdrop ap-notify-modal';
+      wrap.innerHTML = `
+        <div class="ap-modal" role="dialog">
+          <div class="ap-head">${escapeHtml(type==='success'?'Success': type==='error'?'Error':'Notice')}</div>
+          <div class="ap-body">${escapeHtml(message)}</div>
+          <div class="ap-foot"><button class="ap-btn primary ap-ok">OK</button></div>
+        </div>`;
+      root.appendChild(wrap);
+      wrap.querySelector('.ap-ok').addEventListener('click', () => wrap.remove());
+      return wrap;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `ap-toast ap-toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type==='success'?'#4caf50':type==='error'?'#f44336':'#2196f3'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-size: 14px;
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    if (duration) {
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+    return toast;
+  };
+
+  // Inject animations if not already present
+  if (!document.getElementById('ap-animations')) {
+    const style = document.createElement('style');
+    style.id = 'ap-animations';
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // ---------- input modal for reason (responsive) ----------
+  window.showReasonModal = function(title='Enter Reason', placeholder='Why are you cancelling?') {
+    return new Promise(resolve => {
+      ensureRoot();
+      const root = document.getElementById('ap-root');
+      const wrap = document.createElement('div');
+      wrap.className = 'ap-backdrop ap-reason-modal';
+      wrap.innerHTML = `
+        <div class="ap-modal ap-modal-input" role="dialog">
+          <div class="ap-head">${escapeHtml(title)}</div>
+          <div class="ap-body">
+            <textarea id="ap-reason-input" placeholder="${escapeHtml(placeholder)}" style="width:100%;min-height:60px;padding:8px;border:1px solid #ddd;border-radius:4px;font-family:inherit;font-size:14px;"></textarea>
+          </div>
+          <div class="ap-foot">
+            <button class="ap-btn ap-cancel-btn" type="button">Cancel</button>
+            <button class="ap-btn ap-confirm-btn primary" type="button">Confirm</button>
+          </div>
+        </div>
+      `;
+      root.appendChild(wrap);
+      
+      const input = wrap.querySelector('#ap-reason-input');
+      const cancelBtn = wrap.querySelector('.ap-cancel-btn');
+      const confirmBtn = wrap.querySelector('.ap-confirm-btn');
+      
+      input.focus();
+      
+      const close = () => {
+        wrap.remove();
+      };
+      
+      cancelBtn.addEventListener('click', () => {
+        close();
+        resolve(null);
+      });
+      
+      confirmBtn.addEventListener('click', () => {
+        const reason = input.value.trim();
+        if (!reason) {
+          input.style.borderColor = '#f44336';
+          input.style.backgroundColor = 'rgba(244,67,54,0.1)';
+          return;
+        }
+        close();
+        resolve(reason);
+      });
+      
+      wrap.addEventListener('click', e => {
+        if (e.target === wrap) {
+          close();
+          resolve(null);
+        }
+      });
+      
+      document.addEventListener('keydown', function onKey(e) {
+        if (e.key === 'Escape') {
+          close();
+          resolve(null);
+        } else if (e.key === 'Enter' && e.ctrlKey) {
+          e.preventDefault();
+          const reason = input.value.trim();
+          if (reason) {
+            close();
+            resolve(reason);
+          }
+        }
+      }, { once: true });
+    });
+  };
 })();

@@ -121,16 +121,29 @@ public function assignments()
 
 public function trip_logs(): void
 {
-    $from = $_GET['from'] ?? date('Y-m-d');
-    $to   = $_GET['to']   ?? $from;
+    $u = $this->m->me();
+    $dep = $this->m->myDepotId($u);
+
+    $date = $_GET['date'] ?? date('Y-m-d');
+    $filters = [
+        'route' => $_GET['route'] ?? '',
+        'bus_id' => $_GET['bus_id'] ?? '',
+        'departure_time' => $_GET['departure_time'] ?? '',
+        'arrival_time' => $_GET['arrival_time'] ?? '',
+        'status' => $_GET['status'] ?? '',
+    ];
+
+    $from = $date; $to = $date;
 
     $m = new \App\models\depot_officer\TrackingModel();
-    $rows = $m->logs($from, $to);
+    $rows = $m->logs($from, $to, $filters);
 
     $this->view('depot_officer', 'trip_logs', [
         'rows' => $rows,
-        'from' => $from,
-        'to'   => $to
+        'date' => $date,
+        'routes' => $this->m->routes(),
+        'buses'  => $this->m->depotBuses($dep),
+        'filters'=> $filters,
     ]);
 }
 
@@ -140,8 +153,14 @@ public function trip_logs(): void
         $from = $_GET['from'] ?? date('Y-m-d');
         $to   = $_GET['to']   ?? date('Y-m-d');
 
+        $filters = [
+            'route' => $_GET['route'] ?? '',
+            'bus_id' => $_GET['bus_id'] ?? '',
+            'status' => $_GET['status'] ?? '',
+        ];
+
         if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-            $csv = $this->m->buildCsvReport($dep, $from, $to);
+            $csv = $this->m->buildCsvReport($dep, $from, $to, $filters);
             header('Content-Type: text/csv');
             header('Content-Disposition: attachment; filename="depot-report-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
             echo $csv; exit;
@@ -151,7 +170,10 @@ public function trip_logs(): void
             'me'=>$u,
             'from'=>$from,
             'to'=>$to,
-            'kpis'=>$this->m->kpiSummary($dep, $from, $to),
+            'kpis'=>$this->m->kpiSummary($dep, $from, $to, $filters),
+            'routes'=>$this->m->routes(),
+            'buses'=>$this->m->depotBuses($dep),
+            'filters'=>$filters,
         ]);
     }
 

@@ -32,7 +32,10 @@
           <td class="<?= $delay>0?'text-red':'' ?>" data-label="Delay">
             <?= $delay>0 ? "Started {$delay} min late" : "On time" ?>
           </td>
-          <td data-label="Action"><button class="btn btn-complete" data-action="complete">Close</button></td>
+          <td data-label="Action">
+            <button class="btn btn-complete" data-action="complete">Close</button>
+            <button class="btn btn-cancel" data-action="cancel">Cancel</button>
+          </td>
         </tr>
       <?php endforeach; ?>
       </tbody>

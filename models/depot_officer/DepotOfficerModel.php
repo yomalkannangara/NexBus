@@ -119,8 +119,8 @@ public function depot(int $depotId): ?array {
     public function trackingLogs(int $depotId, string $from, string $to): array { return $this->track->logs($depotId,$from,$to); }
 
     // Reports
-    public function kpiSummary(int $depotId, string $from, string $to): array { return $this->report->kpis($depotId,$from,$to); }
-    public function buildCsvReport(int $depotId, string $from, string $to): string { return $this->report->csv($depotId,$from,$to); }
+    public function kpiSummary(int $depotId, string $from, string $to, array $filters = []): array { return $this->report->kpis($depotId,$from,$to, $filters); }
+    public function buildCsvReport(int $depotId, string $from, string $to, array $filters = []): string { return $this->report->csv($depotId,$from,$to, $filters); }
 
     // Attendance
     public function attendanceForDate(int $depotId, string $date): array { return $this->att->forDate($depotId,$date); }

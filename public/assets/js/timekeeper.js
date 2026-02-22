@@ -72,15 +72,23 @@
         alert('Missing timetable id. Reload and try again.');
         return;
       }
-      if (!confirm('Start this trip now?')) { btn.disabled=false; return; }
-
-      postForm(endpoint, { action:'start', timetable_id:String(tt) })
-        .then(j => {
-          if (j && j.ok) { location.reload(); return; }
-          alert((j && j.msg) || 'Failed to start.');
-          btn.disabled = false;
-        })
-        .catch(() => { alert('Network error'); btn.disabled=false; });
+      // use pretty confirm (modal) for both mobile and desktop
+      window.confirmPretty('Start this trip now?').then(ok => {
+        if (!ok) { btn.disabled=false; return; }
+        postForm(endpoint, { action:'start', timetable_id:String(tt) })
+          .then(j => {
+            if (j && j.ok) {
+              window.showNotification('Trip started — ready to go.', 'success');
+              setTimeout(() => location.reload(), 900);
+              return;
+            }
+            const msg = (j && j.msg) || 'Failed to start.';
+            window.showNotification(msg, 'error');
+            btn.disabled = false;
+          })
+          .catch(() => { window.showNotification('Network error', 'error'); btn.disabled=false; });
+      });
+      return;
     }
 
     if (action === 'complete') {
@@ -90,16 +98,80 @@
         alert('Missing trip id. Reload and try again.');
         return;
       }
-      if (!confirm('Mark this trip as completed?')) { btn.disabled=false; return; }
+      window.confirmPretty('Mark this trip as completed?').then(ok => {
+        if (!ok) { btn.disabled=false; return; }
+        // send both keys; server will read whichever it needs
+        postForm(endpoint, { action:'complete', private_trip_id:String(id), sltb_trip_id:String(id) })
+          .then(j => {
+            if (j && j.ok) {
+              window.showNotification('Trip completed successfully.', 'success');
+              setTimeout(() => location.reload(), 900);
+              return;
+            }
+            window.showNotification('Failed to complete.', 'error');
+            btn.disabled = false;
+          })
+          .catch(() => { window.showNotification('Network error', 'error'); btn.disabled=false; });
+      });
+      return;
+    }
+    if (action === 'cancel') {
+      const id = parseInt(resolveId('tripId','id','private_trip_id','sltb_trip_id'), 10);
+      if (!id || Number.isNaN(id)) {
+        btn.disabled = false;
+        window.showNotification('Missing trip ID. Reload and try again.', 'error');
+        return;
+      }
+      
+      // Use themed modal to collect reason
+      window.showReasonModal(
+        'Cancel Trip',
+        'Why are you cancelling this trip? (required)'
+      ).then(reason => {
+        if (reason === null) { 
+          btn.disabled = false; 
+          return; 
+        } // user cancelled modal
 
-      // send both keys; server will read whichever it needs
-      postForm(endpoint, { action:'complete', private_trip_id:String(id), sltb_trip_id:String(id) })
-        .then(j => {
-          if (j && j.ok) { location.reload(); return; }
-          alert('Failed to complete.');
-          btn.disabled = false;
-        })
-        .catch(() => { alert('Network error'); btn.disabled=false; });
+        // Confirm before sending using pretty confirm
+        window.confirmPretty('Are you sure you want to cancel this trip?').then(ok => {
+          if (!ok) { btn.disabled = false; return; }
+
+          postForm(endpoint, { 
+            action: 'cancel', 
+            private_trip_id: String(id), 
+            sltb_trip_id: String(id), 
+            reason: String(reason) 
+          })
+            .then(j => {
+              if (j && j.ok) { 
+                window.showNotification('Trip cancelled successfully.', 'success');
+                setTimeout(() => { location.reload(); }, 1000);
+                return; 
+              }
+              // Handle structured error response
+              let msg = 'Failed to cancel.';
+              if (j && j.msg) {
+                const msgs = {
+                  'no_reason': 'A reason is required.',
+                  'not_authorized': 'You are not authorized to cancel this trip.',
+                  'not_in_progress': 'This trip is not currently in progress.',
+                  'no_trip': 'Trip not found — it may have been cancelled or completed. Please refresh.',
+                  'no_depot_match': 'Could not determine the route endpoint.',
+                  'update_failed': 'Database update failed.'
+                };
+                msg = msgs[j.msg] || j.msg;
+              }
+              window.showNotification(msg, 'error');
+              btn.disabled = false;
+            })
+            .catch(err => { 
+              window.showNotification('Network error: ' + (err.message||''), 'error');
+              btn.disabled = false;
+            });
+        });
+      });
+      return;
     }
   }, false);
 })();

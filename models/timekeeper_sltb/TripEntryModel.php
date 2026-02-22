@@ -31,13 +31,13 @@ class TripEntryModel extends BaseModel
             TIME(t.arrival_time)   AS sched_arr,
             (CURRENT_TIME() BETWEEN TIME(t.departure_time)
                                AND IFNULL(TIME(t.arrival_time),'23:59:59')) AS is_current,
-            EXISTS(
-              SELECT 1 FROM sltb_trips s
-               WHERE s.timetable_id=t.timetable_id AND s.trip_date=CURDATE()
-            ) AS already_today
+            s.sltb_trip_id AS trip_id,
+            s.status       AS trip_status,
+            (s.sltb_trip_id IS NOT NULL) AS already_today
         FROM timetables t
         JOIN routes r     ON r.route_id = t.route_id
         JOIN sltb_buses b ON b.reg_no   = t.bus_reg_no
+        LEFT JOIN sltb_trips s ON s.timetable_id = t.timetable_id AND s.trip_date = CURDATE()
         WHERE t.operator_type='SLTB' AND b.sltb_depot_id=:depot
         ORDER BY TIME(t.departure_time), r.route_no+0, r.route_no
         SQL;
@@ -105,5 +105,27 @@ class TripEntryModel extends BaseModel
         ]);
 
         return ['ok'=>$ok, 'turn'=>$turn];
+    }
+
+    /** Cancel an in-progress trip from the starting depot (entry page). */
+    public function cancel(int $tripId, ?string $reason=null): array
+    {
+        $reasonText = trim((string)($reason ?? ''));
+        if ($reasonText === '') return ['ok'=>false,'msg'=>'no_reason'];
+
+        $trip = $this->pdo->prepare("SELECT sltb_trip_id, status, sltb_depot_id FROM sltb_trips WHERE sltb_trip_id=:id AND trip_date=CURDATE()");
+        $trip->execute([':id'=>$tripId]);
+        $t = $trip->fetch(PDO::FETCH_ASSOC);
+        if (!$t) return ['ok'=>false,'msg'=>'no_trip'];
+        if ($t['status'] !== 'InProgress') return ['ok'=>false,'msg'=>'not_in_progress'];
+        // only depot that started the trip may cancel from entry page
+        if ((int)$t['sltb_depot_id'] !== $this->depotId()) return ['ok'=>false,'msg'=>'not_authorized'];
+
+        $upd = $this->pdo->prepare(
+            "UPDATE sltb_trips SET status='Cancelled', cancelled_by=:user, cancel_reason=:reason, cancelled_at=CURRENT_TIMESTAMP()
+             WHERE sltb_trip_id=:id AND status='InProgress'"
+        );
+        $upd->execute([':user'=>($_SESSION['user']['user_id'] ?? null), ':reason'=>$reasonText, ':id'=>$tripId]);
+        return ['ok'=>$upd->rowCount() > 0, 'msg'=>$upd->rowCount()>0 ? null : 'update_failed'];
     }
 }

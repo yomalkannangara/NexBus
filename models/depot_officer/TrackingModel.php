@@ -11,7 +11,7 @@ class TrackingModel extends BaseModel
      * Columns needed for the table:
      * Date, Route, Turn Number, Bus ID, Departure Time, Arrival Time, Status
      */
-    public function logs(string $from, string $to): array
+    public function logs(string $from, string $to, array $filters = []): array
     {
         // read depot directly from session (as you asked)
         $depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
@@ -19,13 +19,12 @@ class TrackingModel extends BaseModel
         // safety: if not logged/available, return empty
         if ($depotId <= 0) return [];
 
-        // build query
+        // build base query and params
         $sql = "
         SELECT
             t.sltb_trip_id,
             COALESCE(t.trip_date, CURDATE())               AS trip_date,
             r.route_no                                     AS route,
-            -- if turn_no not set, compute it by order of departures for the bus on that date
             COALESCE(t.turn_no,
                      ROW_NUMBER() OVER (
                         PARTITION BY t.bus_reg_no, COALESCE(t.trip_date, CURDATE())
@@ -42,15 +41,42 @@ class TrackingModel extends BaseModel
         INNER JOIN sltb_buses b  ON b.reg_no = t.bus_reg_no
         WHERE b.sltb_depot_id = :depot
           AND COALESCE(t.trip_date, CURDATE()) BETWEEN :from AND :to
-        ORDER BY trip_date DESC, t.departure_time DESC, t.sltb_trip_id DESC
         ";
 
+        $params = [':depot' => $depotId, ':from' => $from, ':to' => $to];
+
+        // optional filters
+        if (!empty($filters['route'])) {
+            // accept either route id or route_no
+            if (ctype_digit(strval($filters['route']))) {
+                $sql .= "\n AND r.route_id = :route_id";
+                $params[':route_id'] = (int)$filters['route'];
+            } else {
+                $sql .= "\n AND r.route_no = :route_no";
+                $params[':route_no'] = $filters['route'];
+            }
+        }
+        if (!empty($filters['bus_id'])) {
+            $sql .= "\n AND t.bus_reg_no LIKE :bus";
+            $params[':bus'] = '%' . str_replace('%', '', $filters['bus_id']) . '%';
+        }
+        if (!empty($filters['departure_time'])) {
+            $sql .= "\n AND t.departure_time LIKE :dep_time";
+            $params[':dep_time'] = rtrim($filters['departure_time'], '%') . '%';
+        }
+        if (!empty($filters['arrival_time'])) {
+            $sql .= "\n AND t.arrival_time LIKE :arr_time";
+            $params[':arr_time'] = rtrim($filters['arrival_time'], '%') . '%';
+        }
+        if (!empty($filters['status'])) {
+            $sql .= "\n AND t.status = :status";
+            $params[':status'] = $filters['status'];
+        }
+
+        $sql .= "\n ORDER BY trip_date DESC, t.departure_time DESC, t.sltb_trip_id DESC";
+
         $st = $this->pdo->prepare($sql);
-        $st->execute([
-            ':depot' => $depotId,
-            ':from'  => $from,
-            ':to'    => $to,
-        ]);
+        $st->execute($params);
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 }

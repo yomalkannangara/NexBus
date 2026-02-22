@@ -48,12 +48,107 @@ class TurnModel extends BaseModel
 
     public function complete(int $tripId): bool
     {
-        $st = $this->pdo->prepare(
-            "UPDATE sltb_trips
-             SET arrival_time=CURRENT_TIME(), status='Completed'
-             WHERE sltb_trip_id=:id AND status='InProgress' AND trip_date=CURDATE()"
-        );
+        // load trip + route stops
+        $q = "SELECT st.sltb_trip_id, st.route_id, r.stops_json
+              FROM sltb_trips st
+              LEFT JOIN routes r ON r.route_id = st.route_id
+              WHERE st.sltb_trip_id = :id AND st.status='InProgress' AND st.trip_date=CURDATE()";
+        $st = $this->pdo->prepare($q);
         $st->execute([':id'=>$tripId]);
-        return $st->rowCount() > 0;
+        $trip = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$trip) return false;
+
+        // decode stops and determine last stop token
+        $stops = json_decode($trip['stops_json'] ?? '[]', true) ?: [];
+        if (empty($stops)) return false; // cannot validate without route stops
+        $last = $stops[count($stops)-1];
+        $token = '';
+        if (is_array($last)) {
+            $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
+        } else {
+            $token = (string)$last;
+        }
+        $token = trim($token);
+        if ($token === '') return false;
+
+        // try to resolve token to a depot id: prefer code match, then name LIKE
+        $depotId = null;
+        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
+        $pst->execute([':tok'=>$token]);
+        $row = $pst->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $depotId = (int)$row['sltb_depot_id'];
+        } else {
+            $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
+            $pst->execute([':tok'=>'%'.$token.'%']);
+            $row = $pst->fetch(PDO::FETCH_ASSOC);
+            if ($row) $depotId = (int)$row['sltb_depot_id'];
+        }
+
+        // enforce Option B: only the timekeeper at the route's ending depot can close
+        if ($depotId === null) return false;
+        if ($depotId !== $this->depotId()) return false;
+
+        // perform update and record arrival_depot_id and completed_by
+        $upd = $this->pdo->prepare(
+            "UPDATE sltb_trips
+             SET arrival_time = CURRENT_TIME(), status = 'Completed', arrival_depot_id = :adp, completed_by = :user
+             WHERE sltb_trip_id = :id AND status='InProgress' AND trip_date=CURDATE()"
+        );
+        $upd->execute([':adp'=>$depotId, ':user'=>($_SESSION['user']['user_id'] ?? null), ':id'=>$tripId]);
+        return $upd->rowCount() > 0;
+    }
+
+    /** Cancel an in-progress trip from the route end timekeeper page. */
+    public function cancel(int $tripId, ?string $reason=null): bool
+    {
+        // load trip + route stops
+        $q = "SELECT st.sltb_trip_id, st.route_id, r.stops_json
+              FROM sltb_trips st
+              LEFT JOIN routes r ON r.route_id = st.route_id
+              WHERE st.sltb_trip_id = :id AND st.status='InProgress' AND st.trip_date=CURDATE()";
+        $st = $this->pdo->prepare($q);
+        $st->execute([':id'=>$tripId]);
+        $trip = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$trip) return false;
+
+        $stops = json_decode($trip['stops_json'] ?? '[]', true) ?: [];
+        if (empty($stops)) return false;
+        $last = $stops[count($stops)-1];
+        $token = '';
+        if (is_array($last)) {
+            $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
+        } else {
+            $token = (string)$last;
+        }
+        $token = trim($token);
+        if ($token === '') return false;
+
+        $depotId = null;
+        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
+        $pst->execute([':tok'=>$token]);
+        $row = $pst->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $depotId = (int)$row['sltb_depot_id'];
+        } else {
+            $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
+            $pst->execute([':tok'=>'%'.$token.'%']);
+            $row = $pst->fetch(PDO::FETCH_ASSOC);
+            if ($row) $depotId = (int)$row['sltb_depot_id'];
+        }
+
+        if ($depotId === null) return ['ok'=>false,'msg'=>'no_depot_match'];
+        if ($depotId !== $this->depotId()) return ['ok'=>false,'msg'=>'not_authorized'];
+
+        $reasonText = trim((string)($reason ?? ''));
+        if ($reasonText === '') return ['ok'=>false,'msg'=>'no_reason'];
+
+        $upd = $this->pdo->prepare(
+            "UPDATE sltb_trips
+             SET status='Cancelled', cancelled_by=:user, cancel_reason=:reason, cancelled_at=CURRENT_TIMESTAMP(), arrival_depot_id=:adp
+             WHERE sltb_trip_id = :id AND status='InProgress' AND trip_date=CURDATE()"
+        );
+        $upd->execute([':user'=>($_SESSION['user']['user_id'] ?? null), ':reason'=>$reasonText, ':adp'=>$depotId, ':id'=>$tripId]);
+        return ['ok'=>$upd->rowCount() > 0, 'msg'=>$upd->rowCount()>0 ? null : 'update_failed'];
     }
 }
