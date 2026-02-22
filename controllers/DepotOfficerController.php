@@ -190,6 +190,70 @@ public function assignments()
         ]);
     }
 
+    /**
+     * Server-Sent Events (SSE) endpoint for real-time message delivery
+     * Route: GET /O/messages/stream (or /O/sse-stream)
+     * Opens a persistent connection and pushes new messages to the client
+     */
+    public function sseStream(): void
+    {
+        $u   = $this->m->me();
+        $dep = $this->m->myDepotId($u);
+        $uid = (int)($u['user_id'] ?? 0);
+
+        // Set headers for SSE
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no');
+
+        // Persist connection for 5 minutes
+        set_time_limit(300);
+
+        // Track last message ID to avoid sending duplicates
+        $lastId = (int)($_GET['last_id'] ?? 0);
+        $count = 0;
+        $maxIterations = 300; // Poll for 5 minutes (1 second per iteration)
+
+        while ($count < $maxIterations) {
+            // Fetch new messages since last_id
+            $recent = $this->m->recentMessages($dep, $uid, 50, 'all');
+            $recent = array_filter($recent, fn($n) => (int)($n['id'] ?? $n['notification_id'] ?? 0) > $lastId);
+
+            if (!empty($recent)) {
+                foreach ($recent as $msg) {
+                    $msgId = (int)($msg['id'] ?? $msg['notification_id'] ?? 0);
+                    $lastId = max($lastId, $msgId);
+
+                    // Send event to client
+                    echo "id: {$msgId}\n";
+                    echo "event: message\n";
+                    echo "data: " . json_encode([
+                        'id'        => $msgId,
+                        'type'      => $msg['type'] ?? 'Message',
+                        'message'   => $msg['message'] ?? '',
+                        'from'      => $msg['full_name'] ?? 'Unknown',
+                        'created_at'=> $msg['created_at'] ?? '',
+                        'priority'  => $msg['priority'] ?? 'normal',
+                    ]) . "\n\n";
+                    flush();
+                }
+            }
+
+            // Heartbeat to keep connection alive
+            echo ": heartbeat\n\n";
+            flush();
+
+            // Sleep for 1 second before next check
+            sleep(1);
+            $count++;
+        }
+
+        // Close connection gracefully
+        echo "event: close\ndata: Connection timeout\n\n";
+        exit;
+    }
+
     
 
 public function trip_logs(): void{

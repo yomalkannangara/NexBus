@@ -722,6 +722,74 @@ $flashMessages = [
 (function () {
 'use strict';
 
+/* ─── Server-Sent Events (Real-time message delivery) ──────────────── */
+let sseConnection = null;
+let lastMessageId = 0;
+
+function connectSSE() {
+    if (sseConnection) sseConnection.close();
+    
+    sseConnection = new EventSource('/O/messages/stream?last_id=' + lastMessageId);
+    
+    sseConnection.addEventListener('message', function(event) {
+        try {
+            const msg = JSON.parse(event.data);
+            lastMessageId = msg.id;
+            
+            // Add new message to inbox dynamically
+            const msgList = document.getElementById('msgList');
+            if (!msgList) return;
+            
+            // Check if message already exists (avoid duplicates)
+            if (document.querySelector(`[data-id="${msg.id}"]`)) return;
+            
+            // Create new message item
+            const item = document.createElement('div');
+            item.className = 'msg-item unread';
+            item.dataset.id = msg.id;
+            item.dataset.type = msg.type.toLowerCase();
+            item.dataset.unread = '1';
+            item.dataset.name = msg.from;
+            item.dataset.text = msg.message;
+            item.dataset.time = msg.created_at;
+            item.onclick = function() { openThread(this); };
+            
+            const typeIcon = {delay:'⏱️',breakdown:'🔧',alert:'🚨',timetable:'📅',message:'💬'}[msg.type.toLowerCase()] || '📩';
+            const avatarCls = ['Delay','Alert','Breakdown'].includes(msg.type) ? 'alert' : '';
+            const init = msg.from.charAt(0).toUpperCase();
+            
+            item.innerHTML = `
+                <div class="msg-item-avatar ${avatarCls}">${init}</div>
+                <div class="msg-item-meta">
+                    <div class="msg-item-subject">${esc(msg.from)}</div>
+                    <div class="msg-item-preview">${esc(msg.message.substring(0,60))}…</div>
+                    <div class="msg-item-time">just now</div>
+                </div>
+                <div class="msg-unread-dot"></div>
+            `;
+            
+            msgList.insertBefore(item, msgList.firstChild);
+        } catch(e) {
+            console.error('SSE parse error:', e);
+        }
+    });
+    
+    sseConnection.addEventListener('error', function() {
+        console.warn('SSE connection lost, reconnecting in 3s...');
+        setTimeout(connectSSE, 3000);
+    });
+}
+
+// Connect to SSE on page load
+connectSSE();
+
+// Utility function to escape HTML
+function esc(s) {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+}
+
 /* ─── Inbox filter ──────────────────────────────────────────────────── */
 const filterBtns = document.querySelectorAll('.msg-inbox-filter .msg-filter-btn');
 const msgItems   = document.querySelectorAll('#msgList .msg-item');
