@@ -389,9 +389,18 @@ $flashMessages = [
 .msg-stats { display:flex; gap:8px; padding:10px 16px 0; flex-shrink:0; }
 .msg-stat {
     flex:1; background:#fff; border:1px solid #e9e3da; border-radius:10px;
-    padding:8px 10px; text-align:center;
+    padding:8px 10px; text-align:center; position:relative;
 }
-.msg-stat-val { font-size:20px; font-weight:800; color:var(--maroon,#7f1d1d); line-height:1; }
+.msg-stat-val { font-size:20px; font-weight:800; color:var(--maroon,#7f1d1d); line-height:1; position:relative; display:inline-block; }
+.msg-stat-badge {
+    position:absolute; top:-6px; right:-6px;
+    background:linear-gradient(135deg,#dc2626,#991b1b);
+    color:#fff; border-radius:50%;
+    width:20px; height:20px;
+    font-size:11px; font-weight:900;
+    display:grid; place-items:center;
+    box-shadow:0 2px 8px rgba(220,38,38,.4);
+}
 .msg-stat-label { font-size:10px; color:#9ca3af; margin-top:2px; }
 
 /* responsive */
@@ -438,7 +447,12 @@ $flashMessages = [
             <div class="msg-stat-label">Total</div>
         </div>
         <div class="msg-stat">
-            <div class="msg-stat-val" style="color:#d97706"><?= $unread ?></div>
+            <div class="msg-stat-val" style="color:#d97706">
+                <?= $unread ?>
+                <?php if ($unread > 0): ?>
+                    <span class="msg-stat-badge"><?= min($unread, 99) ?></span>
+                <?php endif; ?>
+            </div>
             <div class="msg-stat-label">Unread</div>
         </div>
         <div class="msg-stat">
@@ -769,6 +783,9 @@ function connectSSE() {
             `;
             
             msgList.insertBefore(item, msgList.firstChild);
+            
+            // Update unread count badge
+            updateStatsBadges();
         } catch(e) {
             console.error('SSE parse error:', e);
         }
@@ -778,6 +795,20 @@ function connectSSE() {
         console.warn('SSE connection lost, reconnecting in 3s...');
         setTimeout(connectSSE, 3000);
     });
+}
+
+// Update stat badges (unread, alerts, etc)
+function updateStatsBadges() {
+    const msgItems = document.querySelectorAll('#msgList .msg-item');
+    const total = msgItems.length;
+    const unread = Array.from(msgItems).filter(el => el.classList.contains('unread')).length;
+    const alerts = Array.from(msgItems).filter(el => ['delay','alert','breakdown'].includes(el.dataset.type)).length;
+    
+    // Update stats row if exists
+    const statVals = document.querySelectorAll('.msg-stat-val');
+    if (statVals[0]) statVals[0].textContent = total;
+    if (statVals[1]) statVals[1].textContent = unread;
+    if (statVals[2]) statVals[2].textContent = alerts;
 }
 
 // Connect to SSE on page load
