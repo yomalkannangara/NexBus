@@ -115,6 +115,9 @@ public function depot(int $depotId): ?array {
     public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot); }
     public function recentMessages(int $depotId, int $myId, int $limit=20, string $filter='all'): array { return $this->msg->recent($depotId,$limit, $filter); }
     public function markMessageRead(int $messageId, int $userId): void { $this->msg->markRead($messageId, $userId); }
+    public function acknowledgeMessage(int $messageId, int $userId): void { $this->msg->acknowledge($messageId, $userId); }
+    public function escalateMessage(int $messageId, int $userId): void { $this->msg->escalate($messageId, $userId); }
+    public function archiveMessage(int $messageId, int $userId): void { $this->msg->archive($messageId, $userId); }
 
     // Tracking
     public function trackingLogs(int $depotId, string $from, string $to): array { return $this->track->logs($depotId,$from,$to); }

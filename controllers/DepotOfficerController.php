@@ -133,6 +133,30 @@ public function assignments()
             exit;
         }
 
+        // ── Acknowledge message ────────────────────────────────────────────
+        // Route: POST /O/messages?action=ack&id=123
+        if (($_GET['action'] ?? '') === 'ack' && isset($_GET['id'])) {
+            $this->m->acknowledgeMessage((int)$_GET['id'], $uid);
+            $this->json(['status' => 'ok']);
+            exit;
+        }
+
+        // ── Escalate message ──────────────────────────────────────────────
+        // Route: POST /O/messages?action=escalate&id=123
+        if (($_GET['action'] ?? '') === 'escalate' && isset($_GET['id'])) {
+            $this->m->escalateMessage((int)$_GET['id'], $uid);
+            $this->json(['status' => 'ok']);
+            exit;
+        }
+
+        // ── Archive message ───────────────────────────────────────────────
+        // Route: POST /O/messages?action=archive&id=123
+        if (($_GET['action'] ?? '') === 'archive' && isset($_GET['id'])) {
+            $this->m->archiveMessage((int)$_GET['id'], $uid);
+            $this->json(['status' => 'ok']);
+            exit;
+        }
+
         // ── Send ──────────────────────────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'send') {
             $text      = trim($_POST['message'] ?? '');

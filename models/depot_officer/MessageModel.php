@@ -109,4 +109,32 @@ class MessageModel extends BaseModel
         $st = $this->pdo->prepare("UPDATE notifications SET is_seen=1 WHERE id=? AND user_id=?");
         $st->execute([$messageId, $userId]);
     }
+
+    public function acknowledge(int $messageId, int $userId): void {
+        // Store acknowledgement in a custom metadata field or a separate table
+        // For now, mark as read + add a note
+        $st = $this->pdo->prepare(
+            "UPDATE notifications SET is_seen=1, metadata=JSON_SET(COALESCE(metadata,'{}'), '$.acknowledged_by', ?, '$.acknowledged_at', ?) 
+             WHERE id=? AND user_id=?"
+        );
+        $st->execute([$userId, date('Y-m-d H:i:s'), $messageId, $userId]);
+    }
+
+    public function escalate(int $messageId, int $userId): void {
+        // Mark as escalated in metadata
+        $st = $this->pdo->prepare(
+            "UPDATE notifications SET metadata=JSON_SET(COALESCE(metadata,'{}'), '$.escalated', true, '$.escalated_by', ?, '$.escalated_at', ?) 
+             WHERE id=? AND user_id=?"
+        );
+        $st->execute([$userId, date('Y-m-d H:i:s'), $messageId, $userId]);
+    }
+
+    public function archive(int $messageId, int $userId): void {
+        // Mark as archived in metadata
+        $st = $this->pdo->prepare(
+            "UPDATE notifications SET metadata=JSON_SET(COALESCE(metadata,'{}'), '$.archived', true, '$.archived_by', ?, '$.archived_at', ?) 
+             WHERE id=? AND user_id=?"
+        );
+        $st->execute([$userId, date('Y-m-d H:i:s'), $messageId, $userId]);
+    }
 }

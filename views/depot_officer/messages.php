@@ -768,6 +768,10 @@ window.openThread = function(el) {
     const time  = el.dataset.time  || '';
     const type  = el.dataset.type  || 'Message';
     const init  = name.charAt(0).toUpperCase();
+    const nid   = el.dataset.id;
+
+    // Store current message ID for quick actions
+    currentMessageId = parseInt(nid) || null;
 
     document.getElementById('threadTitle').textContent = name;
     document.getElementById('threadSub').textContent   = type + (time ? ' · ' + formatRelTime(time) : '');
@@ -781,9 +785,8 @@ window.openThread = function(el) {
     document.getElementById('quickReplyBar').style.display = '';
 
     // Mark read via background fetch (best-effort)
-    const nid = el.dataset.id;
     if (nid) {
-        fetch('/O/messages/read?id=' + nid, { method:'POST' }).catch(()=>{});
+        fetch('/O/messages?action=read&id=' + nid, { method:'POST' }).catch(()=>{});
     }
 };
 
@@ -1058,6 +1061,30 @@ function formatRelTime(ts) {
     if (diff < 86400)return Math.floor(diff/3600) + 'h ago';
     return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
+
+/* ─── Quick Actions (Acknowledge, Escalate, Archive) ────────────────── */
+let currentMessageId = null;
+
+window.ackMessage = function() {
+    if (!currentMessageId) { alert('No message selected'); return; }
+    fetch('/O/messages?action=ack&id=' + currentMessageId, {method:'POST'})
+        .then(() => { alert('Message acknowledged.'); currentItem?.classList.add('archived'); })
+        .catch(e => alert('Action failed: ' + e));
+};
+
+window.escalateMessage = function() {
+    if (!currentMessageId) { alert('No message selected'); return; }
+    fetch('/O/messages?action=escalate&id=' + currentMessageId, {method:'POST'})
+        .then(() => { alert('Message escalated.'); currentItem?.style.borderLeftColor = '#dc2626'; })
+        .catch(e => alert('Action failed: ' + e));
+};
+
+window.archiveMessage = function() {
+    if (!currentMessageId) { alert('No message selected'); return; }
+    fetch('/O/messages?action=archive&id=' + currentMessageId, {method:'POST'})
+        .then(() => { alert('Message archived.'); currentItem?.remove(); currentMessageId = null; })
+        .catch(e => alert('Action failed: ' + e));
+};
 
 /* ─── Auto-resize compose textarea ─────────────────────────────────── */
 document.getElementById('messageBody').addEventListener('input', function() {
