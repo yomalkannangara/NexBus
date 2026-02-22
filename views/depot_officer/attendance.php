@@ -28,20 +28,93 @@
     font-weight: 600;
 }
 
-/* ─── Filter Bar (Single Line) ───────────────────────────────────────── */
+/* ─── Filter Bar (Compact with Collapsible Panel) ───────────────────── */
 .attendance-filters {
     display: flex;
     gap: 12px;
     align-items: center;
     background: white;
-    padding: 16px;
+    padding: 12px 16px;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 24px;
+}
+
+.attendance-filter-toggle {
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    color: #374151;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+}
+
+.attendance-filter-toggle:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.attendance-filter-toggle.active {
+    background: linear-gradient(135deg, #7f1d1d, #a01c2e);
+    color: white;
+    border-color: #7f1d1d;
+}
+
+.attendance-filters input[type="text"] {
+    flex: 1;
+    min-width: 180px;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.attendance-filters input[type="text"]:focus {
+    outline: none;
+    border-color: #7f1d1d;
+    box-shadow: 0 0 0 3px rgba(127,29,29,.1);
+}
+
+/* ─── Collapsible Filter Panel ───────────────────────────────────────── */
+.attendance-filter-panel {
+    display: none;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.attendance-filter-panel.active {
+    display: block;
+    animation: slideDown .2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.attendance-filter-panel-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
     flex-wrap: wrap;
 }
 
-.attendance-filters label {
+.attendance-filter-panel label {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -50,9 +123,8 @@
     font-size: 13px;
 }
 
-.attendance-filters input[type="date"],
-.attendance-filters input[type="text"],
-.attendance-filters select {
+.attendance-filter-panel input[type="date"],
+.attendance-filter-panel select {
     padding: 8px 12px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
@@ -60,33 +132,46 @@
     font-family: inherit;
 }
 
-.attendance-filters input[type="date"]:focus,
-.attendance-filters input[type="text"]:focus,
-.attendance-filters select:focus {
+.attendance-filter-panel input[type="date"]:focus,
+.attendance-filter-panel select:focus {
     outline: none;
     border-color: #7f1d1d;
     box-shadow: 0 0 0 3px rgba(127,29,29,.1);
 }
 
-.attendance-filters button {
-    padding: 8px 16px;
-    background: linear-gradient(135deg, #7f1d1d, #a01c2e);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: opacity .15s;
+.attendance-filter-panel-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-.attendance-filters button:hover {
+.attendance-filter-panel-actions button {
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+}
+
+.attendance-filter-panel-actions .btn-apply {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.attendance-filter-panel-actions .btn-apply:hover {
     opacity: 0.9;
 }
 
-.attendance-filters-spacer {
-    flex: 1;
-    min-width: 150px;
+.attendance-filter-panel-actions .btn-clear {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.attendance-filter-panel-actions .btn-clear:hover {
+    background: #e5e7eb;
 }
 
 /* ─── Table Styles ──────────────────────────────────────────────────── */
@@ -234,6 +319,27 @@
         align-items: stretch;
     }
 
+    .attendance-filter-toggle {
+        width: 100%;
+    }
+
+    .attendance-filters input[type="text"] {
+        width: 100%;
+    }
+
+    .attendance-filter-panel-row {
+        flex-direction: column;
+    }
+
+    .attendance-filter-panel label {
+        width: 100%;
+    }
+
+    .attendance-filter-panel input[type="date"],
+    .attendance-filter-panel select {
+        width: 100%;
+    }
+
     .attendance-table {
         font-size: 12px;
     }
@@ -258,25 +364,32 @@
     <form method="post" id="attendanceForm">
         <input type="hidden" name="action" value="mark">
 
-        <!-- Filter Bar (Single Line) -->
+        <!-- Compact Filter Bar with Toggle -->
         <div class="attendance-filters">
-            <label>Date:</label>
-            <input type="date" id="attendanceDate" name="date" value="<?= htmlspecialchars($date) ?>">
+            <button type="button" class="attendance-filter-toggle" id="filterToggle" onclick="toggleFilterPanel()">
+                ⚙️ Filters
+            </button>
+            <input type="text" id="attendance-search" class="alpha-filter-search" placeholder="🔍 Search staff...">
+        </div>
 
-            <button type="button" onclick="updateDate()">Go</button>
+        <!-- Collapsible Filter Panel -->
+        <div class="attendance-filter-panel" id="filterPanel">
+            <div class="attendance-filter-panel-row">
+                <label>Date:</label>
+                <input type="date" id="attendanceDate" name="date" value="<?= htmlspecialchars($date) ?>">
 
-            <div class="attendance-filters-spacer"></div>
-
-            <label>Filter by letter:</label>
-            <select id="attendance-letter" class="alpha-select" aria-label="Filter by initial letter">
-                <option value="all">All</option>
-                <?php foreach(range('A','Z') as $letter): ?>
-                    <option value="<?= $letter ?>"><?= $letter ?></option>
-                <?php endforeach; ?>
-            </select>
-
-            <label style="flex: 1; min-width: 200px;">Search:</label>
-            <input type="text" id="attendance-search" class="alpha-filter-search" placeholder="Name or role..." style="flex: 1; min-width: 150px;">
+                <label>Filter by letter:</label>
+                <select id="attendance-letter" class="alpha-select" aria-label="Filter by initial letter">
+                    <option value="all">All</option>
+                    <?php foreach(range('A','Z') as $letter): ?>
+                        <option value="<?= $letter ?>"><?= $letter ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="attendance-filter-panel-actions">
+                <button type="button" class="btn-apply" onclick="applyFilters()">Apply Filters</button>
+                <button type="button" class="btn-clear" onclick="clearFilters()">Reset</button>
+            </div>
         </div>
 
         <!-- Staff Attendance Table -->
@@ -346,10 +459,25 @@
 </div>
 
 <script>
-// ─── Date Navigation ───────────────────────────────────────────────
-function updateDate() {
+// ─── Filter Panel Toggle ───────────────────────────────────────────
+function toggleFilterPanel() {
+    const panel = document.getElementById('filterPanel');
+    const toggle = document.getElementById('filterToggle');
+    panel.classList.toggle('active');
+    toggle.classList.toggle('active');
+}
+
+// ─── Apply Filters (change date) ────────────────────────────────────
+function applyFilters() {
     const date = document.getElementById('attendanceDate').value;
     window.location.href = '/O/attendance?date=' + encodeURIComponent(date);
+}
+
+// ─── Clear Filters ─────────────────────────────────────────────────
+function clearFilters() {
+    document.getElementById('attendance-letter').value = 'all';
+    document.getElementById('attendance-search').value = '';
+    applyFilterRows();
 }
 
 // ─── Toggle Absent Button ──────────────────────────────────────────
@@ -394,6 +522,8 @@ window.toggleAbsent = function(btn, event) {
             r.style.display = ok ? '' : 'none';
         });
     }
+
+    window.applyFilterRows = applyFilter;
 
     alphaSelect.addEventListener('change', () => {
         const letter = alphaSelect.value || 'all';
