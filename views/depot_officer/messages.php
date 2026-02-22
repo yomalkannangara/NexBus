@@ -1130,14 +1130,6 @@ window.escalateMessage = function() {
     body.scrollTop = body.scrollHeight;
 };
 
-window.archiveMessage = function() {
-    if (!currentItem) return;
-    currentItem.style.opacity = '.4';
-    currentItem.style.pointerEvents = 'none';
-    document.getElementById('threadBody').innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:#9ca3af;">Message archived.</div>';
-    document.getElementById('quickReplyBar').style.display = 'none';
-};
-
 /* ─── Refresh ───────────────────────────────────────────────────────── */
 document.getElementById('btnRefresh').addEventListener('click', () => {
     location.reload();
