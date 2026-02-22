@@ -53,20 +53,19 @@ class DepotLookupModel extends BaseModel
                 $sql = "SELECT CONCAT('user:', user_id) AS attendance_key, user_id AS id, 
                                              CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name,
                                              role AS type,
-                                             COALESCE((SELECT COUNT(*) FROM sltb_assignments 
-                                                       WHERE driver_id = users.user_id AND assigned_date = CURDATE()), 0) AS shifts_count
+                                             0 AS shifts_count
                                     FROM users
                                  WHERE sltb_depot_id=? AND role IN ('Driver','Conductor')
                                 UNION ALL
                                 SELECT CONCAT('driver:', sltb_driver_id) AS attendance_key, sltb_driver_id AS id, full_name, 'driver' AS type,
                                        COALESCE((SELECT COUNT(*) FROM sltb_assignments 
-                                                 WHERE driver_id = sltb_drivers.sltb_driver_id AND assigned_date = CURDATE()), 0) AS shifts_count
+                                                 WHERE sltb_driver_id = sltb_drivers.sltb_driver_id AND assigned_date = CURDATE()), 0) AS shifts_count
                                     FROM sltb_drivers
                                  WHERE sltb_depot_id=? AND status='Active'
                                 UNION ALL
                                 SELECT CONCAT('conductor:', sltb_conductor_id) AS attendance_key, sltb_conductor_id AS id, full_name, 'conductor' AS type,
                                        COALESCE((SELECT COUNT(*) FROM sltb_assignments 
-                                                 WHERE conductor_id = sltb_conductors.sltb_conductor_id AND assigned_date = CURDATE()), 0) AS shifts_count
+                                                 WHERE sltb_conductor_id = sltb_conductors.sltb_conductor_id AND assigned_date = CURDATE()), 0) AS shifts_count
                                     FROM sltb_conductors
                                  WHERE sltb_depot_id=? AND status='Active'
                                 ORDER BY type, full_name";
