@@ -851,23 +851,23 @@ svg {
 }
 
 .status-active {
-  background: #D1FAE5;
-  color: #065F46;
+  background: #BBF7D0;
+  color: #14532D;
 }
 
 .status-maintenance {
-  background: #FEF3C7;
-  color: #92400E;
+  background: #FED7AA;
+  color: #7C2D12;
 }
 
 .status-out {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: #FECACA;
+  color: #7F1D1D;
 }
 
 .status-inactive {
-  background: #E5E7EB;
-  color: #374151;
+  background: #FECACA;
+  color: #7F1D1D;
 }
 
 /* added */

@@ -47,7 +47,10 @@ class BusOwnerController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
             if ($act === 'create') {
-                $m->create($_POST);
+                $ok = $m->create($_POST);
+                if (!$ok) {
+                    return $this->redirect('/B/fleet?msg=duplicate');
+                }
                 return $this->redirect('/B/fleet?msg=created');
             }
             if ($act === 'update') {
@@ -82,25 +85,29 @@ class BusOwnerController extends BaseController
             return $this->redirect('/B/fleet');
         }
 
-        $regNo = isset($_POST['reg_no']) ? trim($_POST['reg_no']) : '';
-        $driverId = isset($_POST['driver_id']) && $_POST['driver_id'] !== '' && $_POST['driver_id'] !== '0' 
-                    ? (int)$_POST['driver_id'] 
-                    : null;
-        $conductorId = isset($_POST['conductor_id']) && $_POST['conductor_id'] !== '' && $_POST['conductor_id'] !== '0'
-                       ? (int)$_POST['conductor_id'] 
-                       : null;
+        $regNo      = isset($_POST['reg_no'])     ? trim($_POST['reg_no'])     : '';
+        $rawDriver  = isset($_POST['driver_id'])  ? trim($_POST['driver_id'])  : '';
+        $rawCond    = isset($_POST['conductor_id']) ? trim($_POST['conductor_id']) : '';
+
+        $driverId    = ($rawDriver !== '' && $rawDriver !== '0')  ? (int)$rawDriver  : null;
+        $conductorId = ($rawCond   !== '' && $rawCond   !== '0')  ? (int)$rawCond    : null;
+
+        error_log("[fleetAssign] POST received: reg_no={$regNo}, driver_id={$rawDriver}, conductor_id={$rawCond}");
 
         if ($regNo === '') {
+            error_log("[fleetAssign] Empty reg_no — rejecting");
             return $this->redirect('/B/fleet?msg=error');
         }
 
         $m = new BusModel();
         $success = $m->assignDriverConductor($regNo, $driverId, $conductorId);
 
+        error_log("[fleetAssign] assign result: " . ($success ? 'success' : 'failed') . " for reg_no={$regNo}");
+
         if ($success) {
             return $this->redirect('/B/fleet?msg=assigned');
         } else {
-            return $this->redirect('/B/fleet?msg=error');
+            return $this->redirect('/B/fleet?msg=assign_fail');
         }
     }
 
