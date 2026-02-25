@@ -12,6 +12,11 @@ abstract class BaseModel {
 
 class DashboardModel extends BaseModel
 {
+    private function depotId(): ?int {
+        $u = $_SESSION['user'] ?? [];
+        return $u['sltb_depot_id'] ? (int)$u['sltb_depot_id'] : null;
+    }
+
     public function todayLabel(): string
     {
         return date('l j F Y');
@@ -19,31 +24,62 @@ class DashboardModel extends BaseModel
 
     public function stats(): array
     {
-        $busCount     = $this->countSafe("SELECT COUNT(*) c FROM buses");
-        $ownerCount   = $this->countSafe("SELECT COUNT(*) c FROM bus_owners");
+        $depotId = $this->depotId();
+        
+        // Get bus count for this depot
+        $busCount = $depotId ? $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE sltb_depot_id=:d", [':d' => $depotId]) 
+                             : $this->countSafe("SELECT COUNT(*) c FROM sltb_buses");
+        
+        // Total staff: drivers + conductors for this depot
+        $driversCount = $depotId ? $this->countSafe("SELECT COUNT(*) c FROM sltb_drivers WHERE sltb_depot_id=:d", [':d' => $depotId])
+                                 : $this->countSafe("SELECT COUNT(*) c FROM sltb_drivers");
+        $conductorsCount = $depotId ? $this->countSafe("SELECT COUNT(*) c FROM sltb_conductors WHERE sltb_depot_id=:d", [':d' => $depotId])
+                                    : $this->countSafe("SELECT COUNT(*) c FROM sltb_conductors");
+        $staffCount = $driversCount + $conductorsCount;
+        
+        // Get active routes
         $routesActive = $this->countSafe("SELECT COUNT(*) c FROM routes WHERE is_active=1");
 
         // Dummy fallback when everything is zero
-        if ($busCount === 0 && $ownerCount === 0 && $routesActive === 0) {
+        if ($busCount === 0 && $staffCount === 0 && $routesActive === 0) {
             return [
                 ['title' => 'Total Buses',           'value' => '128', 'change' => '+2.4%', 'trend' => 'up',   'icon' => 'bus'],
-                ['title' => 'Registered Bus Owners', 'value' => '73',  'change' => '+1.1%', 'trend' => 'up',   'icon' => 'users'],
+                ['title' => 'Total Staff',           'value' => '73',  'change' => '+1.1%', 'trend' => 'up',   'icon' => 'users'],
                 ['title' => 'Active Routes',         'value' => '42',  'change' => '+3.0%', 'trend' => 'up',   'icon' => 'routes'],
             ];
         }
 
         return [
             ['title' => 'Total Buses',           'value' => (string)$busCount],
-            ['title' => 'Registered Bus Owners', 'value' => (string)$ownerCount],
+            ['title' => 'Total Staff',           'value' => (string)$staffCount],
             ['title' => 'Active Routes',         'value' => (string)$routesActive],
         ];
     }
 
     public function dailyStats(): array
     {
-        $complaintsToday = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE DATE(created_at)=CURDATE()");
-        $delayedToday    = $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()");
-        $brokenToday     = $this->countSafe("SELECT COUNT(*) c FROM maintenance_jobs WHERE status='Breakdown' AND DATE(created_at)=CURDATE()");
+        $depotId = $this->depotId();
+        
+        // Complaints today for this depot (via bus route)
+        $complaintsToday = $depotId 
+            ? $this->countSafe("SELECT COUNT(DISTINCT c.complaint_id) c FROM complaints c 
+                               JOIN sltb_buses b ON c.bus_reg_no = b.reg_no 
+                               WHERE b.sltb_depot_id=:d AND DATE(c.created_at)=CURDATE()", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE DATE(created_at)=CURDATE()");
+        
+        // Delayed buses today for this depot
+        $delayedToday = $depotId
+            ? $this->countSafe("SELECT COUNT(DISTINCT tm.bus_reg_no) c FROM tracking_monitoring tm 
+                               JOIN sltb_buses b ON tm.bus_reg_no = b.reg_no 
+                               WHERE b.sltb_depot_id=:d AND tm.operational_status='Delayed' AND DATE(tm.snapshot_at)=CURDATE()", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()");
+        
+        // Broken buses today for this depot  
+        $brokenToday = $depotId
+            ? $this->countSafe("SELECT COUNT(DISTINCT mj.bus_reg_no) c FROM maintenance_jobs mj 
+                               JOIN sltb_buses b ON mj.bus_reg_no = b.reg_no 
+                               WHERE b.sltb_depot_id=:d AND mj.status='Breakdown' AND DATE(mj.created_at)=CURDATE()", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM maintenance_jobs WHERE status='Breakdown' AND DATE(created_at)=CURDATE()");
 
         // Dummy fallback when everything is zero
         if ($complaintsToday === 0 && $delayedToday === 0 && $brokenToday === 0) {
@@ -63,18 +99,33 @@ class DashboardModel extends BaseModel
 
     public function activeCount(): int
     {
-        return $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='OnTime' AND DATE(snapshot_at)=CURDATE()");
+        $depotId = $this->depotId();
+        return $depotId
+            ? $this->countSafe("SELECT COUNT(DISTINCT tm.bus_reg_no) c FROM tracking_monitoring tm 
+                               JOIN sltb_buses b ON tm.bus_reg_no = b.reg_no 
+                               WHERE b.sltb_depot_id=:d AND tm.operational_status='OnTime' AND DATE(tm.snapshot_at)=CURDATE()", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='OnTime' AND DATE(snapshot_at)=CURDATE()");
     }
 
     public function delayedCount(): int
     {
-        return $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()");
+        $depotId = $this->depotId();
+        return $depotId
+            ? $this->countSafe("SELECT COUNT(DISTINCT tm.bus_reg_no) c FROM tracking_monitoring tm 
+                               JOIN sltb_buses b ON tm.bus_reg_no = b.reg_no 
+                               WHERE b.sltb_depot_id=:d AND tm.operational_status='Delayed' AND DATE(tm.snapshot_at)=CURDATE()", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()");
     }
 
     public function issuesCount(): int
     {
         // Treat 'Breakdown' as issue.
-        return $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Breakdown' AND DATE(snapshot_at)=CURDATE()");
+        $depotId = $this->depotId();
+        return $depotId
+            ? $this->countSafe("SELECT COUNT(DISTINCT tm.bus_reg_no) c FROM tracking_monitoring tm 
+                               JOIN sltb_buses b ON tm.bus_reg_no = b.reg_no 
+                               WHERE b.sltb_depot_id=:d AND tm.operational_status='Breakdown' AND DATE(tm.snapshot_at)=CURDATE()", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Breakdown' AND DATE(snapshot_at)=CURDATE()");
     }
 
     private function countSafe(string $sql, array $params = []): int
