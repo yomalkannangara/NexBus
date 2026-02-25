@@ -144,7 +144,7 @@
   </div>
   <?php if ($curDep > 0 || $curOwn > 0): ?>
     <p style="font-size:.78rem;color:#9ca3af;margin:0 0 .5rem">
-      ℹ Depot/owner filters apply to analytics charts above. Live table shows all active buses (route filter still applies).
+      ℹ Route, depot, and owner filters apply to both analytics charts and the live table.
     </p>
   <?php endif; ?>
   <div style="overflow-x:auto">

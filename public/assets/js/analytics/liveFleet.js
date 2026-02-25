@@ -14,14 +14,14 @@
   /* ── read active filters from URL ───────────────────────────── */
   const _p         = new URLSearchParams(window.location.search);
   const F_ROUTE    = (_p.get('route_no')  || '').trim();
-  const F_DEPOT    = (_p.get('depot_id')  || '').trim();
-  const F_OWNER    = (_p.get('owner_id')  || '').trim();
+  const F_DEPOT_RAW = (_p.get('depot_id') || '').trim();
+  const F_OWNER_RAW = (_p.get('owner_id') || '').trim();
+  const F_DEPOT     = (/^\d+$/.test(F_DEPOT_RAW) && +F_DEPOT_RAW > 0) ? String(+F_DEPOT_RAW) : '';
+  const F_OWNER     = (/^\d+$/.test(F_OWNER_RAW) && +F_OWNER_RAW > 0) ? String(+F_OWNER_RAW) : '';
 
   function el(id) { return document.getElementById(id); }
 
   /* ── filter live buses client-side ──────────────────────────── */
-  // Buses are now auto-registered in sltb_buses by the proxy endpoint,
-  // so depotId/ownerId are populated and depot/owner filters work.
   function normalizeRouteValue(v) {
     const raw = String(v ?? '').trim();
     if (!raw) return '';
@@ -38,6 +38,12 @@
         const route = b.routeNo ?? b.route_no ?? b.route ?? b.routeNumber ?? '';
         return normalizeRouteValue(route) === norm;
       });
+    }
+    if (F_DEPOT) {
+      r = r.filter(b => String(b.depotId ?? b.depot_id ?? '') === F_DEPOT);
+    }
+    if (F_OWNER) {
+      r = r.filter(b => String(b.ownerId ?? b.owner_id ?? '') === F_OWNER);
     }
     return r;
   }
@@ -227,8 +233,12 @@
     if (!tbody) return;
 
     if (!buses.length) {
-      const msg = F_ROUTE
-        ? 'No buses found for route ' + F_ROUTE + ' (' + totalFromApi + ' total live)'
+      const active = [];
+      if (F_ROUTE) active.push('route ' + F_ROUTE);
+      if (F_DEPOT) active.push('depot ' + F_DEPOT);
+      if (F_OWNER) active.push('owner ' + F_OWNER);
+      const msg = active.length
+        ? 'No buses found for ' + active.join(' + ') + ' (' + totalFromApi + ' total live)'
         : 'No live buses found';
       tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">'+msg+'</td></tr>';
       return;
