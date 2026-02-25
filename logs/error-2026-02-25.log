@@ -28,3 +28,35 @@ Stack trace:
 [25-Feb-2026 01:20:48 Asia/Colombo] [fleetAssign] assign result: success for reg_no=WAC 2585889
 [25-Feb-2026 01:20:52 Asia/Colombo] [fleetAssign] POST received: reg_no=WAC 2585, driver_id=, conductor_id=1
 [25-Feb-2026 01:20:52 Asia/Colombo] [fleetAssign] assign result: success for reg_no=WAC 2585
+[25-Feb-2026 10:27:19 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'suspend_reason' in 'field list' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:72
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(72): PDO->prepare('SELECT private_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(180): App\models\bus_owner\DriverModel->all()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 72
+[25-Feb-2026 10:27:21 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'suspend_reason' in 'field list' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:72
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(72): PDO->prepare('SELECT private_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(180): App\models\bus_owner\DriverModel->all()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 72
+[25-Feb-2026 10:37:44 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'suspend_reason' in 'field list' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:72
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(72): PDO->prepare('SELECT private_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(180): App\models\bus_owner\DriverModel->all()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 72
+[25-Feb-2026 10:37:45 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'suspend_reason' in 'field list' in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:72
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(72): PDO->prepare('SELECT private_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(180): App\models\bus_owner\DriverModel->all()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('BusOwnerControl...', 'drivers')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 72

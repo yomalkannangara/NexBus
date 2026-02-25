@@ -870,6 +870,11 @@ svg {
   color: #7F1D1D;
 }
 
+.status-suspended {
+  background: #FED7AA;
+  color: #7C2D12;
+}
+
 /* added */
 .status-leave {
   background: #FED7AA;
