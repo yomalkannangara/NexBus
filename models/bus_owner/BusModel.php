@@ -72,13 +72,21 @@ class BusModel extends BaseModel
                     (reg_no, private_operator_id, chassis_no, capacity, status)
                 VALUES (:reg_no, :op, :chassis_no, :capacity, :status)";
         $st = $this->pdo->prepare($sql);
-        return $st->execute([
-            ':reg_no'     => $d['reg_no'] ?? null,
-            ':op'         => $d['private_operator_id'] ?? $this->operatorId,
-            ':chassis_no' => $d['chassis_no'] ?? null,
-            ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
-            ':status'     => $d['status'] ?? 'Active',
-        ]);
+        try {
+            return $st->execute([
+                ':reg_no'     => $d['reg_no'] ?? null,
+                ':op'         => $d['private_operator_id'] ?? $this->operatorId,
+                ':chassis_no' => $d['chassis_no'] ?? null,
+                ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
+                ':status'     => $d['status'] ?? 'Active',
+            ]);
+        } catch (\PDOException $e) {
+            // Duplicate primary key (SQLSTATE 23000 / 1062)
+            if ($e->getCode() === '23000' || $e->getCode() === 23000) {
+                return false; // caller will redirect with error
+            }
+            throw $e; // re-throw unexpected errors
+        }
     }
 
     /** Update an existing bus record */
@@ -125,11 +133,11 @@ class BusModel extends BaseModel
                    SET driver_id = :driver_id,
                        conductor_id = :conductor_id
                  WHERE reg_no = :reg_no";
-        
+
         $params = [
-            ':driver_id' => $driverId,
+            ':driver_id'    => $driverId,
             ':conductor_id' => $conductorId,
-            ':reg_no' => $regNo,
+            ':reg_no'       => $regNo,
         ];
 
         if ($this->hasOperator()) {
@@ -137,8 +145,18 @@ class BusModel extends BaseModel
             $params[':op'] = $this->operatorId;
         }
 
-        $st = $this->pdo->prepare($sql);
-        return $st->execute($params);
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $affected = $st->rowCount();
+            if ($affected === 0) {
+                error_log("[BusModel] assignDriverConductor: 0 rows affected. reg_no={$regNo}, operatorId={$this->operatorId}, driverId={$driverId}, conductorId={$conductorId}");
+            }
+            return $affected > 0;
+        } catch (\PDOException $e) {
+            error_log("[BusModel] assignDriverConductor PDOException: " . $e->getMessage() . " | reg_no={$regNo}");
+            return false;
+        }
     }
 
     /** Count buses for the current operator */

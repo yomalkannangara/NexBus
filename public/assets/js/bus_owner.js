@@ -154,10 +154,10 @@
       const t = (badge.textContent || '').trim().toLowerCase();
       remove.forEach(c => badge.classList.remove(c));
       if (t === 'active') badge.classList.add('status-active');
-      else if (t === 'inactive' || t === 'suspended') badge.classList.add('status-inactive');
+      else if (t === 'suspended') badge.classList.add('status-inactive');
       else if (t === 'maintenance' || t === 'maint.' || t === 'maint') badge.classList.add('status-maintenance');
       else if (t === 'delayed') badge.classList.add('status-delayed');
-      else if (t === 'out of service' || t === 'out') badge.classList.add('status-out');
+      else if (t === 'out of service' || t === 'out' || t === 'inactive') badge.classList.add('status-out');
       else if (t === 'on leave' || t === 'leave') badge.classList.add('status-leave');
       else if (t === 'in progress' || t === 'progress') badge.classList.add('status-progress');
       else if (t === 'resolved' || t === 'closed') badge.classList.add('status-resolved');
@@ -510,92 +510,87 @@
   // ---------- fleet: assign driver/conductor ----------
   function setupAssignModal() {
     const modal = document.getElementById('assignModal');
-    const form = document.getElementById('assignForm');
-    if (!modal || !form) return;
+    if (!modal) return;
 
-    const btnClose = document.getElementById('assignClose');
+    const btnClose  = document.getElementById('assignClose');
     const btnCancel = document.getElementById('assignCancel');
-    const regNoInput = document.getElementById('assign_reg_no');
     const driverInp = document.getElementById('assign_driver_id');
-    const condInp = document.getElementById('assign_conductor_id');
+    const condInp   = document.getElementById('assign_conductor_id');
+    const regNoInp  = document.getElementById('assign_reg_no');
 
-    let triggerBtn = null;
+    // The reg_no for the currently-open bus (set when modal opens)
+    let currentRegNo = '';
 
     const open = (regNo) => {
-      regNoInput && (regNoInput.value = regNo || '');
+      currentRegNo = regNo || '';
+      if (regNoInp) regNoInp.value = currentRegNo;
       if (driverInp) driverInp.value = '';
-      if (condInp) condInp.value = '';
+      if (condInp)   condInp.value = '';
       modal.hidden = false;
       document.body.style.overflow = 'hidden';
     };
     const close = () => {
       modal.hidden = true;
       document.body.style.overflow = '';
+      currentRegNo = '';
     };
 
     $$('.js-assign').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        triggerBtn = btn;
         const regNo = btn.getAttribute('data-bus-reg') || '';
-        const d = btn.getAttribute('data-driver-id') || '';
-        const c = btn.getAttribute('data-conductor-id') || '';
+        const d     = btn.getAttribute('data-driver-id') || '';
+        const c     = btn.getAttribute('data-conductor-id') || '';
         open(regNo);
         if (driverInp) driverInp.value = (d && d !== '0') ? d : '';
-        if (condInp) condInp.value = (c && c !== '0') ? c : '';
+        if (condInp)   condInp.value   = (c && c !== '0') ? c : '';
+        console.log('[assign] modal opened for bus:', regNo, '| driver:', d, '| conductor:', c);
       });
     });
 
-    btnClose?.addEventListener('click', (e) => { e.preventDefault(); close(); });
+    btnClose?.addEventListener('click',  (e) => { e.preventDefault(); close(); });
     btnCancel?.addEventListener('click', (e) => { e.preventDefault(); close(); });
     modal.querySelector('.modal__backdrop')?.addEventListener('click', close);
     window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const busId = (busIdInput?.value || '').trim();
-      const drvVal = (driverInp?.value || '').trim();
-      const conVal = (condInp?.value || '').trim();
+    // On form submit — create a fresh form dynamically to avoid any hidden-input state issues
+    const form = document.getElementById('assignForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault(); // always intercept
 
-      if (!busId) { toast('Missing bus ID', false); return; }
-      // Allow unassigning by selecting "Unassigned" (value 0) or empty
-      // if (!drvVal && !conVal) { toast('Enter driver or conductor', false); return; }
+        const regNo      = currentRegNo || (regNoInp ? regNoInp.value.trim() : '');
+        const driverId   = driverInp ? driverInp.value   : '';
+        const conductorId = condInp  ? condInp.value     : '';
 
-      const ok = await postFormOrFallback(form);
-      if (ok) {
-        // optimistic row update
-        const esc = (window.CSS && CSS.escape) ? CSS.escape(busId) : busId;
-        const row = document.querySelector(`tr[data-bus-id="${esc}"]`);
-        if (row) {
-          const tdDriver = row.querySelector('.td-driver');
-          const tdCond = row.querySelector('.td-conductor');
+        console.log('[assign] submitting: reg_no=' + regNo + ', driver_id=' + driverId + ', conductor_id=' + conductorId);
 
-          let drvText = drvVal;
-          if (driverInp.tagName === 'SELECT' && driverInp.selectedIndex > -1) {
-            const opt = driverInp.options[driverInp.selectedIndex];
-            drvText = opt.text;
-            if (!drvVal || drvVal === '0') drvText = '';
-          }
-
-          let conText = conVal;
-          if (condInp.tagName === 'SELECT' && condInp.selectedIndex > -1) {
-            const opt = condInp.options[condInp.selectedIndex];
-            conText = opt.text;
-            if (!conVal || conVal === '0') conText = '';
-          }
-
-          if (tdDriver) tdDriver.innerHTML = drvText ? drvText : '<span class="text-secondary">Unassigned</span>';
-          if (tdCond) tdCond.innerHTML = conText ? conText : '<span class="text-secondary">Unassigned</span>';
+        if (!regNo) {
+          toast('Could not determine bus registration. Please close and try again.', false);
+          return;
         }
-        // keep button dataset in sync for next open
-        if (triggerBtn) {
-          triggerBtn.setAttribute('data-driver-id', (drvVal && drvVal !== '0') ? drvVal : '0');
-          triggerBtn.setAttribute('data-conductor-id', (conVal && conVal !== '0') ? conVal : '0');
-        }
-        close();
-        toast('Assignment saved');
-      }
-    });
+
+        // Build and submit a clean native form (same pattern as delete modal)
+        const f = document.createElement('form');
+        f.method = 'POST';
+        f.action = form.getAttribute('action') || '/B/fleet/assign';
+
+        const mk = (name, value) => {
+          const inp = document.createElement('input');
+          inp.type  = 'hidden';
+          inp.name  = name;
+          inp.value = (value == null) ? '' : String(value);
+          f.appendChild(inp);
+        };
+
+        mk('reg_no',       regNo);
+        mk('driver_id',    driverId);
+        mk('conductor_id', conductorId);
+
+        document.body.appendChild(f);
+        f.submit();
+      });
+    }
   }
 
   // ---------- fleet: filter & search ----------
@@ -788,6 +783,9 @@
 
       // Re-append sorted rows
       sorted.forEach(row => tbody.appendChild(row));
+
+      // FIX: refresh allRows to reflect new sorted DOM order so pagination uses correct order
+      allRows = Array.from(tbody.querySelectorAll('tr'));
 
       // Update header indicators
       sortableHeaders.forEach(th => {
@@ -992,14 +990,14 @@
     safe('wireDriverAndConductorDeletes', wireDriverAndConductorDeletes);
     safe('wireStatusToggles', wireStatusToggles);
 
-    // fleet assign
-    safe('setupAssignModal', setupAssignModal);
+    // fleet assign (handled by inline script in fleet.php)
+    // safe('setupAssignModal', setupAssignModal);
 
-    // fleet filters & search
-    safe('setupFleetFilters', setupFleetFilters);
+    // fleet filters & search (handled by inline script in fleet.php)
+    // safe('setupFleetFilters', setupFleetFilters);
 
-    // fleet sorting & pagination
-    safe('setupFleetSortingAndPagination', setupFleetSortingAndPagination);
+    // fleet sorting & pagination (handled by inline script in fleet.php)
+    // safe('setupFleetSortingAndPagination', setupFleetSortingAndPagination);
 
     console.info('[app.js] ready.');
   });
@@ -1134,7 +1132,11 @@
   }
 
   // ------- init -------
-  normalizeBadges();
+  // Only normalize feedback-style badges when the feedback page is actually loaded.
+  // Running this on every page was overriding fleet/driver status badges with status-open (red).
+  if (document.getElementById('feedbackPage')) {
+    normalizeBadges();
+  }
 })();
 // ------- modal view -------
 (function () {
