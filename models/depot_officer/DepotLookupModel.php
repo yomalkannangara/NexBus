@@ -49,18 +49,23 @@ class DepotLookupModel extends BaseModel
      * method prefers user accounts with role 'Driver' or 'Conductor'.
      */
     public function depotDriversAndConductors(int $depotId): array {
-                // Combine user accounts with dedicated SLTB driver/conductor tables.
+                // Combine user accounts with dedicated SLTB driver/conductor tables, including shift counts.
                 $sql = "SELECT CONCAT('user:', user_id) AS attendance_key, user_id AS id, 
                                              CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name,
-                                             role AS type
+                                             role AS type,
+                                             0 AS shifts_count
                                     FROM users
                                  WHERE sltb_depot_id=? AND role IN ('Driver','Conductor')
                                 UNION ALL
-                                SELECT CONCAT('driver:', sltb_driver_id) AS attendance_key, sltb_driver_id AS id, full_name, 'driver' AS type
+                                SELECT CONCAT('driver:', sltb_driver_id) AS attendance_key, sltb_driver_id AS id, full_name, 'driver' AS type,
+                                       COALESCE((SELECT COUNT(*) FROM sltb_assignments 
+                                                 WHERE sltb_driver_id = sltb_drivers.sltb_driver_id AND assigned_date = CURDATE()), 0) AS shifts_count
                                     FROM sltb_drivers
                                  WHERE sltb_depot_id=? AND status='Active'
                                 UNION ALL
-                                SELECT CONCAT('conductor:', sltb_conductor_id) AS attendance_key, sltb_conductor_id AS id, full_name, 'conductor' AS type
+                                SELECT CONCAT('conductor:', sltb_conductor_id) AS attendance_key, sltb_conductor_id AS id, full_name, 'conductor' AS type,
+                                       COALESCE((SELECT COUNT(*) FROM sltb_assignments 
+                                                 WHERE sltb_conductor_id = sltb_conductors.sltb_conductor_id AND assigned_date = CURDATE()), 0) AS shifts_count
                                     FROM sltb_conductors
                                  WHERE sltb_depot_id=? AND status='Active'
                                 ORDER BY type, full_name";

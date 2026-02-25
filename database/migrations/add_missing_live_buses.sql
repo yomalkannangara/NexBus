@@ -320,3 +320,106 @@ SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
            WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignment_overrides' AND INDEX_NAME='idx_assignment');
 SET @sql := IF(@c=0, "ALTER TABLE `sltb_assignment_overrides` ADD INDEX `idx_assignment` (`assignment_id`)", "SELECT 1");
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+/* =========================================================
+   finalDB.sql  -> missing changes on 127_0_0_1 (10).sql
+   Safe / idempotent migration (MariaDB/MySQL)
+   ========================================================= */
+
+START TRANSACTION;
+
+-- ---------------------------------------------------------
+-- 1) NEW TABLE: private_staff_attendance  (only if missing)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `private_staff_attendance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `operator_id` int(11) NOT NULL,
+  `staff_type` enum('Driver','Conductor') NOT NULL,
+  `staff_id` int(11) NOT NULL,
+  `work_date` date NOT NULL,
+  `status` enum('Present','Absent','Late','Leave') NOT NULL DEFAULT 'Present',
+  `notes` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Add indexes for private_staff_attendance if missing (safe)
+SET @t := (SELECT COUNT(*) FROM information_schema.TABLES
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'private_staff_attendance');
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'private_staff_attendance'
+             AND INDEX_NAME = 'idx_attendance_operator');
+SET @sql := IF(@t=0, 'SELECT 1',
+           IF(@c=0, "ALTER TABLE `private_staff_attendance` ADD KEY `idx_attendance_operator` (`operator_id`)", 'SELECT 1'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'private_staff_attendance'
+             AND INDEX_NAME = 'idx_attendance_staff');
+SET @sql := IF(@t=0, 'SELECT 1',
+           IF(@c=0, "ALTER TABLE `private_staff_attendance` ADD KEY `idx_attendance_staff` (`staff_type`,`staff_id`)", 'SELECT 1'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'private_staff_attendance'
+             AND INDEX_NAME = 'idx_attendance_date');
+SET @sql := IF(@t=0, 'SELECT 1',
+           IF(@c=0, "ALTER TABLE `private_staff_attendance` ADD KEY `idx_attendance_date` (`work_date`)", 'SELECT 1'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+-- ---------------------------------------------------------
+-- 2) Add suspend_reason columns (only if missing)
+-- ---------------------------------------------------------
+/* private_conductors.suspend_reason */
+SET @t := (SELECT COUNT(*) FROM information_schema.TABLES
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'private_conductors');
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME='private_conductors'
+             AND COLUMN_NAME='suspend_reason');
+
+SET @sql := IF(@t=0, 'SELECT 1',
+           IF(@c=0, "ALTER TABLE `private_conductors` ADD COLUMN `suspend_reason` varchar(255) DEFAULT NULL", 'SELECT 1'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+/* private_drivers.suspend_reason */
+SET @t := (SELECT COUNT(*) FROM information_schema.TABLES
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'private_drivers');
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME='private_drivers'
+             AND COLUMN_NAME='suspend_reason');
+
+SET @sql := IF(@t=0, 'SELECT 1',
+           IF(@c=0, "ALTER TABLE `private_drivers` ADD COLUMN `suspend_reason` varchar(255) DEFAULT NULL", 'SELECT 1'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+-- ---------------------------------------------------------
+-- 3) Add index on notifications (only if missing)
+-- ---------------------------------------------------------
+SET @t := (SELECT COUNT(*) FROM information_schema.TABLES
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'notifications');
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME='notifications'
+             AND INDEX_NAME='idx_notif_depot_type_time');
+
+SET @sql := IF(@t=0, 'SELECT 1',
+           IF(@c=0, "ALTER TABLE `notifications` ADD KEY `idx_notif_depot_type_time` (`user_id`,`type`,`created_at`)", 'SELECT 1'));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+COMMIT;
