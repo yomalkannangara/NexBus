@@ -200,11 +200,13 @@
       ? '<span class="lf-badge lf-badge--red">⚡ ' + b.speedKmh + '</span>'
       : '<span class="lf-badge lf-badge--green">' + b.speedKmh + '</span>';
 
-    const opLabel  = b.operatorType === 'SLTB'
-      ? (b.depot  ? 'SLTB · ' + escHtml(b.depot) : 'SLTB')
-      : b.operatorType === 'Private'
-      ? (b.owner  ? 'Private · ' + escHtml(b.owner) : 'Private')
-      : '<span style="color:#9ca3af">–</span>';
+    // operatorType comes from raw API; depot/owner added by PHP enrichment
+    const opType   = b.operatorType || b.operator_type || '';
+    const opLabel  = opType === 'SLTB'
+      ? 'SLTB' + (b.depot  ? ' · ' + escHtml(b.depot)  : '')
+      : opType === 'Private'
+      ? 'Private' + (b.owner ? ' · ' + escHtml(b.owner) : '')
+      : (opType ? escHtml(opType) : '<span style="color:#9ca3af">–</span>');
 
     // inDb: trust explicit true, OR infer from enrichment fields populated only by DB lookup
     const isInDb = b.inDb === true || b.inDb === 1
@@ -286,11 +288,15 @@
 
   /* ── main fetch/update cycle ─────────────────────────────────── */
   function fetchAndUpdate() {
-    fetch(API)
+    fetch(API + '?_=' + Date.now())   // bypass any server-side HTTP cache
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(buses => {
         if (!Array.isArray(buses)) { showApiDown(); return; }
         if (buses.length === 0)    { showApiDown(); return; }
+        // VM debug: open browser DevTools console and check first bus fields
+        if (window.location.search.includes('lfdebug')) {
+          console.log('[liveFleet] first bus from API:', JSON.stringify(buses[0], null, 2));
+        }
         const filtered = applyFilters(buses);
         updateKPIs(filtered);
         drawSpeedChart(filtered);

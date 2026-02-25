@@ -225,7 +225,9 @@ class LiveBusesController
     {
         header('Content-Type: application/json; charset=utf-8');
         header('Access-Control-Allow-Origin: *');
-        header('Cache-Control: no-store');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         $buses = $this->fetchRaw();
         if (empty($buses)) { echo '[]'; return; }
@@ -237,13 +239,15 @@ class LiveBusesController
         $lookup = $this->persistLiveBuses($buses, $lookup);
 
         $enriched = array_map(function ($b) use ($lookup) {
+            // Use DB lookup; if not found fall back to whatever the raw API already tells us
+            $rawOpType = $b['operatorType'] ?? 'SLTB';
             $info = $lookup[$b['busId']] ?? [
-                'operatorType' => 'SLTB',
-                'depot'        => 'Colombo Depot',
-                'depotId'      => 1,
-                'owner'        => null,
+                'operatorType' => $rawOpType,
+                'depot'        => $rawOpType === 'SLTB'    ? 'Colombo Depot' : null,
+                'depotId'      => $rawOpType === 'SLTB'    ? 1               : null,
+                'owner'        => $rawOpType === 'Private' ? 'Unknown Owner'  : null,
                 'ownerId'      => null,
-                'inDb'         => true,
+                'inDb'         => false,   // genuinely not found in DB
             ];
             return array_merge($b, $info);
         }, $buses);
