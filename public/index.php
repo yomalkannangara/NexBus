@@ -121,15 +121,18 @@ $routes = [
     '/B/earnings'   => ['BusOwnerController','earnings'],
     '/B/earnings/export' => ['BusOwnerController','exportEarnings'],
     '/B/performance'   => ['BusOwnerController','reports'],
+    '/B/attendance'    => ['BusOwnerController','attendance'],
     '/B/profile'    => ['BusOwnerController','profile'],
 
-    // Live bus proxy (no auth)
-    '/api/buses/live'        => ['LiveBusesController','proxy'],
+    // Live bus proxy (no auth) – writes from external API to tracking_monitoring
+    '/api/buses/live'         => ['LiveBusesController','proxy'],
     '/api/buses/missing-sql'  => ['LiveBusesController','missingSql'],
+    // DB-read endpoint – serves latest tracking_monitoring rows to analytics JS
+    '/api/buses/db-live'      => ['LiveBusesController','dbLive'],
 ];
 
 // 5. Auth guard: allow only public paths without login
-$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/api/buses/live','/api/buses/missing-sql'];
+$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/api/buses/live','/api/buses/missing-sql','/api/buses/db-live'];
 if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
     // optionally remember intended URL
     $_SESSION['intended'] = $path;

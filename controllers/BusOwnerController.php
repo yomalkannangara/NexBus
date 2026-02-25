@@ -10,6 +10,7 @@ use App\models\bus_owner\DriverModel;
 use App\models\bus_owner\EarningModel;
 use App\models\bus_owner\FeedbackModel;
 use App\models\bus_owner\ReportModel;
+use App\models\bus_owner\AttendanceModel;
 
 class BusOwnerController extends BaseController
 {
@@ -418,31 +419,44 @@ public function reports()
 {
     $m = new ReportModel();
 
-    // Optional: honor the dropdown filter (UI-only for now)
-    $range = $_GET['range'] ?? '6m';
-    if (!in_array($range, ['6m','3m','1m'], true)) {
-        $range = '6m';
-    }
+    // Read & sanitise filter params from GET (same pattern as admin analytics)
+    $routeNo = trim($_GET['route_no'] ?? '');
+    $busReg  = trim($_GET['bus_reg']  ?? '');
 
-    // Fetch metrics + top drivers
-    $metrics    = $m->getPerformanceMetrics();
-    $driversRaw = $m->topDrivers(10);
+    $filters = [
+        'route_no' => $routeNo,
+        'bus_reg'  => $busReg,
+    ];
 
-    // Normalize to fields expected by the view
-    $topDrivers = array_map(function ($r) {
-        return [
-            'name'             => $r['full_name'] ?? '',
-            'assignment_route' => '',    // no route in current schema; leave blank
-            'rating'           => null,  // view will show 0.0 if null
-        ];
-    }, $driversRaw ?: []);
+    // Fetch filter-aware metrics
+    $metrics = $m->getPerformanceMetrics($filters);
+
+    // Map to $kpi keys matching the view (same shape as admin)
+    $kpi = [
+        'delayedToday' => $metrics['delayed_buses'],
+        'avgRating'    => $metrics['average_rating'] ?? 0,
+        'speedViol'    => $metrics['speed_violations'],
+        'longWaitPct'  => $metrics['long_wait_rate'],
+    ];
+
+    // Build analyticsJson for chart scripts
+    $analytics = [
+        '_fromServer' => true,
+        'kpi'         => $kpi,
+    ];
 
     // Render view: views/bus_owner/reports.php
     $this->view('bus_owner', 'reports', [
-        'metrics'      => $metrics,
-        'top_drivers'  => $topDrivers,
-        'range'        => $range,
-        'msg'          => $_GET['msg'] ?? null,
+        'kpi'           => $kpi,
+        'filters'       => $filters,
+        'analyticsJson' => json_encode(
+            $analytics,
+            JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK |
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        ),
+        'routes'        => $m->getOperatorRoutes(),
+        'buses'         => $m->getOperatorBuses(),
+        'msg'           => $_GET['msg'] ?? null,
     ]);
 }
 
@@ -500,9 +514,41 @@ public function exportReports()
     exit;
 }
 
-public function profile()
-{
-    $m = new \App\models\bus_owner\ProfileModel();
+/** /B/attendance — Mark and view staff attendance */
+    public function attendance()
+    {
+        $m = new AttendanceModel();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $date           = $_POST['work_date'] ?? date('Y-m-d');
+            $attendancePost = $_POST['attendance'] ?? [];
+            $notesPost      = $_POST['notes']      ?? [];
+            $m->bulkSave($date, $attendancePost, $notesPost);
+            return $this->redirect('/B/attendance?date=' . urlencode($date) . '&msg=saved');
+        }
+
+        $date = $_GET['date'] ?? date('Y-m-d');
+        if ($date > date('Y-m-d')) $date = date('Y-m-d');
+
+        $histFrom = $_GET['from'] ?? date('Y-m-d', strtotime('-13 days'));
+        $histTo   = $_GET['to']   ?? date('Y-m-d');
+
+        $this->view('bus_owner', 'attendance', [
+            'drivers'    => $m->getDrivers(),
+            'conductors' => $m->getConductors(),
+            'records'    => $m->getForDate($date),
+            'summary'    => $m->summary(30),
+            'history'    => $m->history($histFrom, $histTo),
+            'date'       => $date,
+            'histFrom'   => $histFrom,
+            'histTo'     => $histTo,
+            'msg'        => $_GET['msg'] ?? null,
+        ]);
+    }
+
+    public function profile()
+    {
+        $m = new \App\models\bus_owner\ProfileModel();
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $act = $_POST['action'] ?? '';

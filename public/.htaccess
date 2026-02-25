@@ -1,0 +1,19 @@
+Options -Indexes
+Options +FollowSymLinks
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the request is for a real file or directory, serve it directly
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Route everything else through the front controller
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Security: block access to sensitive files
+<FilesMatch "\.(env|log|sql|json|lock|md|gitignore)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

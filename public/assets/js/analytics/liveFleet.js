@@ -1,12 +1,15 @@
 /**
- * liveFleet.js – polls /api/buses/live (enriched with DB data),
+ * liveFleet.js – polls /api/buses/db-live (reads tracking_monitoring written
+ * by LiveBusesController::proxy() which is called by a scheduled task),
  * applies URL-param filters (route_no, depot_id, owner_id),
  * and updates KPI cards, speed chart, status donut, live fleet table.
  */
 (function () {
   'use strict';
 
-  const API         = '/api/buses/live';
+  // Reads latest tracking_monitoring rows written by the live bus controller.
+  // The external API is only called server-side (by /api/buses/live, run via cron).
+  const API         = '/api/buses/db-live';
   const SPEED_LIMIT = 60;
   const REFRESH_MS  = 15000;
   const NB          = window.NBCharts;
@@ -14,14 +17,14 @@
   /* ── read active filters from URL ───────────────────────────── */
   const _p         = new URLSearchParams(window.location.search);
   const F_ROUTE    = (_p.get('route_no')  || '').trim();
-  const F_DEPOT    = (_p.get('depot_id')  || '').trim();
-  const F_OWNER    = (_p.get('owner_id')  || '').trim();
+  const F_DEPOT_RAW = (_p.get('depot_id') || '').trim();
+  const F_OWNER_RAW = (_p.get('owner_id') || '').trim();
+  const F_DEPOT     = (/^\d+$/.test(F_DEPOT_RAW) && +F_DEPOT_RAW > 0) ? String(+F_DEPOT_RAW) : '';
+  const F_OWNER     = (/^\d+$/.test(F_OWNER_RAW) && +F_OWNER_RAW > 0) ? String(+F_OWNER_RAW) : '';
 
   function el(id) { return document.getElementById(id); }
 
   /* ── filter live buses client-side ──────────────────────────── */
-  // Buses are now auto-registered in sltb_buses by the proxy endpoint,
-  // so depotId/ownerId are populated and depot/owner filters work.
   function normalizeRouteValue(v) {
     const raw = String(v ?? '').trim();
     if (!raw) return '';
@@ -38,6 +41,12 @@
         const route = b.routeNo ?? b.route_no ?? b.route ?? b.routeNumber ?? '';
         return normalizeRouteValue(route) === norm;
       });
+    }
+    if (F_DEPOT) {
+      r = r.filter(b => String(b.depotId ?? b.depot_id ?? '') === F_DEPOT);
+    }
+    if (F_OWNER) {
+      r = r.filter(b => String(b.ownerId ?? b.owner_id ?? '') === F_OWNER);
     }
     return r;
   }
@@ -194,13 +203,20 @@
       ? '<span class="lf-badge lf-badge--red">⚡ ' + b.speedKmh + '</span>'
       : '<span class="lf-badge lf-badge--green">' + b.speedKmh + '</span>';
 
-    const opLabel  = b.operatorType === 'SLTB'
-      ? (b.depot  ? 'SLTB · ' + escHtml(b.depot) : 'SLTB')
-      : b.operatorType === 'Private'
-      ? (b.owner  ? 'Private · ' + escHtml(b.owner) : 'Private')
-      : '<span style="color:#9ca3af">–</span>';
+    // operatorType comes from raw API; depot/owner added by PHP enrichment
+    const opType   = b.operatorType || b.operator_type || '';
+    const opLabel  = opType === 'SLTB'
+      ? 'SLTB' + (b.depot  ? ' · ' + escHtml(b.depot)  : '')
+      : opType === 'Private'
+      ? 'Private' + (b.owner ? ' · ' + escHtml(b.owner) : '')
+      : (opType ? escHtml(opType) : '<span style="color:#9ca3af">–</span>');
 
-    const inDb     = b.inDb
+    // inDb: trust explicit true, OR infer from enrichment fields populated only by DB lookup
+    const isInDb = b.inDb === true || b.inDb === 1
+      || !!b.depotId || !!b.ownerId
+      || (b.operatorType === 'SLTB'    && !!b.depot)
+      || (b.operatorType === 'Private' && !!b.owner);
+    const inDb = isInDb
       ? '<span class="lf-badge lf-badge--green">✓</span>'
       : '<span class="lf-badge lf-badge--red">✗ New</span>';
 
@@ -227,8 +243,12 @@
     if (!tbody) return;
 
     if (!buses.length) {
-      const msg = F_ROUTE
-        ? 'No buses found for route ' + F_ROUTE + ' (' + totalFromApi + ' total live)'
+      const active = [];
+      if (F_ROUTE) active.push('route ' + F_ROUTE);
+      if (F_DEPOT) active.push('depot ' + F_DEPOT);
+      if (F_OWNER) active.push('owner ' + F_OWNER);
+      const msg = active.length
+        ? 'No buses found for ' + active.join(' + ') + ' (' + totalFromApi + ' total live)'
         : 'No live buses found';
       tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">'+msg+'</td></tr>';
       return;
@@ -271,11 +291,15 @@
 
   /* ── main fetch/update cycle ─────────────────────────────────── */
   function fetchAndUpdate() {
-    fetch(API)
+    fetch(API + '?_=' + Date.now())  // reads latest DB snapshots (no external API call)
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(buses => {
         if (!Array.isArray(buses)) { showApiDown(); return; }
         if (buses.length === 0)    { showApiDown(); return; }
+        // Debug: open browser DevTools console (?lfdebug)
+        if (window.location.search.includes('lfdebug')) {
+          console.log('[liveFleet] first bus from DB:', JSON.stringify(buses[0], null, 2));
+        }
         const filtered = applyFilters(buses);
         updateKPIs(filtered);
         drawSpeedChart(filtered);
@@ -287,8 +311,8 @@
 
   function showApiDown() {
     const tbody = el('live-route-tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">No live bus data available – API offline or no buses active</td></tr>';
-    if (el('live-updated-at'))       el('live-updated-at').textContent       = 'Offline · ' + new Date().toLocaleTimeString();
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">No live bus data available – DB has no recent snapshots (check live bus scheduler)</td></tr>';
+    if (el('live-updated-at'))       el('live-updated-at').textContent       = 'No recent data · ' + new Date().toLocaleTimeString();
     if (el('live-updated-at-table')) el('live-updated-at-table').textContent = 'No data · ' + new Date().toLocaleTimeString();
   }
 

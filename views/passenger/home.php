@@ -32,6 +32,28 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
   (function(){
+    var ACTIVE_OPERATOR = <?= json_encode((string)($operator_type ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    var ACTIVE_ROUTE_NO = <?php
+      $activeRouteNo = '';
+      if (!empty($route_id) && !empty($routes) && is_array($routes)) {
+        foreach ($routes as $rt) {
+          if ((int)($rt['route_id'] ?? 0) === (int)$route_id) {
+            $activeRouteNo = (string)($rt['route_no'] ?? '');
+            break;
+          }
+        }
+      }
+      echo json_encode($activeRouteNo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ?>;
+
+    function normalizeRoute(v){
+      var raw = String(v == null ? '' : v).trim();
+      if(!raw) return '';
+      var digits = raw.replace(/\D+/g, '');
+      if(digits) return String(parseInt(digits, 10));
+      return raw.toLowerCase();
+    }
+
     var map = L.map('live-bus-map').setView([6.927, 79.861], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -66,6 +88,19 @@
         .then(function(r){ return r.json(); })
         .then(function(buses){
           if(!Array.isArray(buses)) return;
+          if (ACTIVE_ROUTE_NO) {
+            var targetRoute = normalizeRoute(ACTIVE_ROUTE_NO);
+            buses = buses.filter(function(b){
+              return normalizeRoute(b.routeNo ?? b.route_no ?? b.route ?? b.routeNumber ?? '') === targetRoute;
+            });
+          }
+          if (ACTIVE_OPERATOR) {
+            var targetOp = String(ACTIVE_OPERATOR).toLowerCase();
+            buses = buses.filter(function(b){
+              return String(b.operatorType || '').toLowerCase() === targetOp;
+            });
+          }
+
           var seen = {};
           buses.forEach(function(b){
             seen[b.busId] = true;

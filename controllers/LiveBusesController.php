@@ -10,7 +10,7 @@ use PDO;
  */
 class LiveBusesController
 {
-    private const EXTERNAL_URL = 'http://140.245.9.34/api/buses/live';
+    private const EXTERNAL_URL = 'http://140.245.9.34:4000/api/buses/lives';
     private const CACHE_TTL    = 10;
     private const CACHE_FILE   = __DIR__ . '/../logs/live_buses_cache.json';
 
@@ -51,21 +51,25 @@ class LiveBusesController
         $pdo = $GLOBALS['db'];
         $ph  = implode(',', array_fill(0, count($regNos), '?'));
 
-        // SLTB buses
+        // SLTB buses (LEFT JOIN so buses still resolve even if depot master row is missing)
         $stmt = $pdo->prepare(
-            "SELECT sb.reg_no, sd.sltb_depot_id AS depot_id, sd.name AS depot
+            "SELECT sb.reg_no,
+                    sb.sltb_depot_id AS depot_id,
+                    sd.name AS depot
              FROM sltb_buses sb
-             JOIN sltb_depots sd ON sd.sltb_depot_id = sb.sltb_depot_id
+             LEFT JOIN sltb_depots sd ON sd.sltb_depot_id = sb.sltb_depot_id
              WHERE sb.reg_no IN ($ph)"
         );
         $stmt->execute($regNos);
         $sltb = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Private buses
+        // Private buses (LEFT JOIN so buses still resolve even if owner master row is missing)
         $stmt2 = $pdo->prepare(
-            "SELECT pb.reg_no, pbo.private_operator_id AS owner_id, pbo.name AS owner
+            "SELECT pb.reg_no,
+                    pb.private_operator_id AS owner_id,
+                    pbo.name AS owner
              FROM private_buses pb
-             JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
+             LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
              WHERE pb.reg_no IN ($ph)"
         );
         $stmt2->execute($regNos);
@@ -73,22 +77,24 @@ class LiveBusesController
 
         $map = [];
         foreach ($sltb as $r) {
+            $depotId = (int)($r['depot_id'] ?? 0);
             $map[$r['reg_no']] = [
                 'operatorType' => 'SLTB',
-                'depot'        => $r['depot'],
-                'depotId'      => (int)$r['depot_id'],
+                'depot'        => $r['depot'] ?: ($depotId > 0 ? ('Depot #' . $depotId) : 'SLTB Depot'),
+                'depotId'      => $depotId ?: null,
                 'owner'        => null,
                 'ownerId'      => null,
                 'inDb'         => true,
             ];
         }
         foreach ($priv as $r) {
+            $ownerId = (int)($r['owner_id'] ?? 0);
             $map[$r['reg_no']] = [
                 'operatorType' => 'Private',
                 'depot'        => null,
                 'depotId'      => null,
-                'owner'        => $r['owner'],
-                'ownerId'      => (int)$r['owner_id'],
+                'owner'        => $r['owner'] ?: ($ownerId > 0 ? ('Owner #' . $ownerId) : 'Private Owner'),
+                'ownerId'      => $ownerId ?: null,
                 'inDb'         => true,
             ];
         }
@@ -219,7 +225,9 @@ class LiveBusesController
     {
         header('Content-Type: application/json; charset=utf-8');
         header('Access-Control-Allow-Origin: *');
-        header('Cache-Control: no-store');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         $buses = $this->fetchRaw();
         if (empty($buses)) { echo '[]'; return; }
@@ -231,18 +239,107 @@ class LiveBusesController
         $lookup = $this->persistLiveBuses($buses, $lookup);
 
         $enriched = array_map(function ($b) use ($lookup) {
+            // Use DB lookup; if not found fall back to whatever the raw API already tells us
+            $rawOpType = $b['operatorType'] ?? 'SLTB';
             $info = $lookup[$b['busId']] ?? [
-                'operatorType' => 'SLTB',
-                'depot'        => 'Colombo Depot',
-                'depotId'      => 1,
-                'owner'        => null,
+                'operatorType' => $rawOpType,
+                'depot'        => $rawOpType === 'SLTB'    ? 'Colombo Depot' : null,
+                'depotId'      => $rawOpType === 'SLTB'    ? 1               : null,
+                'owner'        => $rawOpType === 'Private' ? 'Unknown Owner'  : null,
                 'ownerId'      => null,
-                'inDb'         => true,
+                'inDb'         => false,   // genuinely not found in DB
             ];
             return array_merge($b, $info);
         }, $buses);
 
         echo json_encode($enriched, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    }
+
+    /* ─── DB-read endpoint: /api/buses/db-live ──────────────────
+     * Reads the most-recent tracking_monitoring snapshot per bus
+     * (written by proxy() / a cron that calls /api/buses/live).
+     * Returns the exact same JSON shape as proxy() so the frontend
+     * needs zero changes other than the URL it fetches.
+     * Only includes buses with a snapshot in the last 5 minutes.
+     * ─────────────────────────────────────────────────────────── */
+    public function dbLive(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        if (!isset($GLOBALS['db'])) { echo '[]'; return; }
+        $pdo = $GLOBALS['db'];
+
+        try {
+            $stmt = $pdo->query(
+                "SELECT
+                     tm.bus_reg_no                   AS busId,
+                     tm.operator_type                AS operatorType,
+                     ROUND(tm.speed, 1)              AS speedKmh,
+                     tm.lat,
+                     tm.lng,
+                     tm.heading,
+                     tm.operational_status           AS operationalStatus,
+                     tm.snapshot_at                  AS snapshotAt,
+                     r.route_no                      AS routeNo,
+                     sd.name                         AS depot,
+                     sb.sltb_depot_id                AS depotId,
+                     pbo.name                        AS owner,
+                     pb.private_operator_id          AS ownerId
+                 FROM tracking_monitoring tm
+                 /* Latest snapshot per bus within the last 5 minutes */
+                 INNER JOIN (
+                     SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                     FROM   tracking_monitoring
+                     WHERE  snapshot_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                     GROUP  BY bus_reg_no
+                 ) latest
+                     ON  latest.bus_reg_no = tm.bus_reg_no
+                     AND latest.max_snap   = tm.snapshot_at
+                 LEFT JOIN routes              r   ON  r.route_id           = tm.route_id
+                 LEFT JOIN sltb_buses          sb  ON  sb.reg_no            = tm.bus_reg_no
+                 LEFT JOIN sltb_depots         sd  ON  sd.sltb_depot_id     = sb.sltb_depot_id
+                 LEFT JOIN private_buses       pb  ON  pb.reg_no            = tm.bus_reg_no
+                 LEFT JOIN private_bus_owners  pbo ON  pbo.private_operator_id = pb.private_operator_id
+                 ORDER BY tm.snapshot_at DESC"
+            );
+
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            error_log('[dbLive] query error: ' . $e->getMessage());
+            echo '[]'; return;
+        }
+
+        if (empty($rows)) { echo '[]'; return; }
+
+        $out = array_map(static function (array $r): array {
+            $opType = $r['operatorType'] ?? 'SLTB';
+            return [
+                'busId'             => $r['busId'],
+                'routeNo'           => $r['routeNo'] ?? '',
+                'speedKmh'          => (float)($r['speedKmh'] ?? 0),
+                'operatorType'      => $opType,
+                'depot'             => $opType === 'SLTB'
+                                         ? ($r['depot'] ?: ($r['depotId'] ? 'Depot #' . $r['depotId'] : 'SLTB Depot'))
+                                         : null,
+                'depotId'           => $r['depotId'] !== null ? (int)$r['depotId'] : null,
+                'owner'             => $opType === 'Private'
+                                         ? ($r['owner'] ?: ($r['ownerId'] ? 'Owner #' . $r['ownerId'] : 'Private Owner'))
+                                         : null,
+                'ownerId'           => $r['ownerId'] !== null ? (int)$r['ownerId'] : null,
+                'lat'               => $r['lat']     !== null ? (float)$r['lat']     : null,
+                'lng'               => $r['lng']     !== null ? (float)$r['lng']     : null,
+                'heading'           => $r['heading'] !== null ? (int)$r['heading']   : null,
+                'operationalStatus' => $r['operationalStatus'] ?? 'OnTime',
+                'snapshotAt'        => $r['snapshotAt'],
+                'inDb'              => true,
+            ];
+        }, $rows);
+
+        echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
     /* ─── diagnostic: /api/buses/missing-sql ───────────────────── */
