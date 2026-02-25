@@ -1,12 +1,15 @@
 /**
- * liveFleet.js – polls /api/buses/live (enriched with DB data),
+ * liveFleet.js – polls /api/buses/db-live (reads tracking_monitoring written
+ * by LiveBusesController::proxy() which is called by a scheduled task),
  * applies URL-param filters (route_no, depot_id, owner_id),
  * and updates KPI cards, speed chart, status donut, live fleet table.
  */
 (function () {
   'use strict';
 
-  const API         = '/api/buses/live';
+  // Reads latest tracking_monitoring rows written by the live bus controller.
+  // The external API is only called server-side (by /api/buses/live, run via cron).
+  const API         = '/api/buses/db-live';
   const SPEED_LIMIT = 60;
   const REFRESH_MS  = 15000;
   const NB          = window.NBCharts;
@@ -288,14 +291,14 @@
 
   /* ── main fetch/update cycle ─────────────────────────────────── */
   function fetchAndUpdate() {
-    fetch(API + '?_=' + Date.now())   // bypass any server-side HTTP cache
+    fetch(API + '?_=' + Date.now())  // reads latest DB snapshots (no external API call)
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(buses => {
         if (!Array.isArray(buses)) { showApiDown(); return; }
         if (buses.length === 0)    { showApiDown(); return; }
-        // VM debug: open browser DevTools console and check first bus fields
+        // Debug: open browser DevTools console (?lfdebug)
         if (window.location.search.includes('lfdebug')) {
-          console.log('[liveFleet] first bus from API:', JSON.stringify(buses[0], null, 2));
+          console.log('[liveFleet] first bus from DB:', JSON.stringify(buses[0], null, 2));
         }
         const filtered = applyFilters(buses);
         updateKPIs(filtered);
@@ -308,8 +311,8 @@
 
   function showApiDown() {
     const tbody = el('live-route-tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">No live bus data available – API offline or no buses active</td></tr>';
-    if (el('live-updated-at'))       el('live-updated-at').textContent       = 'Offline · ' + new Date().toLocaleTimeString();
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">No live bus data available – DB has no recent snapshots (check live bus scheduler)</td></tr>';
+    if (el('live-updated-at'))       el('live-updated-at').textContent       = 'No recent data · ' + new Date().toLocaleTimeString();
     if (el('live-updated-at-table')) el('live-updated-at-table').textContent = 'No data · ' + new Date().toLocaleTimeString();
   }
 
