@@ -283,23 +283,37 @@ public function timetables() {
 public function analytics() {
     $m = new AnalyticsModel();
 
-    // ── KPIs (live from DB) ────────────────────────────────────────
-    $kpi = [
-        'delayedToday' => $m->delayedToday(),
-        'avgRating'    => $m->avgRating(),
-        'speedViol'    => $m->speedViolationsToday(),
-        'longWaitPct'  => $m->longWaitPct(),
+    // ── Read & sanitise filter params from GET ─────────────────────
+    $routeNo = trim($_GET['route_no']  ?? '');
+    $depotId = (int)($_GET['depot_id']  ?? 0);
+    $ownerId = (int)($_GET['owner_id']  ?? 0);
+    // depot and owner are mutually exclusive; if both sent, prefer depot
+    if ($depotId > 0) $ownerId = 0;
+
+    $filters = [
+        'route_no' => $routeNo,
+        'depot_id' => $depotId ?: null,
+        'owner_id' => $ownerId ?: null,
     ];
 
-    // ── Chart datasets (real DB) ───────────────────────────────────
+    // ── KPIs (live from DB, filter-aware) ─────────────────────────
+    $kpi = [
+        'delayedToday' => $m->delayedToday($filters),
+        'avgRating'    => $m->avgRating($filters),
+        'speedViol'    => $m->speedViolationsToday($filters),
+        'longWaitPct'  => $m->longWaitPct($filters),
+    ];
+
+    // ── Chart datasets (real DB, filter-aware) ────────────────────
     $analytics = [
+        '_fromServer'      => true,
         'kpi'              => $kpi,
-        'busStatus'        => $m->busStatus(),
-        'revenue'          => $m->revenueTrends(),
-        'speedByBus'       => $m->speedByBus(),
-        'waitTime'         => $m->waitTimeDistribution(),
-        'delayedByRoute'   => $m->delayedByRoute(),
-        'complaintsByRoute'=> $m->complaintsByRoute(),
+        'busStatus'        => $m->busStatus($filters),
+        'revenue'          => $m->revenueTrends($filters),
+        'speedByBus'       => $m->speedByBus($filters),
+        'waitTime'         => $m->waitTimeDistribution($filters),
+        'delayedByRoute'   => $m->delayedByRoute($filters),
+        'complaintsByRoute'=> $m->complaintsByRoute($filters),
     ];
 
     $this->view('ntc_admin','analytics',[
@@ -308,8 +322,17 @@ public function analytics() {
             JSON_UNESCAPED_SLASHES|JSON_NUMERIC_CHECK|
             JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT
         ),
-        'kpi'    => $kpi,
-        'routes' => (new \App\models\ntc_admin\RouteModel())->list(),
+        'kpi'     => $kpi,
+        'filters' => $filters,
+        // All distinct route_nos ordered numerically – includes auto-created live routes
+        'routes'  => $GLOBALS['db']->query(
+            "SELECT DISTINCT route_no
+             FROM routes
+             WHERE is_active = 1
+             ORDER BY CAST(route_no AS UNSIGNED), route_no"
+        )->fetchAll(\PDO::FETCH_ASSOC),
+        'depots'  => $m->depots(),
+        'owners'  => $m->owners(),
     ]);
 }
 

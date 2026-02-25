@@ -4,12 +4,21 @@
   NB.onReady(function(){
     const cvs=document.getElementById("speedByBusChart"); if(!cvs) return;
     const D=NB.getData(), F=window.ANALYTICS_DUMMY||{};
-    const labels=(D?.speedByBus?.labels?.length?D.speedByBus.labels:F.speedByBus.labels);
-    const vals=(D?.speedByBus?.values?.length?D.speedByBus.values:F.speedByBus.values).map(n=>+n||0);
+    const fromServer = !!D._fromServer;
+    const labels = fromServer ? (D?.speedByBus?.labels||[])
+                              : (D?.speedByBus?.labels?.length ? D.speedByBus.labels : (F.speedByBus?.labels||[]));
+    const vals   = fromServer ? (D?.speedByBus?.values||[]).map(n=>+n||0)
+                              : (D?.speedByBus?.values?.length ? D.speedByBus.values : (F.speedByBus?.values||[])).map(n=>+n||0);
 
     NB.observe(cvs, 7/4, ({ctx,W,H})=>{
       ctx.clearRect(0,0,W,H);
       const pad={l:56,r:16,t:16,b:56}, iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
+      if(!labels.length){
+        ctx.fillStyle='#9ca3af'; ctx.font='14px ui-sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(fromServer ? 'No speed violations for selected filters' : 'No data available', W/2, H/2);
+        return;
+      }
       const max=Math.max(5, Math.ceil(Math.max(...vals)/5)*5);
       const barW=iw/labels.length*0.6;
 

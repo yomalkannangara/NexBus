@@ -6,8 +6,10 @@
     if (!cvs) return;
     const D = NB.getData(), F = window.ANALYTICS_DUMMY || {};
 
-    const src = (D?.complaintsByRoute?.labels?.length) ? D.complaintsByRoute
-              : (F?.complaintsByRoute || { labels: [], values: [] });
+    const fromServer = !!D._fromServer;
+    const src = fromServer ? (D?.complaintsByRoute || { labels: [], values: [] })
+              : (D?.complaintsByRoute?.labels?.length ? D.complaintsByRoute
+              : (F?.complaintsByRoute || { labels: [], values: [] }));
     const labels = src.labels || [];
     const vals   = (src.values || []).map(n => +n || 0);
 
@@ -16,6 +18,11 @@
       const pad = { l: 46, r: 16, t: 16, b: 54 };
       const iw  = W - pad.l - pad.r;
       const ih  = H - pad.t - pad.b;
+      if (!labels.length) {
+        ctx.fillStyle = '#9ca3af'; ctx.font = '14px ui-sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('No complaints data for selected filters', W/2, H/2); return;
+      }
       const max = Math.max(5, Math.ceil(Math.max(...vals, 1) / 5) * 5);
       const barW = Math.min(34, (iw / Math.max(labels.length, 1)) * 0.6);
 

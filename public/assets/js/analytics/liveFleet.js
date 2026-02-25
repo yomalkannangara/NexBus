@@ -1,44 +1,67 @@
 /**
- * liveFleet.js – fetches live bus data and drives:
- *   • KPI cards (active buses, speed violations, avg speed)
- *   • Speed-by-Bus chart (real speeds + limit line)
- *   • Bus Status donut  (normal / speeding split)
- *   • Live Route summary table
- *
- * Auto-refreshes every 15 seconds.
+ * liveFleet.js – polls /api/buses/live (enriched with DB data),
+ * applies URL-param filters (route_no, depot_id, owner_id),
+ * and updates KPI cards, speed chart, status donut, live fleet table.
  */
 (function () {
   'use strict';
 
   const API         = '/api/buses/live';
-  const SPEED_LIMIT = 60;   // km/h threshold for a "violation"
+  const SPEED_LIMIT = 60;
   const REFRESH_MS  = 15000;
   const NB          = window.NBCharts;
 
-  /* ── helpers ── */
+  /* ── read active filters from URL ───────────────────────────── */
+  const _p         = new URLSearchParams(window.location.search);
+  const F_ROUTE    = (_p.get('route_no')  || '').trim();
+  const F_DEPOT    = (_p.get('depot_id')  || '').trim();
+  const F_OWNER    = (_p.get('owner_id')  || '').trim();
+
   function el(id) { return document.getElementById(id); }
 
-  /* ── KPI update ── */
-  function updateKPIs(buses) {
-    const total    = buses.length;
-    const viols    = buses.filter(b => b.speedKmh > SPEED_LIMIT).length;
-    const avgSpeed = total
-      ? (buses.reduce((s, b) => s + (b.speedKmh || 0), 0) / total).toFixed(1)
-      : '–';
-
-    if (el('kpi-active-buses'))  el('kpi-active-buses').textContent  = total;
-    if (el('kpi-speed'))         el('kpi-speed').textContent         = viols;
-    if (el('kpi-avg-speed'))     el('kpi-avg-speed').textContent     = avgSpeed + ' km/h';
-    if (el('live-updated-at'))   el('live-updated-at').textContent   =
-      'Live · updated ' + new Date().toLocaleTimeString();
+  /* ── filter live buses client-side ──────────────────────────── */
+  // Buses are now auto-registered in sltb_buses by the proxy endpoint,
+  // so depotId/ownerId are populated and depot/owner filters work.
+  function normalizeRouteValue(v) {
+    const raw = String(v ?? '').trim();
+    if (!raw) return '';
+    const digits = raw.replace(/\D+/g, '');
+    if (digits) return String(parseInt(digits, 10));
+    return raw.toLowerCase();
   }
 
-  /* ── Speed-by-Bus bar chart ── */
+  function applyFilters(buses) {
+    let r = buses;
+    if (F_ROUTE) {
+      const norm = normalizeRouteValue(F_ROUTE);
+      r = r.filter(b => {
+        const route = b.routeNo ?? b.route_no ?? b.route ?? b.routeNumber ?? '';
+        return normalizeRouteValue(route) === norm;
+      });
+    }
+    return r;
+  }
+
+  /* ── KPIs ────────────────────────────────────────────────────── */
+  function updateKPIs(buses) {
+    const total    = buses.length;
+    const avgSpeed = total
+      ? (buses.reduce((s, b) => s + (+b.speedKmh || 0), 0) / total).toFixed(1)
+      : '–';
+
+    if (el('kpi-active-buses')) el('kpi-active-buses').textContent = total;
+    // kpi-avg-speed is the live fleet average
+    if (el('kpi-avg-speed'))    el('kpi-avg-speed').textContent    = avgSpeed + ' km/h';
+    if (el('live-updated-at'))  el('live-updated-at').textContent  = 'Live · ' + new Date().toLocaleTimeString();
+    const tbl = el('live-updated-at-table');
+    if (tbl) tbl.textContent = total + ' bus' + (total !== 1 ? 'es' : '') + ' · ' + new Date().toLocaleTimeString();
+  }
+
+  /* ── live fleet speed bar chart ─────────────────────────────── */
   function drawSpeedChart(buses) {
-    const cvs = el('speedByBusChart');
+    const cvs = el('liveSpeedChart');
     if (!cvs || !NB) return;
 
-    /* Top 12 buses sorted by speed desc */
     const sorted = [...buses].sort((a, b) => b.speedKmh - a.speedKmh).slice(0, 12);
     const labels = sorted.map(b => b.busId);
     const vals   = sorted.map(b => +b.speedKmh || 0);
@@ -46,104 +69,78 @@
 
     NB.observe(cvs, 7 / 4, ({ ctx, W, H }) => {
       ctx.clearRect(0, 0, W, H);
+      if (!labels.length) {
+        ctx.fillStyle='#9ca3af'; ctx.font='14px ui-sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('No buses match current filter', W/2, H/2); return;
+      }
       const pad = { l: 46, r: 16, t: 24, b: 54 };
-      const iw  = W - pad.l - pad.r;
-      const ih  = H - pad.t - pad.b;
-      const barW = Math.min(32, (iw / Math.max(labels.length, 1)) * 0.6);
+      const iw  = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+      const barW = Math.min(32, (iw / labels.length) * 0.6);
 
-      /* grid lines */
-      ctx.strokeStyle = NB.colors.grid;
-      ctx.lineWidth   = 1;
-      ctx.setLineDash([3, 6]);
+      ctx.strokeStyle = NB.colors.grid; ctx.lineWidth = 1; ctx.setLineDash([3, 6]);
       for (let k = 0; k <= 5; k++) {
         const y = pad.t + ih * (k / 5);
         ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
       }
       ctx.setLineDash([]);
 
-      /* speed-limit dashed red line */
       const limitY = pad.t + ih - (SPEED_LIMIT / max) * ih;
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth   = 1.5;
-      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle='#ef4444'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
       ctx.beginPath(); ctx.moveTo(pad.l, limitY); ctx.lineTo(W - pad.r, limitY); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = '#ef4444';
-      ctx.font      = '10px ui-sans-serif';
-      ctx.textAlign = 'left';
+      ctx.fillStyle='#ef4444'; ctx.font='10px ui-sans-serif'; ctx.textAlign='left';
       ctx.fillText(SPEED_LIMIT + ' km/h', pad.l + 4, limitY - 4);
 
-      /* bars */
       vals.forEach((v, i) => {
         const slotW = iw / labels.length;
-        const x     = pad.l + i * slotW + (slotW - barW) / 2;
-        const h     = (v / max) * ih;
-        const y     = pad.t + ih - h;
-        const r     = 5;
-        const over  = v > SPEED_LIMIT;
-
+        const x = pad.l + i * slotW + (slotW - barW) / 2;
+        const h = (v / max) * ih, y = pad.t + ih - h, r = 5;
+        const over = v > SPEED_LIMIT;
         const g = ctx.createLinearGradient(0, y, 0, y + h);
         g.addColorStop(0, over ? '#fca5a5' : '#86efac');
         g.addColorStop(1, over ? NB.colors.red : NB.colors.green);
         ctx.fillStyle = g;
-
         ctx.beginPath();
-        ctx.moveTo(x, y + r);
-        ctx.arcTo(x, y, x + r, y, r);
-        ctx.lineTo(x + barW - r, y);
-        ctx.arcTo(x + barW, y, x + barW, y + r, r);
-        ctx.lineTo(x + barW, y + h);
-        ctx.lineTo(x, y + h);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+        ctx.lineTo(x + barW - r, y); ctx.arcTo(x + barW, y, x + barW, y + r, r);
+        ctx.lineTo(x + barW, y + h); ctx.lineTo(x, y + h); ctx.closePath(); ctx.fill();
 
-        /* value label above bar */
-        ctx.fillStyle  = '#374151';
-        ctx.font       = 'bold 10px ui-sans-serif';
-        ctx.textAlign  = 'center';
+        ctx.fillStyle='#374151'; ctx.font='bold 10px ui-sans-serif'; ctx.textAlign='center';
         ctx.fillText(v, x + barW / 2, Math.max(y - 2, pad.t + 10));
       });
 
-      /* x labels */
-      ctx.fillStyle = '#6b7280';
-      ctx.font      = '11px ui-sans-serif';
-      ctx.textAlign = 'center';
+      ctx.fillStyle='#6b7280'; ctx.font='11px ui-sans-serif'; ctx.textAlign='center';
       labels.forEach((lb, i) => {
-        const slotW = iw / labels.length;
-        const x     = pad.l + i * slotW + slotW / 2;
+        const slotW = iw / labels.length, x = pad.l + i * slotW + slotW / 2;
         ctx.save(); ctx.translate(x, H - 6); ctx.rotate(-Math.PI / 6);
         ctx.fillText(lb, 0, 0); ctx.restore();
       });
 
-      /* y labels */
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#6b7280';
-      ctx.font      = '11px ui-sans-serif';
+      ctx.textAlign='right'; ctx.fillStyle='#6b7280';
       for (let yv = 0; yv <= max; yv += Math.max(10, Math.round(max / 6 / 10) * 10)) {
         const y = pad.t + ih - (yv / max) * ih;
         ctx.fillText(yv, pad.l - 5, y + 4);
       }
 
-      /* legend */
       NB.setLegend(cvs.parentNode, [
-        { label: 'Normal Speed', color: NB.colors.green },
+        { label: 'Normal', color: NB.colors.green },
         { label: 'Over ' + SPEED_LIMIT + ' km/h', color: NB.colors.red }
       ]);
     });
   }
 
-  /* ── Bus Status donut ── */
+  /* ── live fleet status donut ────────────────────────────────── */
   function drawStatusChart(buses) {
-    const cvs = el('busStatusChart');
+    const cvs = el('liveStatusChart');
     if (!cvs || !NB) return;
 
     const total   = buses.length || 0;
     const speeding = buses.filter(b => b.speedKmh > SPEED_LIMIT).length;
     const normal   = total - speeding;
-
     const list = [
       { label: 'Normal',   value: normal,   color: NB.colors.green },
-      { label: 'Speeding', value: speeding,  color: NB.colors.red   }
+      { label: 'Speeding', value: speeding,  color: NB.colors.red   },
     ];
 
     NB.observe(cvs, 7 / 4, ({ ctx, W, H }) => {
@@ -154,87 +151,148 @@
       const t  = list.reduce((s, d) => s + (d.value || 0), 0) || 1;
       let a0   = -Math.PI / 2;
 
-      ctx.shadowColor = 'rgba(0,0,0,.15)';
-      ctx.shadowBlur  = 12;
+      if (!total) {
+        ctx.fillStyle='#9ca3af'; ctx.font='13px ui-sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('No live data', cx, cy); return;
+      }
+
+      ctx.shadowColor='rgba(0,0,0,.15)'; ctx.shadowBlur=12;
       list.forEach(seg => {
         const ang = (seg.value / t) * Math.PI * 2;
         if (ang <= 0) return;
         ctx.beginPath(); ctx.moveTo(cx, cy);
         ctx.arc(cx, cy, R, a0, a0 + ang);
-        ctx.closePath();
-        ctx.fillStyle = seg.color;
-        ctx.fill();
+        ctx.closePath(); ctx.fillStyle = seg.color; ctx.fill();
         a0 += ang;
       });
 
       ctx.shadowBlur = 0;
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-      ctx.globalCompositeOperation = 'source-over';
+      const cardBg = getComputedStyle(cvs.closest('.chart-card') || document.body).backgroundColor || '#fff';
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = cardBg.startsWith('rgba(0') ? '#1e1e2e' : '#ffffff';
+      ctx.fill();
 
-      /* center label */
-      ctx.fillStyle  = '#111827';
-      ctx.font       = 'bold 22px ui-sans-serif';
-      ctx.textAlign  = 'center';
-      ctx.fillText(total, cx, cy + 4);
-      ctx.fillStyle = '#6b7280';
-      ctx.font      = '12px ui-sans-serif';
-      ctx.fillText('Live Buses', cx, cy + 20);
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle='#111827'; ctx.font='bold 22px ui-sans-serif';
+      ctx.fillText(total, cx, cy - 8);
+      ctx.fillStyle='#6b7280'; ctx.font='12px ui-sans-serif';
+      ctx.fillText('Live Buses', cx, cy + 10);
 
       NB.setLegend(cvs.parentNode, list.map(d => ({
-        label: d.label + ' (' + d.value + ')',
-        color: d.color
+        label: d.label + ' (' + d.value + ')', color: d.color
       })));
     });
   }
 
-  /* ── Route summary table ── */
-  function updateRouteTable(buses) {
+/* ── live fleet table (max 5 rows + expander) ────────────────── */
+  const SHOW_LIMIT = 5;
+
+  function buildRow(b) {
+    const over     = (+b.speedKmh || 0) > SPEED_LIMIT;
+    const spBadge  = over
+      ? '<span class="lf-badge lf-badge--red">⚡ ' + b.speedKmh + '</span>'
+      : '<span class="lf-badge lf-badge--green">' + b.speedKmh + '</span>';
+
+    const opLabel  = b.operatorType === 'SLTB'
+      ? (b.depot  ? 'SLTB · ' + escHtml(b.depot) : 'SLTB')
+      : b.operatorType === 'Private'
+      ? (b.owner  ? 'Private · ' + escHtml(b.owner) : 'Private')
+      : '<span style="color:#9ca3af">–</span>';
+
+    const inDb     = b.inDb
+      ? '<span class="lf-badge lf-badge--green">✓</span>'
+      : '<span class="lf-badge lf-badge--red">✗ New</span>';
+
+    const status   = over ? 'Speeding' : (escHtml(b.operationalStatus || 'OnTime'));
+    const statusCls = over ? 'red' : (status === 'Delayed' ? 'red' : 'green');
+
+    const locLink  = (b.lat && b.lng)
+      ? '<a href="https://maps.google.com/?q='+b.lat+','+b.lng+'" target="_blank" style="font-size:.75rem;color:#3b82f6">Map</a>'
+      : '<span style="color:#d1d5db">–</span>';
+
+    return '<tr'+(over?' style="background:#fff5f5"':'')+'>'  
+      + '<td><strong>' + escHtml(b.busId) + '</strong></td>'
+      + '<td>' + escHtml(String(b.routeNo || '–')) + '</td>'
+      + '<td>' + opLabel + '</td>'
+      + '<td>' + spBadge + '</td>'
+      + '<td><span class="lf-badge lf-badge--'+statusCls+'">' + status + '</span></td>'
+      + '<td>' + locLink + '</td>'
+      + '<td>' + inDb + '</td>'
+      + '</tr>';
+  }
+
+  function updateFleetTable(buses, totalFromApi) {
     const tbody = el('live-route-tbody');
     if (!tbody) return;
 
-    const byRoute = {};
-    buses.forEach(b => {
-      const key = b.routeNo || '–';
-      if (!byRoute[key]) byRoute[key] = [];
-      byRoute[key].push(b);
-    });
+    if (!buses.length) {
+      const msg = F_ROUTE
+        ? 'No buses found for route ' + F_ROUTE + ' (' + totalFromApi + ' total live)'
+        : 'No live buses found';
+      tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">'+msg+'</td></tr>';
+      return;
+    }
 
-    const rows = Object.keys(byRoute).sort().map(rno => {
-      const grp   = byRoute[rno];
-      const avg   = (grp.reduce((s, b) => s + (b.speedKmh || 0), 0) / grp.length).toFixed(1);
-      const viols = grp.filter(b => b.speedKmh > SPEED_LIMIT).length;
-      const badge = viols > 0
-        ? '<span class="lf-badge lf-badge--red">' + viols + ' viol.</span>'
-        : '<span class="lf-badge lf-badge--green">OK</span>';
-      return '<tr>'
-        + '<td><strong>' + rno + '</strong></td>'
-        + '<td>' + grp.length + '</td>'
-        + '<td>' + avg + ' km/h</td>'
-        + '<td>' + badge + '</td>'
-        + '</tr>';
-    });
+    const visible = buses.slice(0, SHOW_LIMIT);
+    const hidden  = buses.slice(SHOW_LIMIT);
+    let html = visible.map(buildRow).join('');
 
-    tbody.innerHTML = rows.length
-      ? rows.join('')
-      : '<tr><td colspan="4" style="text-align:center;color:#6b7280">No live data</td></tr>';
+    if (hidden.length) {
+      // hidden rows get a class we toggle
+      html += hidden.map(b => buildRow(b).replace('<tr', '<tr class="fleet-extra" style="display:none"')).join('');
+      html += '<tr id="fleet-expander">'  
+        + '<td colspan="7" style="text-align:center;padding:.4rem .75rem">'  
+        + '<button onclick="window._fleetExpand()" '
+        + 'style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:3px 14px;font-size:.8rem;cursor:pointer;color:#374151">'  
+        + 'Show ' + hidden.length + ' more ▼</button>'  
+        + '</td></tr>';
+    }
+
+    tbody.innerHTML = html;
   }
 
-  /* ── Main fetch/update cycle ── */
+  window._fleetExpand = function () {
+    const extras = document.querySelectorAll('tr.fleet-extra');
+    const btn    = el('fleet-expander');
+    const shown  = extras.length && extras[0].style.display !== 'none';
+    extras.forEach(r => r.style.display = shown ? 'none' : '');
+    if (btn) {
+      const b = btn.querySelector('button');
+      if (b) b.textContent = shown
+        ? 'Show ' + extras.length + ' more ▼'
+        : 'Collapse ▲';
+    }
+  };
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ── main fetch/update cycle ─────────────────────────────────── */
   function fetchAndUpdate() {
     fetch(API)
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(buses => {
-        if (!Array.isArray(buses)) return;
-        updateKPIs(buses);
-        drawSpeedChart(buses);
-        drawStatusChart(buses);
-        updateRouteTable(buses);
+        if (!Array.isArray(buses)) { showApiDown(); return; }
+        if (buses.length === 0)    { showApiDown(); return; }
+        const filtered = applyFilters(buses);
+        updateKPIs(filtered);
+        drawSpeedChart(filtered);
+        drawStatusChart(filtered);
+        updateFleetTable(filtered, buses.length);
       })
-      .catch(() => { /* silently keep previous values on failure */ });
+      .catch(() => showApiDown());
   }
 
-  /* ── Boot ── */
+  function showApiDown() {
+    const tbody = el('live-route-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="nb-table-empty">No live bus data available – API offline or no buses active</td></tr>';
+    if (el('live-updated-at'))       el('live-updated-at').textContent       = 'Offline · ' + new Date().toLocaleTimeString();
+    if (el('live-updated-at-table')) el('live-updated-at-table').textContent = 'No data · ' + new Date().toLocaleTimeString();
+  }
+
+  /* ── boot ────────────────────────────────────────────────────── */
   NB.onReady(function () {
     fetchAndUpdate();
     setInterval(fetchAndUpdate, REFRESH_MS);

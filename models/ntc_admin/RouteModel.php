@@ -3,13 +3,6 @@ namespace App\models\ntc_admin;
 
 use PDO;
 
-abstract class BaseModel {
-    protected PDO $pdo;
-    public function __construct() {
-        $this->pdo = $GLOBALS['db'];
-    }
-}
-
 class RouteModel extends BaseModel
 {
     private function hydrate(array $rows): array

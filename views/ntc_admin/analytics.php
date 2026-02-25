@@ -1,51 +1,69 @@
-<?php $kpi = $kpi ?? ['delayedToday'=>0,'avgRating'=>0,'speedViol'=>0,'longWaitPct'=>0]; ?>
+<?php
+  $kpi     = $kpi     ?? ['delayedToday'=>0,'avgRating'=>0,'speedViol'=>0,'longWaitPct'=>0];
+  $filters = $filters ?? ['route_no'=>'','depot_id'=>null,'owner_id'=>null];
+  $curRno  = $filters['route_no']  ?? '';
+  $curDep  = (int)($filters['depot_id'] ?? 0);
+  $curOwn  = (int)($filters['owner_id'] ?? 0);
+  $hasFilter = ($curRno !== '' || $curDep > 0 || $curOwn > 0);
+?>
 <section class="page-hero"><h1>Analytics Dashboard</h1><p>Bus performance metrics and operational insights</p></section>
-<!-- ===== Topic Area: Filters ===== -->
+<!-- ===== Analytics Filters ===== -->
 <section class="filters-panel">
   <div class="filters-title">
-    <!-- funnel icon -->
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M3 4h18l-7 8v5l-4 3v-8L3 4z"/>
-    </svg>
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 4h18l-7 8v5l-4 3v-8L3 4z"/></svg>
     <span>Analytics Filters</span>
+    <?php if ($hasFilter): ?>
+      <a href="/A/analytics" class="filter-clear-link" title="Clear all filters">&#10005; Clear</a>
+    <?php endif; ?>
   </div>
 
-  <div class="filters-grid-3">
+  <form method="get" action="/A/analytics" class="filters-grid-3" id="analytics-filter-form">
+    <!-- Route -->
     <div class="field">
-      <label>Depot</label>
+      <label for="ft-route">Route</label>
       <div class="nb-select">
-        <select>
-          <option>All Depots</option>
-          <option>Colombo</option>
-          <option>Kandy</option>
-          <option>Galle</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Bus Owner</label>
-      <div class="nb-select">
-        <select>
-          <option>All Bus Owners</option>
-          <option>Owner A</option>
-          <option>Owner B</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Route</label>
-      <div class="nb-select">
-        <select>
-          <option>All Routes</option>
-          <?php foreach(($routes ?? []) as $r): ?>
-            <option value="<?= htmlspecialchars($r['route_no']) ?>"><?= htmlspecialchars($r['route_no']) ?></option>
+        <select id="ft-route" name="route_no" onchange="this.form.submit()">
+          <option value="">All Routes</option>
+          <?php foreach(($routes ?? []) as $r):
+            $rno = htmlspecialchars($r['route_no']);
+            $sel = ($curRno === $r['route_no']) ? 'selected' : '';
+          ?>
+            <option value="<?= $rno ?>" <?= $sel ?>><?= $rno ?></option>
           <?php endforeach; ?>
         </select>
       </div>
     </div>
-  </div>
+
+    <!-- SLTB Depot -->
+    <div class="field">
+      <label for="ft-depot">SLTB Depot</label>
+      <div class="nb-select">
+        <select id="ft-depot" name="depot_id" onchange="if(this.value){document.getElementById('ft-owner').value='';}this.form.submit()">
+          <option value="0">All Depots</option>
+          <?php foreach(($depots ?? []) as $d): ?>
+            <option value="<?= (int)$d['id'] ?>" <?= $curDep===$d['id'] ? 'selected':'' ?>>
+              <?= htmlspecialchars($d['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+    </div>
+
+    <!-- Private Owner -->
+    <div class="field">
+      <label for="ft-owner">Bus Owner</label>
+      <div class="nb-select">
+        <select id="ft-owner" name="owner_id" onchange="if(this.value){document.getElementById('ft-depot').value=0;}this.form.submit()">
+          <option value="0">All Owners</option>
+          <?php foreach(($owners ?? []) as $o): ?>
+            <option value="<?= (int)$o['id'] ?>" <?= $curOwn===$o['id'] ? 'selected':'' ?>>
+              <?= htmlspecialchars($o['name']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+    </div>
+  </form>
 </section>
 
 <!-- ===== Topic Area: KPI cards (same grid as your screenshot) ===== -->
@@ -106,24 +124,44 @@
   </article>
 </section>
 
+<!-- ===== Live Fleet Charts ===== -->
+<section class="charts-grid" style="margin-bottom:1.5rem">
+  <div class="chart-card">
+    <h2>Live Bus Status</h2>
+    <canvas id="liveStatusChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h2>Live Fleet Speed</h2>
+    <canvas id="liveSpeedChart"></canvas>
+  </div>
+</section>
+
 <!-- ===== Live Route Summary Table ===== -->
 <section class="chart-card" style="margin-bottom:1.5rem">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-    <h2 style="margin:0">Live Route Summary</h2>
+    <h2 style="margin:0">Live Bus Fleet</h2>
     <span style="font-size:.75rem;color:#6b7280" id="live-updated-at-table"></span>
   </div>
+  <?php if ($curDep > 0 || $curOwn > 0): ?>
+    <p style="font-size:.78rem;color:#9ca3af;margin:0 0 .5rem">
+      ℹ Depot/owner filters apply to analytics charts above. Live table shows all active buses (route filter still applies).
+    </p>
+  <?php endif; ?>
   <div style="overflow-x:auto">
-    <table class="nb-table" style="width:100%;border-collapse:collapse;font-size:.875rem">
+    <table class="nb-table live-fleet-table">
       <thead>
-        <tr style="border-bottom:2px solid #e5e7eb">
-          <th style="padding:.5rem .75rem;text-align:left">Route</th>
-          <th style="padding:.5rem .75rem;text-align:left">Buses Live</th>
-          <th style="padding:.5rem .75rem;text-align:left">Avg Speed</th>
-          <th style="padding:.5rem .75rem;text-align:left">Violations</th>
+        <tr>
+          <th>Bus ID</th>
+          <th>Route</th>
+          <th>Operator / Depot</th>
+          <th style="text-align:right">Speed (km/h)</th>
+          <th style="text-align:center">Status</th>
+          <th style="text-align:center">Location</th>
+          <th style="text-align:center">In DB</th>
         </tr>
       </thead>
       <tbody id="live-route-tbody">
-        <tr><td colspan="4" style="padding:.75rem;text-align:center;color:#6b7280">Loading…</td></tr>
+        <tr><td colspan="7" class="nb-table-empty">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -175,8 +213,24 @@
   .lf-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.75rem; font-weight:600; }
   .lf-badge--red   { background:#fee2e2; color:#b91c1c; }
   .lf-badge--green { background:#dcfce7; color:#15803d; }
-  .nb-table tbody tr:nth-child(even) { background:#f9fafb; }
-  .nb-table td, .nb-table th { border-bottom:1px solid #f0f0f0; padding:.5rem .75rem; }
+  .lf-badge--gray  { background:#f3f4f6; color:#6b7280; }
+  /* live fleet table */
+  .live-fleet-table { width:100%; border-collapse:collapse; font-size:.875rem; table-layout:fixed; }
+  .live-fleet-table th, .live-fleet-table td { padding:.5rem .75rem; border-bottom:1px solid #f0f0f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .live-fleet-table th { background:#f9fafb; font-weight:700; color:#374151; text-align:left; }
+  .live-fleet-table th:nth-child(1) { width:12%; }
+  .live-fleet-table th:nth-child(2) { width:9%; }
+  .live-fleet-table th:nth-child(3) { width:26%; }
+  .live-fleet-table th:nth-child(4) { width:13%; text-align:right; }
+  .live-fleet-table th:nth-child(5) { width:13%; text-align:center; }
+  .live-fleet-table th:nth-child(6) { width:12%; text-align:center; }
+  .live-fleet-table th:nth-child(7) { width:15%; text-align:center; }
+  .live-fleet-table td:nth-child(4) { text-align:right; font-weight:600; }
+  .live-fleet-table td:nth-child(5),
+  .live-fleet-table td:nth-child(6),
+  .live-fleet-table td:nth-child(7) { text-align:center; }
+  .live-fleet-table tbody tr:nth-child(even) { background:#f9fafb; }
+  .nb-table-empty { padding:.75rem; text-align:center; color:#6b7280; }
 </style>
 <script src="../assets/js/analytics/chartCore.js"></script>
 <script src="../assets/js/analytics/busStatus.js"></script>

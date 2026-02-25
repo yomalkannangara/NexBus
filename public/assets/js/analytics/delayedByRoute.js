@@ -4,12 +4,20 @@
   NB.onReady(function(){
     const cvs=document.getElementById("delayedByRouteChart"); if(!cvs) return;
     const D=NB.getData(), F=window.ANALYTICS_DUMMY||{};
-    const src=(D?.delayedByRoute?.labels?.length?D.delayedByRoute:F.delayedByRoute);
-    const labels=src.labels, delayed=src.delayed.map(n=>+n||0), total=src.total.map(n=>+n||0);
+    const fromServer = !!D._fromServer;
+    const src = fromServer ? (D?.delayedByRoute || {labels:[],delayed:[],total:[]})
+                           : (D?.delayedByRoute?.labels?.length ? D.delayedByRoute : F.delayedByRoute);
+    const labels=src.labels||[], delayed=(src.delayed||[]).map(n=>+n||0), total=(src.total||[]).map(n=>+n||0);
 
     NB.observe(cvs, 7/4, ({ctx,W,H})=>{
       ctx.clearRect(0,0,W,H);
       const pad={l:56,r:16,t:14,b:56}, iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
+      if(!labels.length){
+        ctx.fillStyle='#9ca3af'; ctx.font='14px ui-sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('No delay data for selected filters', W/2, H/2); return;
+      }
+      const totalDelayed = delayed.reduce((s,v)=>s+v, 0);
       const max=Math.max(10, Math.ceil(Math.max(...total, ...delayed)/5)*5);
       const groupW=iw/labels.length, gap=8;
       const barW=Math.min(28, (groupW-gap)/2);
@@ -45,6 +53,17 @@
         {label:"Delayed Buses", color: NB.colors.coral},
         {label:"Total Buses",   color: NB.colors.maroonDark}
       ]);
+
+      // overlay when no delays exist but data is present
+      if(fromServer && totalDelayed === 0 && total.reduce((s,v)=>s+v,0) > 0){
+        ctx.save();
+        ctx.font = 'bold 13px ui-sans-serif';
+        ctx.fillStyle = '#16a34a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓ All buses on time', W/2, pad.t + ih/2);
+        ctx.restore();
+      }
     });
   });
 })();

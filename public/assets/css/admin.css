@@ -497,8 +497,15 @@ input:checked + .slider:before { transform: translateX(20px) }
   font-weight: 700; margin: 2px 0 14px;
 }
 .filters-title svg{ color: var(--maroon); }
+.filter-clear-link{
+  margin-left:auto; font-size:12px; font-weight:600; color: var(--maroon);
+  text-decoration:none; opacity:.7; border:1px solid var(--maroon);
+  border-radius:8px; padding:2px 10px; transition:opacity .15s;
+}
+.filter-clear-link:hover{ opacity:1; background: var(--maroon); color:#fff; }
 .filters-grid-3{ display:grid; grid-template-columns: repeat(3,1fr); gap:18px; }
-@media (max-width: 900px){ .filters-grid-3{ grid-template-columns:1fr; } }
+.filters-grid-2{ display:grid; grid-template-columns: repeat(2,1fr); gap:18px; }
+@media (max-width: 900px){ .filters-grid-3,.filters-grid-2{ grid-template-columns:1fr; } }
 .field label{ display:block; margin-bottom:6px; color: var(--maroon); font-weight: 600; }
 .nb-select{ position:relative; }
 .nb-select select{
