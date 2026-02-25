@@ -104,3 +104,84 @@ VALUES
 -- private_operator_id: 1=Prime Transport, 2=CityExpress, 3=Sunrise Travels
 -- INSERT IGNORE INTO `private_buses` (`reg_no`, `private_operator_id`, `status`)
 --   VALUES ('PB-XXXX', 1, 'Active');
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `type` enum('System','Delay','Complaint','Timetable','Message','Alert','Breakdown') DEFAULT 'System',
+  `message` text NOT NULL,
+  `is_seen` tinyint(1) DEFAULT 0,
+  `priority` enum('normal','urgent','critical') DEFAULT 'normal',
+  `metadata` json DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `sltb_trips`
+  ADD COLUMN `arrival_depot_id` int(11) DEFAULT NULL AFTER `arrival_time`,
+  ADD COLUMN `completed_by` int(11) DEFAULT NULL AFTER `arrival_depot_id`;
+
+ALTER TABLE `sltb_trips`
+  ADD INDEX `idx_arrival_depot` (`arrival_depot_id`),
+  ADD INDEX `idx_completed_by` (`completed_by`);
+
+ALTER TABLE `private_trips`
+  ADD COLUMN `arrival_depot_id` int(11) DEFAULT NULL AFTER `arrival_time`,
+  ADD COLUMN `completed_by` int(11) DEFAULT NULL AFTER `arrival_depot_id`;
+
+ALTER TABLE `private_trips`
+  ADD INDEX `idx_arrival_depot` (`arrival_depot_id`),
+  ADD INDEX `idx_completed_by` (`completed_by`);
+
+ALTER TABLE `sltb_trips`
+  ADD COLUMN `cancelled_by` int(11) DEFAULT NULL AFTER `completed_by`,
+  ADD COLUMN `cancel_reason` text DEFAULT NULL AFTER `cancelled_by`,
+  ADD COLUMN `cancelled_at` timestamp NULL DEFAULT NULL AFTER `cancel_reason`;
+
+ALTER TABLE `private_trips`
+  ADD COLUMN `cancelled_by` int(11) DEFAULT NULL AFTER `completed_by`,
+  ADD COLUMN `cancel_reason` text DEFAULT NULL AFTER `cancelled_by`,
+  ADD COLUMN `cancelled_at` timestamp NULL DEFAULT NULL AFTER `cancel_reason`;
+
+ALTER TABLE `sltb_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
+ALTER TABLE `private_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
+
+ALTER TABLE `sltb_assignments`
+  ADD COLUMN `override_remark` TEXT DEFAULT NULL AFTER `sltb_depot_id`,
+  ADD COLUMN `overridden_by` int(11) DEFAULT NULL AFTER `override_remark`,
+  ADD COLUMN `override_at` datetime DEFAULT NULL AFTER `overridden_by`;
+
+ALTER TABLE `sltb_assignments`
+  ADD INDEX `idx_overridden_by` (`overridden_by`);
+
+CREATE TABLE `sltb_assignment_overrides` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `assignment_id` int(11) DEFAULT NULL,
+  `assigned_date` date NOT NULL,
+  `shift` enum('Morning','Evening','Night') DEFAULT 'Morning',
+  `bus_reg_no` varchar(20) NOT NULL,
+  `previous_bus_reg_no` varchar(20) DEFAULT NULL,
+  `driver_id` int(11) DEFAULT NULL,
+  `conductor_id` int(11) DEFAULT NULL,
+  `override_remark` text DEFAULT NULL,
+  `overridden_by` int(11) DEFAULT NULL,
+  `override_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `sltb_assignment_overrides`
+  ADD INDEX `idx_overridden_by` (`overridden_by`),
+  ADD INDEX `idx_assignment` (`assignment_id`);
+
+ALTER TABLE notifications
+    MODIFY COLUMN `type` ENUM(
+        'Message',
+        'Delay',
+        'Timetable',
+        'Alert',
+        'Urgent',
+        'Breakdown',
+        'System'
+    ) NOT NULL DEFAULT 'Message';
+
+CREATE INDEX IF NOT EXISTS idx_notif_depot_type_time
+    ON notifications (user_id, type, created_at);
