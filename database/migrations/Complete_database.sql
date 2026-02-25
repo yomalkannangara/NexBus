@@ -189,10 +189,13 @@ INSERT INTO `fares` (`fare_id`, `route_id`, `stage_number`, `super_luxury`, `lux
 CREATE TABLE `notifications` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `type` enum('System','Delay','Complaint','Timetable','Message') DEFAULT 'System',
-  `message` varchar(255) NOT NULL,
+  `type` enum('System','Delay','Complaint','Timetable','Message','Alert','Breakdown') DEFAULT 'System',
+  `message` text NOT NULL,
   `is_seen` tinyint(1) DEFAULT 0,
-  `created_at` datetime DEFAULT current_timestamp()
+  `priority` enum('normal','urgent','critical') DEFAULT 'normal',
+  `metadata` json DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1683,4 +1686,13 @@ CREATE TABLE IF NOT EXISTS depot_message_recipients (
     PRIMARY KEY (message_id, user_id),
     INDEX idx_dmr_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================================
+-- MESSAGING SYSTEM ENHANCEMENTS (Depot Officer Messages MVP)
+-- ============================================================================
+-- Indexes for optimized notification queries
+ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_user_seen (user_id, is_seen, created_at);
+ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_type_created (type, created_at);
+ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_created_at (created_at);
 */
+

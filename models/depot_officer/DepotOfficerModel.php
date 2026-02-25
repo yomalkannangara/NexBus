@@ -5,6 +5,7 @@ namespace App\models\depot_officer;
 // require_once dirname(__DIR__) . '/common/BaseModel.php';
 
 use App\models\common\BaseModel;
+use PDO;
 
 class DepotOfficerModel extends BaseModel
 {

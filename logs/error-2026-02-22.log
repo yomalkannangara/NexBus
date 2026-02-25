@@ -14,3 +14,42 @@ Stack trace:
 #3 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'assignments')
 #4 {main}
   thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 226
+[22-Feb-2026 16:48:51 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\PDO" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:142
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(185): App\models\depot_officer\DepotOfficerModel->availableRoles(1)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 142
+[22-Feb-2026 16:48:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\PDO" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:142
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(185): App\models\depot_officer\DepotOfficerModel->availableRoles(1)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 142
+[22-Feb-2026 16:48:58 Asia/Colombo] PHP Fatal error:  Uncaught Error: Class "App\models\depot_officer\PDO" not found in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php:142
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(185): App\models\depot_officer\DepotOfficerModel->availableRoles(1)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'messages')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php on line 142
+[22-Feb-2026 17:10:30 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'driver_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:73
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(73): PDO->prepare('SELECT CONCAT('...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotDriversAndConductors(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(331): App\models\depot_officer\DepotOfficerModel->driversAndConductors(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 73
+[22-Feb-2026 17:10:33 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'driver_id' in 'where clause' in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php:73
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php(73): PDO->prepare('SELECT CONCAT('...')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(98): App\models\depot_officer\DepotLookupModel->depotDriversAndConductors(1)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(331): App\models\depot_officer\DepotOfficerModel->driversAndConductors(1)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->attendance()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(169): run('DepotOfficerCon...', 'attendance')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotLookupModel.php on line 73
