@@ -121,6 +121,7 @@ $routes = [
     '/B/earnings'   => ['BusOwnerController','earnings'],
     '/B/earnings/export' => ['BusOwnerController','exportEarnings'],
     '/B/performance'   => ['BusOwnerController','reports'],
+    '/B/attendance'    => ['BusOwnerController','attendance'],
     '/B/profile'    => ['BusOwnerController','profile'],
 
     // Live bus proxy (no auth)

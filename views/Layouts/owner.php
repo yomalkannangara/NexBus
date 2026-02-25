@@ -74,6 +74,10 @@ if (!defined('BASE_URL')) define('BASE_URL', '/B');
         <i class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></i>
         Feedback
       </a>
+      <a href="/B/attendance" class="menu-item<?= ($page==='attendance')?' active':'' ?>">
+        <i class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></i>
+        Attendance
+      </a>
       <a href="/B/performance" class="menu-item<?= ($page==='performance')?' active':'' ?>">
         <i class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg></i>
         Performance

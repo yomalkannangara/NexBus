@@ -26,7 +26,7 @@ class ReportModel extends BaseModel
     /**
      * Compute key performance metrics using tracking_monitoring
      */
-    public function getPerformanceMetrics(): array
+    public function getPerformanceMetrics(array $filters = []): array
     {
         $metrics = [
             'delayed_buses'    => 0,
@@ -43,12 +43,26 @@ class ReportModel extends BaseModel
             $params[':op'] = $this->operatorId();
         }
 
+        // Optional route filter (join routes table via route_id)
+        $routeClause = '';
+        if (!empty($filters['route_no'])) {
+            $routeClause = " AND EXISTS (SELECT 1 FROM routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
+            $params[':route_no'] = $filters['route_no'];
+        }
+
+        // Optional bus filter
+        $busClause = '';
+        if (!empty($filters['bus_reg'])) {
+            $busClause = " AND tm.bus_reg_no = :bus_reg";
+            $params[':bus_reg'] = $filters['bus_reg'];
+        }
+
         // 1. Delayed buses
         $sql = "SELECT COUNT(*) FROM tracking_monitoring tm
                 JOIN private_buses b ON b.reg_no = tm.bus_reg_no
                 WHERE tm.operator_type='Private'
                   AND DATE(tm.snapshot_at)=CURDATE()
-                  AND tm.operational_status='Delayed' $opClause";
+                  AND tm.operational_status='Delayed' $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $metrics['delayed_buses'] = (int)$st->fetchColumn();
@@ -58,7 +72,7 @@ class ReportModel extends BaseModel
                 FROM tracking_monitoring tm
                 JOIN private_buses b ON b.reg_no = tm.bus_reg_no
                 WHERE tm.operator_type='Private'
-                  AND DATE(tm.snapshot_at)=CURDATE() $opClause";
+                  AND DATE(tm.snapshot_at)=CURDATE() $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $metrics['speed_violations'] = (int)$st->fetchColumn();
@@ -68,7 +82,7 @@ class ReportModel extends BaseModel
                 FROM tracking_monitoring tm
                 JOIN private_buses b ON b.reg_no = tm.bus_reg_no
                 WHERE tm.operator_type='Private'
-                  AND DATE(tm.snapshot_at)=CURDATE() $opClause";
+                  AND DATE(tm.snapshot_at)=CURDATE() $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $avg = $st->fetchColumn();
@@ -81,7 +95,7 @@ class ReportModel extends BaseModel
                 FROM tracking_monitoring tm
                 JOIN private_buses b ON b.reg_no = tm.bus_reg_no
                 WHERE tm.operator_type='Private'
-                  AND DATE(tm.snapshot_at)=CURDATE() $opClause";
+                  AND DATE(tm.snapshot_at)=CURDATE() $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $row = $st->fetch(PDO::FETCH_ASSOC) ?: ['long_wait' => 0, 'total' => 0];
@@ -151,5 +165,52 @@ class ReportModel extends BaseModel
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Distinct routes that have tracking data for this operator's buses
+     */
+    public function getOperatorRoutes(): array
+    {
+        $params = [];
+        $opClause = '';
+        if ($this->hasOperator()) {
+            $opClause = " AND pb.private_operator_id = :op";
+            $params[':op'] = $this->operatorId();
+        }
+        $sql = "SELECT DISTINCT r.route_no
+                FROM routes r
+                JOIN tracking_monitoring tm ON tm.route_id = r.route_id
+                JOIN private_buses pb ON pb.reg_no = tm.bus_reg_no
+                WHERE tm.operator_type = 'Private' $opClause
+                ORDER BY CAST(r.route_no AS UNSIGNED), r.route_no";
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * All buses belonging to this operator
+     */
+    public function getOperatorBuses(): array
+    {
+        $params = [];
+        $where = "WHERE 1=1";
+        if ($this->hasOperator()) {
+            $where .= " AND private_operator_id = :op";
+            $params[':op'] = $this->operatorId();
+        }
+        $sql = "SELECT reg_no FROM private_buses $where ORDER BY reg_no ASC";
+        try {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return $st->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 }
