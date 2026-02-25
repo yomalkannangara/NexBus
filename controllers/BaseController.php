@@ -59,7 +59,7 @@ class BaseController
 
         $layoutName = $layout ?? $this->layout;
         // Use correct case to match folder name for portability (Windows vs Linux)
-        $layoutFile = $this->viewsPath . 'layouts/' . $layoutName . '.php'; //Layout changed to lowercase
+        $layoutFile = $this->viewsPath . 'Layouts/' . $layoutName . '.php'; // Match capital L folder name
         if (!is_file($layoutFile)) {
             throw new \RuntimeException("Layout not found: {$layoutName}");
         }
