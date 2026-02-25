@@ -10,7 +10,7 @@ use PDO;
  */
 class LiveBusesController
 {
-    private const EXTERNAL_URL = 'http://140.245.9.34/api/buses/live';
+    private const EXTERNAL_URL = 'http://140.245.9.34:4000/api/buses/live';
     private const CACHE_TTL    = 10;
     private const CACHE_FILE   = __DIR__ . '/../logs/live_buses_cache.json';
 
