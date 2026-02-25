@@ -206,7 +206,12 @@
       ? (b.owner  ? 'Private · ' + escHtml(b.owner) : 'Private')
       : '<span style="color:#9ca3af">–</span>';
 
-    const inDb     = b.inDb
+    // inDb: trust explicit true, OR infer from enrichment fields populated only by DB lookup
+    const isInDb = b.inDb === true || b.inDb === 1
+      || !!b.depotId || !!b.ownerId
+      || (b.operatorType === 'SLTB'    && !!b.depot)
+      || (b.operatorType === 'Private' && !!b.owner);
+    const inDb = isInDb
       ? '<span class="lf-badge lf-badge--green">✓</span>'
       : '<span class="lf-badge lf-badge--red">✗ New</span>';
 
