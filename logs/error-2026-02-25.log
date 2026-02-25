@@ -28,3 +28,24 @@ Stack trace:
 [25-Feb-2026 01:20:48 Asia/Colombo] [fleetAssign] assign result: success for reg_no=WAC 2585889
 [25-Feb-2026 01:20:52 Asia/Colombo] [fleetAssign] POST received: reg_no=WAC 2585, driver_id=, conductor_id=1
 [25-Feb-2026 01:20:52 Asia/Colombo] [fleetAssign] assign result: success for reg_no=WAC 2585
+[25-Feb-2026 11:53:52 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed
+                FROM tracking_monitoring t
+                JOIN rou...' at line 3 in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php:85
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php(85): PDO->query('SELECT r.route_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(301): App\models\ntc_admin\AnalyticsModel->delayedByRoute()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->analytics()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(172): run('NtcAdminControl...', 'analytics')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php on line 85
+[25-Feb-2026 11:54:13 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed
+                FROM tracking_monitoring t
+                JOIN rou...' at line 3 in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php:85
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php(85): PDO->query('SELECT r.route_...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\NtcAdminController.php(301): App\models\ntc_admin\AnalyticsModel->delayedByRoute()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\NtcAdminController->analytics()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(172): run('NtcAdminControl...', 'analytics')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\ntc_admin\AnalyticsModel.php on line 85
+[25-Feb-2026 11:55:15 Asia/Colombo] PHP Fatal error:  Cannot declare class App\models\ntc_admin\BaseModel, because the name is already in use in C:\xampp\htdocs\NexBus-1\models\ntc_admin\RouteModel.php on line 6

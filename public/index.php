@@ -122,10 +122,13 @@ $routes = [
     '/B/earnings/export' => ['BusOwnerController','exportEarnings'],
     '/B/performance'   => ['BusOwnerController','reports'],
     '/B/profile'    => ['BusOwnerController','profile'],
+
+    // Live bus proxy (no auth)
+    '/api/buses/live' => ['LiveBusesController','proxy'],
 ];
 
 // 5. Auth guard: allow only public paths without login
-$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket'];
+$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/api/buses/live'];
 if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
     // optionally remember intended URL
     $_SESSION['intended'] = $path;
