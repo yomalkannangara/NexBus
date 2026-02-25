@@ -4,461 +4,461 @@
     "busRegNo": "213123",
     "operatorType": "Private",
     "routeNo": "401",
-    "lat": 6.987382343423791,
-    "lng": 79.86089845697737,
-    "speedKmh": 53.1,
+    "lat": 7.067873181012534,
+    "lng": 79.88887229259788,
+    "speedKmh": 54.9,
     "heading": 19,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NA-2024",
     "busRegNo": "NA-2024",
     "operatorType": "SLTB",
     "routeNo": "120",
-    "lat": 6.822308594600974,
-    "lng": 79.9122316723734,
-    "speedKmh": 55.2,
-    "heading": 153,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "lat": 6.7802608305489525,
+    "lng": 79.95597334039954,
+    "speedKmh": 31.6,
+    "heading": 118,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NA-2025",
     "busRegNo": "NA-2025",
     "operatorType": "SLTB",
     "routeNo": "120",
-    "lat": 6.9179961567949775,
-    "lng": 79.86134731730401,
-    "speedKmh": 45.9,
-    "heading": 139,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "lat": 6.8566241794406055,
+    "lng": 79.88499472629597,
+    "speedKmh": 39.2,
+    "heading": 132,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NA-2030",
     "busRegNo": "NA-2030",
     "operatorType": "SLTB",
     "routeNo": "120",
-    "lat": 6.782451532146198,
-    "lng": 79.9518304167962,
-    "speedKmh": 63.9,
+    "lat": 6.7448499882716595,
+    "lng": 80.02315772717792,
+    "speedKmh": 54.9,
     "heading": 118,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NA-23233",
     "busRegNo": "NA-23233",
     "operatorType": "SLTB",
     "routeNo": "120",
-    "lat": 6.874585595714607,
-    "lng": 79.88656894517787,
-    "speedKmh": 12.9,
-    "heading": 151,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "lat": 6.849139033249669,
+    "lng": 79.89356599650112,
+    "speedKmh": 9.2,
+    "heading": 132,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NA-2420",
     "busRegNo": "NA-2420",
     "operatorType": "SLTB",
     "routeNo": "120",
-    "lat": 6.831401839221773,
-    "lng": 79.90749303781739,
-    "speedKmh": 31,
-    "heading": 153,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "lat": 6.78439815503074,
+    "lng": 79.9481015637735,
+    "speedKmh": 39.8,
+    "heading": 118,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1001",
     "busRegNo": "NB-1001",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.2852709679558965,
-    "lng": 80.05455834580904,
-    "speedKmh": 19.9,
+    "lat": 6.221763373307807,
+    "lng": 80.07438207279161,
+    "speedKmh": 45.9,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1002",
     "busRegNo": "NB-1002",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.062284358810003,
-    "lng": 80.20876299440162,
-    "speedKmh": 19.4,
-    "heading": 126,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "lat": 6.8831598750853695,
+    "lng": 79.86184901171747,
+    "speedKmh": 52.8,
+    "heading": 162,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1003",
     "busRegNo": "NB-1003",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.665862755440147,
-    "lng": 79.9339904984836,
+    "lat": 6.641056935132484,
+    "lng": 79.94224780408766,
     "speedKmh": 24.9,
     "heading": 162,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1004",
     "busRegNo": "NB-1004",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.2106369132637935,
-    "lng": 80.07789041311216,
-    "speedKmh": 30.1,
+    "lat": 6.185051500806993,
+    "lng": 80.08593488423631,
+    "speedKmh": 11.1,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1005",
     "busRegNo": "NB-1005",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.267216187213789,
-    "lng": 80.0602251229122,
-    "speedKmh": 21.6,
+    "lat": 6.241422201365582,
+    "lng": 80.06825431077547,
+    "speedKmh": 15.3,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1006",
     "busRegNo": "NB-1006",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.604106716050042,
-    "lng": 79.95447881280758,
-    "speedKmh": 30.6,
-    "heading": 162,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "lat": 6.572440041676928,
+    "lng": 79.96472681265428,
+    "speedKmh": 8.4,
+    "heading": 163,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1007",
     "busRegNo": "NB-1007",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.546666500215748,
-    "lng": 79.97281517175352,
-    "speedKmh": 21.4,
+    "lat": 6.527122320425184,
+    "lng": 79.97896754849282,
+    "speedKmh": 14.9,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.652Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1008",
     "busRegNo": "NB-1008",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.25138847024296,
-    "lng": 80.0651631539011,
-    "speedKmh": 42.4,
+    "lat": 6.189878542702726,
+    "lng": 80.08438738657196,
+    "speedKmh": 26.3,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1009",
     "busRegNo": "NB-1009",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.7349786317447204,
-    "lng": 79.91100962958461,
-    "speedKmh": 43.1,
+    "lat": 6.6902595561755245,
+    "lng": 79.92589500786056,
+    "speedKmh": 41.6,
     "heading": 162,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-1010",
     "busRegNo": "NB-1010",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.433600253955794,
-    "lng": 80.00818415878294,
-    "speedKmh": 29,
+    "lat": 6.378582300771225,
+    "lng": 80.02538382157658,
+    "speedKmh": 52.2,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-2001",
     "busRegNo": "NB-2001",
     "operatorType": "SLTB",
     "routeNo": "3",
-    "lat": 7.06507146599908,
-    "lng": 79.87187686257194,
-    "speedKmh": 59.4,
+    "lat": 7.101766864071334,
+    "lng": 79.86263430137177,
+    "speedKmh": 10.1,
     "heading": 346,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-2002",
     "busRegNo": "NB-2002",
     "operatorType": "SLTB",
     "routeNo": "3",
-    "lat": 7.058950087616465,
-    "lng": 79.87347180474667,
-    "speedKmh": 46.5,
+    "lat": 7.123707114933382,
+    "lng": 79.85715605260125,
+    "speedKmh": 36.9,
     "heading": 346,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3001",
     "busRegNo": "NB-3001",
     "operatorType": "SLTB",
     "routeNo": "4",
-    "lat": 6.851921502815156,
-    "lng": 79.86183803288947,
-    "speedKmh": 12.2,
-    "heading": 168,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.834991976206263,
+    "lng": 79.86553139375272,
+    "speedKmh": 22.2,
+    "heading": 166,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3002",
     "busRegNo": "NB-3002",
     "operatorType": "SLTB",
     "routeNo": "700",
-    "lat": 6.017732261716139,
-    "lng": 80.30164586486147,
-    "speedKmh": 34.5,
+    "lat": 6.005105245858877,
+    "lng": 80.33003019918644,
+    "speedKmh": 22.3,
     "heading": 114,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3101",
     "busRegNo": "NB-3101",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.732279004252001,
-    "lng": 79.91193979846155,
-    "speedKmh": 38,
+    "lat": 6.694273587338926,
+    "lng": 79.92458085505824,
+    "speedKmh": 44.7,
     "heading": 162,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3102",
     "busRegNo": "NB-3102",
     "operatorType": "SLTB",
     "routeNo": "2",
-    "lat": 6.954205812512034,
-    "lng": 80.19249467493827,
-    "speedKmh": 26,
-    "heading": 87,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.977494909470831,
+    "lng": 80.220092312785,
+    "speedKmh": 15.2,
+    "heading": 24,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3103",
     "busRegNo": "NB-3103",
     "operatorType": "SLTB",
     "routeNo": "3",
-    "lat": 7.062869481548922,
-    "lng": 79.87242403316489,
-    "speedKmh": 10.8,
+    "lat": 7.088122421907094,
+    "lng": 79.86610957157956,
+    "speedKmh": 21.4,
     "heading": 346,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3104",
     "busRegNo": "NB-3104",
     "operatorType": "SLTB",
     "routeNo": "4",
-    "lat": 6.883389019916908,
-    "lng": 79.85520230751871,
-    "speedKmh": 17.9,
-    "heading": 168,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.830973485578042,
+    "lng": 79.8665001404332,
+    "speedKmh": 56.4,
+    "heading": 166,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3105",
     "busRegNo": "NB-3105",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.4233982818772875,
-    "lng": 80.01138768914083,
-    "speedKmh": 52,
+    "lat": 6.34302360830819,
+    "lng": 80.03651768977083,
+    "speedKmh": 45.2,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3106",
     "busRegNo": "NB-3106",
     "operatorType": "SLTB",
     "routeNo": "2",
-    "lat": 7.279077760239079,
-    "lng": 80.54719827736955,
-    "speedKmh": 26.1,
+    "lat": 7.282801124010894,
+    "lng": 80.57506466630902,
+    "speedKmh": 34.1,
     "heading": 82,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3107",
     "busRegNo": "NB-3107",
     "operatorType": "SLTB",
     "routeNo": "3",
-    "lat": 7.021516115739927,
-    "lng": 79.88286355217937,
-    "speedKmh": 61.8,
+    "lat": 7.103260478969214,
+    "lng": 79.86231840695446,
+    "speedKmh": 51.3,
     "heading": 346,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3108",
     "busRegNo": "NB-3108",
     "operatorType": "SLTB",
     "routeNo": "4",
-    "lat": 6.838210286391625,
-    "lng": 79.86475640988587,
-    "speedKmh": 52.6,
-    "heading": 168,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.75090211863303,
+    "lng": 79.88876653998045,
+    "speedKmh": 65,
+    "heading": 161,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3109",
     "busRegNo": "NB-3109",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.899312372677558,
-    "lng": 79.85646469892825,
-    "speedKmh": 28.1,
+    "lat": 6.858730853663709,
+    "lng": 79.86994778485271,
+    "speedKmh": 38.2,
     "heading": 162,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3110",
     "busRegNo": "NB-3110",
     "operatorType": "SLTB",
     "routeNo": "2",
-    "lat": 6.995842813792992,
-    "lng": 80.2284101640415,
-    "speedKmh": 62.4,
+    "lat": 7.0706426245780225,
+    "lng": 80.26198073989869,
+    "speedKmh": 38.3,
     "heading": 24,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3111",
     "busRegNo": "NB-3111",
     "operatorType": "SLTB",
     "routeNo": "3",
-    "lat": 7.022699998337434,
-    "lng": 79.882540941183,
-    "speedKmh": 26.8,
+    "lat": 7.0523403230021655,
+    "lng": 79.87506659030612,
+    "speedKmh": 43.5,
     "heading": 346,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-3112",
     "busRegNo": "NB-3112",
     "operatorType": "SLTB",
     "routeNo": "4",
-    "lat": 6.72583584089682,
-    "lng": 79.89746821153189,
-    "speedKmh": 27.2,
-    "heading": 161,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.901043036797778,
+    "lng": 79.85142949008159,
+    "speedKmh": 33.6,
+    "heading": 168,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB-5667",
     "busRegNo": "NB-5667",
     "operatorType": "SLTB",
     "routeNo": "1",
-    "lat": 6.718960891180978,
-    "lng": 79.91633911359872,
-    "speedKmh": 28.2,
+    "lat": 6.667226354588576,
+    "lng": 79.93355723356161,
+    "speedKmh": 38.2,
     "heading": 162,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "NB2341",
     "busRegNo": "NB2341",
     "operatorType": "Private",
     "routeNo": "1",
-    "lat": 6.452732038555787,
-    "lng": 80.00217249380191,
-    "speedKmh": 64.3,
+    "lat": 6.38813885666857,
+    "lng": 80.02239107844439,
+    "speedKmh": 57.8,
     "heading": 163,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PA-1001",
     "busRegNo": "PA-1001",
     "operatorType": "Private",
     "routeNo": "120",
-    "lat": 6.730196744970487,
-    "lng": 80.05102473512714,
-    "speedKmh": 49,
-    "heading": 118,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.890326452505094,
+    "lng": 79.87780551369798,
+    "speedKmh": 61.4,
+    "heading": 151,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PA-1002",
     "busRegNo": "PA-1002",
     "operatorType": "Private",
     "routeNo": "120",
-    "lat": 6.9078525460599955,
-    "lng": 79.8679738092037,
-    "speedKmh": 27.5,
-    "heading": 151,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.854139324362914,
+    "lng": 79.88790714366316,
+    "speedKmh": 47.5,
+    "heading": 132,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PB-1001",
     "busRegNo": "PB-1001",
     "operatorType": "Private",
     "routeNo": "122",
-    "lat": 6.947619961499288,
-    "lng": 80.0527421968235,
-    "speedKmh": 21.4,
+    "lat": 6.950383856669909,
+    "lng": 80.11157906370111,
+    "speedKmh": 60.4,
     "heading": 87,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PB-1002",
     "busRegNo": "PB-1002",
     "operatorType": "Private",
     "routeNo": "2",
-    "lat": 7.280002974879542,
-    "lng": 80.55426760390978,
-    "speedKmh": 18.3,
+    "lat": 7.287833073238237,
+    "lng": 80.6129009378624,
+    "speedKmh": 59.7,
     "heading": 82,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PB-2001",
     "busRegNo": "PB-2001",
     "operatorType": "Private",
     "routeNo": "401",
-    "lat": 7.128440124969949,
-    "lng": 79.86868125386002,
-    "speedKmh": 10.2,
+    "lat": 7.14514995889133,
+    "lng": 79.86180928431295,
+    "speedKmh": 11.8,
     "heading": 338,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PB-2002",
     "busRegNo": "PB-2002",
     "operatorType": "Private",
     "routeNo": "401",
-    "lat": 7.0995995664906015,
-    "lng": 79.88054289989157,
-    "speedKmh": 36.4,
+    "lat": 7.171293634939852,
+    "lng": 79.85110148848726,
+    "speedKmh": 61,
     "heading": 338,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PB-3001",
     "busRegNo": "PB-3001",
     "operatorType": "Private",
     "routeNo": "700",
-    "lat": 5.954217460838338,
-    "lng": 80.50305327126726,
-    "speedKmh": 40,
-    "heading": 98,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "lat": 6.0375413679561,
+    "lng": 80.25707399743075,
+    "speedKmh": 50,
+    "heading": 114,
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   },
   {
     "busId": "PB-3002",
     "busRegNo": "PB-3002",
     "operatorType": "Private",
     "routeNo": "700",
-    "lat": 5.987431920366985,
-    "lng": 80.36994879856574,
-    "speedKmh": 9.8,
+    "lat": 5.973817704724632,
+    "lng": 80.40076796429494,
+    "speedKmh": 34.7,
     "heading": 114,
-    "updatedAt": "2026-02-25T13:42:55.653Z"
+    "updatedAt": "2026-02-25T13:52:56.183Z"
   }
 ]
