@@ -249,19 +249,29 @@ class AnalyticsModel extends BaseModel
     /* ─── KPI: average rating (/10) ─────────────────────────────── */
     public function avgRating(array $f = []): float
     {
-        $wheres = ["rating IS NOT NULL"];
-        $params = [];
-        if (!empty($f['route_no'])) {
-            $wheres[]          = "route_id = (SELECT route_id FROM routes WHERE CAST(route_no AS UNSIGNED) = CAST(:ft_rno AS UNSIGNED) LIMIT 1)";
-            $params[':ft_rno'] = $f['route_no'];
+        try {
+            $col = $this->pdo->prepare("SHOW COLUMNS FROM complaints LIKE 'rating'");
+            $col->execute();
+            if (!$col->fetch(PDO::FETCH_ASSOC)) {
+                return 0.0;
+            }
+
+            $wheres = ["rating IS NOT NULL"];
+            $params = [];
+            if (!empty($f['route_no'])) {
+                $wheres[]          = "route_id = (SELECT route_id FROM routes WHERE CAST(route_no AS UNSIGNED) = CAST(:ft_rno AS UNSIGNED) LIMIT 1)";
+                $params[':ft_rno'] = $f['route_no'];
+            }
+            $whereSql = 'WHERE ' . implode(' AND ', $wheres);
+            $stmt = $this->pdo->prepare(
+                "SELECT ROUND(AVG(rating) * 2, 1) AS avg_r FROM complaints $whereSql"
+            );
+            $stmt->execute($params);
+            $r = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $r && $r['avg_r'] !== null ? (float)$r['avg_r'] : 0.0;
+        } catch (\PDOException $e) {
+            return 0.0;
         }
-        $whereSql = 'WHERE ' . implode(' AND ', $wheres);
-        $stmt = $this->pdo->prepare(
-            "SELECT ROUND(AVG(rating) * 2, 1) AS avg_r FROM complaints $whereSql"
-        );
-        $stmt->execute($params);
-        $r = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $r && $r['avg_r'] !== null ? (float)$r['avg_r'] : 0.0;
     }
 
     /* ─── KPI: delayed today ─────────────────────────────────────── */
