@@ -4,19 +4,20 @@ namespace App\controllers;
 class BaseController
 {
     // TEMP shim: lets old code keep working
-protected function view(string $module, string $page, array $data = []): void {
-  $this->render("{$module}/{$page}", $data);
-}
+    protected function view(string $module, string $page, array $data = []): void
+    {
+        $this->render("{$module}/{$page}", $data);
+    }
 
     protected string $viewsPath;
-    protected ?array $user = null;          // session user (role, ids, etc.)
-    protected string $layout = 'default';   // /views/layouts/default.php
+    protected ?array $user = null; // session user (role, ids, etc.)
+    protected string $layout = 'default'; // /views/layouts/default.php
 
     public function __construct()
     {
 
         $this->viewsPath = __DIR__ . '/../views/';
-        $this->user      = $_SESSION['user'] ?? null;
+        $this->user = $_SESSION['user'] ?? null;
 
     }
 
@@ -24,13 +25,13 @@ protected function view(string $module, string $page, array $data = []): void {
     protected function mapRoleToLayout(string $role): string
     {
         return match ($role) {
-            'guest'                                            => 'guest',
-            'NTCAdmin','DepotManager'                          => 'admin',
-            'DepotOfficer','SLTBTimekeeper','PrivateTimekeeper'=> 'staff',
-            'PrivateBusOwner'                                  => 'owner',
-            'Passenger'                                        => 'passenger',
-            default                                            => 'default',
-        };
+                'guest' => 'guest',
+                'NTCAdmin', 'DepotManager' => 'admin',
+                'DepotOfficer', 'SLTBTimekeeper', 'PrivateTimekeeper' => 'staff',
+                'PrivateBusOwner' => 'owner',
+                'Passenger' => 'passenger',
+                default => 'default',
+            };
     }
 
     /** Manually pick a layout from controllers */
@@ -42,9 +43,9 @@ protected function view(string $module, string $page, array $data = []): void {
 
     protected function render(string $view, array $data = [], string|false|null $layout = null): void
     {
-        $viewFile   = $this->viewsPath . $view . '.php';
+        $viewFile = $this->viewsPath . $view . '.php';
         if (!is_file($viewFile)) {
-            throw new RuntimeException("View not found: {$view}");
+            throw new \RuntimeException("View not found: {$view}");
         }
 
         // expose $data in both view and layout
@@ -57,10 +58,10 @@ protected function view(string $module, string $page, array $data = []): void {
         }
 
         $layoutName = $layout ?? $this->layout;
-    // Use correct case to match folder name for portability (Windows vs Linux)
-    $layoutFile = $this->viewsPath . 'layouts/' . $layoutName . '.php'; //Layout changed to lowercase
+        // Use correct case to match folder name for portability (Windows vs Linux)
+        $layoutFile = $this->viewsPath . 'layouts/' . $layoutName . '.php'; //Layout changed to lowercase
         if (!is_file($layoutFile)) {
-            throw new RuntimeException("Layout not found: {$layoutName}");
+            throw new \RuntimeException("Layout not found: {$layoutName}");
         }
 
         // Hand the view path to the layout; the layout will `require $contentViewFile`
@@ -72,7 +73,8 @@ protected function view(string $module, string $page, array $data = []): void {
     protected function requireLogin(array $roles = []): void
     {
         if (!$this->user) {
-            header('Location: /login'); exit;
+            header('Location: /login');
+            exit;
         }
         if ($roles && !in_array($this->user['role'] ?? '', $roles, true)) {
             http_response_code(403);

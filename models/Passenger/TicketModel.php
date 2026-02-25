@@ -1,5 +1,5 @@
-<?php
-namespace App\Models\Passenger;
+﻿<?php
+namespace App\models\Passenger;
 
 // models/passenger/TicketModel.php
 use PDO;
@@ -94,7 +94,7 @@ class TicketModel extends BaseModel {
       $normal = $semi = $lux = $super = 0.0; // no row for that stage
     }
 
-    // 4) Distance (simple approx – adjust if you have real km per stage)
+    // 4) Distance (simple approx â€“ adjust if you have real km per stage)
     $distanceKm = round($stages * 2.0, 1);
 
     return [

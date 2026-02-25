@@ -1,5 +1,6 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1)
+;
 
 namespace App\controllers;
 
@@ -8,7 +9,7 @@ use App\models\timekeeper_private\DashboardModel;
 use App\models\timekeeper_private\TripHistoryModel;
 use App\models\timekeeper_private\TripEntryModel;
 use App\models\timekeeper_private\TurnModel;
-use App\models\timekeeper_private\profileModel;
+use App\models\timekeeper_private\ProfileModel;
 
 class TimekeeperPrivateController extends BaseController
 {
@@ -19,7 +20,8 @@ class TimekeeperPrivateController extends BaseController
         $this->requireLogin(['PrivateTimekeeper']);
     }
 
-    private function myOpId(): int {
+    private function myOpId(): int
+    {
         $u = $_SESSION['user'] ?? [];
         return (int)($u['private_operator_id'] ?? 0);
     }
@@ -28,12 +30,12 @@ class TimekeeperPrivateController extends BaseController
     public function dashboard()
     {
         $op = $this->myOpId();
-        $m  = new DashboardModel($op);
-        $S  = $m->info();   // ['depot_name'=>operator name]
+        $m = new DashboardModel($op);
+        $S = $m->info(); // ['depot_name'=>operator name]
         $stats = $m->stats();
 
-        $this->view('timekeeper_private','dashboard',[
-            'S'     => $S,
+        $this->view('timekeeper_private', 'dashboard', [
+            'S' => $S,
             'stats' => $stats
         ]);
     }
@@ -42,74 +44,77 @@ class TimekeeperPrivateController extends BaseController
     public function history()
     {
         $op = $this->myOpId();
-        $m  = new TripHistoryModel($op);
+        $m = new TripHistoryModel($op);
 
         $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
-        $to   = $_GET['to']   ?? date('Y-m-d');
+        $to = $_GET['to'] ?? date('Y-m-d');
 
         [$rows, $count] = $m->list($from, $to);
 
-        $this->view('timekeeper_private','history',[
-            'S'     => $m->info(),
-            'from'  => $from,
-            'to'    => $to,
-            'rows'  => $rows,
+        $this->view('timekeeper_private', 'history', [
+            'S' => $m->info(),
+            'from' => $from,
+            'to' => $to,
+            'rows' => $rows,
             'count' => $count
         ]);
     }
 
-    /** /TP/trip_entry (GET list, POST start) */
-public function trip_entry()
-{
-    $op = $this->myOpId();
-    $m  = new TripEntryModel($op);
+    /** /TP/trip_entry (GET list, POST start) */    public function trip_entry()    {
+        $op = $this->myOpId();
+        $m = new TripEntryModel($op);
 
-    if ($_SERVER['REQUEST_METHOD']==='POST') {
-        header('Content-Type: application/json');
-        $act = $_POST['action'] ?? '';
-        if ($act === 'start') {
-            $tt = (int)($_POST['timetable_id'] ?? $_POST['tt'] ?? 0);
-            echo json_encode($m->start($tt)); return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            header('Content-Type: application/json');
+            $act = $_POST['action'] ?? '';
+            if ($act === 'start') {
+                $tt = (int)($_POST['timetable_id'] ?? $_POST['tt'] ?? 0);
+                echo json_encode($m->start($tt));
+                return;
+            }
+            if ($act === 'cancel') {
+                $id = (int)($_POST['trip_id'] ?? 0);
+                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
+                $result = $m->cancel($id, $reason);
+                echo json_encode($result);
+                return;
+            }
+            echo json_encode(['ok' => false, 'msg' => 'Unknown action']);
+            return;
         }
-        if ($act === 'cancel') {
-            $id = (int)($_POST['trip_id'] ?? 0);
-            $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-            $result = $m->cancel($id, $reason);
-            echo json_encode($result); return;
-        }
-        echo json_encode(['ok'=>false,'msg'=>'Unknown action']); return;
-    }
 
-    $this->view('timekeeper_private','trip_entry',[
-        'S'    => $m->info(),
-        'rows' => $m->todayList()
-    ]);
-}
+        $this->view('timekeeper_private', 'trip_entry', [
+            'S' => $m->info(),
+            'rows' => $m->todayList()
+        ]);    }
 
 
     /** /TP/turns (GET running, POST complete) */
     public function turns()
     {
         $op = $this->myOpId();
-        $m  = new TurnModel($op);
+        $m = new TurnModel($op);
 
-        if ($_SERVER['REQUEST_METHOD']==='POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
             if (($_POST['action'] ?? '') === 'complete') {
                 $id = (int)($_POST['private_trip_id'] ?? $_POST['sltb_trip_id'] ?? 0); // accept both keys
-                echo json_encode(['ok'=>$m->complete($id)]); return;
+                echo json_encode(['ok' => $m->complete($id)]);
+                return;
             }
             if (($_POST['action'] ?? '') === 'cancel') {
                 $id = (int)($_POST['private_trip_id'] ?? $_POST['sltb_trip_id'] ?? 0);
                 $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
                 $result = $m->cancel($id, $reason);
-                echo json_encode($result); return;
+                echo json_encode($result);
+                return;
             }
-            echo json_encode(['ok'=>false]); return;
+            echo json_encode(['ok' => false]);
+            return;
         }
 
-        $this->view('timekeeper_private','turn_management',[
-            'S'    => $m->info(),
+        $this->view('timekeeper_private', 'turn_management', [
+            'S' => $m->info(),
             'rows' => $m->running()
         ]);
     }
@@ -129,9 +134,9 @@ public function trip_entry()
             if ($act === 'update_profile') {
                 $ok = $m->updateProfile($uid, [
                     'first_name' => trim($_POST['first_name'] ?? ''),
-                    'last_name'  => trim($_POST['last_name'] ?? ''),
-                    'email'      => trim($_POST['email'] ?? ''),
-                    'phone'      => trim($_POST['phone'] ?? '')
+                    'last_name' => trim($_POST['last_name'] ?? ''),
+                    'email' => trim($_POST['email'] ?? ''),
+                    'phone' => trim($_POST['phone'] ?? '')
                 ]);
 
                 $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
@@ -140,9 +145,9 @@ public function trip_entry()
                 if ($ok) {
                     if ($fresh = $m->findById($uid)) {
                         $_SESSION['user']['first_name'] = $fresh['first_name'] ?? $_SESSION['user']['first_name'] ?? '';
-                        $_SESSION['user']['last_name']  = $fresh['last_name']  ?? $_SESSION['user']['last_name'] ?? '';
-                        $_SESSION['user']['email']      = $fresh['email']      ?? $_SESSION['user']['email'] ?? '';
-                        $_SESSION['user']['phone']      = $fresh['phone']      ?? $_SESSION['user']['phone'] ?? '';
+                        $_SESSION['user']['last_name'] = $fresh['last_name'] ?? $_SESSION['user']['last_name'] ?? '';
+                        $_SESSION['user']['email'] = $fresh['email'] ?? $_SESSION['user']['email'] ?? '';
+                        $_SESSION['user']['phone'] = $fresh['phone'] ?? $_SESSION['user']['phone'] ?? '';
                     }
 
                     if ($isAjax) {
@@ -170,14 +175,15 @@ public function trip_entry()
                     if (!in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'])) {
                         return $this->redirect('/TP/profile?msg=invalid_image');
                     }
-                    $ext = match($mimeType) {
-                        'image/jpeg' => 'jpg',
-                        'image/png' => 'png',
-                        'image/webp' => 'webp',
-                    };
+                    $ext = match ($mimeType) {
+                            'image/jpeg' => 'jpg',
+                            'image/png' => 'png',
+                            'image/webp' => 'webp',
+                        };
                     $filename = "profile_" . $uid . "." . $ext;
                     $uploadDir = dirname(__DIR__) . '/public/uploads/profiles/';
-                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                    if (!is_dir($uploadDir))
+                        mkdir($uploadDir, 0755, true);
                     $uploadPath = $uploadDir . $filename;
                     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
                         if ($m->updateProfileImage($uid, '/uploads/profiles/' . $filename)) {
@@ -197,7 +203,8 @@ public function trip_entry()
                     // Delete file from disk if it exists
                     if (!empty($_SESSION['user']['profile_image'])) {
                         $filePath = dirname(__DIR__) . '/public' . $_SESSION['user']['profile_image'];
-                        if (file_exists($filePath)) unlink($filePath);
+                        if (file_exists($filePath))
+                            unlink($filePath);
                     }
                     $_SESSION['user']['profile_image'] = null;
                     return $this->redirect('/TP/profile?msg=image_deleted');
@@ -220,8 +227,8 @@ public function trip_entry()
 
         $meFresh = $m->findById($uid) ?: $me;
 
-        $this->view('timekeeper_private','profile',[
-            'me'  => $meFresh,
+        $this->view('timekeeper_private', 'profile', [
+            'me' => $meFresh,
             'msg' => $_GET['msg'] ?? null
         ]);
     }

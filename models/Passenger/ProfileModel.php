@@ -1,20 +1,26 @@
 <?php
-namespace App\Models\Passenger;
+namespace App\models\Passenger;
 
 use PDO;
 use Throwable;
 
-class ProfileModel {
+class ProfileModel
+{
     protected PDO $pdo;
-    public function __construct() { $this->pdo = $GLOBALS['db']; }
+    public function __construct()
+    {
+        $this->pdo = $GLOBALS['db'];
+    }
 
     /** Read the current session user (adjust if your auth array differs). */
-    public function sessionUser(): ?array {
+    public function sessionUser(): ?array
+    {
         return $_SESSION['auth'] ?? $_SESSION['user'] ?? null;
     }
 
     /** Load combined view of user + passenger by user_id. */
-    public function findByUserId(int $userId): ?array {
+    public function findByUserId(int $userId): ?array
+    {
         $sql = "SELECT 
                     u.user_id, u.role, u.first_name, u.last_name, u.email, u.phone, u.status,
                     p.passenger_id
@@ -24,26 +30,29 @@ class ProfileModel {
         $st = $this->pdo->prepare($sql);
         $st->execute([$userId]);
         $row = $st->fetch();
-        if (!$row) return null;
+        if (!$row)
+            return null;
 
         return [
-            'user_id'      => (int)$row['user_id'],
+            'user_id' => (int)$row['user_id'],
             'passenger_id' => $row['passenger_id'] ? (int)$row['passenger_id'] : null,
-            'first_name'   => $row['first_name'],
-            'last_name'    => $row['last_name'],
-            'email'        => $row['email'],
-            'phone'        => $row['phone'],
-            'status'       => $row['status'] ?? 'Active',
-            'role'         => $row['role'] ?? 'Passenger',
+            'first_name' => $row['first_name'],
+            'last_name' => $row['last_name'],
+            'email' => $row['email'],
+            'phone' => $row['phone'],
+            'status' => $row['status'] ?? 'Active',
+            'role' => $row['role'] ?? 'Passenger',
         ];
     }
 
     /** Ensure a passengers row exists for this user. Returns passenger_id. */
-    public function ensurePassengerForUser(int $userId): int {
+    public function ensurePassengerForUser(int $userId): int
+    {
         $st = $this->pdo->prepare("SELECT passenger_id FROM passengers WHERE user_id=?");
         $st->execute([$userId]);
         $pid = $st->fetchColumn();
-        if ($pid) return (int)$pid;
+        if ($pid)
+            return (int)$pid;
 
         $st = $this->pdo->prepare("INSERT INTO passengers (user_id) VALUES (?)");
         $st->execute([$userId]);
@@ -51,7 +60,8 @@ class ProfileModel {
     }
 
     /** Update both users and passengers in a single transaction. */
-    public function updateProfile(int $userId, array $d): array {
+    public function updateProfile(int $userId, array $d): array
+    {
         $first = trim($d['first_name'] ?? '');
         $last = trim($d['last_name'] ?? '');
         $email = trim($d['email'] ?? '');
@@ -74,7 +84,8 @@ class ProfileModel {
 
             $this->pdo->commit();
             return ['ok' => true];
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $e) {
             $this->pdo->rollBack();
             // Likely unique email violation in users/passengers tables
             $msg = (strpos($e->getMessage(), 'email') !== false) ? 'Email is already in use.' : 'Update failed.';
@@ -83,9 +94,12 @@ class ProfileModel {
     }
 
     /** Change password for both users and passengers. */
-    public function changePassword(int $userId, string $current, string $new, string $confirm): array {
-        if ($new === '' || $confirm === '') return ['ok' => false, 'error' => 'New password required.'];
-        if ($new !== $confirm) return ['ok' => false, 'error' => 'New passwords do not match.'];
+    public function changePassword(int $userId, string $current, string $new, string $confirm): array
+    {
+        if ($new === '' || $confirm === '')
+            return ['ok' => false, 'error' => 'New password required.'];
+        if ($new !== $confirm)
+            return ['ok' => false, 'error' => 'New passwords do not match.'];
 
         // Get existing hashes (some seed data may not be bcrypt; handle gracefully)
         $uh = $this->pdo->prepare("SELECT password_hash FROM users WHERE user_id=?");
@@ -101,19 +115,28 @@ class ProfileModel {
         if (!$cands) {
             // No existing hash (seed data) – allow set without verifying old
             $oldOk = true;
-        } else {
+        }
+        else {
             foreach ($cands as $h) {
                 if (is_string($h) && strlen($h) > 0) {
                     if (str_starts_with($h, '$2y$')) { // bcrypt
-                        if (password_verify($current, $h)) { $oldOk = true; break; }
-                    } else {
-                        if ($current === $h) { $oldOk = true; break; } // legacy plain seed
+                        if (password_verify($current, $h)) {
+                            $oldOk = true;
+                            break;
+                        }
+                    }
+                    else {
+                        if ($current === $h) {
+                            $oldOk = true;
+                            break;
+                        } // legacy plain seed
                     }
                 }
             }
         }
 
-        if (!$oldOk) return ['ok' => false, 'error' => 'Current password is incorrect.'];
+        if (!$oldOk)
+            return ['ok' => false, 'error' => 'Current password is incorrect.'];
 
         $hash = password_hash($new, PASSWORD_BCRYPT);
 
@@ -127,14 +150,16 @@ class ProfileModel {
 
             $this->pdo->commit();
             return ['ok' => true];
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $e) {
             $this->pdo->rollBack();
             return ['ok' => false, 'error' => 'Could not update password.'];
         }
     }
 
     /** Soft delete: anonymize both tables and suspend account (preferred). */
-    public function softDelete(int $userId): bool {
+    public function softDelete(int $userId): bool
+    {
         $anon = "deleted+{$userId}@" . date('YmdHis') . ".invalid";
         try {
             $this->pdo->beginTransaction();
@@ -155,14 +180,16 @@ class ProfileModel {
 
             $this->pdo->commit();
             return true;
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $e) {
             $this->pdo->rollBack();
             return false;
         }
     }
 
     /** Hard delete user row (FK will set passengers.user_id = NULL) after anonymizing passenger. */
-    public function hardDelete(int $userId): bool {
+    public function hardDelete(int $userId): bool
+    {
         $anon = "deleted+{$userId}@" . date('YmdHis') . ".invalid";
         try {
             $this->pdo->beginTransaction();
@@ -179,7 +206,8 @@ class ProfileModel {
 
             $this->pdo->commit();
             return true;
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $e) {
             $this->pdo->rollBack();
             return false;
         }
