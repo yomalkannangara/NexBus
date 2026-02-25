@@ -64,7 +64,7 @@ class DriverModel extends BaseModel
      * ========================= */
     public function all(): array
     {
-        $sql = "SELECT private_driver_id, private_operator_id, full_name, license_no, phone, status
+        $sql = "SELECT private_driver_id, private_operator_id, full_name, license_no, phone, status, suspend_reason
                   FROM private_drivers";
         $params = [];
         if ($this->hasOperator()) { $sql .= " WHERE private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
@@ -84,8 +84,8 @@ class DriverModel extends BaseModel
         if ($name === '') return false;
 
         $st = $this->pdo->prepare(
-            "INSERT INTO private_drivers (private_operator_id, full_name, license_no, phone, status)
-             VALUES (:op, :name, :license, :phone, :status)"
+            "INSERT INTO private_drivers (private_operator_id, full_name, license_no, phone, status, suspend_reason)
+             VALUES (:op, :name, :license, :phone, :status, :reason)"
         );
         try {
             return $st->execute([
@@ -94,6 +94,7 @@ class DriverModel extends BaseModel
                 ':license' => $d['license_no'] ?? null,
                 ':phone'   => $d['phone'] ?? null,
                 ':status'  => $d['status'] ?? 'Active',
+                ':reason'  => ($d['status'] ?? 'Active') === 'Suspended' ? ($d['suspend_reason'] ?? null) : null,
             ]);
         } catch (\PDOException $e) {
             // Handle duplicate license_no or other constraints
@@ -115,13 +116,15 @@ class DriverModel extends BaseModel
                    SET full_name = :name,
                        license_no = :license,
                        phone = :phone,
-                       status = :status
+                       status = :status,
+                       suspend_reason = :reason
                  WHERE private_driver_id = :id";
         $params = [
             ':name'    => $name,
             ':license' => $d['license_no'] ?? null,
             ':phone'   => $d['phone'] ?? null,
             ':status'  => $d['status'] ?? 'Active',
+            ':reason'  => ($d['status'] ?? 'Active') === 'Suspended' ? ($d['suspend_reason'] ?? null) : null,
             ':id'      => $id,
         ];
         if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
@@ -176,7 +179,7 @@ class DriverModel extends BaseModel
      * ========================= */
     public function allConductors(): array
     {
-        $sql = "SELECT private_conductor_id, private_operator_id, full_name, phone, status
+        $sql = "SELECT private_conductor_id, private_operator_id, full_name, phone, status, suspend_reason
                   FROM private_conductors";
         $params = [];
         if ($this->hasOperator()) { $sql .= " WHERE private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
@@ -195,14 +198,15 @@ class DriverModel extends BaseModel
         if ($name === '') return false;
 
         $st = $this->pdo->prepare(
-            "INSERT INTO private_conductors (private_operator_id, full_name, phone, status)
-             VALUES (:op, :name, :phone, :status)"
+            "INSERT INTO private_conductors (private_operator_id, full_name, phone, status, suspend_reason)
+             VALUES (:op, :name, :phone, :status, :reason)"
         );
         return $st->execute([
             ':op'     => $op,
             ':name'   => $name,
             ':phone'  => $d['phone'] ?? null,
             ':status' => $d['status'] ?? 'Active',
+            ':reason' => ($d['status'] ?? 'Active') === 'Suspended' ? ($d['suspend_reason'] ?? null) : null,
         ]);
     }
 
@@ -216,12 +220,14 @@ class DriverModel extends BaseModel
         $sql = "UPDATE private_conductors
                    SET full_name = :name,
                        phone = :phone,
-                       status = :status
+                       status = :status,
+                       suspend_reason = :reason
                  WHERE private_conductor_id = :id";
         $params = [
             ':name'   => $name,
             ':phone'  => $d['phone'] ?? null,
             ':status' => $d['status'] ?? 'Active',
+            ':reason' => ($d['status'] ?? 'Active') === 'Suspended' ? ($d['suspend_reason'] ?? null) : null,
             ':id'     => $id,
         ];
         if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }

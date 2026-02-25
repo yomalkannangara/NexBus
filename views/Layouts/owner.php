@@ -64,7 +64,7 @@ if (!defined('BASE_URL')) define('BASE_URL', '/B');
       </a>
       <a href="/B/drivers" class="menu-item<?= ($page==='drivers')?' active':'' ?>">
         <i class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></i>
-        Drivers
+        Staff
       </a>
       <a href="/B/earnings" class="menu-item<?= ($page==='earnings')?' active':'' ?>">
         <i class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></i>

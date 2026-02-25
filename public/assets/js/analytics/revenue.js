@@ -4,13 +4,19 @@
   NB.onReady(function(){
     const cvs=document.getElementById("revenueChart"); if(!cvs) return;
     const D=NB.getData(), F=window.ANALYTICS_DUMMY||{};
-    const labels=(D?.revenue?.labels?.length?D.revenue.labels:F.revenue.labels);
-    const vals=(D?.revenue?.values?.length?D.revenue.values:F.revenue.values).map(n=>+n||0);
+    const fromServer = !!D._fromServer;
+    const labels = fromServer ? (D?.revenue?.labels||[]) : (D?.revenue?.labels?.length ? D.revenue.labels : (F.revenue?.labels||[]));
+    const vals   = fromServer ? (D?.revenue?.values||[]).map(n=>+n||0) : (D?.revenue?.values?.length ? D.revenue.values : (F.revenue?.values||[])).map(n=>+n||0);
 
     NB.observe(cvs, 7/4, ({ctx,W,H})=>{
       ctx.clearRect(0,0,W,H);
       const pad={l:56,r:16,t:16,b:36}, iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
-      const max=Math.max(7, Math.ceil(Math.max(...vals)));
+      if(!labels.length){
+        ctx.fillStyle='#9ca3af'; ctx.font='14px ui-sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('No revenue data for selected filters', W/2, H/2); return;
+      }
+      const max=Math.max(1, Math.ceil(Math.max(...vals)));
       const barW=iw/labels.length*0.62;
 
       // grid

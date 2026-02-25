@@ -2,25 +2,34 @@
   const NB = window.NBCharts;
 
   function normalize(raw) {
-    const ORDER = ["On Time", "Delayed", "Cancelled", "Maintenance"];
-    const PAL = [NB.colors.green, NB.colors.red, NB.colors.redSoft, NB.colors.gold];
+    const PAL = [NB.colors.green, NB.colors.red, NB.colors.gold, NB.colors.maroon];
+    const STATUS_COLOR = {
+      'Active':'#16a34a','active':'#16a34a',
+      'Maintenance':'#f59e0b','maintenance':'#f59e0b',
+      'Inactive':'#6b7280','inactive':'#6b7280',
+      'On Time':'#16a34a','OnTime':'#16a34a',
+      'Delayed':'#b91c1c','delayed':'#b91c1c',
+      'Cancelled':'#ef4444','cancelled':'#ef4444',
+      'Breakdown':'#f59e0b','breakdown':'#f59e0b',
+    };
     if (!raw) return [];
     if (Array.isArray(raw) && raw.every((v) => !isNaN(+v))) {
-      return raw.slice(0, ORDER.length).map((v, i) => ({
-        label: ORDER[i] || `Cat ${i + 1}`,
-        value: +v,
-        color: PAL[i % PAL.length],
+      const L = ['Active','Maintenance','Inactive','Breakdown'];
+      return raw.slice(0, L.length).map((v, i) => ({
+        label: L[i] || `Cat ${i+1}`, value: +v, color: PAL[i % PAL.length],
       }));
     }
     if (Array.isArray(raw)) {
-      return raw.map((it, i) =>
-        Array.isArray(it)
-          ? { label: it[0] ?? ORDER[i], value: +it[1] || 0, color: it[2] || PAL[i % PAL.length] }
-          : { label: it?.label ?? ORDER[i], value: +it?.value || 0, color: it?.color || PAL[i % PAL.length] }
-      );
+      return raw.map((it, i) => {
+        if (Array.isArray(it)) return { label: it[0], value: +it[1]||0, color: it[2]||PAL[i%PAL.length] };
+        // DB format: {status, total}
+        const lbl = it?.label ?? it?.status ?? `Cat ${i+1}`;
+        const val = +it?.value || +it?.total || 0;
+        return { label: lbl, value: val, color: STATUS_COLOR[lbl] || PAL[i % PAL.length] };
+      });
     }
-    if (typeof raw === "object") {
-      return Object.keys(raw).map((k, i) => ({ label: k, value: +raw[k] || 0, color: PAL[i % PAL.length] }));
+    if (typeof raw === 'object') {
+      return Object.keys(raw).map((k, i) => ({ label: k, value: +raw[k]||0, color: PAL[i%PAL.length] }));
     }
     return [];
   }

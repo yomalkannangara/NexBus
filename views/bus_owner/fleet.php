@@ -1,7 +1,33 @@
 <?php
 // Content-only Fleet view (structure only)
 // Expects: $buses (array), BASE_URL defined by layout.
+
+// Flash message from ?msg= query param
+$_flashMsgs = [
+    'created'     => ['Bus added successfully.',                                  true],
+    'updated'     => ['Bus updated successfully.',                                true],
+    'deleted'     => ['Bus deleted successfully.',                                true],
+    'saved'       => ['Bus saved successfully.',                                  true],
+    'assigned'    => ['Driver & conductor assigned.',                             true],
+    'duplicate'   => ['A bus with that registration number already exists.',      false],
+    'assign_fail' => ['Assignment failed — bus not found or not owned by you.',   false],
+    'error'       => ['An error occurred. Please try again.',                    false],
+];
+$_flashKey  = $_GET['msg'] ?? '';
+$_flashData = $_flashMsgs[$_flashKey] ?? null;
 ?>
+<?php if ($_flashData): ?>
+<div id="page-flash" style="
+  position:fixed;top:20px;right:20px;z-index:9999;
+  background:<?= $_flashData[1] ? '#059669' : '#DC2626'; ?>;
+  color:#fff;padding:12px 20px;border-radius:8px;
+  font-size:14px;font-weight:600;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);
+  animation:flashIn .25s ease;
+"><?= htmlspecialchars($_flashData[0]); ?></div>
+<style>@keyframes flashIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}</style>
+<script>setTimeout(function(){var e=document.getElementById('page-flash');if(e){e.style.transition='opacity .4s';e.style.opacity='0';setTimeout(function(){e.remove();},400);}},2800);</script>
+<?php endif; ?>
 
 <header class="page-header">
   <div>
@@ -38,7 +64,7 @@ if (!empty($buses)) {
       <option value="all">All</option>
       <option value="Active">Active</option>
       <option value="Maintenance">Maintenance</option>
-      <option value="Out of Service">Out of Service</option>
+      <option value="Inactive">Out of Service</option>
     </select>
   </div>
 
@@ -114,7 +140,9 @@ if (!empty($buses)) {
             <?php
               // Handle empty string status, not just null
               $status = !empty($b['status']) ? (string)$b['status'] : 'Active';
-              $map    = ['Active'=>'status-active','Maintenance'=>'status-maintenance','Out of Service'=>'status-out'];
+              // 'Inactive' is the DB value for the "Out of Service" option
+              $statusDisplay = ($status === 'Inactive') ? 'Out of Service' : $status;
+              $map    = ['Active'=>'status-active','Maintenance'=>'status-maintenance','Out of Service'=>'status-out','Inactive'=>'status-out'];
               $cls    = $map[$status] ?? 'status-active';
 
               // new: resolve assigned names with fallbacks
@@ -141,12 +169,8 @@ if (!empty($buses)) {
               <td><?= htmlspecialchars($b['route'] ?? ''); ?></td>
               <td><span class="badge badge-yellow"><?= htmlspecialchars($b['route_number'] ?? ''); ?></span></td>
               <td>
-                <?php
-                  // Debug: Output raw status value
-                  // echo "<!-- Status: " . var_export($status, true) . " Class: " . var_export($cls, true) . " -->";
-                ?>
-                <span class="status-badge <?= $cls; ?> js-status-badge">
-                  <?= htmlspecialchars($status); ?>
+                <span class="status-badge <?= $cls; ?>">
+                  <?= htmlspecialchars($statusDisplay); ?>
                 </span>
               </td>
               <td><?= htmlspecialchars($b['current_location'] ?? ''); ?></td>
@@ -207,15 +231,6 @@ if (!empty($buses)) {
 
   <!-- Pagination Controls -->
   <div class="pagination-container">
-    <div class="pagination-info">
-      <label for="rows-per-page">Rows per page:</label>
-      <select id="rows-per-page" class="pagination-select">
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-      </select>
-      <span class="pagination-stats" id="pagination-stats">Showing 0-0 of 0</span>
-    </div>
     <div class="pagination-controls">
       <button class="pagination-btn" id="prev-page" disabled>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -234,22 +249,159 @@ if (!empty($buses)) {
   </div>
 </div>
 
+<script>
+/* ---- Fleet filters + pagination ---- */
+document.addEventListener('DOMContentLoaded', function () {
+  var table = document.getElementById('fleet-table');
+  if (!table) return;
+  var tbody = table.querySelector('tbody');
+  if (!tbody) return;
+
+  var statusFilter   = document.getElementById('filter-status');
+  var assignFilter   = document.getElementById('filter-assignment');
+  var routeFilter    = document.getElementById('filter-route');
+  var capacityFilter = document.getElementById('filter-capacity');
+  var searchInput    = document.getElementById('fleet-search');
+
+  var prevBtn        = document.getElementById('prev-page');
+  var nextBtn        = document.getElementById('next-page');
+  var pagesContainer = document.getElementById('pagination-pages');
+  var paginationEl   = document.querySelector('.pagination-container');
+
+  var allRows      = Array.from(tbody.querySelectorAll('tr'));
+  var filteredRows = allRows.slice();
+  var rowsPerPage  = 10;
+  var currentPage  = 1;
+
+  function totalPages() {
+    return Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
+  }
+
+  function renderPageNumbers() {
+    if (!pagesContainer) return;
+    pagesContainer.innerHTML = '';
+    var tp = totalPages();
+    if (tp <= 1) return;
+    for (var i = 1; i <= tp; i++) {
+      (function(page) {
+        var b = document.createElement('button');
+        b.className = 'page-number' + (page === currentPage ? ' active' : '');
+        b.textContent = page;
+        b.addEventListener('click', function () { goToPage(page); });
+        pagesContainer.appendChild(b);
+      })(i);
+    }
+  }
+
+  function showPage() {
+    var tp = totalPages();
+    if (currentPage > tp) currentPage = tp;
+    if (currentPage < 1)  currentPage = 1;
+
+    // If everything fits on one page, show all filtered rows and hide pagination
+    if (filteredRows.length <= rowsPerPage) {
+      allRows.forEach(function (r) { r.style.display = 'none'; });
+      filteredRows.forEach(function (r) { r.style.display = ''; });
+      if (paginationEl) paginationEl.style.display = 'none';
+      return;
+    }
+
+    // Multi-page: show only this page's slice
+    var startIdx = (currentPage - 1) * rowsPerPage;
+    var endIdx   = startIdx + rowsPerPage;
+
+    allRows.forEach(function (r) { r.style.display = 'none'; });
+    filteredRows.forEach(function (r, idx) {
+      if (idx >= startIdx && idx < endIdx) r.style.display = '';
+    });
+
+    if (paginationEl) paginationEl.style.display = '';
+    if (prevBtn) prevBtn.disabled = (currentPage === 1);
+    if (nextBtn) nextBtn.disabled = (currentPage >= tp);
+    renderPageNumbers();
+  }
+
+  function goToPage(p) { currentPage = p; showPage(); }
+
+  var debounceTimer;
+  function filterTable() {
+    var status     = statusFilter   ? statusFilter.value   : 'all';
+    var assignment = assignFilter   ? assignFilter.value   : 'all';
+    var route      = routeFilter    ? routeFilter.value    : 'all';
+    var capacity   = capacityFilter ? capacityFilter.value : 'all';
+    var term       = searchInput    ? searchInput.value.toLowerCase().trim() : '';
+
+    filteredRows = allRows.filter(function (row) {
+      if (status !== 'all' && row.dataset.status !== status) return false;
+      if (assignment !== 'all') {
+        var hd = row.dataset.driverAssigned === '1';
+        var hc = row.dataset.conductorAssigned === '1';
+        if      (assignment === 'fully')             return hd && hc;
+        else if (assignment === 'missing-driver')    return !hd;
+        else if (assignment === 'missing-conductor') return !hc;
+        else if (assignment === 'unassigned')        return !hd && !hc;
+      }
+      if (route !== 'all' && row.dataset.routeNumber !== route) return false;
+      if (capacity !== 'all') {
+        var cap = parseInt(row.dataset.capacity) || 0;
+        if      (capacity === 'small')  { if (cap >= 30) return false; }
+        else if (capacity === 'medium') { if (cap < 30 || cap > 50) return false; }
+        else if (capacity === 'large')  { if (cap <= 50) return false; }
+      }
+      if (term) {
+        var bn = (row.dataset.busNumber    || '').toLowerCase();
+        var dn = (row.dataset.driverName   || '').toLowerCase();
+        var cn = (row.dataset.conductorName|| '').toLowerCase();
+        if (!bn.includes(term) && !dn.includes(term) && !cn.includes(term)) return false;
+      }
+      return true;
+    });
+
+    currentPage = 1;
+    showPage();
+  }
+
+  if (statusFilter)   statusFilter.addEventListener('change', filterTable);
+  if (assignFilter)   assignFilter.addEventListener('change', filterTable);
+  if (routeFilter)    routeFilter.addEventListener('change', filterTable);
+  if (capacityFilter) capacityFilter.addEventListener('change', filterTable);
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(filterTable, 280);
+    });
+  }
+  if (prevBtn) prevBtn.addEventListener('click', function () { if (currentPage > 1) goToPage(currentPage - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { if (currentPage < totalPages()) goToPage(currentPage + 1); });
+
+  // Initial render — don't touch rows at all if everything fits
+  if (allRows.length <= rowsPerPage) {
+    if (paginationEl) paginationEl.style.display = 'none';
+  } else {
+    showPage();
+  }
+});
+</script>
+
 <!-- Assign Driver/Conductor Modal -->
 <div class="modal" id="assignModal" hidden>
   <div class="modal__backdrop"></div>
-  <div class="modal__dialog">
-    <div class="modal__header">
-      <h3 id="assignModalTitle">Assign Driver & Conductor</h3>
-      <button class="modal__close" id="assignClose" aria-label="Close">×</button>
+  <div class="assign-modal__dialog">
+    <div class="assign-modal__header">
+      <div>
+        <h3 class="assign-modal__title">Assign Driver &amp; Conductor</h3>
+        <p class="assign-modal__subtitle">Select staff for this bus</p>
+      </div>
+      <button class="bus-modal__close" id="assignClose" aria-label="Close">&times;</button>
     </div>
-    <form class="modal__form" id="assignForm" action="<?= BASE_URL; ?>/fleet/assign" method="POST">
+    <form id="assignForm" action="<?= BASE_URL; ?>/fleet/assign" method="POST">
       <input type="hidden" name="reg_no" id="assign_reg_no" />
-      <div class="form-grid">
-        <div class="form-field">
-          <label for="assign_driver_id">Driver</label>
-          <select id="assign_driver_id" name="driver_id" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+      <div class="assign-modal__grid">
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="assign_driver_id">Driver</label>
+          <select id="assign_driver_id" name="driver_id" class="bus-modal__input">
             <option value="">Select Driver</option>
-            <option value="0">Unassigned</option>
+            <option value="0">— Unassigned —</option>
             <?php if (!empty($drivers)): ?>
               <?php foreach ($drivers as $d): ?>
                 <option value="<?= $d['private_driver_id'] ?>">
@@ -259,11 +411,11 @@ if (!empty($buses)) {
             <?php endif; ?>
           </select>
         </div>
-        <div class="form-field">
-          <label for="assign_conductor_id">Conductor</label>
-          <select id="assign_conductor_id" name="conductor_id" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="assign_conductor_id">Conductor</label>
+          <select id="assign_conductor_id" name="conductor_id" class="bus-modal__input">
             <option value="">Select Conductor</option>
-            <option value="0">Unassigned</option>
+            <option value="0">— Unassigned —</option>
             <?php if (!empty($conductors)): ?>
               <?php foreach ($conductors as $c): ?>
                 <option value="<?= $c['private_conductor_id'] ?>">
@@ -274,173 +426,257 @@ if (!empty($buses)) {
           </select>
         </div>
       </div>
-      <div class="modal__footer">
-        <button type="button" class="btn-secondary" id="assignCancel">Cancel</button>
-        <button type="submit" class="btn-primary">Assign</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Add/Edit Bus Modal -->
-<div id="busModal" class="bus-modal" hidden>
-  <div class="bus-modal__backdrop"></div>
-  <div class="bus-modal__panel card">
-    <header class="page-header" style="margin-bottom:16px;">
-      <div>
-        <h2 class="page-title" id="busModalTitle">Add New Bus</h2>
-        <p class="page-subtitle">Enter bus details below</p>
-      </div>
-    </header>
-
-    <form id="busForm" action="#" method="post">
-      <input type="hidden" id="bus_id" name="bus_id">
-      <input type="hidden" name="action" id="bus_action" value="create">
-
-      <div class="filter-grid">
-        <div class="form-group">
-          <label class="form-label">Registration Number *</label>
-          <input type="text" name="reg_no" id="bus_reg_no" class="search-input" placeholder="e.g., WP ABC-1234" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Chassis Number *</label>
-          <input type="text" name="chassis_no" id="bus_chassis_no" class="search-input" placeholder="e.g., CHASSIS123456" required>
-        </div>
-      </div>
-
-      <div class="filter-grid">
-        <div class="form-group">
-          <label class="form-label">Capacity (Seats) *</label>
-          <input type="number" name="capacity" id="bus_capacity" class="search-input" placeholder="e.g., 50" min="1" max="200" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Status</label>
-          <select name="status" id="bus_status" class="search-input">
-            <option value="Active">Active</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Out of Service">Out of Service</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="filter-actions" style="margin-top: 20px;">
-        <a href="#" id="btnCancelBusModal" class="advanced-filter-btn">Cancel</a>
-        <button type="submit" class="export-btn" id="btnSubmitBusModal">Add Bus</button>
+      <div class="assign-modal__footer">
+        <button type="button" class="bus-modal__btn bus-modal__btn--cancel" id="assignCancel">Cancel</button>
+        <button type="submit" class="bus-modal__btn bus-modal__btn--submit">Assign</button>
       </div>
     </form>
   </div>
 </div>
 
 <style>
-  .bus-modal[hidden]{display:none}
-  .bus-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center}
-  .bus-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4)}
-  .bus-modal__panel{position:relative;width:min(920px,95vw);max-height:90vh;overflow:auto}
+  .assign-modal__dialog   { position: relative; z-index: 1; width: min(500px, 92vw); background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.18); overflow: hidden; animation: dialog-in .18s cubic-bezier(.2,.8,.2,1) both; }
+  .assign-modal__header   { display: flex; align-items: flex-start; justify-content: space-between; padding: 22px 24px 0; }
+  .assign-modal__title    { font-size: 18px; font-weight: 700; color: var(--maroon); margin: 0 0 4px; }
+  .assign-modal__subtitle { font-size: 12px; color: #6B7280; margin: 0; }
+  .assign-modal__grid     { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 18px 24px; }
+  .assign-modal__footer   { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 22px; }
 </style>
 
 <script>
 (function() {
-  const modal = document.getElementById('busModal');
-  const form = document.getElementById('busForm');
-  const btnAdd = document.getElementById('btnAddBus');
-  const btnCancel = document.getElementById('btnCancelBusModal');
-  const btnSubmit = document.getElementById('btnSubmitBusModal');
-  const modalTitle = document.getElementById('busModalTitle');
-  const actionInput = document.getElementById('bus_action');
+  var modal      = document.getElementById('assignModal');
+  var form       = document.getElementById('assignForm');
+  var btnClose   = document.getElementById('assignClose');
+  var btnCancel  = document.getElementById('assignCancel');
+  var driverSel  = document.getElementById('assign_driver_id');
+  var condSel    = document.getElementById('assign_conductor_id');
+  var regNoInp   = document.getElementById('assign_reg_no');
 
-  // Open modal for adding new bus
+  if (!modal || !form) return;
+
+  var currentRegNo = '';
+
+  function openModal(regNo, driverId, conductorId) {
+    currentRegNo = regNo || '';
+    if (regNoInp)  regNoInp.value  = currentRegNo;
+    if (driverSel) driverSel.value = (driverId && driverId !== '0') ? driverId : '';
+    if (condSel)   condSel.value   = (conductorId && conductorId !== '0') ? conductorId : '';
+    modal.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+    currentRegNo = '';
+  }
+
+  // Wire every assign button
+  document.querySelectorAll('.js-assign').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      openModal(
+        btn.getAttribute('data-bus-reg')       || '',
+        btn.getAttribute('data-driver-id')     || '',
+        btn.getAttribute('data-conductor-id')  || ''
+      );
+    });
+  });
+
+  if (btnClose)  btnClose.addEventListener('click',  function(e) { e.preventDefault(); closeModal(); });
+  if (btnCancel) btnCancel.addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+
+  var backdrop = modal.querySelector('.modal__backdrop');
+  if (backdrop) backdrop.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal();
+  });
+
+  // Submit: build a fresh form (avoids any hidden-input staleness)
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var regNo       = currentRegNo || (regNoInp ? regNoInp.value.trim() : '');
+    var driverId    = driverSel ? driverSel.value   : '';
+    var conductorId = condSel   ? condSel.value     : '';
+
+    if (!regNo) {
+      alert('Cannot determine bus – please close and try again.');
+      return;
+    }
+
+    var f = document.createElement('form');
+    f.method = 'POST';
+    f.action = form.getAttribute('action');
+
+    function addField(name, value) {
+      var i = document.createElement('input');
+      i.type = 'hidden'; i.name = name; i.value = (value == null ? '' : String(value));
+      f.appendChild(i);
+    }
+
+    addField('reg_no',       regNo);
+    addField('driver_id',    driverId);
+    addField('conductor_id', conductorId);
+
+    document.body.appendChild(f);
+    f.submit();
+  });
+})();
+</script>
+
+<!-- Add/Edit Bus Modal -->
+<div id="busModal" class="bus-modal" hidden>
+  <div class="bus-modal__backdrop"></div>
+  <div class="bus-modal__panel">
+    <div class="bus-modal__header">
+      <div>
+        <h2 class="bus-modal__title" id="busModalTitle">Add New Bus</h2>
+        <p class="bus-modal__subtitle">Enter bus details below</p>
+      </div>
+      <button type="button" class="bus-modal__close" id="btnCloseBusModal" aria-label="Close">&times;</button>
+    </div>
+
+    <form id="busForm" action="<?= BASE_URL; ?>/fleet" method="post">
+      <input type="hidden" id="bus_id" name="bus_id">
+      <input type="hidden" name="action" id="bus_action" value="create">
+      <input type="hidden" id="bus_reg_no_hidden" name="reg_no">
+
+      <div class="bus-modal__grid">
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_reg_no">Registration Number *</label>
+          <input type="text" id="bus_reg_no" class="bus-modal__input" placeholder="e.g., WP ABC-1234" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_chassis_no">Chassis Number *</label>
+          <input type="text" name="chassis_no" id="bus_chassis_no" class="bus-modal__input" placeholder="e.g., CHASSIS123456" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_capacity">Capacity (Seats) *</label>
+          <input type="number" name="capacity" id="bus_capacity" class="bus-modal__input" placeholder="e.g., 50" min="1" max="200" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_status">Status</label>
+          <select name="status" id="bus_status" class="bus-modal__input">
+            <option value="Active">Active</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Inactive">Out of Service</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="bus-modal__footer">
+        <a href="#" id="btnCancelBusModal" class="bus-modal__btn bus-modal__btn--cancel">Cancel</a>
+        <button type="submit" class="bus-modal__btn bus-modal__btn--submit" id="btnSubmitBusModal">Add Bus</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .bus-modal[hidden]          { display: none; }
+  .bus-modal                  { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+  .bus-modal__backdrop        { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+  .bus-modal__panel           { position: relative; width: min(520px, 95vw); background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.18); overflow: hidden; }
+  .bus-modal__header          { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 24px 0; }
+  .bus-modal__title           { font-size: 20px; font-weight: 700; color: var(--maroon); margin: 0 0 4px; }
+  .bus-modal__subtitle        { font-size: 13px; color: #6B7280; margin: 0; }
+  .bus-modal__close           { background: none; border: none; font-size: 22px; cursor: pointer; color: #9CA3AF; line-height: 1; padding: 0; margin-left: 12px; }
+  .bus-modal__close:hover     { color: #374151; }
+  .bus-modal__grid            { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 24px; }
+  .bus-modal__field           { display: flex; flex-direction: column; gap: 6px; }
+  .bus-modal__label           { font-size: 13px; font-weight: 600; color: #374151; }
+  .bus-modal__input           { width: 100%; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; color: #111827; box-sizing: border-box; transition: border-color .15s; }
+  .bus-modal__input:focus     { outline: none; border-color: var(--maroon); box-shadow: 0 0 0 3px rgba(127,0,50,.08); }
+  .bus-modal__input[readonly] { background: #F9FAFB; color: #6B7280; cursor: not-allowed; }
+  .bus-modal__footer          { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 24px; }
+  .bus-modal__btn             { padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; border: none; transition: background .18s, transform .1s; }
+  .bus-modal__btn--cancel     { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+  .bus-modal__btn--cancel:hover { background: #E5E7EB; }
+  .bus-modal__btn--submit     { background: var(--gold); color: var(--maroon); }
+  .bus-modal__btn--submit:hover { background: #F59E0B; }
+</style>
+
+<script>
+(function() {
+  var modal        = document.getElementById('busModal');
+  var form         = document.getElementById('busForm');
+  var btnAdd       = document.getElementById('btnAddBus');
+  var btnCancel    = document.getElementById('btnCancelBusModal');
+  var btnClose     = document.getElementById('btnCloseBusModal');
+  var btnSubmit    = document.getElementById('btnSubmitBusModal');
+  var modalTitle   = document.getElementById('busModalTitle');
+  var actionInput  = document.getElementById('bus_action');
+  var regNoVisible = document.getElementById('bus_reg_no');
+  var regNoHidden  = document.getElementById('bus_reg_no_hidden');
+
+  function openModal() { modal.removeAttribute('hidden'); }
+  function closeModal() { modal.setAttribute('hidden', ''); }
+
+  // Open for adding new bus
   if (btnAdd) {
     btnAdd.addEventListener('click', function(e) {
       e.preventDefault();
       form.reset();
-      document.getElementById('bus_id').value = '';
-      document.getElementById('bus_reg_no').disabled = false; // Enable for new bus
-      actionInput.value = 'create';
+      regNoVisible.value   = '';
+      regNoHidden.value    = '';
+      regNoVisible.readOnly = false;
+      regNoVisible.style.background = '';
+      actionInput.value    = 'create';
       modalTitle.textContent = 'Add New Bus';
-      btnSubmit.textContent = 'Add Bus';
-      modal.removeAttribute('hidden');
+      btnSubmit.textContent  = 'Add Bus';
+      openModal();
     });
   }
 
-  // Open modal for editing existing bus
-  const editBtns = document.querySelectorAll('.js-edit-bus');
-  editBtns.forEach(btn => {
+  // Open for editing an existing bus
+  document.querySelectorAll('.js-edit-bus').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
-      
-      let busData = {};
-      try {
-        busData = JSON.parse(this.getAttribute('data-bus') || '{}');
-      } catch(err) {
-        console.error('Failed to parse bus data:', err);
-        return;
-      }
+      var busData = {};
+      try { busData = JSON.parse(this.getAttribute('data-bus') || '{}'); } catch(err) { return; }
 
-      // Fill form with existing data
-      document.getElementById('bus_reg_no').value = busData.bus_number || '';
+      regNoVisible.value    = busData.bus_number || '';
+      regNoHidden.value     = busData.bus_number || '';
+      regNoVisible.readOnly = true;
+      regNoVisible.style.background = '#f3f4f6';
+
       document.getElementById('bus_chassis_no').value = busData.chassis_no || '';
-      document.getElementById('bus_capacity').value = busData.capacity || '';
-      
-      // Ensure status is never null/undefined - default to 'Active'
-      const statusValue = busData.status || 'Active';
-      document.getElementById('bus_status').value = statusValue;
-      
-      document.getElementById('bus_reg_no').disabled = true; // Disable reg_no for edit
-      
-      actionInput.value = 'update';
+      document.getElementById('bus_capacity').value   = busData.capacity   || '';
+      document.getElementById('bus_status').value     = busData.status     || 'Active';
+
+      actionInput.value      = 'update';
       modalTitle.textContent = 'Edit Bus';
-      btnSubmit.textContent = 'Update Bus';
-      modal.removeAttribute('hidden');
+      btnSubmit.textContent  = 'Update Bus';
+      openModal();
     });
   });
 
-  // Close modal
-  if (btnCancel) {
-    btnCancel.addEventListener('click', function(e) {
-      e.preventDefault();
-      modal.setAttribute('hidden', '');
-    });
-  }
+  // Close handlers
+  if (btnCancel) btnCancel.addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+  if (btnClose)  btnClose.addEventListener('click',  function()  { closeModal(); });
+  var backdrop = modal ? modal.querySelector('.bus-modal__backdrop') : null;
+  if (backdrop) backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal(); });
 
-  // Close on backdrop click
-  const backdrop = modal.querySelector('.bus-modal__backdrop');
-  if (backdrop) {
-    backdrop.addEventListener('click', function() {
-      modal.setAttribute('hidden', '');
-    });
-  }
-
-  // Handle form submission
+  // Form submit — plain native submit, no fetch (session cookie sent automatically)
   if (form) {
     form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // Temporarily enable disabled fields so they are included in FormData
-      const disabledFields = Array.from(form.querySelectorAll(':disabled'));
-      disabledFields.forEach(el => el.disabled = false);
-
-      const formData = new FormData(form);
-      
-      // Restore disabled state
-      disabledFields.forEach(el => el.disabled = true);
-
-      const baseUrl = '<?= BASE_URL; ?>' || '';
-      
-      fetch(baseUrl + '/fleet', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (response.ok) {
-          window.location.href = baseUrl + '/fleet?msg=saved';
-        } else {
-          alert('Error saving bus. Please try again.');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving bus. Please try again.');
-      });
+      // Sync visible reg_no display field → hidden field (for create mode)
+      if (actionInput.value === 'create') {
+        regNoHidden.value = regNoVisible.value.trim();
+      }
+      // Validate
+      if (!regNoHidden.value) {
+        e.preventDefault();
+        regNoVisible.focus();
+        regNoVisible.style.borderColor = '#DC2626';
+        return;
+      }
+      regNoVisible.style.borderColor = '';
+      // Let the browser submit the form normally — cookies included automatically
     });
   }
 })();

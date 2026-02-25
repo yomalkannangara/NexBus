@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Bus Owner Feedback (Private only)
 // Vars from controller:
 //   $feedback_refs (id + ref_code)
@@ -7,900 +7,697 @@
 $feedback_refs = is_array($feedback_refs ?? null) ? $feedback_refs : [];
 $feedback_list = is_array($feedback_list ?? null) ? $feedback_list : [];
 
+// Count by status
+$counts = ['total' => count($feedback_list), 'Open' => 0, 'In Progress' => 0, 'Resolved' => 0, 'Closed' => 0];
+foreach ($feedback_list as $f) {
+    $s = $f['status'] ?? 'Open';
+    if (array_key_exists($s, $counts)) $counts[$s]++;
+}
+
 function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
 
 <section id="feedbackPage">
 
+  <!-- Page Header -->
   <header class="page-header">
     <div>
-      <h2 class="page-title">Passenger Feedback & Complaints</h2>
-      <p class="page-subtitle">Private buses only (your operator)</p>
+      <h2 class="page-title">Passenger Feedback &amp; Complaints</h2>
+      <p class="page-subtitle">Private buses only  your operator</p>
     </div>
   </header>
 
-  <!-- Quick Response (single selector, like depot manager) -->
-  <div class="card">
-    <h3 class="card-title">Quick Response</h3>
+  <!-- Flash Notification -->
+  <?php if (!empty($success)): ?>
+  <div class="fb-alert fb-alert--success">
+    <svg width="18" height="18" fill="none" viewBox="0 0 20 20"><path fill="currentColor" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+    <?= h($success) ?>
+  </div>
+  <?php elseif (!empty($error)): ?>
+  <div class="fb-alert fb-alert--error">
+    <svg width="18" height="18" fill="none" viewBox="0 0 20 20"><path fill="currentColor" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/></svg>
+    <?= h($error) ?>
+  </div>
+  <?php endif; ?>
 
-    <form method="post" action="/B/feedback" class="filter-grid" style="grid-template-columns: 1.2fr 1.8fr 1fr; align-items:start; gap:14px;">
-      <div class="filter-group">
-        <label class="filter-label">Select Feedback ID *</label>
-        <select name="complaint_id" id="q_complaint_id" class="search-input" required>
-          <option value="">Choose an ID...</option>
-          <?php foreach ($feedback_refs as $r): ?>
-            <option value="<?= (int)($r['id'] ?? 0) ?>"><?= h($r['ref_code'] ?? '') ?></option>
-          <?php endforeach; ?>
-        </select>
-        <div class="muted" style="margin-top:6px">Tip: Reply sets status to In Progress automatically.</div>
+  <!-- Stats Row -->
+  <div class="fb-stats">
+    <div class="fb-stat-card fb-stat-card--total">
+      <div class="fb-stat-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
       </div>
-
-      <div class="filter-group">
-        <label class="filter-label">Reply / Note</label>
-        <textarea name="message" id="q_message" class="search-input" rows="4" placeholder="Type reply or note (saved to complaints.reply_text)..."></textarea>
-        <div class="muted" style="margin-top:6px" id="q_preview">Select an item to preview details.</div>
+      <div>
+        <div class="fb-stat-num"><?= $counts['total'] ?></div>
+        <div class="fb-stat-label">Total</div>
       </div>
-
-      <div class="filter-actions" style="align-self:end; display:flex; flex-direction:column; gap:10px;">
-        <button class="export-btn" type="submit" name="action" value="reply">Send Reply</button>
-        <button class="export-btn" type="submit" name="action" value="resolve">Resolve</button>
-        <button class="export-btn" type="submit" name="action" value="close">Close</button>
+    </div>
+    <div class="fb-stat-card fb-stat-card--open">
+      <div class="fb-stat-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v4M12 16h.01"/></svg>
       </div>
-    </form>
+      <div>
+        <div class="fb-stat-num"><?= $counts['Open'] ?></div>
+        <div class="fb-stat-label">Open</div>
+      </div>
+    </div>
+    <div class="fb-stat-card fb-stat-card--progress">
+      <div class="fb-stat-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      </div>
+      <div>
+        <div class="fb-stat-num"><?= $counts['In Progress'] ?></div>
+        <div class="fb-stat-label">In Progress</div>
+      </div>
+    </div>
+    <div class="fb-stat-card fb-stat-card--resolved">
+      <div class="fb-stat-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div>
+        <div class="fb-stat-num"><?= $counts['Resolved'] ?></div>
+        <div class="fb-stat-label">Resolved</div>
+      </div>
+    </div>
+    <div class="fb-stat-card fb-stat-card--closed">
+      <div class="fb-stat-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+      </div>
+      <div>
+        <div class="fb-stat-num"><?= $counts['Closed'] ?></div>
+        <div class="fb-stat-label">Closed</div>
+      </div>
+    </div>
   </div>
 
-  <!-- Manage panel (opens from table Manage button) -->
-  <div class="card" id="manageCard" style="margin-top:16px; display:none;">
-    <h3 class="card-title">Manage Selected Item</h3>
-    <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:14px;">
-      <div>
-        <div class="muted">Details</div>
-        <div class="card" style="margin-top:10px; padding:12px;">
-          <div><strong id="m_ref">—</strong> <span class="muted" id="m_status">—</span></div>
-          <div class="muted" style="margin-top:6px" id="m_meta">—</div>
-          <div style="margin-top:10px" id="m_desc">—</div>
+  <!-- Toolbar -->
+  <div class="fb-toolbar" style="background:#fff;border-radius:10px;border:1.5px solid #e5e7eb;">
+    <div class="fb-toolbar__filters">
+      <div class="fb-filter-group">
+        <label class="fb-filter-label" for="fb-filter-status">Status:</label>
+        <select id="fb-filter-status" class="fb-toolbar__select fb-toolbar__select--primary">
+          <option value="">All</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+      <div class="fb-filter-group">
+        <label class="fb-filter-label" for="fb-filter-type">Type:</label>
+        <select id="fb-filter-type" class="fb-toolbar__select">
+          <option value="">All</option>
+          <option value="Complaint">Complaint</option>
+          <option value="Feedback">Feedback</option>
+          <option value="Suggestion">Suggestion</option>
+        </select>
+      </div>
+    </div>
+    <div class="fb-toolbar__search">
+      <svg class="fb-toolbar__search-icon" width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+      <input type="text" id="fb-search" class="fb-toolbar__input" placeholder="Search by ref, passenger, bus/route...">
+    </div>
+  </div>
+
+  <!-- Feedback Card List -->
+  <div class="fb-list" id="fb-list">
+
+    <?php if (empty($feedback_list)): ?>
+    <div class="fb-empty">
+      <svg width="56" height="56" fill="none" viewBox="0 0 24 24"><path fill="#D1D5DB" d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
+      <p>No feedback records found.</p>
+    </div>
+    <?php else: ?>
+    <?php foreach ($feedback_list as $f):
+      $id       = (int)($f['id'] ?? 0);
+      $ref      = (string)($f['ref_code'] ?? ('C' . str_pad((string)$id, 6, '0', STR_PAD_LEFT)));
+      $stat     = (string)($f['status'] ?? 'Open');
+      $rate     = (int)($f['rating'] ?? 0);
+      $reply    = trim((string)($f['response'] ?? ''));
+      $type     = (string)($f['type'] ?? '');
+      $category = (string)($f['category'] ?? '');
+      $message  = (string)($f['message'] ?? '');
+      $date     = (string)($f['date'] ?? '');
+      $passenger= (string)($f['passenger'] ?? '');
+      $bus      = (string)($f['bus_or_route'] ?? '');
+
+      $statClass = match(strtolower($stat)) {
+        'open'        => 'fb-badge--open',
+        'in progress' => 'fb-badge--progress',
+        'resolved'    => 'fb-badge--resolved',
+        'closed'      => 'fb-badge--closed',
+        default       => 'fb-badge--open',
+      };
+      $typeClass = match(strtolower($type)) {
+        'complaint'  => 'fb-chip--complaint',
+        'suggestion' => 'fb-chip--suggestion',
+        default      => 'fb-chip--feedback',
+      };
+    ?>
+    <div class="fb-card js-fb-card"
+         data-id="<?= $id ?>"
+         data-status="<?= h($stat) ?>"
+         data-type="<?= h($type) ?>"
+         data-search="<?= h(strtolower($ref . ' ' . $passenger . ' ' . $bus)) ?>">
+
+      <div class="fb-card__top">
+        <div class="fb-card__ref-row">
+          <span class="fb-card__ref"><?= h($ref) ?></span>
+          <span class="fb-badge <?= $statClass ?>"><?= h($stat) ?></span>
+          <?php if ($type): ?>
+          <span class="fb-chip <?= $typeClass ?>"><?= h($type) ?></span>
+          <?php endif; ?>
+        </div>
+        <div class="fb-card__meta">
+          <span class="fb-card__meta-item">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <?= h($date) ?>
+          </span>
+          <span class="fb-card__meta-item">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <?= h($passenger ?: '') ?>
+          </span>
+          <span class="fb-card__meta-item">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><rect x="1" y="8" width="22" height="12" rx="2" stroke="currentColor" stroke-width="2"/><circle cx="5" cy="20" r="2" stroke="currentColor" stroke-width="2"/><circle cx="19" cy="20" r="2" stroke="currentColor" stroke-width="2"/></svg>
+            <?= h($bus ?: '') ?>
+          </span>
+          <?php if ($category): ?>
+          <span class="fb-card__meta-item">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 7h.01M3 3h7l11 11a2 2 0 010 2.828l-4.172 4.172a2 2 0 01-2.828 0L3 10V3z"/></svg>
+            <?= h($category) ?>
+          </span>
+          <?php endif; ?>
         </div>
       </div>
-      <div>
-        <div class="muted">Reply</div>
-        <div class="card" style="margin-top:10px; padding:12px;">
-          <div class="muted" id="m_current_reply">Reply: —</div>
-          <form method="post" action="/B/feedback" style="margin-top:10px;">
-            <input type="hidden" name="complaint_id" id="m_id" value="">
-            <textarea class="search-input" name="message" id="m_message" rows="4" placeholder="Type reply..." required></textarea>
-            <div class="filter-actions" style="margin-top:10px; display:flex; gap:10px;">
-              <button class="export-btn" type="submit" name="action" value="reply">Save Reply</button>
-              <button class="export-btn" type="submit" name="action" value="resolve">Resolve</button>
-              <button class="export-btn" type="submit" name="action" value="close">Close</button>
+
+      <?php if ($message): ?>
+      <p class="fb-card__message"><?= h($message) ?></p>
+      <?php endif; ?>
+
+      <div class="fb-card__footer">
+        <div class="fb-card__rating">
+          <?php if ($rate > 0): ?>
+            <?php for ($i = 1; $i <= 5; $i++): ?>
+              <svg class="fb-star <?= $i <= $rate ? 'fb-star--on' : '' ?>" width="14" height="14" viewBox="0 0 20 20"><path fill="currentColor" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <?php endfor; ?>
+            <span class="fb-card__rating-num"><?= $rate ?>/5</span>
+          <?php else: ?>
+            <span class="fb-card__no-rating">No rating</span>
+          <?php endif; ?>
+        </div>
+        <?php if ($reply): ?>
+        <span class="fb-card__replied">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 10a7 7 0 0014 0V6a7 7 0 00-14 0v4zm11 0v4a4 4 0 01-8 0v-4"/></svg>
+          Replied
+        </span>
+        <?php endif; ?>
+        <button class="fb-card__manage-btn js-fb-manage" data-id="<?= $id ?>" type="button">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Manage
+        </button>
+      </div>
+    </div>
+    <?php endforeach; ?>
+    <?php endif; ?>
+
+  </div>
+
+  <!-- Empty filter state -->
+  <div class="fb-empty" id="fb-no-results" style="display:none;">
+    <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><path fill="#D1D5DB" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+    <p>No results match your filters.</p>
+    <button class="fb-clear-btn" id="fb-clear-filters">Clear Filters</button>
+  </div>
+
+  <!-- Manage Modal -->
+  <div class="fb-modal__backdrop" id="fb-modal" hidden>
+    <div class="fb-modal__panel" role="dialog" aria-modal="true" aria-labelledby="fb-modal-title">
+
+      <div class="fb-modal__head">
+        <div class="fb-modal__head-inner">
+          <h3 class="fb-modal__title" id="fb-modal-title">
+            Feedback <span class="fb-modal__ref" id="fb-m-ref"></span>
+          </h3>
+          <span class="fb-badge" id="fb-m-status-badge"></span>
+        </div>
+        <button class="fb-modal__close" id="fb-modal-close" type="button" aria-label="Close">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="fb-modal__body">
+
+        <!-- Details -->
+        <div class="fb-modal__section">
+          <div class="fb-modal__section-title">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Details
+          </div>
+          <div class="fb-modal__details-grid">
+            <div class="fb-modal__detail">
+              <div class="fb-modal__detail-label">Passenger</div>
+              <div class="fb-modal__detail-val" id="fb-m-passenger"></div>
+            </div>
+            <div class="fb-modal__detail">
+              <div class="fb-modal__detail-label">Bus / Route</div>
+              <div class="fb-modal__detail-val" id="fb-m-bus"></div>
+            </div>
+            <div class="fb-modal__detail">
+              <div class="fb-modal__detail-label">Date</div>
+              <div class="fb-modal__detail-val" id="fb-m-date"></div>
+            </div>
+            <div class="fb-modal__detail">
+              <div class="fb-modal__detail-label">Type &amp; Category</div>
+              <div class="fb-modal__detail-val" id="fb-m-type"></div>
+            </div>
+            <div class="fb-modal__detail">
+              <div class="fb-modal__detail-label">Rating</div>
+              <div class="fb-modal__detail-val" id="fb-m-rating"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passenger Message -->
+        <div class="fb-modal__section">
+          <div class="fb-modal__section-title">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            Passenger Message
+          </div>
+          <div class="fb-modal__message" id="fb-m-message"></div>
+        </div>
+
+        <!-- Previous Reply -->
+        <div class="fb-modal__section" id="fb-existing-reply-section">
+          <div class="fb-modal__section-title">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 10a7 7 0 0014 0V6a7 7 0 00-14 0v4zm11 0v4a4 4 0 01-8 0v-4"/></svg>
+            Previous Reply
+          </div>
+          <div class="fb-modal__reply-text" id="fb-m-reply"></div>
+        </div>
+
+        <!-- Reply Form -->
+        <div class="fb-modal__section">
+          <div class="fb-modal__section-title">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            Send Reply
+          </div>
+          <form method="post" action="/B/feedback" id="fb-reply-form">
+            <input type="hidden" name="complaint_id" id="fb-m-id">
+            <textarea name="message" id="fb-m-message-input" class="fb-modal__textarea" rows="4" placeholder="Type your reply to the passenger"></textarea>
+            <div class="fb-modal__actions">
+              <button type="submit" name="action" value="reply" class="fb-btn fb-btn--reply">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                Send Reply
+              </button>
+              <button type="submit" name="action" value="resolve" class="fb-btn fb-btn--resolve">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Mark Resolved
+              </button>
+              <button type="submit" name="action" value="close" class="fb-btn fb-btn--close">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                Close
+              </button>
             </div>
           </form>
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="card" style="margin-top:16px;">
-    <h3 class="card-title">Recent Feedback & Complaints</h3>
-
-    <div class="table-container">
-      <table class="data-table" id="feedback-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Bus/Route</th>
-            <th>Passenger</th>
-            <th>Type</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Rating</th>
-            <th>Reply</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php if (!empty($feedback_list)): ?>
-          <?php foreach ($feedback_list as $f): ?>
-            <?php
-              $id    = (int)($f['id'] ?? 0);
-              $ref   = (string)($f['ref_code'] ?? ('C'.str_pad((string)$id, 6, '0', STR_PAD_LEFT)));
-              $stat  = (string)($f['status'] ?? 'Open');
-              $rate  = (int)($f['rating'] ?? 0);
-              $reply = trim((string)($f['response'] ?? ''));
-              $replyShort = $reply !== '' ? (strlen($reply) > 60 ? substr($reply, 0, 60) . '…' : $reply) : '—';
-            ?>
-            <tr>
-              <td><strong><?= h($ref) ?></strong></td>
-              <td><?= h((string)($f['date'] ?? '')) ?></td>
-              <td><strong><?= h((string)($f['bus_or_route'] ?? '')) ?></strong></td>
-              <td><?= h((string)($f['passenger'] ?? '')) ?></td>
-              <td><?= h((string)($f['type'] ?? '')) ?></td>
-              <td><?= h((string)($f['category'] ?? '')) ?></td>
-              <td><?= h($stat) ?></td>
-              <td><?= $rate > 0 ? h((string)$rate) . '/5' : '—' ?></td>
-              <td><?= h($replyShort) ?></td>
-              <td>
-                <button
-                  type="button"
-                  class="export-btn js-manage"
-                  data-id="<?= $id ?>"
-                >Manage</button>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <tr><td colspan="10" style="text-align:center;padding:24px;color:#6B7280;">No feedback records found.</td></tr>
-        <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    const ROWS = <?= json_encode($feedback_list, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
-    const refs = <?= json_encode($feedback_refs, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
-
-    function esc(s) {
-      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-    function findRowById(id) {
-      return ROWS.find(r => String(r.id) === String(id));
-    }
-    function refForId(id) {
-      const hit = refs.find(r => String(r.id) === String(id));
-      return hit?.ref_code || ('C' + String(id).padStart(6, '0'));
-    }
-
-    // Quick preview
-    const qSel = document.getElementById('q_complaint_id');
-    const qPrev = document.getElementById('q_preview');
-    if (qSel && qPrev) {
-      qSel.addEventListener('change', () => {
-        const row = findRowById(qSel.value);
-        if (!row) {
-          qPrev.textContent = 'Select an item to preview details.';
-          return;
-        }
-        const parts = [];
-        parts.push(`<div><strong>${esc(refForId(row.id))}</strong> — ${esc(row.status)}</div>`);
-        parts.push(`<div class="muted" style="margin-top:4px">Bus/Route: ${esc(row.bus_or_route)} • Passenger: ${esc(row.passenger)}</div>`);
-        parts.push(`<div class="muted" style="margin-top:4px">Type: ${esc(row.type)} • Category: ${esc(row.category)} • Rating: ${row.rating ? esc(row.rating) + '/5' : '—'}</div>`);
-        if (row.message) parts.push(`<div style="margin-top:8px">${esc(row.message).replace(/\n/g,'<br>')}</div>`);
-        if (row.response) parts.push(`<div class="muted" style="margin-top:8px"><strong>Reply:</strong><br>${esc(row.response).replace(/\n/g,'<br>')}</div>`);
-        qPrev.innerHTML = parts.join('');
-      });
-    }
-
-    // Manage panel
-    function showManage(row) {
-      const card = document.getElementById('manageCard');
-      if (!card) return;
-
-      document.getElementById('m_ref').textContent = refForId(row.id);
-      document.getElementById('m_status').textContent = row.status || '';
-      document.getElementById('m_meta').textContent = `Bus/Route: ${row.bus_or_route || '—'} | Passenger: ${row.passenger || '—'} | Rating: ${row.rating ? row.rating + '/5' : '—'}`;
-      document.getElementById('m_desc').innerHTML = row.message ? esc(row.message).replace(/\n/g,'<br>') : '—';
-      document.getElementById('m_current_reply').innerHTML = `Reply: ${row.response ? esc(row.response).replace(/\n/g,'<br>') : '—'}`;
-      document.getElementById('m_id').value = row.id;
-      document.getElementById('m_message').value = '';
-
-      card.style.display = '';
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.js-manage');
-      if (!btn) return;
-      const row = findRowById(btn.getAttribute('data-id'));
-      if (row) showManage(row);
-    });
-  </script>
-
 </section>
-        Use this ID
-      </button>
-    </div>
-  </div>
-</dialog>
 
 <style>
-/* Feedback Dialog Styling */
-.feedback-dialog {
-  border: none;
-  border-radius: 16px;
-  padding: 0;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+:root {
+  --fb-maroon:      #80143c;
+  --fb-maroon-d:    #5e0f2c;
+  --fb-gold:        #f3b944;
+  --fb-open:        #dc2626;
+  --fb-open-bg:     #fef2f2;
+  --fb-prog:        #d97706;
+  --fb-prog-bg:     #fffbeb;
+  --fb-res:         #059669;
+  --fb-res-bg:      #ecfdf5;
+  --fb-closed:      #6b7280;
+  --fb-closed-bg:   #f3f4f6;
+}
+
+/* Alert */
+.fb-alert {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 18px; border-radius: 10px;
+  font-weight: 500; font-size: 14px; margin-bottom: 20px;
+}
+.fb-alert--success { background:#ecfdf5; color:#065f46; border:1px solid #6ee7b7; }
+.fb-alert--error   { background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; }
+
+/* Stats */
+.fb-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 14px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
   overflow: hidden;
 }
+.fb-stat-card {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  border-right: 1px solid #f0f0f0;
+  transition: background .15s;
+}
+.fb-stat-card:last-child { border-right: none; }
+.fb-stat-card:hover { background: #fafafa; }
+.fb-stat-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.fb-stat-icon svg { width: 16px; height: 16px; }
+.fb-stat-card--total    .fb-stat-icon { background:#f3f0ff; color:#7c3aed; }
+.fb-stat-card--open     .fb-stat-icon { background:var(--fb-open-bg); color:var(--fb-open); }
+.fb-stat-card--progress .fb-stat-icon { background:var(--fb-prog-bg); color:var(--fb-prog); }
+.fb-stat-card--resolved .fb-stat-icon { background:var(--fb-res-bg);  color:var(--fb-res);  }
+.fb-stat-card--closed   .fb-stat-icon { background:var(--fb-closed-bg); color:var(--fb-closed); }
+.fb-stat-num   { font-size: 20px; font-weight: 800; color: #111827; line-height: 1; }
+.fb-stat-label { font-size: 11px; color: #6b7280; font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
 
-.feedback-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+/* Toolbar */
+.fb-toolbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:14px; padding:14px 18px; }
+.fb-toolbar__filters { display:flex; gap:14px; align-items:flex-end; }
+.fb-filter-group { display:flex; flex-direction:column; gap:4px; }
+.fb-filter-label { font-size:11.5px; font-weight:600; color:#6b7280; letter-spacing:.3px; padding-left:2px; }
+.fb-toolbar__select {
+  padding:7px 12px; border:1.5px solid var(--fb-gold); border-radius:7px;
+  font-size:13px; font-family:inherit; background:#fff; cursor:pointer;
+  transition:border-color .2s, box-shadow .2s; min-width:130px;
+}
+.fb-toolbar__select--primary { border-color:var(--fb-maroon); }
+.fb-toolbar__select:focus { outline:none; border-color:var(--fb-maroon); box-shadow:0 0 0 3px rgba(128,20,60,.1); }
+.fb-toolbar__search { position:relative; min-width:270px; }
+.fb-toolbar__search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#9ca3af; pointer-events:none; }
+.fb-toolbar__input {
+  width:100%; padding:8px 12px 8px 34px;
+  border:1.5px solid var(--fb-gold); border-radius:7px;
+  font-size:13.5px; font-family:inherit;
+  transition:border-color .2s, box-shadow .2s; box-sizing:border-box;
+}
+.fb-toolbar__input:focus { outline:none; border-color:var(--fb-maroon); box-shadow:0 0 0 3px rgba(128,20,60,.1); }
+
+/* Card List */
+.fb-list { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+.fb-card {
+  background:#fff; border-radius:10px; border:1.5px solid #e5e7eb;
+  padding:13px 15px;
+  transition:border-color .2s, box-shadow .2s, transform .15s;
+}
+.fb-card:hover { border-color:var(--fb-maroon); box-shadow:0 3px 12px rgba(128,20,60,.1); transform:translateY(-1px); }
+.fb-card__top { margin-bottom:7px; }
+.fb-card__ref-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:5px; }
+.fb-card__ref { font-weight:700; font-size:14px; color:var(--fb-maroon); }
+
+/* Badge */
+.fb-badge {
+  display:inline-flex; align-items:center;
+  padding:3px 10px; border-radius:20px;
+  font-size:11.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
+}
+.fb-badge--open     { background:var(--fb-open-bg);    color:var(--fb-open);    }
+.fb-badge--progress { background:var(--fb-prog-bg);    color:var(--fb-prog);    }
+.fb-badge--resolved { background:var(--fb-res-bg);     color:var(--fb-res);     }
+.fb-badge--closed   { background:var(--fb-closed-bg);  color:var(--fb-closed);  }
+
+/* Chip */
+.fb-chip { display:inline-flex; align-items:center; padding:2px 9px; border-radius:5px; font-size:11px; font-weight:600; }
+.fb-chip--complaint  { background:#fef3c7; color:#92400e; }
+.fb-chip--feedback   { background:#dbeafe; color:#1e40af; }
+.fb-chip--suggestion { background:#ede9fe; color:#5b21b6; }
+
+/* Meta */
+.fb-card__meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.fb-card__meta-item { display:flex; align-items:center; gap:4px; font-size:11.5px; color:#6b7280; }
+.fb-card__meta-item svg { flex-shrink:0; }
+
+/* Message */
+.fb-card__message {
+  font-size:13px; color:#374151; line-height:1.5;
+  margin:4px 0 8px;
+  display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;
 }
 
-.feedback-dialog-content {
-  display: flex;
-  flex-direction: column;
+/* Footer */
+.fb-card__footer {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  border-top:1px solid #f3f4f6; padding-top:8px; margin-top:2px;
+}
+.fb-card__rating { display:flex; align-items:center; gap:2px; flex:1; }
+.fb-star      { color:#d1d5db; }
+.fb-star--on  { color:#f59e0b; }
+.fb-card__rating-num { font-size:11px; color:#9ca3af; margin-left:4px; }
+.fb-card__no-rating  { font-size:11px; color:#d1d5db; font-style:italic; }
+.fb-card__replied {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:11px; color:var(--fb-res); font-weight:600;
+  background:var(--fb-res-bg); padding:2px 7px; border-radius:20px;
+}
+.fb-card__manage-btn {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:5px 12px; background:var(--fb-maroon); color:#fff;
+  border:none; border-radius:7px; font-size:12.5px; font-weight:600;
+  cursor:pointer; transition:background .2s, transform .15s, box-shadow .2s;
+  margin-left:auto; font-family:inherit;
+}
+.fb-card__manage-btn:hover { background:var(--fb-maroon-d); transform:translateY(-1px); box-shadow:0 3px 8px rgba(128,20,60,.25); }
+
+/* Empty */
+.fb-empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; padding:60px 24px; color:#9ca3af; font-size:15px; text-align:center;
+}
+.fb-clear-btn {
+  padding:8px 20px; background:none; border:1.5px solid #d1d5db;
+  border-radius:8px; font-size:13px; font-weight:600; color:#6b7280;
+  cursor:pointer; font-family:inherit; transition:all .2s;
+}
+.fb-clear-btn:hover { border-color:var(--fb-maroon); color:var(--fb-maroon); }
+
+/* Modal */
+.fb-modal__backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,.55);
+  backdrop-filter:blur(3px); z-index:1000;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.fb-modal__backdrop[hidden] { display:none !important; }
+
+.fb-modal__panel {
+  background:#fff; border-radius:16px;
+  width:100%; max-width:640px; max-height:88vh;
+  display:flex; flex-direction:column;
+  box-shadow:0 25px 50px rgba(0,0,0,.3);
+  animation:fb-modal-in .2s ease; overflow:hidden;
+}
+@keyframes fb-modal-in {
+  from { opacity:0; transform:scale(.95) translateY(10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
 }
 
-.feedback-dialog-header {
-  background: linear-gradient(135deg, #AA1B23, #8B1519);
-  color: white;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 3px solid #F59E0B;
+.fb-modal__head {
+  background:linear-gradient(135deg, var(--fb-maroon), var(--fb-maroon-d));
+  padding:14px 18px; display:flex; align-items:center;
+  justify-content:space-between; border-bottom:3px solid var(--fb-gold); flex-shrink:0;
 }
-
-.feedback-dialog-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  color: white;
+.fb-modal__head-inner { display:flex; align-items:center; gap:10px; }
+.fb-modal__title { margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:7px; }
+.fb-modal__ref { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.3); padding:2px 9px; border-radius:5px; font-size:13px; }
+.fb-modal__close {
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  color:#fff; width:30px; height:30px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:background .2s; flex-shrink:0;
 }
+.fb-modal__close:hover { background:rgba(255,255,255,.25); }
 
-.feedback-ref-badge {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 16px;
-  margin-left: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.fb-modal__body { overflow-y:auto; padding:18px 20px; flex:1; display:flex; flex-direction:column; gap:16px; }
+.fb-modal__section { display:flex; flex-direction:column; gap:8px; }
+.fb-modal__section-title {
+  display:flex; align-items:center; gap:6px;
+  font-size:12px; font-weight:700; color:var(--fb-maroon);
+  text-transform:uppercase; letter-spacing:.5px;
+  padding-bottom:7px; border-bottom:1.5px solid #f3f4f6;
 }
-
-.dialog-close-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
+.fb-modal__details-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.fb-modal__detail { background:#f9fafb; border:1px solid #f0f0f0; border-radius:8px; padding:8px 11px; }
+.fb-modal__detail-label { font-size:10.5px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px; }
+.fb-modal__detail-val { font-size:13px; color:#111827; font-weight:500; }
+.fb-modal__message {
+  font-size:13.5px; color:#374151; line-height:1.6;
+  background:#f9fafb; border:1px solid #f0f0f0;
+  border-radius:8px; padding:10px 13px; white-space:pre-wrap;
 }
-
-.dialog-close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+.fb-modal__reply-text {
+  font-size:13px; color:#6b7280; font-style:italic;
+  background:#f9fafb; border:1px solid #f0f0f0;
+  border-radius:8px; padding:10px 13px; line-height:1.6; white-space:pre-wrap;
 }
-
-.feedback-dialog-body {
-  padding: 28px 24px;
-  background: #FAFAFA;
-  max-height: 60vh;
-  overflow-y: auto;
+.fb-modal__textarea {
+  width:100%; padding:9px 12px; border:1.5px solid #d1d5db;
+  border-radius:8px; font-size:13.5px; font-family:inherit;
+  resize:vertical; transition:border-color .2s, box-shadow .2s; box-sizing:border-box;
 }
+.fb-modal__textarea:focus { outline:none; border-color:var(--fb-maroon); box-shadow:0 0 0 3px rgba(128,20,60,.1); }
+.fb-modal__actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
 
-.feedback-section {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 2px solid #E5E7EB;
-  transition: all 0.2s;
+/* Buttons */
+.fb-btn {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:8px 15px; border:none; border-radius:8px;
+  font-size:13px; font-weight:700; cursor:pointer;
+  font-family:inherit; transition:background .2s, transform .15s, box-shadow .2s;
 }
+.fb-btn:hover { transform:translateY(-1px); }
+.fb-btn--reply   { background:var(--fb-maroon); color:#fff; flex:1; }
+.fb-btn--reply:hover   { background:var(--fb-maroon-d); box-shadow:0 4px 12px rgba(128,20,60,.3); }
+.fb-btn--resolve { background:var(--fb-res-bg); color:var(--fb-res); border:1.5px solid #a7f3d0; }
+.fb-btn--resolve:hover { background:#d1fae5; }
+.fb-btn--close   { background:var(--fb-closed-bg); color:var(--fb-closed); border:1.5px solid #e5e7eb; }
+.fb-btn--close:hover   { background:#e5e7eb; }
 
-.feedback-section:last-child {
-  margin-bottom: 0;
+/* Responsive */
+@media (max-width:1024px) {
+  .fb-list { grid-template-columns:1fr; }
 }
-
-.feedback-section:hover {
-  border-color: var(--maroon);
-  box-shadow: 0 4px 12px rgba(170, 27, 35, 0.1);
+@media (max-width:900px) {
+  .fb-stats { flex-wrap:wrap; }
+  .fb-stat-card { flex:1 1 45%; border-right:none; border-bottom:1px solid #f0f0f0; }
+  .fb-stat-card:last-child { border-bottom:none; }
 }
-
-.feedback-section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--maroon);
-  margin-bottom: 12px;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.feedback-section-header svg {
-  color: var(--maroon);
-}
-
-.feedback-message, .feedback-response {
-  margin: 0;
-  color: #374151;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  font-size: 14px;
-}
-
-.feedback-response {
-  font-style: italic;
-  color: #6B7280;
-}
-
-.feedback-dialog-footer {
-  padding: 20px 24px;
-  background: white;
-  border-top: 2px solid #E5E7EB;
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.dialog-btn {
-  padding: 11px 20px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.dialog-btn-secondary {
-  background: #F3F4F6;
-  color: #4B5563;
-  border: 2px solid #D1D5DB;
-}
-
-.dialog-btn-secondary:hover {
-  background: #E5E7EB;
-  border-color: #9CA3AF;
-  transform: translateY(-1px);
-}
-
-.dialog-btn-primary {
-  background: linear-gradient(135deg, #AA1B23, #8B1519);
-  color: white;
-}
-
-.dialog-btn-primary:hover {
-  background: linear-gradient(135deg, #8B1519, #6B0F13);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(170, 27, 35, 0.4);
-}
-</style>
-
-<!-- Tiny toast -->
-<div id="toast" style="position:fixed;right:16px;bottom:16px;padding:10px 14px;border-radius:8px;background:#111827;color:#fff;display:none;"></div>
-
-</section>
-
-<style>
-/* Feedback Page Custom Styles */
-.feedback-notification {
-  margin-bottom: 20px;
-  padding: 14px 18px;
-  border-radius: 10px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.feedback-notification.success {
-  background: #DEF7EC;
-  color: #03543F;
-  border: 1px solid #84E1BC;
-}
-
-.feedback-notification.error {
-  background: #FDE8E8;
-  color: #9B1C1C;
-  border: 1px solid #F98080;
-}
-
-.feedback-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-  margin-top: 20px;
-}
-
-.feedback-action-card {
-  background: #FAFAFA;
-  border: 2px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 24px;
-  transition: all 0.2s;
-}
-
-.feedback-action-card:hover {
-  border-color: var(--maroon);
-  box-shadow: 0 4px 12px rgba(170, 27, 35, 0.1);
-}
-
-.action-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #E5E7EB;
-}
-
-.action-card-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.action-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.form-label {
-  display: block;
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-.form-select, .form-textarea {
-  width: 100%;
-  padding: 11px 14px;
-  border: 2px solid #D1D5DB;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.form-select:focus, .form-textarea:focus {
-  outline: none;
-  border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(170, 27, 35, 0.1);
-}
-
-.form-select:disabled, .form-textarea:disabled {
-  background: #F3F4F6;
-  cursor: not-allowed;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 120px;
-}
-
-.form-hint {
-  display: block;
-  font-size:12px;
-  color: #6B7280;
-  margin-top: 6px;
-}
-
-.form-error {
-  display: block;
-  color: #DC2626;
-  font-size: 13px;
-  font-weight: 500;
-  margin-top: 6px;
-}
-
-.update-status-btn, .send-response-btn {
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  margin-top: 8px;
-}
-
-.update-status-btn {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  color: #fff;
-}
-
-.update-status-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #D97706, #B45309);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-}
-
-.send-response-btn {
-  background: linear-gradient(135deg, #AA1B23, #8B1519);
-  color: #fff;
-}
-
-.send-response-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #8B1519, #6B0F13);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(170, 27, 35, 0.4);
-}
-
-.update-status-btn:disabled, .send-response-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.update-status-btn:disabled:hover, .send-response-btn:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* Feedback Details Card */
-.feedback-details-card {
-  margin-bottom: 20px;
-  border: 2px solid var(--maroon);
-  background: #FFF9F9;
-}
-
-.feedback-details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #E5E7EB;
-  margin-bottom: 16px;
-}
-
-.feedback-details-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-}
-
-.close-details-btn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: #9CA3AF;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.close-details-btn:hover {
-  background: #F3F4F6;
-  color: var(--text);
-}
-
-.feedback-details-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.detail-item {
-  padding: 12px;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
-}
-
-.detail-label {
-  font-size: 12px;
-  color: #6B7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.detail-value {
-  font-size: 14px;
-  color: var(--text);
-  font-weight: 500;
-}
-
-/* Loading state */
-.btn-loading {
-  position: relative;
-  pointer-events: none;
-}
-
-.btn-loading::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 50%;
-  left: 50%;
-  margin-left: -8px;
-  margin-top: -8px;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  border-top-color: transparent;
-  animation: spinner 0.6s linear infinite;
-}
-
-@keyframes spinner {
-  to { transform: rotate(360deg); }
-}
-
-/* Row update highlight animation */
-.row-updated {
-  background: #FFF9F9 !important;
-  animation: highlightFade 1.2s ease-out;
-}
-
-@keyframes highlightFade {
-  0% { background: #FEE2E2; }
-  100% { background: transparent; }
+@media (max-width:640px) {
+  .fb-stat-card { flex:1 1 100%; }
+  .fb-toolbar { flex-direction:column; align-items:stretch; }
+  .fb-toolbar__filters { flex-wrap:wrap; gap:10px; }
+  .fb-toolbar__search { min-width:auto; }
+  .fb-modal__details-grid { grid-template-columns:1fr; }
+  .fb-modal__actions { flex-direction:column; }
 }
 </style>
 
 <script>
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Enhanced form validation and button enabling + Optimistic UI Updates
-  (function() {
-    // Update Status Form
-    const statusForm = document.querySelector('.js-update-status-form');
-    const statusFeedbackSelect = statusForm?.querySelector('.js-ref-select');
-    const statusValueSelect = statusForm?.querySelector('.js-status-select');
-    const updateBtn = statusForm?.querySelector('.update-status-btn');
+(function () {
+  var ROWS = <?= json_encode($feedback_list, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
 
-    // Send Response Form
-    const responseForm = document.querySelector('.js-send-response-form');
-    const responseFeedbackSelect = responseForm?.querySelector('.js-ref-select-2');
-    const responseTextarea = responseForm?.querySelector('.js-response');
-    const sendBtn = responseForm?.querySelector('.send-response-btn');
+  function findRowById(id) {
+    return ROWS.find(function(r){ return String(r.id) === String(id); }) || null;
+  }
+  function refForRow(r) {
+    return r.ref_code || ('C' + String(r.id).padStart(6, '0'));
+  }
 
-    // Notification area
-    const notificationArea = document.getElementById('feedbackNotification');
+  /* Filter */
+  var cards     = Array.from(document.querySelectorAll('.js-fb-card'));
+  var noResults = document.getElementById('fb-no-results');
+  var searchEl  = document.getElementById('fb-search');
+  var statusEl  = document.getElementById('fb-filter-status');
+  var typeEl    = document.getElementById('fb-filter-type');
+  var clearBtn  = document.getElementById('fb-clear-filters');
 
-    // Show notification
-    function showNotification(message, type = 'success') {
-      if (!notificationArea) return;
-      
-      notificationArea.className = 'feedback-notification ' + type;
-      notificationArea.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          ${type === 'success' 
-            ? '<path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill="currentColor"/>'
-            : '<path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" fill="currentColor"/>'
-          }
-        </svg>
-        ${message}
-      `;
-      notificationArea.style.display = 'flex';
-      
-      setTimeout(() => {
-        notificationArea.style.display = 'none';
-      }, 4000);
-    }
-
-    // Update status badge in table
-    function updateStatusBadge(feedbackRef, newStatus) {
-      const row = document.querySelector(`tr[data-ref="${CSS.escape(feedbackRef)}"]`);
-      if (!row) return;
-      
-      const badge = row.querySelector('.js-status-badge');
-      if (!badge) return;
-      
-      // Update badge text and data attribute
-      badge.textContent = newStatus;
-      badge.setAttribute('data-status', newStatus);
-      
-      // Remove all status classes
-      badge.className = 'status-badge js-status-badge';
-      
-      // Add appropriate class based on status
-      const statusLower = newStatus.toLowerCase();
-      if (statusLower === 'open') badge.classList.add('status-open');
-      else if (statusLower === 'in progress') badge.classList.add('status-progress');
-      else if (statusLower === 'resolved') badge.classList.add('status-resolved');
-      else if (statusLower === 'closed') badge.classList.add('status-closed');
-      
-      // Add highlight animation
-      row.classList.add('row-updated');
-      setTimeout(() => row.classList.remove('row-updated'), 1200);
-    }
-
-    // Enable/disable Update Status button
-    function checkStatusFormValidity() {
-      if (statusFeedbackSelect && statusValueSelect && updateBtn) {
-        const isValid = statusFeedbackSelect.value && statusValueSelect.value;
-        updateBtn.disabled = !isValid;
-      }
-    }
-
-    // Enable/disable Send Response button
-    function checkResponseFormValidity() {
-      if (responseFeedbackSelect && responseTextarea && sendBtn) {
-        const isValid = responseFeedbackSelect.value && responseTextarea.value.trim();
-        sendBtn.disabled = !isValid;
-      }
-    }
-
-    // Attach listeners
-    statusFeedbackSelect?.addEventListener('change', checkStatusFormValidity);
-    statusValueSelect?.addEventListener('change', checkStatusFormValidity);
-    responseFeedbackSelect?.addEventListener('change', checkResponseFormValidity);
-    responseTextarea?.addEventListener('input', checkResponseFormValidity);
-
-    // Handle Update Status form submission
-    if (statusForm) {
-      statusForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (updateBtn.disabled) return;
-        
-        const feedbackRef = statusFeedbackSelect.value;
-        const newStatus = statusValueSelect.value;
-        
-        // Add loading state
-        updateBtn.classList.add('btn-loading');
-        updateBtn.disabled = true;
-        const originalText = updateBtn.innerHTML;
-        updateBtn.innerHTML = '';
-        
-        try {
-          const formData = new FormData(this);
-          
-          const response = await fetch('<?= BASE_URL; ?>/B/feedback', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (response.ok) {
-            // Optimistically update the UI
-            updateStatusBadge(feedbackRef, newStatus);
-            
-            // Show success message
-            showNotification(`Status updated to "${newStatus}" for ${feedbackRef}`, 'success');
-            
-            // Reset form
-            statusForm.reset();
-            checkStatusFormValidity();
-          } else {
-            showNotification('Failed to update status. Please try again.', 'error');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          showNotification('Network error. Please try again.', 'error');
-        } finally {
-          // Remove loading state
-          updateBtn.classList.remove('btn-loading');
-          updateBtn.innerHTML = originalText;
-          checkStatusFormValidity();
-        }
-        
-        return false;
-      });
-    }
-
-    // Handle Send Response form submission
-    if (responseForm) {
-      responseForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (sendBtn.disabled) return;
-        
-        const feedbackRef = responseFeedbackSelect.value;
-        
-        // Add loading state
-        sendBtn.classList.add('btn-loading');
-        sendBtn.disabled = true;
-        const originalText = sendBtn.innerHTML;
-        sendBtn.innerHTML = '';
-        
-        try {
-          const formData = new FormData(this);
-          
-          const response = await fetch('<?= BASE_URL; ?>/B/feedback', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (response.ok) {
-            // Show success message
-            showNotification(`Response sent successfully for ${feedbackRef}`, 'success');
-            
-            // Reset form
-            responseForm.reset();
-            checkResponseFormValidity();
-          } else {
-            showNotification('Failed to send response. Please try again.', 'error');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          showNotification('Network error. Please try again.', 'error');
-        } finally {
-          // Remove loading state
-          sendBtn.classList.remove('btn-loading');
-          sendBtn.innerHTML = originalText;
-          checkResponseFormValidity();
-        }
-        
-        return false;
-      });
-    }
-
-    // View Dialog functionality
-    const dialog = document.getElementById('feedback-dialog');
-    const viewBtns = document.querySelectorAll('.js-view');
-    
-    viewBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const ref = this.getAttribute('data-ref') || '';
-        const msg = this.getAttribute('data-message') || 'No message';
-        const resp = this.getAttribute('data-response') || '';
-        
-        const refEl = dialog.querySelector('.js-dialog-ref');
-        const msgEl = dialog.querySelector('.js-dialog-msg');
-        const replyEl = dialog.querySelector('.js-dialog-reply');
-        const replyBlock = dialog.querySelector('.js-dialog-reply-block');
-        
-        if (refEl) refEl.textContent = ref;
-        if (msgEl) msgEl.textContent = msg;
-        
-        if (replyEl && replyBlock) {
-          if (resp && resp.trim()) {
-            replyEl.textContent = resp;
-            replyBlock.style.display = '';
-          } else {
-            replyEl.textContent = 'No response yet.';
-            replyBlock.style.display = '';
-          }
-        }
-        
-        if (dialog && typeof dialog.showModal === 'function') {
-          dialog.showModal();
-        } else if (dialog) {
-          dialog.setAttribute('open', 'open');
-        }
-      });
+  function applyFilters() {
+    var q      = (searchEl ? searchEl.value : '').toLowerCase().trim();
+    var status = statusEl ? statusEl.value : '';
+    var type   = typeEl   ? typeEl.value   : '';
+    var visible = 0;
+    cards.forEach(function(card) {
+      var ms = !q      || card.dataset.search.includes(q);
+      var mst= !status || card.dataset.status === status;
+      var mt = !type   || card.dataset.type   === type;
+      var show = ms && mst && mt;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
     });
+    if (noResults) noResults.style.display = visible === 0 ? 'flex' : 'none';
+  }
 
-    // Use This ID button functionality
-    const useIdBtn = dialog?.querySelector('.js-use-id-btn');
-    if (useIdBtn) {
-      useIdBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const refEl = dialog.querySelector('.js-dialog-ref');
-        const ref = refEl?.textContent.trim() || '';
-        
-        if (statusFeedbackSelect) statusFeedbackSelect.value = ref;
-        if (responseFeedbackSelect) responseFeedbackSelect.value = ref;
-        
-        checkStatusFormValidity();
-        checkResponseFormValidity();
-        
-        if (dialog.close) {
-          dialog.close();
-        } else {
-          dialog.removeAttribute('open');
-        }
-        
-        showNotification(`Selected feedback ID ${ref}`, 'success');
-      });
+  if (searchEl) searchEl.addEventListener('input', applyFilters);
+  if (statusEl) statusEl.addEventListener('change', applyFilters);
+  if (typeEl)   typeEl.addEventListener('change', applyFilters);
+  if (clearBtn) clearBtn.addEventListener('click', function(){
+    if (searchEl) searchEl.value = '';
+    if (statusEl) statusEl.value = '';
+    if (typeEl)   typeEl.value   = '';
+    applyFilters();
+  });
+
+  /* Modal */
+  var modal       = document.getElementById('fb-modal');
+  var closeBtn    = document.getElementById('fb-modal-close');
+  var mRef        = document.getElementById('fb-m-ref');
+  var mBadge      = document.getElementById('fb-m-status-badge');
+  var mPassenger  = document.getElementById('fb-m-passenger');
+  var mBus        = document.getElementById('fb-m-bus');
+  var mDate       = document.getElementById('fb-m-date');
+  var mType       = document.getElementById('fb-m-type');
+  var mRating     = document.getElementById('fb-m-rating');
+  var mMessage    = document.getElementById('fb-m-message');
+  var mReply      = document.getElementById('fb-m-reply');
+  var mReplySection=document.getElementById('fb-existing-reply-section');
+  var mId         = document.getElementById('fb-m-id');
+  var mMsgInput   = document.getElementById('fb-m-message-input');
+
+  function statusClass(s) {
+    var sl = (s||'').toLowerCase();
+    if (sl==='open')        return 'fb-badge--open';
+    if (sl==='in progress') return 'fb-badge--progress';
+    if (sl==='resolved')    return 'fb-badge--resolved';
+    if (sl==='closed')      return 'fb-badge--closed';
+    return 'fb-badge--open';
+  }
+
+  function starsHTML(rate) {
+    if (!rate || rate < 1) return '<span style="color:#d1d5db;font-style:italic;font-size:13px">No rating</span>';
+    var html = '';
+    for (var i=1; i<=5; i++) {
+      html += '<svg class="fb-star'+(i<=rate?' fb-star--on':'')+'" width="14" height="14" viewBox="0 0 20 20"><path fill="currentColor" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
     }
-  })();
-});
+    return html + '<span style="color:#9ca3af;font-size:12px;margin-left:5px">'+rate+'/5</span>';
+  }
+
+  function openModal(row) {
+    var ref = refForRow(row);
+    if (mRef)   mRef.textContent = ref;
+    if (mBadge) { mBadge.textContent = row.status||'Open'; mBadge.className = 'fb-badge '+statusClass(row.status); }
+    if (mPassenger) mPassenger.textContent = row.passenger || '';
+    if (mBus)       mBus.textContent       = row.bus_or_route || '';
+    if (mDate)      mDate.textContent      = row.date || '';
+    if (mType)      mType.textContent      = [row.type, row.category].filter(Boolean).join('  ') || '';
+    if (mRating)    mRating.innerHTML      = starsHTML(parseInt(row.rating)||0);
+    if (mMessage)   mMessage.textContent   = row.message || '';
+    if (mId)        mId.value              = row.id;
+    if (mMsgInput)  mMsgInput.value        = '';
+    if (mReply && mReplySection) {
+      var r = (row.response||'').trim();
+      if (r) { mReply.textContent = r; mReplySection.style.display = ''; }
+      else     mReplySection.style.display = 'none';
+    }
+    if (modal) modal.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    if (modal) modal.setAttribute('hidden','');
+    document.body.style.overflow = '';
+  }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (modal) modal.addEventListener('click', function(e){ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && modal && !modal.hidden) closeModal(); });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.js-fb-manage');
+    if (!btn) return;
+    var row = findRowById(btn.dataset.id);
+    if (row) openModal(row);
+  });
+
+})();
 </script>

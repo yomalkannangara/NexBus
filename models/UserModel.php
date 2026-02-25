@@ -1,5 +1,5 @@
 <?php
-namespace App\Models;
+namespace App\models;
 use PDO;
 
 class UserModel
@@ -24,12 +24,13 @@ class UserModel
     public function createPassenger(array $d): int
     {
         $firstName = trim($d['first_name'] ?? '');
-        $lastName  = trim($d['last_name'] ?? '');
+        $lastName = trim($d['last_name'] ?? '');
         $email = trim($d['email'] ?? '');
         $phone = trim($d['phone'] ?? '');
-        $pwd   = $d['password'] ?? '';
+        $pwd = $d['password'] ?? '';
 
-        if ($firstName === '' || $lastName === '' || $email === '' || $pwd === '') return 0;
+        if ($firstName === '' || $lastName === '' || $email === '' || $pwd === '')
+            return 0;
 
         // Compute ONCE so both tables share the same hash (like your example)
         $pwdHash = password_hash($pwd, PASSWORD_BCRYPT);
@@ -76,8 +77,10 @@ class UserModel
             $this->pdo->commit();
             return $userId;
 
-        } catch (\Throwable $e) {
-            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+        }
+        catch (\Throwable $e) {
+            if ($this->pdo->inTransaction())
+                $this->pdo->rollBack();
             return 0;
         }
     }
@@ -89,8 +92,8 @@ class UserModel
         $db = $GLOBALS['db'];
 
         $allowedRoles = [
-            'NTCAdmin','DepotManager','DepotOfficer','SLTBTimekeeper',
-            'PrivateTimekeeper','PrivateBusOwner','Passenger'
+            'NTCAdmin', 'DepotManager', 'DepotOfficer', 'SLTBTimekeeper',
+            'PrivateTimekeeper', 'PrivateBusOwner', 'Passenger'
         ];
         if (!in_array($data['role'], $allowedRoles, true)) {
             throw new \InvalidArgumentException('Invalid role');
@@ -129,7 +132,7 @@ class UserModel
     public static function setStatus(int $userId, string $status): bool
     {
         $db = $GLOBALS['db'];
-        $allowed = ['Active','Suspended'];
+        $allowed = ['Active', 'Suspended'];
         if (!in_array($status, $allowed, true)) {
             throw new \InvalidArgumentException('Invalid status');
         }

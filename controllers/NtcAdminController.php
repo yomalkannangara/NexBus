@@ -9,6 +9,7 @@ use App\models\ntc_admin\UserModel;
 use App\models\ntc_admin\OrgModel;
 use App\models\ntc_admin\ProfileModel; // add at top with the other use lines
 use App\models\ntc_admin\RouteModel;
+use App\models\ntc_admin\AnalyticsModel;
 
 
 class NtcAdminController extends BaseController {
@@ -280,34 +281,39 @@ public function timetables() {
         ]);
     }
 public function analytics() {
-    // dummy data (same as before)
+    $m = new AnalyticsModel();
+
+    // ── Read & sanitise filter params from GET ─────────────────────
+    $routeNo = trim($_GET['route_no']  ?? '');
+    $depotId = (int)($_GET['depot_id']  ?? 0);
+    $ownerId = (int)($_GET['owner_id']  ?? 0);
+    // depot and owner are mutually exclusive; if both sent, prefer depot
+    if ($depotId > 0) $ownerId = 0;
+
+    $filters = [
+        'route_no' => $routeNo,
+        'depot_id' => $depotId ?: null,
+        'owner_id' => $ownerId ?: null,
+    ];
+
+    // ── KPIs (live from DB, filter-aware) ─────────────────────────
+    $kpi = [
+        'delayedToday' => $m->delayedToday($filters),
+        'avgRating'    => $m->avgRating($filters),
+        'speedViol'    => $m->speedViolationsToday($filters),
+        'longWaitPct'  => $m->longWaitPct($filters),
+    ];
+
+    // ── Chart datasets (real DB, filter-aware) ────────────────────
     $analytics = [
-        "busStatus"   => [
-            ["status"=>"Active", "total"=>120],
-            ["status"=>"Maintenance", "total"=>25],
-            ["status"=>"Inactive", "total"=>15],
-        ],
-        "onTime"      => [
-            ["operational_status"=>"OnTime", "total"=>85],
-            ["operational_status"=>"Delayed", "total"=>10],
-            ["operational_status"=>"Breakdown", "total"=>5],
-        ],
-        "revenue"     => [
-            ["date"=>"2025-05-01","operator_type"=>"Private","total"=>45000],
-            ["date"=>"2025-05-01","operator_type"=>"SLTB","total"=>38000],
-            ["date"=>"2025-05-02","operator_type"=>"Private","total"=>50000],
-            ["date"=>"2025-05-02","operator_type"=>"SLTB","total"=>40000],
-        ],
-        "complaints"  => [
-            ["category"=>"Cleanliness","total"=>12],
-            ["category"=>"Driver Behaviour","total"=>8],
-            ["category"=>"Delay","total"=>15],
-        ],
-        "utilization" => [
-            ["route_no"=>"138","utilization"=>75],
-            ["route_no"=>"100","utilization"=>60],
-            ["route_no"=>"199","utilization"=>80],
-        ],
+        '_fromServer'      => true,
+        'kpi'              => $kpi,
+        'busStatus'        => $m->busStatus($filters),
+        'revenue'          => $m->revenueTrends($filters),
+        'speedByBus'       => $m->speedByBus($filters),
+        'waitTime'         => $m->waitTimeDistribution($filters),
+        'delayedByRoute'   => $m->delayedByRoute($filters),
+        'complaintsByRoute'=> $m->complaintsByRoute($filters),
     ];
 
     $this->view('ntc_admin','analytics',[
@@ -315,7 +321,18 @@ public function analytics() {
             $analytics,
             JSON_UNESCAPED_SLASHES|JSON_NUMERIC_CHECK|
             JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT
-        )
+        ),
+        'kpi'     => $kpi,
+        'filters' => $filters,
+        // All distinct route_nos ordered numerically – includes auto-created live routes
+        'routes'  => $GLOBALS['db']->query(
+            "SELECT DISTINCT route_no
+             FROM routes
+             WHERE is_active = 1
+             ORDER BY CAST(route_no AS UNSIGNED), route_no"
+        )->fetchAll(\PDO::FETCH_ASSOC),
+        'depots'  => $m->depots(),
+        'owners'  => $m->owners(),
     ]);
 }
 

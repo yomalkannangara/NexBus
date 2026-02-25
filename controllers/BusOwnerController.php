@@ -47,7 +47,10 @@ class BusOwnerController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
             if ($act === 'create') {
-                $m->create($_POST);
+                $ok = $m->create($_POST);
+                if (!$ok) {
+                    return $this->redirect('/B/fleet?msg=duplicate');
+                }
                 return $this->redirect('/B/fleet?msg=created');
             }
             if ($act === 'update') {
@@ -82,25 +85,29 @@ class BusOwnerController extends BaseController
             return $this->redirect('/B/fleet');
         }
 
-        $regNo = isset($_POST['reg_no']) ? trim($_POST['reg_no']) : '';
-        $driverId = isset($_POST['driver_id']) && $_POST['driver_id'] !== '' && $_POST['driver_id'] !== '0' 
-                    ? (int)$_POST['driver_id'] 
-                    : null;
-        $conductorId = isset($_POST['conductor_id']) && $_POST['conductor_id'] !== '' && $_POST['conductor_id'] !== '0'
-                       ? (int)$_POST['conductor_id'] 
-                       : null;
+        $regNo      = isset($_POST['reg_no'])     ? trim($_POST['reg_no'])     : '';
+        $rawDriver  = isset($_POST['driver_id'])  ? trim($_POST['driver_id'])  : '';
+        $rawCond    = isset($_POST['conductor_id']) ? trim($_POST['conductor_id']) : '';
+
+        $driverId    = ($rawDriver !== '' && $rawDriver !== '0')  ? (int)$rawDriver  : null;
+        $conductorId = ($rawCond   !== '' && $rawCond   !== '0')  ? (int)$rawCond    : null;
+
+        error_log("[fleetAssign] POST received: reg_no={$regNo}, driver_id={$rawDriver}, conductor_id={$rawCond}");
 
         if ($regNo === '') {
+            error_log("[fleetAssign] Empty reg_no — rejecting");
             return $this->redirect('/B/fleet?msg=error');
         }
 
         $m = new BusModel();
         $success = $m->assignDriverConductor($regNo, $driverId, $conductorId);
 
+        error_log("[fleetAssign] assign result: " . ($success ? 'success' : 'failed') . " for reg_no={$regNo}");
+
         if ($success) {
             return $this->redirect('/B/fleet?msg=assigned');
         } else {
-            return $this->redirect('/B/fleet?msg=error');
+            return $this->redirect('/B/fleet?msg=assign_fail');
         }
     }
 
@@ -238,53 +245,108 @@ class BusOwnerController extends BaseController
         }
 
 
-/** /B/earnings/export - Export earnings data as CSV */
+/** /B/earnings/export - Export earnings data as Excel */
 public function exportEarnings()
 {
-    $range = $_GET['range'] ?? '6m';
     $m = new EarningModel();
-    
-    // Get all earnings
     $earnings = $m->getAll();
-    
-    // Set headers for CSV download
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="earnings_report_' . $range . '_' . date('Y-m-d') . '.csv"');
-    
-    // Open output stream
-    $output = fopen('php://output', 'w');
-    
-    // Add BOM for proper Excel UTF-8 encoding
-    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-    
-    // Write header
-    fputcsv($output, ['Earnings Report', 'Generated: ' . date('Y-m-d H:i:s')]);
-    fputcsv($output, ['']);
-    
-    // Column headers
-    fputcsv($output, ['Date', 'Bus Registration', 'Route', 'Amount (LKR)', 'Type', 'Remarks']);
-    
-    // Write data rows
-    $totalAmount = 0;
-    foreach ($earnings as $e) {
-        $amount = (float)($e['amount'] ?? 0);
-        $totalAmount += $amount;
-        
-        fputcsv($output, [
-            $e['date'] ?? '',
-            $e['bus_reg_no'] ?? 'N/A',
-            $e['route'] ?? 'N/A',
-            number_format($amount, 2),
-            $e['earning_type'] ?? 'Revenue',
-            $e['remarks'] ?? ''
-        ]);
-    }
-    
-    // Summary row
-    fputcsv($output, ['']);
-    fputcsv($output, ['Total Earnings', '', '', number_format($totalAmount, 2), '', '']);
-    
-    fclose($output);
+
+    $filename = 'earnings_report_' . date('Y-m-d') . '.xls';
+
+    // Excel XML Spreadsheet 2003 — opens natively in all Excel versions
+    header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+
+    // Calculate total
+    $total = array_sum(array_map(fn($e) => (float)($e['amount'] ?? 0), $earnings));
+
+    // Helper: escape XML special chars
+    $x = fn($v) => htmlspecialchars((string)$v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    echo '<?mso-application progid="Excel.Sheet"?>' . "\n";
+    ?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:x="urn:schemas-microsoft-com:office:excel">
+  <Styles>
+    <Style ss:ID="title">
+      <Font ss:Bold="1" ss:Size="14" ss:Color="#80143C"/>
+    </Style>
+    <Style ss:ID="header">
+      <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+      <Interior ss:Color="#80143C" ss:Pattern="Solid"/>
+      <Alignment ss:Horizontal="Center"/>
+    </Style>
+    <Style ss:ID="total">
+      <Font ss:Bold="1"/>
+      <Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/>
+    </Style>
+    <Style ss:ID="currency">
+      <NumberFormat ss:Format="#,##0.00"/>
+    </Style>
+    <Style ss:ID="totalCurrency">
+      <Font ss:Bold="1"/>
+      <Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/>
+      <NumberFormat ss:Format="#,##0.00"/>
+    </Style>
+    <Style ss:ID="date">
+      <NumberFormat ss:Format="YYYY-MM-DD"/>
+    </Style>
+    <Style ss:ID="even">
+      <Interior ss:Color="#F9FAFB" ss:Pattern="Solid"/>
+    </Style>
+  </Styles>
+  <Worksheet ss:Name="Earnings Report">
+    <Table>
+      <Column ss:Width="100"/>
+      <Column ss:Width="130"/>
+      <Column ss:Width="140"/>
+      <Column ss:Width="120"/>
+
+      <!-- Title row -->
+      <Row>
+        <Cell ss:MergeAcross="3" ss:StyleID="title">
+          <Data ss:Type="String">NexBus Earnings Report — Generated <?= date('Y-m-d H:i') ?></Data>
+        </Cell>
+      </Row>
+      <Row/>
+
+      <!-- Column headers -->
+      <Row>
+        <Cell ss:StyleID="header"><Data ss:Type="String">Date</Data></Cell>
+        <Cell ss:StyleID="header"><Data ss:Type="String">Bus Reg. No</Data></Cell>
+        <Cell ss:StyleID="header"><Data ss:Type="String">Source / Note</Data></Cell>
+        <Cell ss:StyleID="header"><Data ss:Type="String">Amount (LKR)</Data></Cell>
+      </Row>
+
+      <!-- Data rows -->
+      <?php foreach ($earnings as $i => $e): ?>
+      <?php $style = ($i % 2 === 1) ? ' ss:StyleID="even"' : ''; ?>
+      <?php $amount = (float)($e['amount'] ?? 0); ?>
+      <Row>
+        <Cell<?= $style ?>><Data ss:Type="String"><?= $x($e['date'] ?? '') ?></Data></Cell>
+        <Cell<?= $style ?>><Data ss:Type="String"><?= $x($e['bus_reg_no'] ?? '') ?></Data></Cell>
+        <Cell<?= $style ?>><Data ss:Type="String"><?= $x($e['source'] ?? '') ?></Data></Cell>
+        <Cell ss:StyleID="currency"><Data ss:Type="Number"><?= $amount ?></Data></Cell>
+      </Row>
+      <?php endforeach; ?>
+
+      <!-- Empty separator -->
+      <Row/>
+
+      <!-- Total row -->
+      <Row>
+        <Cell ss:StyleID="total"><Data ss:Type="String">TOTAL</Data></Cell>
+        <Cell ss:StyleID="total"><Data ss:Type="String"></Data></Cell>
+        <Cell ss:StyleID="total"><Data ss:Type="String"><?= count($earnings) ?> record(s)</Data></Cell>
+        <Cell ss:StyleID="totalCurrency"><Data ss:Type="Number"><?= $total ?></Data></Cell>
+      </Row>
+    </Table>
+  </Worksheet>
+</Workbook>
+    <?php
     exit;
 }
 
