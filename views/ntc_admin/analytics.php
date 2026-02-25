@@ -144,7 +144,7 @@
   </div>
   <?php if ($curDep > 0 || $curOwn > 0): ?>
     <p style="font-size:.78rem;color:#9ca3af;margin:0 0 .5rem">
-      ℹ Depot/owner filters apply to analytics charts above. Live table shows all active buses (route filter still applies).
+      ℹ Route, depot, and owner filters apply to both analytics charts and the live table.
     </p>
   <?php endif; ?>
   <div style="overflow-x:auto">
@@ -206,7 +206,15 @@
 </script>
 
 <!-- central dummy values (used if PHP JSON is empty) -->
-<script src="../assets/js/analytics/dummyData.js"></script>
+<?php
+  /* Cache-buster: inline closure (safe in included views, no redeclare error) */
+  $jsBase  = __DIR__ . '/../../public/assets/js/analytics/';
+  $jsv = static function(string $base, string $file): string {
+    $p = $base . $file;
+    return '?v=' . (is_file($p) ? filemtime($p) : time());
+  };
+?>
+<script src="../assets/js/analytics/dummyData.js<?= $jsv($jsBase,'dummyData.js') ?>"></script>
 
 <!-- charts (standalone, no imports) -->
 <style>
@@ -232,13 +240,13 @@
   .live-fleet-table tbody tr:nth-child(even) { background:#f9fafb; }
   .nb-table-empty { padding:.75rem; text-align:center; color:#6b7280; }
 </style>
-<script src="../assets/js/analytics/chartCore.js"></script>
-<script src="../assets/js/analytics/busStatus.js"></script>
-<script src="../assets/js/analytics/revenue.js"></script>
-<script src="../assets/js/analytics/speedByBus.js"></script>
-<script src="../assets/js/analytics/waitTime.js"></script>
-<script src="../assets/js/analytics/delayedByRoute.js"></script>
-<script src="../assets/js/analytics/complaintsRoute.js"></script>
+<script src="../assets/js/analytics/chartCore.js<?= $jsv($jsBase,'chartCore.js') ?>"></script>
+<script src="../assets/js/analytics/busStatus.js<?= $jsv($jsBase,'busStatus.js') ?>"></script>
+<script src="../assets/js/analytics/revenue.js<?= $jsv($jsBase,'revenue.js') ?>"></script>
+<script src="../assets/js/analytics/speedByBus.js<?= $jsv($jsBase,'speedByBus.js') ?>"></script>
+<script src="../assets/js/analytics/waitTime.js<?= $jsv($jsBase,'waitTime.js') ?>"></script>
+<script src="../assets/js/analytics/delayedByRoute.js<?= $jsv($jsBase,'delayedByRoute.js') ?>"></script>
+<script src="../assets/js/analytics/complaintsRoute.js<?= $jsv($jsBase,'complaintsRoute.js') ?>"></script>
 
 <!-- Live fleet data (replaces dummy speed/status charts with real API data) -->
-<script src="../assets/js/analytics/liveFleet.js"></script>
+<script src="../assets/js/analytics/liveFleet.js<?= $jsv($jsBase,'liveFleet.js') ?>"></script>
