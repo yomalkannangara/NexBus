@@ -334,7 +334,7 @@ svg {
 .export-report-btn-alt {
   background: #fff;
   color: var(--maroon);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--maroon);
 }
 
 .add-bus-btn:hover,
@@ -343,8 +343,8 @@ svg {
 }
 
 .export-report-btn-alt:hover {
-  background: #F9FAFB;
-  border-color: #CBD5E1;
+  background: #fdf2f5;
+  border-color: var(--maroon);
   transform: translateY(-1px);
 }
 
@@ -1215,28 +1215,26 @@ tr.row-updated {
 /* Earnings: Add Income button (keep modern look) */
 .add-income-btn {
   appearance: none;
-  border: 0;
-  border-radius: 12px;
-  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(180deg, #22C55E, #16A34A);
-  color: #fff;
-  box-shadow: 0 6px 14px rgba(22, 163, 74, .25), inset 0 1px 0 rgba(255, 255, 255, .25);
-  transition: transform .12s ease, box-shadow .12s ease, filter .2s ease;
+  background: #f3b944 !important;
+  color: #80143c !important;
+  transition: background .2s, transform .12s;
 }
 
 .add-income-btn:hover {
+  background: #F59E0B !important;
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(22, 163, 74, .32), inset 0 1px 0 rgba(255, 255, 255, .25);
 }
 
 .add-income-btn:active {
   transform: translateY(0);
-  filter: brightness(.96);
 }
 
 /* Earnings modal */

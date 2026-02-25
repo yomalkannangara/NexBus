@@ -118,55 +118,54 @@
   </div>
 
   <!-- Earnings Modal (hidden by default) -->
-  <div id="earningModal" class="modal" hidden>
-    <div class="modal__backdrop" data-close="1"></div>
-    <div class="modal__dialog">
-      <div class="modal__header">
-        <h3 id="earningModalTitle">Add Income</h3>
-        <button type="button" class="modal__close" id="btnCloseEarning" aria-label="Close">×</button>
+  <div id="earningModal" class="enrg-modal" hidden>
+    <div class="enrg-modal__backdrop"></div>
+    <div class="enrg-modal__panel">
+      <div class="enrg-modal__header">
+        <div>
+          <h2 class="enrg-modal__title" id="earningModalTitle">Add Income Record</h2>
+          <p class="enrg-modal__subtitle">Enter details below</p>
+        </div>
+        <button type="button" class="enrg-modal__close" id="btnCloseEarning" aria-label="Close">&times;</button>
       </div>
 
-      <form id="earningForm" class="modal__form" autocomplete="off">
+      <form id="earningForm" autocomplete="off">
         <input type="hidden" id="f_e_id" name="earning_id" value="">
 
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="f_e_date">Date <span class="req">*</span></label>
-            <input type="date" id="f_e_date" name="date" required>
+        <div class="enrg-modal__grid">
+          <div class="enrg-modal__field">
+            <label class="enrg-modal__label" for="f_e_date">Date <span style="color:#DC2626;">*</span></label>
+            <input type="date" id="f_e_date" name="date" class="enrg-modal__input" required>
           </div>
-
-            <div class="form-field">
-            <label for="f_e_bus">Bus Reg. No <span class="req">*</span></label>
-            <select id="f_e_bus" name="bus_reg_no" required>
-                <option value="">-- Select Bus --</option>
-                <?php if (!empty($buses) && is_array($buses)): ?>
-                <?php foreach ($buses as $b): ?>
-                    <?php $reg = is_array($b) ? ($b['reg_no'] ?? '') : (string)$b; ?>
-                    <?php if ($reg !== ''): ?>
-                    <option value="<?= htmlspecialchars($reg) ?>"><?= htmlspecialchars($reg) ?></option>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-                <?php else: ?>
-                <option value="" disabled>(No buses found for your account)</option>
+          <div class="enrg-modal__field">
+            <label class="enrg-modal__label" for="f_e_bus">Bus Reg. No <span style="color:#DC2626;">*</span></label>
+            <select id="f_e_bus" name="bus_reg_no" class="enrg-modal__input" required>
+              <option value="">-- Select Bus --</option>
+              <?php if (!empty($buses) && is_array($buses)): ?>
+              <?php foreach ($buses as $b): ?>
+                <?php $reg = is_array($b) ? ($b['reg_no'] ?? '') : (string)$b; ?>
+                <?php if ($reg !== ''): ?>
+                <option value="<?= htmlspecialchars($reg) ?>"><?= htmlspecialchars($reg) ?></option>
                 <?php endif; ?>
+              <?php endforeach; ?>
+              <?php else: ?>
+              <option value="" disabled>(No buses found for your account)</option>
+              <?php endif; ?>
             </select>
-            </div>
-
-
-          <div class="form-field">
-            <label for="f_e_amount">Amount (LKR) <span class="req">*</span></label>
-            <input type="number" id="f_e_amount" name="amount" step="0.01" min="0" required>
           </div>
-
-          <div class="form-field">
-            <label for="f_e_source">Source / Note</label>
-            <input type="text" id="f_e_source" name="source" maxlength="120" placeholder="Ticket sales, charter, etc.">
+          <div class="enrg-modal__field">
+            <label class="enrg-modal__label" for="f_e_amount">Amount (LKR) <span style="color:#DC2626;">*</span></label>
+            <input type="number" id="f_e_amount" name="amount" step="0.01" min="0" class="enrg-modal__input" required>
+          </div>
+          <div class="enrg-modal__field">
+            <label class="enrg-modal__label" for="f_e_source">Source / Note</label>
+            <input type="text" id="f_e_source" name="source" maxlength="120" placeholder="Ticket sales, charter, etc." class="enrg-modal__input">
           </div>
         </div>
 
-        <div class="modal__footer">
-          <button type="button" class="btn-secondary" id="btnCancelEarning">Cancel</button>
-          <button type="submit" class="btn-primary" id="btnSubmitEarning">Save</button>
+        <div class="enrg-modal__footer">
+          <button type="button" class="enrg-modal__btn enrg-modal__btn--cancel" id="btnCancelEarning">Cancel</button>
+          <button type="submit" class="enrg-modal__btn enrg-modal__btn--submit" id="btnSubmitEarning">Save</button>
         </div>
       </form>
     </div>
@@ -202,6 +201,28 @@
 </section>
 
 <style>
+/* Earnings modal — matches bus-modal style */
+.enrg-modal[hidden]            { display: none; }
+.enrg-modal                    { position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; }
+.enrg-modal__backdrop          { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+.enrg-modal__panel             { position: relative; width: min(560px, 95vw); background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.18); overflow: hidden; }
+.enrg-modal__header            { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 24px 0; }
+.enrg-modal__title             { font-size: 20px; font-weight: 700; color: var(--maroon); margin: 0 0 4px; }
+.enrg-modal__subtitle          { font-size: 13px; color: #6B7280; margin: 0; }
+.enrg-modal__close             { background: none; border: none; font-size: 22px; cursor: pointer; color: #9CA3AF; line-height: 1; padding: 0; margin-left: 12px; }
+.enrg-modal__close:hover       { color: #374151; }
+.enrg-modal__grid              { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 24px; }
+.enrg-modal__field             { display: flex; flex-direction: column; gap: 6px; }
+.enrg-modal__label             { font-size: 13px; font-weight: 600; color: #374151; }
+.enrg-modal__input             { width: 100%; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 14px; color: #111827; box-sizing: border-box; transition: border-color .15s; font-family: inherit; background: #fff; }
+.enrg-modal__input:focus       { outline: none; border-color: var(--maroon); box-shadow: 0 0 0 3px rgba(127,0,50,.08); }
+.enrg-modal__footer            { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 24px; }
+.enrg-modal__btn               { padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background .18s; display: inline-block; }
+.enrg-modal__btn--cancel       { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
+.enrg-modal__btn--cancel:hover { background: #E5E7EB; }
+.enrg-modal__btn--submit       { background: var(--gold); color: var(--maroon); }
+.enrg-modal__btn--submit:hover { background: #F59E0B; }
+
 /* Modern Toast Notification */
 .toast-notification {
   position: fixed;
@@ -379,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnCancel) btnCancel.addEventListener('click', closeModal);
 
   // Close on backdrop click
-  const backdrop = modal?.querySelector('.modal__backdrop');
+  const backdrop = modal?.querySelector('.enrg-modal__backdrop');
   if (backdrop) {
     backdrop.addEventListener('click', closeModal);
   }
@@ -530,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnExport) {
     btnExport.addEventListener('click', function() {
       const exportUrl = this.dataset.exportHref || '<?= BASE_URL; ?>/earnings/export';
-      window.location.href = exportUrl + '?range=6m';
+      window.location.href = exportUrl;
     });
   }
 });
