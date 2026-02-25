@@ -125,7 +125,7 @@ $routes = [
     '/B/profile'    => ['BusOwnerController','profile'],
 
     // Live bus proxy (no auth)
-    '/api/buses/live'        => ['LiveBusesController','proxy'],
+  
     '/api/buses/missing-sql'  => ['LiveBusesController','missingSql'],
 ];
 
