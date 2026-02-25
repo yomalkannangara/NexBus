@@ -90,7 +90,7 @@ body{
   justify-content: space-between;
   padding: 12px 20px;
   z-index: 1000;
-  background: var(--primary);
+  background: #7a0f2e !important;
   color: #fff;
   border-bottom: 4px solid var(--gold);
 }
@@ -118,7 +118,7 @@ body{
 
 .sidebar{
   width: 250px;
-  background: var(--maroon-2);
+  background: #7a0f2e;
   color: #fff;
   display:flex;
   flex-direction:column;
