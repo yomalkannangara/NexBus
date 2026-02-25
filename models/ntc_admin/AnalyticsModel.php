@@ -114,13 +114,23 @@ class AnalyticsModel extends BaseModel
         $joinSql  = implode(' ', $joins);
         $whereSql = 'WHERE ' . implode(' AND ', $wheres);
 
-        $sql = "SELECT DATE_FORMAT(e.date,'%b %Y') AS mon,
-                       YEAR(e.date) AS yr, MONTH(e.date) AS mo,
-                       ROUND(SUM(e.amount)/1000000, 2) AS total_m
-                FROM earnings e $joinSql
-                $whereSql
-                GROUP BY yr, mo
-                ORDER BY yr, mo";
+                $sql = "SELECT
+                                        DATE_FORMAT(
+                                            STR_TO_DATE(CONCAT(t.yr,'-',LPAD(t.mo,2,'0'),'-01'), '%Y-%m-%d'),
+                                            '%b %Y'
+                                        ) AS mon,
+                                        t.yr,
+                                        t.mo,
+                                        t.total_m
+                                FROM (
+                                        SELECT YEAR(e.date) AS yr,
+                                                     MONTH(e.date) AS mo,
+                                                     ROUND(SUM(e.amount)/1000000, 2) AS total_m
+                                        FROM earnings e $joinSql
+                                        $whereSql
+                                        GROUP BY YEAR(e.date), MONTH(e.date)
+                                ) t
+                                ORDER BY t.yr, t.mo";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
