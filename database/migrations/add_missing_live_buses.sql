@@ -104,56 +104,198 @@ VALUES
 -- private_operator_id: 1=Prime Transport, 2=CityExpress, 3=Sunrise Travels
 -- INSERT IGNORE INTO `private_buses` (`reg_no`, `private_operator_id`, `status`)
 --   VALUES ('PB-XXXX', 1, 'Active');
-CREATE TABLE `notifications` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `type` enum('System','Delay','Complaint','Timetable','Message','Alert','Breakdown') DEFAULT 'System',
-  `message` text NOT NULL,
-  `is_seen` tinyint(1) DEFAULT 0,
-  `priority` enum('normal','urgent','critical') DEFAULT 'normal',
-  `metadata` json DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/* === JUDE-ONLY MIGRATION (safe if rerun) === */
 
-ALTER TABLE `sltb_trips`
-  ADD COLUMN `arrival_depot_id` int(11) DEFAULT NULL AFTER `arrival_time`,
-  ADD COLUMN `completed_by` int(11) DEFAULT NULL AFTER `arrival_depot_id`;
+/* -------------------------------
+   1) Upgrade `notifications`
+--------------------------------- */
 
-ALTER TABLE `sltb_trips`
-  ADD INDEX `idx_arrival_depot` (`arrival_depot_id`),
-  ADD INDEX `idx_completed_by` (`completed_by`);
+/* message -> TEXT */
+ALTER TABLE `notifications`
+  MODIFY COLUMN `message` TEXT NOT NULL;
 
-ALTER TABLE `private_trips`
-  ADD COLUMN `arrival_depot_id` int(11) DEFAULT NULL AFTER `arrival_time`,
-  ADD COLUMN `completed_by` int(11) DEFAULT NULL AFTER `arrival_depot_id`;
+/* type enum -> add Alert, Breakdown (keep old values too) */
+ALTER TABLE `notifications`
+  MODIFY COLUMN `type` ENUM('System','Delay','Complaint','Timetable','Message','Alert','Breakdown')
+  NOT NULL DEFAULT 'System';
 
-ALTER TABLE `private_trips`
-  ADD INDEX `idx_arrival_depot` (`arrival_depot_id`),
-  ADD INDEX `idx_completed_by` (`completed_by`);
+/* Add priority if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME='notifications'
+             AND COLUMN_NAME='priority');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `notifications` ADD COLUMN `priority` ENUM('normal','urgent','critical') DEFAULT 'normal' AFTER `is_seen`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE `sltb_trips`
-  ADD COLUMN `cancelled_by` int(11) DEFAULT NULL AFTER `completed_by`,
-  ADD COLUMN `cancel_reason` text DEFAULT NULL AFTER `cancelled_by`,
-  ADD COLUMN `cancelled_at` timestamp NULL DEFAULT NULL AFTER `cancel_reason`;
+/* Add metadata if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME='notifications'
+             AND COLUMN_NAME='metadata');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `notifications` ADD COLUMN `metadata` JSON DEFAULT NULL AFTER `priority`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE `private_trips`
-  ADD COLUMN `cancelled_by` int(11) DEFAULT NULL AFTER `completed_by`,
-  ADD COLUMN `cancel_reason` text DEFAULT NULL AFTER `cancelled_by`,
-  ADD COLUMN `cancelled_at` timestamp NULL DEFAULT NULL AFTER `cancel_reason`;
+/* Add updated_at if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME='notifications'
+             AND COLUMN_NAME='updated_at');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `notifications` ADD COLUMN `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `created_at`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE `sltb_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
-ALTER TABLE `private_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`);
 
-ALTER TABLE `sltb_assignments`
-  ADD COLUMN `override_remark` TEXT DEFAULT NULL AFTER `sltb_depot_id`,
-  ADD COLUMN `overridden_by` int(11) DEFAULT NULL AFTER `override_remark`,
-  ADD COLUMN `override_at` datetime DEFAULT NULL AFTER `overridden_by`;
+/* -------------------------------
+   2) Trips: completion + cancellation
+--------------------------------- */
 
-ALTER TABLE `sltb_assignments`
-  ADD INDEX `idx_overridden_by` (`overridden_by`);
+/* sltb_trips: add columns if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND COLUMN_NAME='arrival_depot_id');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_trips` ADD COLUMN `arrival_depot_id` INT(11) DEFAULT NULL AFTER `arrival_time`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-CREATE TABLE `sltb_assignment_overrides` (
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND COLUMN_NAME='completed_by');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_trips` ADD COLUMN `completed_by` INT(11) DEFAULT NULL AFTER `arrival_depot_id`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND COLUMN_NAME='cancelled_by');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_trips` ADD COLUMN `cancelled_by` INT(11) DEFAULT NULL AFTER `completed_by`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND COLUMN_NAME='cancel_reason');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_trips` ADD COLUMN `cancel_reason` TEXT DEFAULT NULL AFTER `cancelled_by`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND COLUMN_NAME='cancelled_at');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_trips` ADD COLUMN `cancelled_at` TIMESTAMP NULL DEFAULT NULL AFTER `cancel_reason`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+/* sltb_trips indexes if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND INDEX_NAME='idx_arrival_depot');
+SET @sql := IF(@c=0, "ALTER TABLE `sltb_trips` ADD INDEX `idx_arrival_depot` (`arrival_depot_id`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND INDEX_NAME='idx_completed_by');
+SET @sql := IF(@c=0, "ALTER TABLE `sltb_trips` ADD INDEX `idx_completed_by` (`completed_by`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_trips' AND INDEX_NAME='idx_cancelled_by');
+SET @sql := IF(@c=0, "ALTER TABLE `sltb_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+/* private_trips: add columns if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND COLUMN_NAME='arrival_depot_id');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `private_trips` ADD COLUMN `arrival_depot_id` INT(11) DEFAULT NULL AFTER `arrival_time`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND COLUMN_NAME='completed_by');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `private_trips` ADD COLUMN `completed_by` INT(11) DEFAULT NULL AFTER `arrival_depot_id`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND COLUMN_NAME='cancelled_by');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `private_trips` ADD COLUMN `cancelled_by` INT(11) DEFAULT NULL AFTER `completed_by`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND COLUMN_NAME='cancel_reason');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `private_trips` ADD COLUMN `cancel_reason` TEXT DEFAULT NULL AFTER `cancelled_by`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND COLUMN_NAME='cancelled_at');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `private_trips` ADD COLUMN `cancelled_at` TIMESTAMP NULL DEFAULT NULL AFTER `cancel_reason`",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+/* private_trips indexes if missing */
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND INDEX_NAME='idx_arrival_depot');
+SET @sql := IF(@c=0, "ALTER TABLE `private_trips` ADD INDEX `idx_arrival_depot` (`arrival_depot_id`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND INDEX_NAME='idx_completed_by');
+SET @sql := IF(@c=0, "ALTER TABLE `private_trips` ADD INDEX `idx_completed_by` (`completed_by`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='private_trips' AND INDEX_NAME='idx_cancelled_by');
+SET @sql := IF(@c=0, "ALTER TABLE `private_trips` ADD INDEX `idx_cancelled_by` (`cancelled_by`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+/* -------------------------------
+   3) SLTB assignments: override tracking
+--------------------------------- */
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignments' AND COLUMN_NAME='override_remark');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_assignments` ADD COLUMN `override_remark` TEXT DEFAULT NULL",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignments' AND COLUMN_NAME='overridden_by');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_assignments` ADD COLUMN `overridden_by` INT(11) DEFAULT NULL",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignments' AND COLUMN_NAME='override_at');
+SET @sql := IF(@c=0,
+  "ALTER TABLE `sltb_assignments` ADD COLUMN `override_at` DATETIME DEFAULT NULL",
+  "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignments' AND INDEX_NAME='idx_overridden_by');
+SET @sql := IF(@c=0, "ALTER TABLE `sltb_assignments` ADD INDEX `idx_overridden_by` (`overridden_by`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+/* -------------------------------
+   4) New table: sltb_assignment_overrides
+--------------------------------- */
+
+CREATE TABLE IF NOT EXISTS `sltb_assignment_overrides` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `assignment_id` int(11) DEFAULT NULL,
   `assigned_date` date NOT NULL,
@@ -168,20 +310,13 @@ CREATE TABLE `sltb_assignment_overrides` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-ALTER TABLE `sltb_assignment_overrides`
-  ADD INDEX `idx_overridden_by` (`overridden_by`),
-  ADD INDEX `idx_assignment` (`assignment_id`);
+/* indexes for overrides table (safe) */
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignment_overrides' AND INDEX_NAME='idx_overridden_by');
+SET @sql := IF(@c=0, "ALTER TABLE `sltb_assignment_overrides` ADD INDEX `idx_overridden_by` (`overridden_by`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE notifications
-    MODIFY COLUMN `type` ENUM(
-        'Message',
-        'Delay',
-        'Timetable',
-        'Alert',
-        'Urgent',
-        'Breakdown',
-        'System'
-    ) NOT NULL DEFAULT 'Message';
-
-CREATE INDEX IF NOT EXISTS idx_notif_depot_type_time
-    ON notifications (user_id, type, created_at);
+SET @c := (SELECT COUNT(*) FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='sltb_assignment_overrides' AND INDEX_NAME='idx_assignment');
+SET @sql := IF(@c=0, "ALTER TABLE `sltb_assignment_overrides` ADD INDEX `idx_assignment` (`assignment_id`)", "SELECT 1");
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
