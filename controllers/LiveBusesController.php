@@ -51,21 +51,25 @@ class LiveBusesController
         $pdo = $GLOBALS['db'];
         $ph  = implode(',', array_fill(0, count($regNos), '?'));
 
-        // SLTB buses
+        // SLTB buses (LEFT JOIN so buses still resolve even if depot master row is missing)
         $stmt = $pdo->prepare(
-            "SELECT sb.reg_no, sd.sltb_depot_id AS depot_id, sd.name AS depot
+            "SELECT sb.reg_no,
+                    sb.sltb_depot_id AS depot_id,
+                    sd.name AS depot
              FROM sltb_buses sb
-             JOIN sltb_depots sd ON sd.sltb_depot_id = sb.sltb_depot_id
+             LEFT JOIN sltb_depots sd ON sd.sltb_depot_id = sb.sltb_depot_id
              WHERE sb.reg_no IN ($ph)"
         );
         $stmt->execute($regNos);
         $sltb = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Private buses
+        // Private buses (LEFT JOIN so buses still resolve even if owner master row is missing)
         $stmt2 = $pdo->prepare(
-            "SELECT pb.reg_no, pbo.private_operator_id AS owner_id, pbo.name AS owner
+            "SELECT pb.reg_no,
+                    pb.private_operator_id AS owner_id,
+                    pbo.name AS owner
              FROM private_buses pb
-             JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
+             LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
              WHERE pb.reg_no IN ($ph)"
         );
         $stmt2->execute($regNos);
@@ -73,22 +77,24 @@ class LiveBusesController
 
         $map = [];
         foreach ($sltb as $r) {
+            $depotId = (int)($r['depot_id'] ?? 0);
             $map[$r['reg_no']] = [
                 'operatorType' => 'SLTB',
-                'depot'        => $r['depot'],
-                'depotId'      => (int)$r['depot_id'],
+                'depot'        => $r['depot'] ?: ($depotId > 0 ? ('Depot #' . $depotId) : 'SLTB Depot'),
+                'depotId'      => $depotId ?: null,
                 'owner'        => null,
                 'ownerId'      => null,
                 'inDb'         => true,
             ];
         }
         foreach ($priv as $r) {
+            $ownerId = (int)($r['owner_id'] ?? 0);
             $map[$r['reg_no']] = [
                 'operatorType' => 'Private',
                 'depot'        => null,
                 'depotId'      => null,
-                'owner'        => $r['owner'],
-                'ownerId'      => (int)$r['owner_id'],
+                'owner'        => $r['owner'] ?: ($ownerId > 0 ? ('Owner #' . $ownerId) : 'Private Owner'),
+                'ownerId'      => $ownerId ?: null,
                 'inDb'         => true,
             ];
         }
@@ -219,7 +225,9 @@ class LiveBusesController
     {
         header('Content-Type: application/json; charset=utf-8');
         header('Access-Control-Allow-Origin: *');
-        header('Cache-Control: no-store');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         $buses = $this->fetchRaw();
         if (empty($buses)) { echo '[]'; return; }
@@ -231,13 +239,15 @@ class LiveBusesController
         $lookup = $this->persistLiveBuses($buses, $lookup);
 
         $enriched = array_map(function ($b) use ($lookup) {
+            // Use DB lookup; if not found fall back to whatever the raw API already tells us
+            $rawOpType = $b['operatorType'] ?? 'SLTB';
             $info = $lookup[$b['busId']] ?? [
-                'operatorType' => 'SLTB',
-                'depot'        => 'Colombo Depot',
-                'depotId'      => 1,
-                'owner'        => null,
+                'operatorType' => $rawOpType,
+                'depot'        => $rawOpType === 'SLTB'    ? 'Colombo Depot' : null,
+                'depotId'      => $rawOpType === 'SLTB'    ? 1               : null,
+                'owner'        => $rawOpType === 'Private' ? 'Unknown Owner'  : null,
                 'ownerId'      => null,
-                'inDb'         => true,
+                'inDb'         => false,   // genuinely not found in DB
             ];
             return array_merge($b, $info);
         }, $buses);
