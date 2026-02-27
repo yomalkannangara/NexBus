@@ -1,0 +1,1 @@
+[27-Feb-2026 12:24:48 Asia/Colombo] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in C:\xampp\htdocs\NexBus-1\models\Passenger\TicketModel.php on line 2
