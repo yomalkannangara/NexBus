@@ -84,6 +84,77 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
     <?php endforeach; ?>
   </div>
 
+  <!-- Quick Actions Section -->
+  <div class="quick-actions-section mt-16">
+    <div class="quick-actions-header">
+      <h3 class="qa-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Quick Actions
+      </h3>
+    </div>
+    <div class="quick-actions-grid">
+      <a href="/M/fleet" class="qa-card">
+        <div class="qa-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="7" rx="2"/><path d="M7 11V7a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v4"/><circle cx="7.5" cy="18.5" r="1.5"/><circle cx="16.5" cy="18.5" r="1.5"/></svg>
+        </div>
+        <div class="qa-card-content">
+          <div class="qa-card-label">Manage Fleet</div>
+          <div class="qa-card-desc">Add or edit buses</div>
+        </div>
+      </a>
+
+      <a href="/M/drivers" class="qa-card">
+        <div class="qa-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="qa-card-content">
+          <div class="qa-card-label">Staff</div>
+          <div class="qa-card-desc">Manage drivers &amp; conductors</div>
+        </div>
+      </a>
+
+      <a href="/M/health" class="qa-card">
+        <div class="qa-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7h-4l-3-3-3 3H6a2 2 0 0 0-2 2v7a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V9a2 2 0 0 0-2-2z"/></svg>
+        </div>
+        <div class="qa-card-content">
+          <div class="qa-card-label">Health</div>
+          <div class="qa-card-desc">Maintenance &amp; issues</div>
+        </div>
+      </a>
+
+      <a href="/M/earnings" class="qa-card">
+        <div class="qa-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="qa-card-content">
+          <div class="qa-card-label">Earnings</div>
+          <div class="qa-card-desc">Record &amp; view income</div>
+        </div>
+      </a>
+
+      <a href="/M/performance" class="qa-card">
+        <div class="qa-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+        </div>
+        <div class="qa-card-content">
+          <div class="qa-card-label">Performance</div>
+          <div class="qa-card-desc">Analytics &amp; reports</div>
+        </div>
+      </a>
+
+      <a href="/M/feedback" class="qa-card">
+        <div class="qa-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="qa-card-content">
+          <div class="qa-card-label">Feedback</div>
+          <div class="qa-card-desc">Passenger complaints</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
   <!-- Map -->
   <div class="card mt-16">
     <div class="card__head">

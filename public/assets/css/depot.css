@@ -90,7 +90,7 @@ body{
   justify-content: space-between;
   padding: 12px 20px;
   z-index: 1000;
-  background: var(--primary);
+  background: #7a0f2e !important;
   color: #fff;
   border-bottom: 4px solid var(--gold);
 }
@@ -118,7 +118,7 @@ body{
 
 .sidebar{
   width: 250px;
-  background: var(--maroon-2);
+  background: #7a0f2e;
   color: #fff;
   display:flex;
   flex-direction:column;
@@ -205,6 +205,9 @@ body{
 /* ---------------- Main content ---------------- */
 #content{
   padding:24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 64px);
   background: radial-gradient(1200px 600px at 40% -40%, rgba(243,210,123,.11), transparent 40%),
               radial-gradient(800px 400px at 90% -10%, rgba(255,255,255,.8), transparent 50%),
               var(--bg);
@@ -831,5 +834,129 @@ body{
 
   .alpha-filter-grid {
     grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* ========== Quick Actions Section ========== */
+.quick-actions-section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.quick-actions-header {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qa-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qa-title svg {
+  color: var(--brand);
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.qa-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(122, 15, 46, 0.02), rgba(243, 210, 123, 0.04));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.qa-card:hover {
+  background: linear-gradient(135deg, rgba(122, 15, 46, 0.06), rgba(243, 210, 123, 0.08));
+  border-color: var(--brand);
+  box-shadow: 0 4px 12px rgba(122, 15, 46, 0.12);
+  transform: translateY(-2px);
+}
+
+.qa-card-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  border-radius: 10px;
+  color: #fff;
+}
+
+.qa-card-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+.qa-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qa-card-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.qa-card-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .qa-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .qa-card-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .qa-card-label {
+    font-size: 13px;
+  }
+
+  .qa-card-desc {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
