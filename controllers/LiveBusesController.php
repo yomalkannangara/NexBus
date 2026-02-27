@@ -6,7 +6,7 @@ use PDO;
 /**
  * Proxy controller for the external live-bus API.
  * Enriches each bus with DB metadata (operator, depot, owner).
- * Exposes a /api/buses/missing-sql endpoint for unregistered buses.
+ * Exposes a /live/buses/missing-sql endpoint for unregistered buses.
  */
 class LiveBusesController
 {
@@ -220,7 +220,7 @@ class LiveBusesController
         return $lookup;
     }
 
-    /* ─── main endpoint: /api/buses/live ────────────────────────── */
+    /* ─── main endpoint: /live/buses/pull ───────────────────────── */
     public function proxy(): void
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -255,9 +255,9 @@ class LiveBusesController
         echo json_encode($enriched, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
-    /* ─── DB-read endpoint: /api/buses/db-live ──────────────────
+    /* ─── DB-read endpoint: /live/buses/db ─────────────────────
      * Reads the most-recent tracking_monitoring snapshot per bus
-     * (written by proxy() / a cron that calls /api/buses/live).
+     * (written by proxy() / a cron that calls /live/buses/pull).
      * Returns the exact same JSON shape as proxy() so the frontend
      * needs zero changes other than the URL it fetches.
      * Only includes buses with a snapshot in the last 5 minutes.
@@ -335,6 +335,8 @@ class LiveBusesController
                 'heading'           => $r['heading'] !== null ? (int)$r['heading']   : null,
                 'operationalStatus' => $r['operationalStatus'] ?? 'OnTime',
                 'snapshotAt'        => $r['snapshotAt'],
+                // legacy field used by some pages that previously hit the proxy payload
+                'updatedAt'         => $r['snapshotAt'],
                 'inDb'              => true,
             ];
         }, $rows);
@@ -342,7 +344,7 @@ class LiveBusesController
         echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
-    /* ─── diagnostic: /api/buses/missing-sql ───────────────────── */
+    /* ─── diagnostic: /live/buses/missing-sql ─────────────────── */
     public function missingSql(): void
     {
         header('Content-Type: text/plain; charset=utf-8');

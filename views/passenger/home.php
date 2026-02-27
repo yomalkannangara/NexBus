@@ -84,7 +84,7 @@
     }
 
     function fetchBuses(){
-      fetch('/api/buses/live')
+      fetch('/live/buses/db')
         .then(function(r){ return r.json(); })
         .then(function(buses){
           if(!Array.isArray(buses)) return;
@@ -110,7 +110,7 @@
               +(b.speedKmh > 60
                 ? '<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">⚡ '+b.speedKmh+' km/h</span>'
                 : '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">✓ '+b.speedKmh+' km/h</span>')+'<br>'
-              +'<small style="color:#6b7280">'+new Date(b.updatedAt).toLocaleTimeString()+'</small>'
+              +'<small style="color:#6b7280">'+new Date(b.updatedAt || b.snapshotAt || Date.now()).toLocaleTimeString()+'</small>'
               +'</div>';
             if(markers[b.busId]){
               markers[b.busId].setLatLng([b.lat, b.lng])
