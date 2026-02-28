@@ -1,15 +1,15 @@
 /**
- * liveFleet.js – polls /live/buses/pull (fetches live data from external API
- * and writes to tracking_monitoring),
+ * liveFleet.js – polls /live/buses/db (reads tracking_monitoring written
+ * by LiveBusesController::proxy() which is called by a scheduled task),
  * applies URL-param filters (route_no, depot_id, owner_id),
  * and updates KPI cards, speed chart, status donut, live fleet table.
  */
 (function () {
   'use strict';
 
-  // Fetches from the external API (10-second file cache server-side) and
-  // also persists to tracking_monitoring. No cron job needed.
-  const API         = '/live/buses/pull';
+  // Reads latest tracking_monitoring rows written by the live bus controller.
+  // The external API is only called server-side (by /live/buses/pull, run via cron).
+  const API         = '/live/buses/db';
   const SPEED_LIMIT = 60;
   const REFRESH_MS  = 15000;
   const NB          = window.NBCharts;
