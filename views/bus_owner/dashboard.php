@@ -170,7 +170,7 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <div id="bo-live-map" style="width:100%;height:360px;border-radius:10px;overflow:hidden;"></div>
-  <p style="font-size:.75rem;color:#9ca3af;margin-top:.5rem">Shows your private-company buses (live from GPS feed) · auto-refreshes every 15 s</p>
+  <p style="font-size:.75rem;color:#9ca3af;margin-top:.5rem">Shows only your private-company buses · auto-refreshes every 15 s</p>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
@@ -213,12 +213,9 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
           if(!Array.isArray(buses)) return;
 
           // Keep only this owner's private buses
-          // If OWNER_ID is 0 (not set in session), show all private buses as fallback
           buses = buses.filter(function(b){
-            var isPrivate = String(b.operatorType || '').toLowerCase() === 'private';
-            if (!isPrivate) return false;
-            if (OWNER_ID === 0) return true; // fallback: no operator scoping
-            return b.ownerId === OWNER_ID || b.owner_id === OWNER_ID;
+            return String(b.operatorType || '').toLowerCase() === 'private'
+                && (b.ownerId === OWNER_ID || b.owner_id === OWNER_ID);
           });
 
           var countEl = document.getElementById('bo-live-count');
