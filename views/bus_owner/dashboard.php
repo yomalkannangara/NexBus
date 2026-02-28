@@ -207,7 +207,7 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
     }
 
     function fetchBuses(){
-      fetch('/live/buses/db')
+      fetch('/live/buses/pull')
         .then(function(r){ return r.json(); })
         .then(function(buses){
           if(!Array.isArray(buses)) return;
