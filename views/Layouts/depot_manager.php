@@ -93,13 +93,6 @@ $name    = $displayName !== '' ? $displayName : 'Depot Manager';
           Feedback
         </a>
 
-        <a href="/M/health" class="menu-item<?= ($module==='M' && $page==='health') ? ' active' : '' ?>">
-          <i class="icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7h-4l-3-3-3 3H6a2 2 0 0 0-2 2v7a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V9a2 2 0 0 0-2-2z"/></svg>
-          </i>
-          Health
-        </a>
-
         <a href="/M/performance" class="menu-item<?= ($module==='M' && $page==='performance') ? ' active' : '' ?>">
           <i class="icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>

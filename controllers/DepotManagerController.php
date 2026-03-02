@@ -149,33 +149,6 @@ public function fleet()
     }
 
     /* =========================
-       Bus Health & Maintenance
-       ========================= */
-    public function health()
-    {
-        $m = new HealthModel();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $act = $_POST['action'] ?? '';
-
-            if ($act === 'schedule_maintenance') {
-                $m->schedule($_POST);
-                return $this->redirect('/D/health?msg=scheduled');
-            }
-            if ($act === 'complete_maintenance') {
-                $m->complete($_POST);
-                return $this->redirect('/D/health?msg=completed');
-            }
-        }
-
-        $this->view('depot_manager', 'health', [
-            'metrics'   => $m->metrics(),
-            'ongoing'   => $m->ongoing(),
-            'completed' => $m->completed(),
-        ]);
-    }
-
-    /* =========================
        Drivers & Conductors
        ========================= */
     public function drivers()
