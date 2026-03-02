@@ -37,8 +37,13 @@ class PassengerController extends BaseController
     /** Manage favourites (list + POST add/delete/notify). */
     public function favourites()
     {
+        $uid = $this->resolveCurrentPassengerId();
+        if ($uid === 0) {
+            $this->redirect('/login');
+            return;
+        }
+
         $m = new FavouritesModel();
-        $uid = 1; // session user id
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
@@ -102,17 +107,17 @@ class PassengerController extends BaseController
         $m = new \App\models\Passenger\FeedbackModel();
         $msg = null;
 
-        // Passenger id
-        /* $me = $_SESSION['auth'] ?? $_SESSION['user'] ?? 1001;
-         $passengerId = $me['passenger_id'] ?? $me['id'] ?? $me['user_id'] ?? 1001;
-         $passengerId = $passengerId ? (int)$passengerId : 1001;*/
-        $passengerId = 1001;
-
-        // --- AJAX: bus list ---
+        // --- AJAX: bus list (public – no auth needed) ---
         if (isset($_GET['route_id']) && is_numeric($_GET['route_id'])) {
             header('Content-Type: application/json');
             echo json_encode($m->busesByRoute((int)$_GET['route_id']));
-            return; // 👈 stop here, don’t render HTML
+            return;
+        }
+
+        $passengerId = $this->resolveCurrentPassengerId();
+        if ($passengerId === 0) {
+            $this->redirect('/login');
+            return;
         }
 
         // --- Handle form submission ---
@@ -182,10 +187,11 @@ class PassengerController extends BaseController
      */
     public function notifications()
     {
-        $uid = (int)($this->user['id'] ?? 0);
-        if ($uid <= 0) {
-            $uid = 36;
-        } // demo fallback
+        $uid = $this->resolveCurrentUserId();
+        if ($uid === 0) {
+            $this->redirect('/login');
+            return;
+        }
 
         $m = new NotificationsModel();
 
@@ -225,16 +231,13 @@ class PassengerController extends BaseController
     /** Profile: view & update details, change password, delete account. */
     public function profile()
     {
-        $m = new ProfileModel();
-
-        // Resolve current user (adjust to your auth session)
-        $me = $m->sessionUser();
-        $uid = (int)($me['user_id'] ?? $me['id'] ?? 0);
-        if ($uid <= 0) {
-            // Fallback for demo/dev. Replace/remove once you have real auth.
-            $uid = 52;
+        $uid = $this->resolveCurrentUserId();
+        if ($uid === 0) {
+            $this->redirect('/login');
+            return;
         }
 
+        $m = new ProfileModel();
         $msg = $_GET['msg'] ?? null;
         $err = null;
 
@@ -282,6 +285,39 @@ class PassengerController extends BaseController
             'me' => $meFresh,
             'msg' => $msg
         ]);
+    }
+
+    /**
+     * Resolve the current authenticated user's ID (users.user_id) from session/auth context.
+     * Checks $this->user['id'], then $_SESSION['user']['id'], then $_SESSION['auth']['id'].
+     * Returns 0 when unauthenticated or the ID is absent/invalid.
+     * Use this for models that query by user_id (notifications, profile).
+     */
+    private function resolveCurrentUserId(): int
+    {
+        $id = $this->user['id']
+            ?? $_SESSION['user']['id']
+            ?? $_SESSION['auth']['id']
+            ?? null;
+        $id = (int)$id;
+        return $id > 0 ? $id : 0;
+    }
+
+    /**
+     * Resolve the current authenticated user's passenger_id (passengers.passenger_id).
+     * Looks up or creates the passengers row for the current user_id.
+     * Returns 0 when unauthenticated.
+     * Use this for models that query by passenger_id (favourites, feedback/complaints).
+     */
+    private function resolveCurrentPassengerId(): int
+    {
+        $userId = $this->resolveCurrentUserId();
+        if ($userId === 0) {
+            return 0;
+        }
+        $m = new ProfileModel();
+        $pid = $m->ensurePassengerForUser($userId);
+        return $pid > 0 ? $pid : 0;
     }
 
 }
