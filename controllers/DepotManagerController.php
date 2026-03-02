@@ -201,6 +201,45 @@ public function fleet()
     }
 
     /* =========================
+       Special Timetables (copied behavior from DepotOfficer)
+       Uses depot_officer model helpers to manage special timetables
+       but renders the depot_manager view and routes under /M/
+       ========================= */
+    public function timetables()
+    {
+        $off = new \App\models\depot_officer\DepotOfficerModel();
+        $u = $off->me();
+        $dep = $off->myDepotId($u);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $act = $_POST['action'] ?? '';
+            if ($act === 'create_special_tt') {
+                $ok = $off->createSpecialTimetable($dep, $_POST);
+                $this->redirect('/M/timetables?msg=' . ($ok ? 'created' : 'error'));
+                return;
+            }
+            if ($act === 'delete_special_tt' && !empty($_POST['timetable_id'])) {
+                $off->deleteSpecialTimetable($dep, (int)$_POST['timetable_id']);
+                $this->redirect('/M/timetables?msg=deleted');
+                return;
+            }
+            if ($act === 'edit_special_tt' && !empty($_POST['timetable_id'])) {
+                $stm = new \App\models\depot_officer\SpecialTimetableModel();
+                $ok = $stm->updateSpecial($dep, $_POST);
+                $this->redirect('/M/timetables?msg=' . ($ok ? 'updated' : 'error'));
+                return;
+            }
+        }
+
+        $this->view('depot_manager', 'timetables', [
+            'routes' => $off->routes(),
+            'buses'  => $off->depotBuses($dep),
+            'special_tt' => $off->specialTimetables($dep),
+            'msg'    => $_GET['msg'] ?? null,
+        ]);
+    }
+
+    /* =========================
        Performance (scores, top lists)
        ========================= */
     public function performance()

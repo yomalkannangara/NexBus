@@ -82,6 +82,7 @@ $routes = [
     
     '/M'               => ['DepotManagerController','dashboard'],
     '/M/dashboard'     => ['DepotManagerController','dashboard'],
+    '/M/timetables'    => ['DepotManagerController','timetables'],
     '/M/fleet'    => ['DepotManagerController','fleet'],
     '/M/feedback'       => ['DepotManagerController','feedback'],
     '/M/health'   => ['DepotManagerController','health'],   // NEW
