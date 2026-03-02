@@ -960,3 +960,174 @@ body{
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ============= FILTER PANEL (shared, matches admin look) ============= */
+.filters {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.filters h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.filters h2 small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.filter-grid label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.filter-grid select {
+  width: 100%;
+  padding: 7px 10px;
+  min-height: 36px;
+  background: #fff;
+  border: 1px solid #d9c78a;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.bus-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bus-search-icon {
+  position: absolute;
+  left: 9px;
+  font-size: 13px;
+  pointer-events: none;
+  color: var(--muted);
+}
+
+.bus-search-wrap input {
+  width: 100%;
+  padding: 7px 10px 7px 28px;
+  min-height: 36px;
+  background: #fff;
+  border: 1px solid #d9c78a;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.bus-suggestions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d9c78a;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.1);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 9999;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.bus-suggestions.open {
+  display: block;
+}
+
+.bus-suggestions li {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.bus-suggestions li:hover {
+  background: #fdf6e8;
+  color: var(--brand);
+}
+
+/* ============= LIVE BUS MAP ============= */
+.filters--map { margin-top: 1.5rem; }
+
+.live-fleet-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: .5rem;
+  padding-top: .5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.live-fleet-label {
+  font-size: .8rem;
+  color: #6b7280;
+}
+
+.live-fleet-updated {
+  font-size: .8rem;
+  color: #6b7280;
+  margin-left: auto;
+}
+
+.map-section {
+  margin: 0 0 1.5rem;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.12);
+}
+
+.map-canvas {
+  width: 100%;
+  height: 480px;
+}
+
+.lf-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.lf-badge--green { background: #dcfce7; color: #15803d; }
+.lf-badge--red   { background: #fee2e2; color: #b91c1c; }
+
+.bus-popup b     { font-size: .95rem; }
+.bus-popup small { color: #6b7280; }
+
+.speed-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-size: .75rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.speed-ok   { background: #dcfce7; color: #15803d; }
+.speed-over { background: #fee2e2; color: #b91c1c; }
+
+.popup-route { font-size: .82rem; }

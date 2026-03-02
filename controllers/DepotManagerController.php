@@ -39,6 +39,7 @@ class DepotManagerController extends BaseController
             'issues'      => $m->issuesCount(),
             'routes'      => $m->routes(),
             'depotId'     => (int)($_SESSION['user']['sltb_depot_id'] ?? $_SESSION['user']['depot_id'] ?? 0),
+            'depotName'   => $m->depotName(),
         ]);
     }
 

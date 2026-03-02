@@ -9,7 +9,8 @@ class DashboardModel extends BaseModel
 {
     private function depotId(): ?int {
         $u = $_SESSION['user'] ?? [];
-        return $u['sltb_depot_id'] ? (int)$u['sltb_depot_id'] : null;
+        $id = $u['sltb_depot_id'] ?? $u['depot_id'] ?? null;
+        return $id ? (int)$id : null;
     }
 
     public function todayLabel(): string
@@ -113,6 +114,20 @@ class DashboardModel extends BaseModel
             return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
         } catch (PDOException $e) {
             return 0;
+        }
+    }
+
+    /** Human-readable name of this manager's depot. */
+    public function depotName(): string
+    {
+        $depotId = $this->depotId();
+        if (!$depotId) return 'All Depots';
+        try {
+            $st = $this->pdo->prepare("SELECT name FROM sltb_depots WHERE sltb_depot_id = ?");
+            $st->execute([$depotId]);
+            return (string)($st->fetchColumn() ?: ('Depot #' . $depotId));
+        } catch (PDOException $e) {
+            return 'Depot #' . $depotId;
         }
     }
 

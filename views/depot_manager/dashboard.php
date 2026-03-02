@@ -158,32 +158,19 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
   <!-- Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 
-  <section class="filters" style="margin-top:1.5rem"><h2>Bus Location Filters</h2><div class="filter-grid"><div><label>Route</label>
-  <select id="map-filter-route" onchange="applyMapFilters()"><option value="">All Routes</option>
-  <?php foreach(($routes ?? []) as $r) echo '<option value="'.htmlspecialchars($r['route_no']).'">' .htmlspecialchars($r['route_no']).'</option>'; ?>
-  </select></div><div><label>Bus Number</label><select id="map-filter-bus" onchange="applyMapFilters()"><option value="">All Buses</option></select></div>
-  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-top:.5rem;padding-top:.5rem;border-top:1px solid #e5e7eb">
-    <span style="font-size:.8rem;color:#6b7280">Live fleet:</span>
+  <section class="filters filters--map"><h2>Bus Location Filters &mdash; <small><?= htmlspecialchars($depotName ?? 'Depot') ?></small></h2><div class="filter-grid"><div><label>Route</label>
+  <select id="map-filter-route" onchange="applyMapFilters()"><option value="">All Routes</option></select></div><div><label>Bus Number</label><div class="bus-search-wrap"><span class="bus-search-icon">&#128269;</span><input id="map-filter-bus" type="text" placeholder="Search bus (e.g. NB-1001)" oninput="busSearchInput()" autocomplete="off"><ul id="bus-suggestions" class="bus-suggestions"></ul></div></div>
+  <div class="live-fleet-bar">
+    <span class="live-fleet-label">Live fleet:</span>
     <span class="lf-badge lf-badge--green" id="db-live-count">– buses</span>
     <span class="lf-badge lf-badge--red" id="db-speed-viols">– speeding</span>
-    <span style="font-size:.8rem;color:#6b7280;margin-left:auto" id="db-map-updated"></span>
+    <span class="live-fleet-updated" id="db-map-updated"></span>
   </div>
   </div></section>
 
-  <section style="margin:0 0 1.5rem;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.12)">
-    <div id="depot-bus-map" style="width:100%;height:480px;"></div>
+  <section class="map-section">
+    <div id="depot-bus-map" class="map-canvas"></div>
   </section>
-
-  <style>
-  .lf-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600}
-  .lf-badge--green{background:#dcfce7;color:#15803d}
-  .lf-badge--red{background:#fee2e2;color:#b91c1c}
-  .bus-popup b{font-size:.95rem}
-  .bus-popup small{color:#6b7280}
-  .speed-tag{display:inline-block;padding:1px 7px;border-radius:8px;font-size:.75rem;font-weight:600;margin-top:2px}
-  .speed-ok{background:#dcfce7;color:#15803d}
-  .speed-over{background:#fee2e2;color:#b91c1c}
-  </style>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
@@ -195,6 +182,7 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
       attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom:19
     }).addTo(map);
+    setTimeout(function(){ map.invalidateSize(); }, 200);
 
     var markers   = {};
     var allBuses  = [];
@@ -228,30 +216,69 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
       var upd  = new Date(b.updatedAt||b.snapshotAt).toLocaleTimeString();
       return '<div class="bus-popup">'
         +'<b>🚌 Bus '+b.busId+'</b><br>'
-        +'<span style="font-size:.82rem">Route <strong>'+b.routeNo+'</strong></span><br>'
+        +'<span class="popup-route">Route <strong>'+b.routeNo+'</strong></span><br>'
         +tag+'<br>'
         +'<small>Heading '+Math.round(b.heading||0)+'° &nbsp;·&nbsp; Updated '+upd+'</small>'
         +'</div>';
     }
 
-    function updateBusDropdown(buses){
-      var sel = document.getElementById('map-filter-bus');
+    function updateRouteDropdown(buses){
+      var sel = document.getElementById('map-filter-route');
       var cur = sel.value;
-      sel.innerHTML = '<option value="">All Buses</option>';
+      var seen = {};
+      var routes = [];
       buses.forEach(function(b){
+        var rn = b.routeNo != null ? String(parseInt(b.routeNo,10)) : '';
+        if(rn && !seen[rn]){ seen[rn]=true; routes.push(rn); }
+      });
+      routes.sort(function(a,b){ return parseInt(a,10)-parseInt(b,10); });
+      sel.innerHTML = '<option value="">All Routes</option>';
+      routes.forEach(function(rn){
         var o = document.createElement('option');
-        o.value = b.busId; o.textContent = b.busId;
-        if(b.busId === cur) o.selected = true;
+        o.value = rn; o.textContent = 'Route '+rn;
+        if(parseInt(cur,10) === parseInt(rn,10)) o.selected = true;
         sel.appendChild(o);
       });
     }
 
+    window.busSearchInput = function(){
+      applyMapFilters();
+      var val = document.getElementById('map-filter-bus').value.trim().toUpperCase();
+      var ul  = document.getElementById('bus-suggestions');
+      ul.innerHTML = '';
+      if(!val){ ul.classList.remove('open'); return; }
+      var matches = allBuses
+        .map(function(b){ return b.busId; })
+        .filter(function(id){ return id.toUpperCase().includes(val); })
+        .slice(0, 8);
+      if(!matches.length){ ul.classList.remove('open'); return; }
+      matches.forEach(function(id){
+        var li = document.createElement('li');
+        li.textContent = id;
+        li.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          document.getElementById('map-filter-bus').value = id;
+          ul.classList.remove('open');
+          applyMapFilters();
+        });
+        ul.appendChild(li);
+      });
+      ul.classList.add('open');
+    };
+
+    document.addEventListener('click', function(e){
+      if(!e.target.closest('.bus-search-wrap')){
+        var ul = document.getElementById('bus-suggestions');
+        if(ul) ul.classList.remove('open');
+      }
+    });
+
     window.applyMapFilters = function(){
       filterRoute = document.getElementById('map-filter-route').value;
-      filterBus   = document.getElementById('map-filter-bus').value;
+      filterBus   = document.getElementById('map-filter-bus').value.trim().toUpperCase();
       allBuses.forEach(function(b){
-        var show = (!filterRoute || b.routeNo === filterRoute)
-                && (!filterBus   || b.busId   === filterBus);
+        var show = (!filterRoute || parseInt(b.routeNo,10) === parseInt(filterRoute,10))
+                && (!filterBus   || b.busId.toUpperCase().includes(filterBus));
         var mk = markers[b.busId];
         if(mk){
           if(show){ if(!map.hasLayer(mk)) map.addLayer(mk); }
@@ -272,7 +299,7 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
             });
           }
           allBuses = buses;
-          updateBusDropdown(buses);
+          updateRouteDropdown(buses);
 
           var seen  = {};
           var viols = 0;
@@ -281,8 +308,8 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
             if(b.speedKmh > 60) viols++;
             var popup = makePopup(b);
             var icon  = makePinIcon(b.speedKmh);
-            var show  = (!filterRoute || b.routeNo === filterRoute)
-                     && (!filterBus   || b.busId   === filterBus);
+            var show  = (!filterRoute || parseInt(b.routeNo,10) === parseInt(filterRoute,10))
+                     && (!filterBus   || b.busId.toUpperCase().includes(filterBus));
             if(markers[b.busId]){
               markers[b.busId].setLatLng([b.lat,b.lng]).setIcon(icon).bindPopup(popup);
               if(show){ if(!map.hasLayer(markers[b.busId])) map.addLayer(markers[b.busId]); }
