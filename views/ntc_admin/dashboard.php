@@ -141,7 +141,7 @@
 
   /* ── Fetch & render ── */
   function fetchAndRender(){
-    fetch('/api/buses/live')
+    fetch('/live/buses/pull')
       .then(function(r){ return r.json(); })
       .then(function(buses){
         if(!Array.isArray(buses)) return;

@@ -207,7 +207,7 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
     }
 
     function fetchBuses(){
-      fetch('/api/buses/live')
+      fetch('/live/buses/pull')
         .then(function(r){ return r.json(); })
         .then(function(buses){
           if(!Array.isArray(buses)) return;
@@ -232,7 +232,7 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
                 ? '<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">⚡ '+speed+' km/h</span>'
                 : '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">✓ '+speed+' km/h</span>')+'<br>'
               +(b.owner ? '<small style="color:#6b7280">'+b.owner+'</small><br>' : '')
-              +'<small style="color:#6b7280">'+new Date(b.updatedAt).toLocaleTimeString()+'</small>'
+              +'<small style="color:#6b7280">'+new Date(b.updatedAt || b.snapshotAt || Date.now()).toLocaleTimeString()+'</small>'
               +'</div>';
             if(markers[b.busId]){
               markers[b.busId].setLatLng([b.lat, b.lng])

@@ -5,7 +5,7 @@
 -- HOW TO USE:
 -- 1. Run this file to add buses known to be missing from the DB.
 -- 2. For buses appearing LIVE (from the external API) but not in DB,
---    visit /api/buses/missing-sql in your browser while the API is live —
+--    visit /live/buses/missing-sql in your browser while the API is live —
 --    it will auto-generate INSERT statements and save them to
 --    database/migrations/missing_live_buses_<timestamp>.sql
 -- ============================================================
@@ -91,7 +91,7 @@ VALUES
 
 -- ════════════════════════════════════════════════════════════════
 -- BUSES FROM THE LIVE-TRACKING API (not yet in DB)
--- For real-time discovery:  visit /api/buses/missing-sql while the
+-- For real-time discovery:  visit /live/buses/missing-sql while the
 -- live API is running – it auto-generates & saves a timestamped
 -- SQL file to  database/migrations/missing_live_buses_<ts>.sql
 -- ════════════════════════════════════════════════════════════════

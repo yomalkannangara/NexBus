@@ -124,15 +124,17 @@ $routes = [
     '/B/attendance'    => ['BusOwnerController','attendance'],
     '/B/profile'    => ['BusOwnerController','profile'],
 
-    // Live bus proxy (no auth) – writes from external API to tracking_monitoring
-    '/api/buses/live'         => ['LiveBusesController','proxy'],
-    '/api/buses/missing-sql'  => ['LiveBusesController','missingSql'],
-    // DB-read endpoint – serves latest tracking_monitoring rows to analytics JS
-    '/api/buses/db-live'      => ['LiveBusesController','dbLive'],
+    // Live buses (no auth)
+    // Writes from external API to tracking_monitoring (call via scheduler/cron)
+    '/live/buses/pull'        => ['LiveBusesController','proxy'],
+    // DB-read endpoint – serves latest tracking_monitoring rows to the frontend
+    '/live/buses/db'          => ['LiveBusesController','dbLive'],
+    // Diagnostic helper
+    '/live/buses/missing-sql' => ['LiveBusesController','missingSql'],
 ];
 
 // 5. Auth guard: allow only public paths without login
-$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/api/buses/live','/api/buses/missing-sql','/api/buses/db-live'];
+$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/live/buses/pull','/live/buses/db','/live/buses/missing-sql'];
 if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
     // optionally remember intended URL
     $_SESSION['intended'] = $path;

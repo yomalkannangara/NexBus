@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\models\Passenger;
 
 // models/passenger/TicketModel.php
