@@ -3,12 +3,7 @@ namespace App\models\depot_manager;
 
 use PDO;
 use PDOException;
-abstract class BaseModel {
-    protected PDO $pdo;
-    public function __construct() {
-        $this->pdo = $GLOBALS['db'];   
-    }
-}
+use App\models\common\BaseModel;
 
 class DashboardModel extends BaseModel
 {
@@ -39,15 +34,6 @@ class DashboardModel extends BaseModel
         
         // Get active routes
         $routesActive = $this->countSafe("SELECT COUNT(*) c FROM routes WHERE is_active=1");
-
-        // Dummy fallback when everything is zero
-        if ($busCount === 0 && $staffCount === 0 && $routesActive === 0) {
-            return [
-                ['title' => 'Total Buses',           'value' => '128', 'change' => '+2.4%', 'trend' => 'up',   'icon' => 'bus'],
-                ['title' => 'Total Staff',           'value' => '73',  'change' => '+1.1%', 'trend' => 'up',   'icon' => 'users'],
-                ['title' => 'Active Routes',         'value' => '42',  'change' => '+3.0%', 'trend' => 'up',   'icon' => 'routes'],
-            ];
-        }
 
         return [
             ['title' => 'Total Buses',           'value' => (string)$busCount],
@@ -80,15 +66,6 @@ class DashboardModel extends BaseModel
                                JOIN sltb_buses b ON mj.bus_reg_no = b.reg_no 
                                WHERE b.sltb_depot_id=:d AND mj.status='Breakdown' AND DATE(mj.created_at)=CURDATE()", [':d' => $depotId])
             : $this->countSafe("SELECT COUNT(*) c FROM maintenance_jobs WHERE status='Breakdown' AND DATE(created_at)=CURDATE()");
-
-        // Dummy fallback when everything is zero
-        if ($complaintsToday === 0 && $delayedToday === 0 && $brokenToday === 0) {
-            return [
-                ['title' => "Today's Complaints",  'value' => '5', 'change' => '+1 vs yesterday', 'trend' => 'up',   'icon' => 'alert', 'color' => 'orange'],
-                ['title' => 'Delayed Buses Today', 'value' => '7', 'change' => '-2 vs yesterday', 'trend' => 'down', 'icon' => 'clock', 'color' => 'red'],
-                ['title' => 'Broken Buses Today',  'value' => '1', 'change' => '+0 vs yesterday', 'trend' => 'up',   'icon' => 'alert', 'color' => 'red'],
-            ];
-        }
 
         return [
             ['title' => "Today's Complaints",  'value' => (string)$complaintsToday, 'change' => '', 'trend' => '', 'icon' => 'alert', 'color' => 'orange'],
@@ -136,6 +113,33 @@ class DashboardModel extends BaseModel
             return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
         } catch (PDOException $e) {
             return 0;
+        }
+    }
+
+    /** Routes served by this depot's buses (for the map filter dropdown). */
+    public function routes(): array
+    {
+        $depotId = $this->depotId();
+        try {
+            if ($depotId) {
+                $st = $this->pdo->prepare(
+                    "SELECT DISTINCT r.route_no
+                       FROM routes r
+                       JOIN timetables t ON t.route_id = r.route_id
+                       JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                      WHERE sb.sltb_depot_id = ?
+                        AND r.is_active = 1
+                      ORDER BY r.route_no+0, r.route_no"
+                );
+                $st->execute([$depotId]);
+            } else {
+                $st = $this->pdo->query(
+                    "SELECT DISTINCT route_no FROM routes WHERE is_active=1 ORDER BY route_no+0, route_no"
+                );
+            }
+            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
         }
     }
 }

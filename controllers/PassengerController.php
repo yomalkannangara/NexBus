@@ -289,15 +289,16 @@ class PassengerController extends BaseController
 
     /**
      * Resolve the current authenticated user's ID (users.user_id) from session/auth context.
-     * Checks $this->user['id'], then $_SESSION['user']['id'], then $_SESSION['auth']['id'].
+     * Tries user_id then id key in both $this->user and $_SESSION['user'].
      * Returns 0 when unauthenticated or the ID is absent/invalid.
      * Use this for models that query by user_id (notifications, profile).
      */
     private function resolveCurrentUserId(): int
     {
-        $id = $this->user['id']
+        $id = $this->user['user_id']
+            ?? $this->user['id']
+            ?? $_SESSION['user']['user_id']
             ?? $_SESSION['user']['id']
-            ?? $_SESSION['auth']['id']
             ?? null;
         $id = (int)$id;
         return $id > 0 ? $id : 0;

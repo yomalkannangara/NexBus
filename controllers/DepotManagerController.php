@@ -7,7 +7,6 @@ use App\controllers\BaseController;
 use App\models\depot_manager\DashboardModel;
 use App\models\depot_manager\FleetModel;
 use App\models\depot_manager\FeedbackModel;
-use App\models\depot_manager\HealthModel;
 use App\models\depot_manager\DriverModel;
 use App\models\depot_manager\PerformanceModel;
 use App\models\depot_manager\EarningsModel;
@@ -30,14 +29,16 @@ class DepotManagerController extends BaseController
     {
         $m = new DashboardModel();
         $this->view('depot_manager', 'dashboard', [
-            'todayLabel'  => $m->todayLabel(),   // e.g. "Sunday 19 October 2025"
+            'todayLabel'  => $m->todayLabel(),
             'pageTitle'   => 'Depot Dashboard',
             'subtitle'    => 'Depot Operations Overview',
-            'stats'       => $m->stats(),        // KPI tiles
-            'dailyStats'  => $m->dailyStats(),   // complaints/delays/issues
+            'stats'       => $m->stats(),
+            'dailyStats'  => $m->dailyStats(),
             'activeCount' => $m->activeCount(),
             'delayed'     => $m->delayedCount(),
             'issues'      => $m->issuesCount(),
+            'routes'      => $m->routes(),
+            'depotId'     => (int)($_SESSION['user']['sltb_depot_id'] ?? $_SESSION['user']['depot_id'] ?? 0),
         ]);
     }
 
@@ -264,15 +265,15 @@ public function fleet()
 
             if ($act === 'add') {
                 $m->add($_POST);
-                return $this->redirect('/D/earnings?msg=added');
+                return $this->redirect('/M/earnings?msg=added');
             }
             if ($act === 'delete') {
                 $m->delete((int)($_POST['earning_id'] ?? 0));
-                return $this->redirect('/D/earnings?msg=deleted');
+                return $this->redirect('/M/earnings?msg=deleted');
             }
             if ($act === 'import_csv') {
                 $m->importCsv($_FILES['file'] ?? null);
-                return $this->redirect('/D/earnings?msg=imported');
+                return $this->redirect('/M/earnings?msg=imported');
             }
         }
 
@@ -289,7 +290,7 @@ public function fleet()
     public function profile()
     {
         $m = new ProfileModel();
-        $uid = (int)($_SESSION['user']['id'] ?? 0);
+        $uid = (int)($_SESSION['user']['user_id'] ?? $_SESSION['user']['id'] ?? 0);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
