@@ -112,27 +112,39 @@ public function fleet()
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
 
+            // New UI actions
+            if ($act === 'reply') {
+                $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+                $msg = $_POST['message'] ?? ($_POST['response'] ?? '');
+                // Mark in progress when replying
+                if ($id !== '') $m->updateStatus((string)$id, 'In Progress');
+                $m->sendResponse((string)$id, (string)$msg);
+                return $this->redirect('/M/feedback?msg=replied');
+            }
+
+            if ($act === 'resolve') {
+                $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+                $note = $_POST['note'] ?? ($_POST['message'] ?? ($_POST['response'] ?? ''));
+                if ($id !== '') $m->updateStatus((string)$id, 'Resolved');
+                if (trim((string)$note) !== '') $m->sendResponse((string)$id, (string)$note);
+                return $this->redirect('/M/feedback?msg=resolved');
+            }
+
+            if ($act === 'close') {
+                $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+                if ($id !== '') $m->updateStatus((string)$id, 'Closed');
+                return $this->redirect('/M/feedback?msg=closed');
+            }
+
             if ($act === 'assign') {
                 $m->assign($_POST);
                 return $this->redirect('/M/feedback?msg=assigned');
             }
-            if ($act === 'resolve') {
-                $m->resolve($_POST);
-                return $this->redirect('/M/feedback?msg=resolved');
-            }
-            if ($act === 'close') {
-                $m->close($_POST);
-                return $this->redirect('/M/feedback?msg=closed');
-            }
-            if ($act === 'reply') {
-                $m->reply($_POST);
-                return $this->redirect('/M/feedback?msg=replied');
-            }
         }
 
         $this->view('depot_manager', 'feedback', [
-            'cards' => $m->cards(),
-            'rows'  => $m->list(),
+            'feedback_refs' => $m->getAllIds(),
+            'feedback_list' => $m->getAll(),
         ]);
     }
 

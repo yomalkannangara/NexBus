@@ -2,3 +2,45 @@
 [02-Mar-2026 17:41:19 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221
 [02-Mar-2026 17:59:04 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221
 [02-Mar-2026 18:01:33 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221
+[02-Mar-2026 19:24:29 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 741
+[02-Mar-2026 19:24:29 Asia/Colombo] PHP Warning:  Undefined variable $ids in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:24:29 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:24:29 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 809
+[02-Mar-2026 19:24:29 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 816
+[02-Mar-2026 19:24:29 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 823
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $cards in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 704
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 741
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $ids in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 809
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 816
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 823
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 854
+[02-Mar-2026 19:57:41 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 923
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $cards in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 704
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 741
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $ids in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 809
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 816
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 823
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 854
+[02-Mar-2026 19:58:06 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 923
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $cards in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 704
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 741
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $ids in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 809
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 816
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 823
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 854
+[02-Mar-2026 19:58:18 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 923
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $cards in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 704
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 741
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $ids in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  foreach() argument must be of type array|object, null given in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 747
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 809
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 816
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $feedbackAction in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 823
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 854
+[02-Mar-2026 19:59:04 Asia/Colombo] PHP Warning:  Undefined variable $rows in C:\xampp\htdocs\NexBus-1\views\depot_manager\feedback.php on line 923
