@@ -16,6 +16,7 @@ if ($path === '/favicon.ico') {
 
 // 1. Bootstrap (env, config, db, autoload, session, logging)
 require_once __DIR__ . '/../bootstrap/app.php';
+use App\Middleware\AuthMiddleware;
 
 // Default → home (this won't run for /favicon.ico)
 if ($path === '/') {
@@ -133,42 +134,40 @@ $routes = [
     '/live/buses/missing-sql' => ['LiveBusesController','missingSql'],
 ];
 
-// 5. Auth guard: allow only public paths without login
-$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/live/buses/pull','/live/buses/db','/live/buses/missing-sql'];
-if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
-    // optionally remember intended URL
-    $_SESSION['intended'] = $path;
+// 5. Authorization policy by path prefix (middleware-first)
+// Public routes are explicitly allow-listed. Everything else requires auth.
+$publicPaths = [
+    '/login',
+    '/login/submit',
+    '/register',
+    '/home',
+    '/timetable',
+    '/ticket',
+    '/live/buses/pull',
+    '/live/buses/db',
+    '/live/buses/missing-sql',
+];
 
-// Render a tiny page that alerts then redirects (no flash/session message needed)
-   // 401 page when not logged in (no flash)
-http_response_code(401);
-$msg  = 'Please log in to continue';
-$next = '/login'; // or "/login?next=" . rawurlencode($path)
-?>
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="/assets/css/alert.css">
-  <script src="/assets/js/alert.js"></script>
-</head>
-<body>
-  <script>
-    // will WAIT until user presses OK
-    alert(<?= json_encode($msg) ?>).then(function () {
-      window.location.href = <?= json_encode($next) ?>;
-    });
-  </script>
-  <noscript>
-    <!-- JS off fallback -->
-    <meta http-equiv="refresh" content="0;url=<?= htmlspecialchars($next, ENT_QUOTES) ?>">
-  </noscript>
-</body>
-</html>
-<?php
-exit;
+$rolePolicies = [
+    '/A'  => ['ntc_admin'],
+    '/B'  => ['bus_owner'],
+    '/M'  => ['depot_manager'],
+    '/O'  => ['depot_officer'],
+    '/TP' => ['timekeeper_private'],
+    '/TS' => ['timekeeper_sltb'],
+];
 
+if (!in_array($path, $publicPaths, true)) {
+    // Base authentication check for all non-public routes.
+    AuthMiddleware::check();
+
+    // Optional role gates by route namespace.
+    foreach ($rolePolicies as $prefix => $roles) {
+        if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+            AuthMiddleware::requireRole($roles);
+            break;
+        }
+    }
 }
 
 
@@ -182,5 +181,4 @@ if (isset($routes[$path])) {
 http_response_code(404);
 echo "<h1>404</h1><p>No route for <code>".htmlspecialchars($path)."</code></p>";
     exit;
-
 
