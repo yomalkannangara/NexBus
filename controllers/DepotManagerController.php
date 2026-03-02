@@ -173,29 +173,45 @@ public function fleet()
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
 
-            if ($act === 'create_driver') {
+            // Driver create/update/delete
+            if ($act === 'create_driver' || $act === 'create') {
                 $m->createDriver($_POST);
-                return $this->redirect('/D/drivers?msg=driver_created');
+                return $this->redirect('/M/drivers?msg=created');
             }
-            if ($act === 'update_driver') {
+
+            if ($act === 'update_driver' || $act === 'update') {
                 $m->updateDriver($_POST);
-                return $this->redirect('/D/drivers?msg=driver_updated');
+                return $this->redirect('/M/drivers?msg=updated');
             }
-            if ($act === 'suspend' || $act === 'unsuspend') {
-                $id = (int)($_POST['driver_id'] ?? 0);
-                $m->setStatus($id, $act === 'suspend' ? 'Suspended' : 'Active');
-                return $this->redirect('/D/drivers?msg=' . ($act === 'suspend' ? 'suspended' : 'unsuspended'));
+
+            if ($act === 'delete_driver' || $act === 'delete') {
+                $m->deleteDriver((int)($_POST['private_driver_id'] ?? $_POST['driver_id'] ?? 0));
+                return $this->redirect('/M/drivers?msg=deleted');
             }
-            if ($act === 'delete_driver') {
-                $m->deleteDriver((int)($_POST['driver_id'] ?? 0));
-                return $this->redirect('/D/drivers?msg=driver_deleted');
+
+            // Conductor create/update/delete
+            if ($act === 'create_conductor') {
+                $m->createConductor($_POST);
+                return $this->redirect('/M/drivers?msg=conductor_created');
+            }
+            if ($act === 'update_conductor') {
+                $m->updateConductor($_POST);
+                return $this->redirect('/M/drivers?msg=conductor_updated');
+            }
+            if ($act === 'delete_conductor') {
+                $m->deleteConductor((int)($_POST['private_conductor_id'] ?? $_POST['conductor_id'] ?? 0));
+                return $this->redirect('/M/drivers?msg=conductor_deleted');
             }
         }
 
+        // Provide drivers/conductors/opId to match bus_owner view shape
         $this->view('depot_manager', 'drivers', [
-            'metrics'   => $m->metrics(),
-            'recent'    => $m->driverActivities(),
-            'recentCon' => $m->conductorActivities(),
+            'metrics'    => $m->metrics(),
+            'recent'     => $m->driverActivities(),
+            'recentCon'  => $m->conductorActivities(),
+            'drivers'    => $m->allDrivers(),
+            'conductors' => $m->allConductors(),
+            'opId'       => $m->getResolvedOperatorId(),
         ]);
     }
 

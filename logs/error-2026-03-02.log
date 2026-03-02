@@ -1,0 +1,4 @@
+[02-Mar-2026 17:34:34 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221
+[02-Mar-2026 17:41:19 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221
+[02-Mar-2026 17:59:04 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221
+[02-Mar-2026 18:01:33 Asia/Colombo] PHP Warning:  Undefined property: App\models\depot_manager\DriverModel::$getResolvedOperatorId in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 221

@@ -24,7 +24,12 @@ $name    = $displayName !== '' ? $displayName : 'Depot Manager';
 
   <!-- Depot layout CSS -->
   <link rel="stylesheet" href="/assets/css/depot.css">
-<script src="/assets/js/fleet.js"></script>
+  <script src="/assets/js/fleet.js"></script>
+  <?php if ($page === 'drivers'): ?>
+    <!-- apply owner theme on drivers page so colors match owner screenshot -->
+    <link rel="stylesheet" href="/assets/css/owner.css">
+    <script defer src="/assets/js/bus_owner.js"></script>
+  <?php endif; ?>
 
   <!-- Optional alerts (if you already use these in project) -->
   <link rel="stylesheet" href="/assets/css/alert.css">
