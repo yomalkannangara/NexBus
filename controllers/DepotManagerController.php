@@ -82,11 +82,22 @@ public function fleet()
             return $this->redirect('/M/fleet?msg=' . ($ok ? 'bus_deleted' : 'bus_error'));
         }
 
+        // collect filters from querystring
+        $filters = [
+            'search'      => trim($_GET['search'] ?? ''),
+            'route'       => trim($_GET['route'] ?? ''),
+            'status'      => trim($_GET['status'] ?? ''),
+            'capacity'    => trim($_GET['capacity'] ?? ''),
+            'assignment'  => trim($_GET['assignment'] ?? ''), // currently unused
+            'maintenance' => trim($_GET['maintenance'] ?? ''), // unused
+        ];
+
         $this->view('depot_manager', 'fleet', [
-            'summary' => $m->summaryCards(),
-            'rows'    => $m->list(),
+            'summary' => $m->summaryCards($filters),
+            'rows'    => $m->list($filters),
             'routes'  => $m->routes(),
             'buses'   => $m->buses(),
+            'filters' => $filters,
             'msg'     => $_GET['msg'] ?? null,
         ]);
     }
