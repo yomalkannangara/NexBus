@@ -1,21 +1,64 @@
 <?php /** @var array $routes,$buses,$special_tt */ ?>
 <div class="container">
-<h1>Emergency / Seasonal Timetables</h1>
+<section class="title-banner">
+  <h1>Emergency / Seasonal Timetables</h1>
+  <p>Create and manage temporary timetable overrides with clear departure/arrival scheduling.</p>
+</section>
+
 <?php if(!empty($msg)): ?><div class="notice"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
-<form method="post" class="card" style="padding:12px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
-<input type="hidden" name="action" value="create_special_tt">
-<label>Bus<select name="bus_reg_no"><?php foreach($buses as $b): ?><option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no']) ?></option><?php endforeach; ?></select></label>
-<label>Route<select name="route_id"><?php foreach($routes as $r): ?><option value="<?= (int)$r['route_id'] ?>"><?= htmlspecialchars($r['route_no'].' — '.$r['name']) ?></option><?php endforeach; ?></select></label>
-<label>Start<input type="date" name="effective_from" required></label>
-<label>End<input type="date" name="effective_to"></label>
-<label>DOW<select name="day_of_week"><option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option><option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option></select></label>
-<label>Depart<input type="time" name="departure_time" required></label>
-<label>Arrive<input type="time" name="arrival_time"></label>
-<div style="grid-column:1/-1"><button type="submit">Save</button></div>
+
+<form method="post" class="card tt-form">
+  <input type="hidden" name="action" value="create_special_tt">
+
+  <div class="tt-top-row">
+    <label>
+      <span>Departure Time</span>
+      <input type="time" name="departure_time" required>
+    </label>
+    <label>
+      <span>Arrival Time</span>
+      <input type="time" name="arrival_time">
+    </label>
+  </div>
+
+  <div class="tt-grid">
+    <label>
+      <span>Bus</span>
+      <select name="bus_reg_no">
+        <?php foreach($buses as $b): ?><option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no']) ?></option><?php endforeach; ?>
+      </select>
+    </label>
+    <label>
+      <span>Route</span>
+      <select name="route_id">
+        <?php foreach($routes as $r): ?><option value="<?= (int)$r['route_id'] ?>"><?= htmlspecialchars($r['route_no'].' — '.$r['name']) ?></option><?php endforeach; ?>
+      </select>
+    </label>
+    <label>
+      <span>Effective From</span>
+      <input type="date" name="effective_from" required>
+    </label>
+    <label>
+      <span>Effective To</span>
+      <input type="date" name="effective_to">
+    </label>
+    <label>
+      <span>Day of Week</span>
+      <select name="day_of_week">
+        <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="tt-actions">
+    <button type="submit">Save Timetable</button>
+  </div>
 </form>
 
-<h2 style="margin-top:16px">Existing Special Timetables</h2>
-<table class="table"><tr><th>ID</th><th>Bus</th><th>Route</th><th>From</th><th>To</th><th>DOW</th><th>Dep</th><th>Arr</th><th></th></tr>
+<h2 class="tt-heading">Existing Special Timetables</h2>
+<table class="table tt-table">
+<thead><tr><th>ID</th><th>Bus</th><th>Route</th><th>From</th><th>To</th><th>DOW</th><th>Dep</th><th>Arr</th><th>Actions</th></tr></thead>
+<tbody>
 <?php foreach($special_tt as $r): ?>
 <tr
   id="row-<?= (int)$r['timetable_id'] ?>"
@@ -36,18 +79,98 @@
 <td><?= (int)$r['day_of_week'] ?></td>
 <td><?= htmlspecialchars(substr($r['departure_time'],0,5)) ?></td>
 <td><?= htmlspecialchars($r['arrival_time'] ? substr($r['arrival_time'],0,5) : '') ?></td>
-<td>
-  <button type="button" class="btn-edit">Edit</button>
-  <form method="post" style="display:inline" onsubmit="return confirm('Delete this timetable?')">
-    <input type="hidden" name="action" value="delete_special_tt">
-    <input type="hidden" name="timetable_id" value="<?= (int)$r['timetable_id'] ?>">
-    <button>Delete</button>
-  </form>
+<td class="tt-actions-cell">
+  <div class="tt-row-actions">
+    <button type="button" class="btn-edit button outline">Edit</button>
+    <form method="post" class="tt-inline-form" onsubmit="return confirm('Delete this timetable?')">
+      <input type="hidden" name="action" value="delete_special_tt">
+      <input type="hidden" name="timetable_id" value="<?= (int)$r['timetable_id'] ?>">
+      <button class="button" type="submit">Delete</button>
+    </form>
+  </div>
 </td>
 </tr>
 <?php endforeach; ?>
+</tbody>
 </table>
 </div>
+
+<style>
+.tt-form {
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+.tt-form label {
+  display: grid;
+  gap: 6px;
+}
+.tt-form label span {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.tt-top-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 12px;
+}
+.tt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+}
+.tt-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.tt-heading {
+  margin: 16px 0 10px;
+  color: var(--maroon);
+}
+.tt-inline-form {
+  display: inline;
+}
+.tt-actions-cell {
+  min-width: 170px;
+}
+.tt-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+.tt-row-actions .button {
+  min-width: 72px;
+}
+.tt-row-actions.is-editing .button {
+  min-width: 82px;
+}
+
+@media (max-width: 900px) {
+  .tt-grid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .tt-top-row,
+  .tt-grid {
+    grid-template-columns: 1fr;
+  }
+  .tt-actions {
+    justify-content: stretch;
+  }
+  .tt-actions .button,
+  .tt-actions button {
+    width: 100%;
+  }
+  .tt-row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+</style>
 
 <script>
 (function(){
@@ -103,16 +226,19 @@
       tds[6].innerHTML=''; tds[6].appendChild(depI);
       tds[7].innerHTML=''; tds[7].appendChild(arrI);
 
-      // Actions: show Save/Cancel and hide delete
+      // Actions: show Save/Cancel in a fixed, user-friendly position
       const actTd = tds[8];
-      const delForm = actTd.querySelector('form');
-      if (delForm) delForm.style.display = 'none';
+      actTd.innerHTML='';
+      const actionWrap = document.createElement('div');
+      actionWrap.className = 'tt-row-actions is-editing';
 
       const saveBtn = document.createElement('button');
-      saveBtn.type='button'; saveBtn.textContent='Save';
+      saveBtn.type='button'; saveBtn.textContent='Save'; saveBtn.className = 'button';
       const cancelBtn = document.createElement('button');
-      cancelBtn.type='button'; cancelBtn.textContent='Cancel'; cancelBtn.style.marginLeft='8px';
-      actTd.appendChild(saveBtn); actTd.appendChild(cancelBtn);
+      cancelBtn.type='button'; cancelBtn.textContent='Cancel'; cancelBtn.className = 'button outline';
+      actionWrap.appendChild(saveBtn);
+      actionWrap.appendChild(cancelBtn);
+      actTd.appendChild(actionWrap);
 
       cancelBtn.addEventListener('click', ()=>{ window.location.reload(); });
       saveBtn.addEventListener('click', ()=>{

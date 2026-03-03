@@ -60,7 +60,16 @@ class MessageModel extends BaseModel
         return array_unique(array_map('intval', $okIds));
     }
 
-    public function send(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false): bool {
+    public function send(
+        int $depotId,
+        array $userIds,
+        string $text,
+        string $priority='normal',
+        string $scope='individual',
+        bool $allDepot=false,
+        ?int $senderUserId=null,
+        ?string $senderRole=null
+    ): bool {
         $text = trim($text);
         if (!$text) return false;
 
@@ -75,26 +84,59 @@ class MessageModel extends BaseModel
         
         if (!$okIds) return false;
 
+        $senderName = null;
+        if (!empty($senderUserId)) {
+            $st = $this->pdo->prepare("SELECT CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name FROM users WHERE user_id=? LIMIT 1");
+            $st->execute([(int)$senderUserId]);
+            $senderName = trim((string)$st->fetchColumn());
+            if ($senderName === '') $senderName = null;
+        }
+
+        $metadata = [
+            'source' => 'depot_message',
+            'source_user_id' => $senderUserId ? (int)$senderUserId : null,
+            'source_role' => $senderRole,
+            'source_name' => $senderName,
+            'scope' => $scope,
+        ];
+        $metadataJson = json_encode($metadata, JSON_UNESCAPED_UNICODE);
+
         $ins = $this->pdo->prepare(
-            "INSERT INTO notifications(user_id,type,message,is_seen,created_at)
-             VALUES(?, 'Message', ?, 0, NOW())"
+            "INSERT INTO notifications(user_id,type,message,is_seen,priority,metadata,created_at)
+             VALUES(?, 'Message', ?, 0, ?, ?, NOW())"
         );
-        $this->pdo->beginTransaction();
-        foreach ($okIds as $uid) $ins->execute([$uid,$text]);
-        return $this->pdo->commit();
+
+        try {
+            $this->pdo->beginTransaction();
+            foreach ($okIds as $uid) {
+                $ins->execute([$uid, $text, $priority, $metadataJson]);
+            }
+            return $this->pdo->commit();
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            return false;
+        }
     }
 
     public function recent(int $depotId, int $limit=20, string $filter='all'): array {
-        $sql = "SELECT n.*, 
-                       CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) AS full_name 
-                FROM notifications n
-                JOIN users u ON u.user_id=n.user_id AND u.sltb_depot_id=?
-                WHERE n.type IN ('Message','Delay','Timetable')";
+                $sql = "SELECT n.*,
+                                             CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
+                                             COALESCE(
+                                                     NULLIF(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_name')), ''),
+                                                     NULLIF(CONCAT(su.first_name, ' ', COALESCE(su.last_name, '')), ''),
+                                                     CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END
+                                             ) AS full_name,
+                                             JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_role')) AS source_role
+                                FROM notifications n
+                                JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
+                                LEFT JOIN users su
+                                    ON su.user_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_user_id')) AS UNSIGNED)
+                WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')";
         
         if ($filter === 'unread') {
             $sql .= " AND n.is_seen=0";
         } elseif ($filter === 'alert') {
-            $sql .= " AND n.type IN ('Delay','Timetable')";
+            $sql .= " AND n.type IN ('Delay','Timetable','Alert','Breakdown')";
         } elseif ($filter === 'message') {
             $sql .= " AND n.type='Message'";
         }

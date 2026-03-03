@@ -33,6 +33,12 @@ $sbTitle = match ($module) {
   'TS' => 'Timekeeper Dashboard',
   default => 'Staff Dashboard',
 };
+$topDesignation = match ($module) {
+  'O'  => 'Depot Officer Dashboard',
+  'TP' => 'Private Timekeeper Dashboard',
+  'TS' => 'SLTB Timekeeper Dashboard',
+  default => 'Staff Dashboard',
+};
 
 // active helper
 $active = function (string $m, string $p) use ($module, $page): string {
@@ -51,7 +57,7 @@ $active = function (string $m, string $p) use ($module, $page): string {
   <script src="/assets/js/alert.js"></script>
 
 </head>
-<body>
+<body class="module-<?= strtolower(htmlspecialchars($module)) ?>">
 <header class="topbar">
   <button id="sidebar-toggle" class="sidebar-toggle" title="Menu" aria-label="Toggle menu">
     <span></span>
@@ -66,7 +72,7 @@ $active = function (string $m, string $p) use ($module, $page): string {
     </div>
   </div>
   <div class="right">
-    <div class="user"><?= htmlspecialchars($roleLabel) ?></div>
+    <div class="user"><?= htmlspecialchars($topDesignation) ?></div>
     <div class="date"><?= date('l d F Y') ?></div>
   </div>
 </header>

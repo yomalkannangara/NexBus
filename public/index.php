@@ -129,12 +129,14 @@ $routes = [
     '/live/buses/pull'        => ['LiveBusesController','proxy'],
     // DB-read endpoint – serves latest tracking_monitoring rows to the frontend
     '/live/buses/db'          => ['LiveBusesController','dbLive'],
+    // Backward-compatible API alias used by dashboards
+    '/api/buses/live'         => ['LiveBusesController','dbLive'],
     // Diagnostic helper
     '/live/buses/missing-sql' => ['LiveBusesController','missingSql'],
 ];
 
 // 5. Auth guard: allow only public paths without login
-$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/live/buses/pull','/live/buses/db','/live/buses/missing-sql'];
+$publicPaths = ['/login','/login/submit','/register','/home','/timetable','/ticket','/live/buses/pull','/live/buses/db','/api/buses/live','/live/buses/missing-sql'];
 if (!in_array($path, $publicPaths, true) && empty($_SESSION['user'])) {
     // optionally remember intended URL
     $_SESSION['intended'] = $path;

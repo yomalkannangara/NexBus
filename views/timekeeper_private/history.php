@@ -57,7 +57,11 @@
           <td style="padding:8px 10px;" data-label="Date"><?= htmlspecialchars($r['date'] ?? '') ?></td>
           <td style="padding:8px 10px;" data-label="Route"><?= htmlspecialchars($route) ?></td>
           <td style="padding:8px 10px;" data-label="Turn #"><?= (int)($r['turn_no'] ?? 0) ?></td>
-          <td style="padding:8px 10px;" data-label="Bus ID"><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></td>
+          <td style="padding:8px 10px;" data-label="Bus ID">
+            <a class="tk-map-link" href="/TP/dashboard?focus_bus=<?= urlencode((string)($r['bus_reg_no'] ?? '')) ?>">
+              <?= htmlspecialchars($r['bus_reg_no'] ?? '') ?>
+            </a>
+          </td>
           <td style="padding:8px 10px;" data-label="Depart"><?= htmlspecialchars($r['dep_time'] ?? '') ?></td>
           <td style="padding:8px 10px;" data-label="Arrive"><?= htmlspecialchars($r['arr_time'] ?? '—') ?></td>
           <td style="padding:8px 10px;" data-label="Status">
@@ -76,4 +80,11 @@
 .badge-amber{background:#fef3c7;color:#92400e}
 .badge-red{background:#fee2e2;color:#991b1b}
 .badge-gray{background:#f3f4f6;color:#374151}
+.tk-map-link {
+  color: var(--maroon);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tk-map-link:hover { color: color-mix(in srgb, var(--maroon) 85%, black); }
 </style>

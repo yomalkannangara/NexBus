@@ -103,9 +103,9 @@ public function depot(int $depotId): ?array {
     public function delayedToday(int $depotId): array { return $this->dash->delayedToday($depotId); }
 
     // Assignments
-    public function todayAssignments(int $depotId): array { return $this->assign->todayAssignments($depotId); }
-    public function createAssignment(int $depotId, array $d): bool { return $this->assign->createAssignment($depotId,$d); }
-    public function deleteAssignment(int $depotId, int $ttId): void { $this->assign->deleteAssignment($depotId,$ttId); }
+    public function todayAssignments(int $depotId): array { return $this->assign->allToday($depotId); }
+    public function createAssignment(int $depotId, array $d): mixed { return $this->assign->create($d, $depotId); }
+    public function deleteAssignment(int $depotId, int $assignmentId): void { $this->assign->delete($assignmentId, $depotId); }
 
     // Special timetables
     public function createSpecialTimetable(int $depotId, array $d): bool { return $this->special->createSpecial($depotId,$d); }
@@ -113,7 +113,7 @@ public function depot(int $depotId): ?array {
     public function specialTimetables(int $depotId): array { return $this->special->listSpecial($depotId); }
 
     // Messages
-    public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot); }
+    public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false, ?int $senderUserId=null, ?string $senderRole=null): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot,$senderUserId,$senderRole); }
     public function recentMessages(int $depotId, int $myId, int $limit=20, string $filter='all'): array { return $this->msg->recent($depotId,$limit, $filter); }
     public function markMessageRead(int $messageId, int $userId): void { $this->msg->markRead($messageId, $userId); }
     public function acknowledgeMessage(int $messageId, int $userId): void { $this->msg->acknowledge($messageId, $userId); }
@@ -121,7 +121,7 @@ public function depot(int $depotId): ?array {
     public function archiveMessage(int $messageId, int $userId): void { $this->msg->archive($messageId, $userId); }
 
     // Tracking
-    public function trackingLogs(int $depotId, string $from, string $to): array { return $this->track->logs($depotId,$from,$to); }
+    public function trackingLogs(int $depotId, string $from, string $to): array { return $this->track->logs($from, $to); }
 
     // Reports
     public function kpiSummary(int $depotId, string $from, string $to, array $filters = []): array { return $this->report->kpis($depotId,$from,$to, $filters); }

@@ -142,9 +142,8 @@ main#content {
 .topbar .logo img { width: 42px; height: 42px }
 .topbar .app { font-weight: 700 }
 .topbar .sub { font-size: 12px; opacity: .9 }
-.topbar .right { display: flex; gap: 12px; align-items: center; }
-.topbar .user { font-weight: 600 }
-.topbar .date { font-size: 12px; opacity: .9 }
+.topbar .right { text-align: right; }
+.topbar .date { opacity: .9 }
 
 /* Hamburger menu button - hidden by default */
 .sidebar-toggle {
@@ -203,7 +202,15 @@ main#content {
   padding: 8px 14px; color: #fff; text-decoration: none; font-size: 14px;
   border-radius: 6px; transition: background .2s ease;
 }
-.menu .menu-item .icon { flex: 0 0 18px; display: grid; place-items: center }
+.menu-item .icon { flex: 0 0 18px; display: grid; place-items: center }
+.menu-item .icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .menu .menu-item:hover { background: rgba(255, 255, 255, .15) }
 .menu .menu-item.active {
   color: var(--gold);
@@ -253,19 +260,31 @@ main#content {
 }
 .sidebar-profile { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
 .profile-logout {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
   margin: 10px auto 0; /* center horizontally */
   padding: 10px 18px; font-size: 14px; font-weight: 700;
   color: #fff; background: linear-gradient(135deg, #aa1b23, #b61c29);
   border-radius: 10px; text-decoration: none; transition: all .22s ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
   border: none; cursor: pointer;
-  width: calc(100% - 36px); max-width: 260px; display: inline-flex;
+  width: calc(100% - 36px); max-width: 260px;
 }
+.profile-logout .logout-icon { font-size: 16px; line-height: 1; }
+.profile-logout .logout-text { line-height: 1; }
 .profile-logout:hover {
   background: linear-gradient(135deg, #b61c29, #c72a35);
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, .22);
+}
+
+@media (max-width: 768px) {
+  .module-tp .profile-logout,
+  .module-ts .profile-logout {
+    width: 100%;
+    max-width: none;
+    margin: 10px auto 0;
+    text-align: center;
+  }
 }
 
 /* Sidebar footer */

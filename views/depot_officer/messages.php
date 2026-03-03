@@ -386,17 +386,21 @@ $flashMessages = [
 .msg-flash.error   { background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; }
 
 /* stats row */
-.msg-stats { display:flex; gap:8px; padding:10px 16px 0; flex-shrink:0; }
+.msg-stats { display:flex; gap:8px; padding:10px 16px 0; flex-shrink:0; flex-wrap:wrap; }
 .msg-stat {
-    flex:1; background:#fff; border:1px solid #e9e3da; border-radius:10px;
+    flex:1 1 180px; min-width:160px; background:#fff; border:1px solid #e9e3da; border-radius:10px;
     padding:8px 10px; text-align:center; position:relative;
 }
-.msg-stat-val { font-size:20px; font-weight:800; color:var(--maroon,#7f1d1d); line-height:1; position:relative; display:inline-block; }
+.msg-stat-val {
+    font-size:20px; font-weight:800; color:var(--maroon,#7f1d1d); line-height:1;
+    display:inline-flex; align-items:flex-start; justify-content:center; gap:6px;
+}
 .msg-stat-badge {
-    position:absolute; top:-6px; right:-6px;
+    position:static;
     background:linear-gradient(135deg,#dc2626,#991b1b);
-    color:#fff; border-radius:50%;
-    width:20px; height:20px;
+    color:#fff; border-radius:999px;
+    min-width:20px; height:20px;
+    padding:0 6px;
     font-size:11px; font-weight:900;
     display:grid; place-items:center;
     box-shadow:0 2px 8px rgba(220,38,38,.4);
@@ -410,6 +414,7 @@ $flashMessages = [
 @media(max-width:860px){
     .msg-body { grid-template-columns:1fr; grid-template-rows:auto 1fr auto; }
     .msg-inbox, .msg-compose-panel { max-height:260px; }
+    .msg-stat { flex:1 1 calc(50% - 8px); min-width:140px; }
 }
 </style>
 
@@ -443,20 +448,22 @@ $flashMessages = [
             $alerts = count(array_filter($recent, fn($n) => in_array($n['type'] ?? '', ['Delay','Alert','Breakdown'])));
         ?>
         <div class="msg-stat">
-            <div class="msg-stat-val"><?= $total ?></div>
+            <div class="msg-stat-val" id="statTotalVal"><?= $total ?></div>
             <div class="msg-stat-label">Total</div>
         </div>
         <div class="msg-stat">
-            <div class="msg-stat-val" style="color:#d97706">
-                <?= $unread ?>
+            <div class="msg-stat-val" style="color:#d97706" id="statUnreadVal">
+                <span id="statUnreadCount"><?= $unread ?></span>
                 <?php if ($unread > 0): ?>
-                    <span class="msg-stat-badge"><?= min($unread, 99) ?></span>
+                    <span class="msg-stat-badge" id="statUnreadBadge"><?= min($unread, 99) ?></span>
+                <?php else: ?>
+                    <span class="msg-stat-badge" id="statUnreadBadge" style="display:none">0</span>
                 <?php endif; ?>
             </div>
             <div class="msg-stat-label">Unread</div>
         </div>
         <div class="msg-stat">
-            <div class="msg-stat-val" style="color:#dc2626"><?= $alerts ?></div>
+            <div class="msg-stat-val" style="color:#dc2626" id="statAlertsVal"><?= $alerts ?></div>
             <div class="msg-stat-label">Alerts</div>
         </div>
         <div class="msg-stat">
@@ -685,6 +692,7 @@ $flashMessages = [
                     <div class="msg-tpl-grid">
                         <?php foreach ($templates as $tpl): ?>
                         <button type="button" class="msg-tpl-btn"
+                            data-template-id="<?= htmlspecialchars($tpl['id']) ?>"
                                 data-template="<?= htmlspecialchars($tpl['text']) ?>"
                                 onclick="applyTemplate(this)">
                             <span class="msg-tpl-icon"><?= $tpl['icon'] ?></span>
@@ -804,11 +812,24 @@ function updateStatsBadges() {
     const unread = Array.from(msgItems).filter(el => el.classList.contains('unread')).length;
     const alerts = Array.from(msgItems).filter(el => ['delay','alert','breakdown'].includes(el.dataset.type)).length;
     
-    // Update stats row if exists
-    const statVals = document.querySelectorAll('.msg-stat-val');
-    if (statVals[0]) statVals[0].textContent = total;
-    if (statVals[1]) statVals[1].textContent = unread;
-    if (statVals[2]) statVals[2].textContent = alerts;
+    const totalEl = document.getElementById('statTotalVal');
+    const unreadCountEl = document.getElementById('statUnreadCount');
+    const unreadBadgeEl = document.getElementById('statUnreadBadge');
+    const alertsEl = document.getElementById('statAlertsVal');
+
+    if (totalEl) totalEl.textContent = String(total);
+    if (unreadCountEl) unreadCountEl.textContent = String(unread);
+    if (alertsEl) alertsEl.textContent = String(alerts);
+
+    if (unreadBadgeEl) {
+        if (unread > 0) {
+            unreadBadgeEl.style.display = '';
+            unreadBadgeEl.textContent = String(Math.min(unread, 99));
+        } else {
+            unreadBadgeEl.style.display = 'none';
+            unreadBadgeEl.textContent = '0';
+        }
+    }
 }
 
 // Connect to SSE on page load
@@ -858,8 +879,11 @@ let currentItem = null;
 window.openThread = function(el) {
     if (currentItem) currentItem.classList.remove('active');
     el.classList.add('active');
-    el.querySelector('.msg-unread-dot')?.remove();
+    const unreadDot = el.querySelector('.msg-unread-dot');
+    if (unreadDot) unreadDot.remove();
+    el.classList.remove('unread');
     el.dataset.unread = '0';
+    updateStatsBadges();
     currentItem = el;
 
     const name  = el.dataset.name  || 'Unknown';
@@ -1033,10 +1057,81 @@ window.removeRouteTag = function(routeId) {
 
 /* ─── Templates ─────────────────────────────────────────────────────── */
 window.applyTemplate = function(btn) {
-    document.getElementById('messageBody').value = btn.dataset.template;
-    updateCharCount(document.getElementById('messageBody'));
-    document.getElementById('messageBody').focus();
+    const templateId = btn.dataset.templateId || '';
+    let text = btn.dataset.template || '';
+
+    const firstChecked = (selector) => {
+        const cb = document.querySelector(selector);
+        return cb ? cb.value : '';
+    };
+    const routeLabelById = (routeId) => {
+        if (!routeId) return '';
+        const route = routesByKey.find(r => r.id === parseInt(routeId, 10));
+        return route ? (route.name || ('Route ' + routeId)) : ('Route ' + routeId);
+    };
+    const busRegById = (busId) => {
+        if (!busId) return '';
+        const bus = busesByKey.find(b => b.id === parseInt(busId, 10));
+        return bus ? (bus.reg || ('Bus ' + busId)) : ('Bus ' + busId);
+    };
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const formatDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    const formatTime = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    const replaceToken = (token, value) => {
+        text = text.split('[' + token + ']').join(value);
+    };
+    const now = new Date();
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const selectedBus = busRegById(firstChecked('.bus-cb:checked'));
+    const selectedRoute = routeLabelById(firstChecked('.route-cb:checked'));
+
+    const reg = selectedBus || '[REG]';
+    const route = selectedRoute || '[NO]';
+    const min = '[MIN]';
+    const location = '[LOCATION]';
+    const tripId = '[ID]';
+
+    if (text.includes('[REG]')) replaceToken('REG', reg);
+    if (text.includes('[NO]')) replaceToken('NO', route);
+    if (text.includes('[MIN]')) replaceToken('MIN', min);
+    if (text.includes('[LOCATION]')) replaceToken('LOCATION', location);
+    if (text.includes('[ID]')) replaceToken('ID', tripId);
+    if (text.includes('[TIME]')) replaceToken('TIME', formatTime(now));
+    if (text.includes('[DATE]')) {
+        const dateVal = templateId === 'headcount' ? formatDate(tomorrow) : formatDate(now);
+        replaceToken('DATE', dateVal);
+    }
+
+    const defaults = {
+        delay: { priority: 'urgent' },
+        breakdown: { priority: 'critical' },
+        override: { priority: 'urgent' },
+        maintenance: { priority: 'normal' },
+        headcount: { priority: 'normal', scope: 'depot' },
+    };
+    const cfg = defaults[templateId] || null;
+    if (cfg && cfg.scope) {
+        const tab = document.querySelector('.msg-scope-tab[data-scope="' + cfg.scope + '"]');
+        if (tab) tab.click();
+    }
+    if (cfg && cfg.priority) {
+        const pill = document.querySelector('.msg-priority-pill[data-priority="' + cfg.priority + '"]');
+        if (pill && typeof window.setPriority === 'function') {
+            window.setPriority(pill, cfg.priority);
+        }
+    }
+
+    const body = document.getElementById('messageBody');
+    body.value = text;
+    updateCharCount(body);
+    body.focus();
 };
+
+document.querySelectorAll('.msg-tpl-btn').forEach((btn) => {
+    btn.addEventListener('click', function() {
+        window.applyTemplate(this);
+    });
+});
 
 /* ─── Priority ──────────────────────────────────────────────────────── */
 window.setPriority = function(el, val) {
@@ -1069,7 +1164,7 @@ window.submitCompose = function() {
         if (!anyChecked) { alert('Please select at least one recipient.'); return; }
     }
     if (scope === 'role') {
-        const anyRole = document.querySelector('input[name="role_scope[]"]:checked');
+        const anyRole = document.querySelector('.role-cb:checked');
         if (!anyRole) { alert('Please select at least one role.'); return; }
     }
 
@@ -1097,9 +1192,10 @@ document.getElementById('quickReplySend').addEventListener('click', function() {
     if (!text) return;
     // Populate compose panel and submit
     document.getElementById('messageBody').value = text;
+    updateCharCount(document.getElementById('messageBody'));
     // Target same recipient (best effort: use scope all depot if we can't determine)
-    // For MVP: just submit via form (could be enhanced with AJAX)
-    document.getElementById('composeForm').submit();
+    // Submit through common validation path
+    submitCompose();
 });
 
 /* ─── Quick actions ─────────────────────────────────────────────────── */
@@ -1159,21 +1255,31 @@ let currentMessageId = null;
 window.ackMessage = function() {
     if (!currentMessageId) { alert('No message selected'); return; }
     fetch('/O/messages?action=ack&id=' + currentMessageId, {method:'POST'})
-        .then(() => { alert('Message acknowledged.'); currentItem?.classList.add('archived'); })
+        .then(() => {
+            alert('Message acknowledged.');
+            if (currentItem) currentItem.classList.add('archived');
+        })
         .catch(e => alert('Action failed: ' + e));
 };
 
 window.escalateMessage = function() {
     if (!currentMessageId) { alert('No message selected'); return; }
     fetch('/O/messages?action=escalate&id=' + currentMessageId, {method:'POST'})
-        .then(() => { alert('Message escalated.'); currentItem?.style.borderLeftColor = '#dc2626'; })
+        .then(() => {
+            alert('Message escalated.');
+            if (currentItem) currentItem.style.borderLeftColor = '#dc2626';
+        })
         .catch(e => alert('Action failed: ' + e));
 };
 
 window.archiveMessage = function() {
     if (!currentMessageId) { alert('No message selected'); return; }
     fetch('/O/messages?action=archive&id=' + currentMessageId, {method:'POST'})
-        .then(() => { alert('Message archived.'); currentItem?.remove(); currentMessageId = null; })
+        .then(() => {
+            alert('Message archived.');
+            if (currentItem) currentItem.remove();
+            currentMessageId = null;
+        })
         .catch(e => alert('Action failed: ' + e));
 };
 

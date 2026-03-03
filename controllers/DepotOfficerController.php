@@ -167,8 +167,9 @@ public function assignments()
             $allDepot  = ($_POST['all_depot'] ?? '0') === '1';
             $to        = array_values(array_filter(array_map('intval', (array)($_POST['to'] ?? []))));
 
+            $senderRole = (string)($u['role'] ?? 'DepotOfficer');
             $ok = ($text && ($to || $allDepot))
-                  ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot)
+                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole)
                   : false;
 
             $this->redirect('/O/messages?msg=' . ($ok ? 'sent' : 'error'));
