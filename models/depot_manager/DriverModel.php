@@ -3,19 +3,21 @@ namespace App\models\depot_manager;
 
 use PDO;
 use PDOException;
-abstract class BaseModel {
-    protected PDO $pdo;
-    protected int $depotId = 0;
-    
-    public function __construct() {
-        $this->pdo = $GLOBALS['db'];
-        // Get current user's depot context
-        $this->depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? $_SESSION['user']['depot_id'] ?? 0);
-    }
-}
+use App\models\common\BaseModel;
 
 class DriverModel extends BaseModel
 {
+    protected int $depotId;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->depotId = (int)(
+            $_SESSION['user']['sltb_depot_id'] ??
+            $_SESSION['user']['depot_id'] ??
+            0
+        );
+}
     public function metrics(): array
     {
         $total     = $this->countSafe("SELECT COUNT(*) c FROM sltb_drivers WHERE sltb_depot_id=?", [$this->depotId]);

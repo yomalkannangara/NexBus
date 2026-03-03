@@ -85,7 +85,6 @@ $routes = [
     '/M/timetables'    => ['DepotManagerController','timetables'],
     '/M/fleet'    => ['DepotManagerController','fleet'],
     '/M/feedback'       => ['DepotManagerController','feedback'],
-    '/M/health'   => ['DepotManagerController','health'],   // NEW
     '/M/drivers'    => ['DepotManagerController','drivers'],    // NEW
     '/M/performance'      => ['DepotManagerController','performance'],      // NEW
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
@@ -173,7 +172,24 @@ exit;
 }
 
 
-// 6. Dispatch
+// 6. Role-based route prefix protection
+// Role names must exactly match what AuthController stores in $_SESSION['user']['role'].
+$rolePolicies = [
+    '/A'  => ['NTCAdmin'],
+    '/M'  => ['DepotManager'],
+    '/O'  => ['DepotOfficer'],
+    '/B'  => ['PrivateBusOwner'],
+    '/TP' => ['PrivateTimekeeper'],
+    '/TS' => ['SLTBTimekeeper'],
+];
+foreach ($rolePolicies as $prefix => $allowedRoles) {
+    if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+        \App\Middleware\AuthMiddleware::requireRole($allowedRoles);
+        break;
+    }
+}
+
+// 7. Dispatch
 if (isset($routes[$path])) {
     [$c,$m] = $routes[$path];
     run($c,$m);

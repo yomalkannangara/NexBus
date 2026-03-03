@@ -3,11 +3,7 @@ namespace App\models\depot_manager;
 
 use PDO;
 use PDOException;
-
-abstract class BaseModel {
-    protected PDO $pdo;
-    public function __construct() { $this->pdo = $GLOBALS['db']; }
-}
+use App\models\common\BaseModel;
 
 class FleetModel extends BaseModel
 {

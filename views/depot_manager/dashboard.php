@@ -156,30 +156,185 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
   </div>
 
   <!-- Map -->
-  <div class="card mt-16">
-    <div class="card__head">
-      <div class="card__title">Real-Time Fleet Location Map</div>
-    </div>
-    <div class="map map--soft">
-      <button class="map-badge">Live Bus Tracking</button>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 
-      <!-- sample markers -->
-      <span class="dot" style="top:24%;left:14%"></span>
-      <span class="dot" style="top:36%;left:30%"></span>
-      <span class="dot" style="top:28%;right:18%"></span>
-      <span class="dot delayed" style="bottom:22%;left:22%"></span>
-      <span class="dot" style="bottom:30%;right:30%"></span>
-
-      <div class="map-center">
-        <div class="pin"><?= _svg('pin', 42, '#7a0f2e') ?></div>
-        <p class="primary">Sri Lanka Bus Fleet Map</p>
-        <p class="muted"><?= (int)($activeCount ?? 0) ?> buses currently active</p>
-        <div class="legend">
-          <div class="legend__item"><span class="k green"></span>Active (<?= (int)($activeCount ?? 0) ?>)</div>
-          <div class="legend__item"><span class="k yellow"></span>Delayed (<?= (int)($delayed ?? 0) ?>)</div>
-          <div class="legend__item"><span class="k red"></span>Issues (<?= (int)($issues ?? 0) ?>)</div>
-        </div>
-      </div>
-    </div>
+  <section class="filters filters--map"><h2>Bus Location Filters &mdash; <small><?= htmlspecialchars($depotName ?? 'Depot') ?></small></h2><div class="filter-grid"><div><label>Route</label>
+  <select id="map-filter-route" onchange="applyMapFilters()"><option value="">All Routes</option></select></div><div><label>Bus Number</label><div class="bus-search-wrap"><span class="bus-search-icon">&#128269;</span><input id="map-filter-bus" type="text" placeholder="Search bus (e.g. NB-1001)" oninput="busSearchInput()" autocomplete="off"><ul id="bus-suggestions" class="bus-suggestions"></ul></div></div>
+  <div class="live-fleet-bar">
+    <span class="live-fleet-label">Live fleet:</span>
+    <span class="lf-badge lf-badge--green" id="db-live-count">– buses</span>
+    <span class="lf-badge lf-badge--red" id="db-speed-viols">– speeding</span>
+    <span class="live-fleet-updated" id="db-map-updated"></span>
   </div>
+  </div></section>
+
+  <section class="map-section">
+    <div id="depot-bus-map" class="map-canvas"></div>
+  </section>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+  (function(){
+    var DEPOT_ID = <?= (int)($depotId ?? 0) ?>;
+
+    var map = L.map('depot-bus-map', {zoomControl:true}).setView([6.927, 79.861], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom:19
+    }).addTo(map);
+    setTimeout(function(){ map.invalidateSize(); }, 200);
+
+    var markers   = {};
+    var allBuses  = [];
+    var filterRoute = '';
+    var filterBus   = '';
+
+    function makePinIcon(speed){
+      var over = speed > 60;
+      var fill = over ? '#dc2626' : '#1d6f42';
+      var ring = over ? '#fca5a5' : '#86efac';
+      var pulse= over ? '#fee2e2' : '#dcfce7';
+      var svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 44 54">'
+        +'<ellipse cx="22" cy="52" rx="9" ry="3" fill="rgba(0,0,0,.22)"/>'
+        +'<circle cx="22" cy="20" r="19" fill="'+pulse+'" opacity=".55"/>'
+        +'<path d="M22 2C13.16 2 6 9.16 6 18c0 10.5 16 32 16 32S38 28.5 38 18C38 9.16 30.84 2 22 2z" fill="'+fill+'" stroke="'+ring+'" stroke-width="2.5"/>'
+        +'<circle cx="22" cy="18" r="9" fill="#fff"/>'
+        +'<rect x="16" y="14" width="12" height="8" rx="1.5" fill="'+fill+'"/>'
+        +'<rect x="17" y="15" width="4" height="3" rx=".5" fill="#fff" opacity=".9"/>'
+        +'<rect x="23" y="15" width="4" height="3" rx=".5" fill="#fff" opacity=".9"/>'
+        +'<rect x="17" y="19" width="10" height="1.5" rx=".5" fill="#fff" opacity=".6"/>'
+        +'</svg>';
+      return L.divIcon({html:svg,className:'',iconSize:[44,54],iconAnchor:[22,52],popupAnchor:[0,-50]});
+    }
+
+    function makePopup(b){
+      var over = b.speedKmh > 60;
+      var tag  = over
+        ? '<span class="speed-tag speed-over">⚡ '+b.speedKmh+' km/h — SPEEDING</span>'
+        : '<span class="speed-tag speed-ok">✓ '+b.speedKmh+' km/h — Normal</span>';
+      var upd  = new Date(b.updatedAt||b.snapshotAt).toLocaleTimeString();
+      return '<div class="bus-popup">'
+        +'<b>🚌 Bus '+b.busId+'</b><br>'
+        +'<span class="popup-route">Route <strong>'+b.routeNo+'</strong></span><br>'
+        +tag+'<br>'
+        +'<small>Heading '+Math.round(b.heading||0)+'° &nbsp;·&nbsp; Updated '+upd+'</small>'
+        +'</div>';
+    }
+
+    function updateRouteDropdown(buses){
+      var sel = document.getElementById('map-filter-route');
+      var cur = sel.value;
+      var seen = {};
+      var routes = [];
+      buses.forEach(function(b){
+        var rn = b.routeNo != null ? String(parseInt(b.routeNo,10)) : '';
+        if(rn && !seen[rn]){ seen[rn]=true; routes.push(rn); }
+      });
+      routes.sort(function(a,b){ return parseInt(a,10)-parseInt(b,10); });
+      sel.innerHTML = '<option value="">All Routes</option>';
+      routes.forEach(function(rn){
+        var o = document.createElement('option');
+        o.value = rn; o.textContent = 'Route '+rn;
+        if(parseInt(cur,10) === parseInt(rn,10)) o.selected = true;
+        sel.appendChild(o);
+      });
+    }
+
+    window.busSearchInput = function(){
+      applyMapFilters();
+      var val = document.getElementById('map-filter-bus').value.trim().toUpperCase();
+      var ul  = document.getElementById('bus-suggestions');
+      ul.innerHTML = '';
+      if(!val){ ul.classList.remove('open'); return; }
+      var matches = allBuses
+        .map(function(b){ return b.busId; })
+        .filter(function(id){ return id.toUpperCase().includes(val); })
+        .slice(0, 8);
+      if(!matches.length){ ul.classList.remove('open'); return; }
+      matches.forEach(function(id){
+        var li = document.createElement('li');
+        li.textContent = id;
+        li.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          document.getElementById('map-filter-bus').value = id;
+          ul.classList.remove('open');
+          applyMapFilters();
+        });
+        ul.appendChild(li);
+      });
+      ul.classList.add('open');
+    };
+
+    document.addEventListener('click', function(e){
+      if(!e.target.closest('.bus-search-wrap')){
+        var ul = document.getElementById('bus-suggestions');
+        if(ul) ul.classList.remove('open');
+      }
+    });
+
+    window.applyMapFilters = function(){
+      filterRoute = document.getElementById('map-filter-route').value;
+      filterBus   = document.getElementById('map-filter-bus').value.trim().toUpperCase();
+      allBuses.forEach(function(b){
+        var show = (!filterRoute || parseInt(b.routeNo,10) === parseInt(filterRoute,10))
+                && (!filterBus   || b.busId.toUpperCase().includes(filterBus));
+        var mk = markers[b.busId];
+        if(mk){
+          if(show){ if(!map.hasLayer(mk)) map.addLayer(mk); }
+          else    { if( map.hasLayer(mk)) map.removeLayer(mk); }
+        }
+      });
+    };
+
+    function fetchAndRender(){
+      fetch('/live/buses/pull')
+        .then(function(r){ return r.json(); })
+        .then(function(buses){
+          if(!Array.isArray(buses)) return;
+          /* Filter to only this depot's buses */
+          if(DEPOT_ID > 0){
+            buses = buses.filter(function(b){
+              return (b.depotId == DEPOT_ID);
+            });
+          }
+          allBuses = buses;
+          updateRouteDropdown(buses);
+
+          var seen  = {};
+          var viols = 0;
+          buses.forEach(function(b){
+            seen[b.busId] = true;
+            if(b.speedKmh > 60) viols++;
+            var popup = makePopup(b);
+            var icon  = makePinIcon(b.speedKmh);
+            var show  = (!filterRoute || parseInt(b.routeNo,10) === parseInt(filterRoute,10))
+                     && (!filterBus   || b.busId.toUpperCase().includes(filterBus));
+            if(markers[b.busId]){
+              markers[b.busId].setLatLng([b.lat,b.lng]).setIcon(icon).bindPopup(popup);
+              if(show){ if(!map.hasLayer(markers[b.busId])) map.addLayer(markers[b.busId]); }
+              else    { if( map.hasLayer(markers[b.busId])) map.removeLayer(markers[b.busId]); }
+            } else {
+              var mk = L.marker([b.lat,b.lng],{icon:icon}).bindPopup(popup);
+              if(show) mk.addTo(map);
+              markers[b.busId] = mk;
+            }
+          });
+          Object.keys(markers).forEach(function(id){
+            if(!seen[id]){ map.removeLayer(markers[id]); delete markers[id]; }
+          });
+          var c = document.getElementById('db-live-count');
+          var v = document.getElementById('db-speed-viols');
+          var u = document.getElementById('db-map-updated');
+          if(c) c.textContent = buses.length+' buses';
+          if(v) v.textContent = viols+' speeding';
+          if(u) u.textContent = 'Updated '+new Date().toLocaleTimeString();
+        })
+        .catch(function(){});
+    }
+
+    fetchAndRender();
+    setInterval(fetchAndRender, 15000);
+  })();
+  </script>
 </section>
