@@ -57,12 +57,16 @@ class ReportModel extends BaseModel
             $params[':bus_reg'] = $filters['bus_reg'];
         }
 
-        // 1. Delayed buses
-        $sql = "SELECT COUNT(*) FROM tracking_monitoring tm
-                JOIN private_buses b ON b.reg_no = tm.bus_reg_no
-                WHERE tm.operator_type='Private'
-                  AND DATE(tm.snapshot_at)=CURDATE()
-                  AND tm.operational_status='Delayed' $opClause $routeClause $busClause";
+        // 1. Delayed buses — latest snapshot per bus only
+        $sql = "SELECT COUNT(*) FROM (
+                    SELECT tm.bus_reg_no,
+                           ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                    FROM tracking_monitoring tm
+                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                    WHERE tm.operator_type='Private'
+                      AND DATE(tm.snapshot_at)=CURDATE()
+                      AND tm.operational_status='Delayed' $opClause $routeClause $busClause
+                ) latest WHERE latest.rn = 1";
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $metrics['delayed_buses'] = (int)$st->fetchColumn();
@@ -212,5 +216,214 @@ class ReportModel extends BaseModel
         } catch (\Throwable $e) {
             return [];
         }
+    }
+
+    /** Bus Status distribution — reads directly from private_buses (always accurate). */
+    public function getBusStatusData(array $filters = []): array
+    {
+        try {
+            $params    = [];
+            $opClause  = '';
+            $busClause = '';
+            if ($this->hasOperator()) {
+                $opClause = ' AND b.private_operator_id = :op';
+                $params[':op'] = $this->operatorId();
+            }
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND b.reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+            $sql = "SELECT b.status, COUNT(*) AS total
+                    FROM private_buses b
+                    WHERE 1=1 $opClause $busClause
+                    GROUP BY b.status
+                    ORDER BY b.status";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return array_map(fn($r) => [
+                'label'  => ucfirst(strtolower($r['status'] ?? 'Unknown')),
+                'value'  => (int)$r['total'],
+                'status' => $r['status'],
+            ], $st->fetchAll(\PDO::FETCH_ASSOC) ?: []);
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** Delayed vs total buses per route. */
+    public function getDelayedByRouteData(array $filters = []): array
+    {
+        try {
+            $params    = [];
+            $opClause  = '';
+            $busClause = '';
+            if ($this->hasOperator()) {
+                $opClause = ' AND b.private_operator_id = :op';
+                $params[':op'] = $this->operatorId();
+            }
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND tm.bus_reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+            $sql = "SELECT r.route_no,
+                           SUM(CASE WHEN tm.operational_status='Delayed' THEN 1 ELSE 0 END) AS delayed,
+                           COUNT(*) AS total
+                    FROM tracking_monitoring tm
+                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                    LEFT JOIN routes r ON r.route_id = tm.route_id
+                    WHERE tm.operator_type='Private'
+                      AND DATE(tm.snapshot_at)=CURDATE() $opClause $busClause
+                    GROUP BY r.route_id, r.route_no
+                    ORDER BY total DESC LIMIT 8";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $labels = $delayed = $total = [];
+            foreach ($rows as $r) {
+                $labels[]  = $r['route_no'] ?? 'Unknown';
+                $delayed[] = (int)$r['delayed'];
+                $total[]   = (int)$r['total'];
+            }
+            return ['labels' => $labels, 'delayed' => $delayed, 'total' => $total];
+        } catch (\Throwable $e) { return ['labels' => [], 'delayed' => [], 'total' => []]; }
+    }
+
+    /** Speed violations per bus. */
+    public function getSpeedByBusData(array $filters = []): array
+    {
+        try {
+            $params   = [];
+            $opClause = '';
+            if ($this->hasOperator()) {
+                $opClause = ' AND b.private_operator_id = :op';
+                $params[':op'] = $this->operatorId();
+            }
+            if (!empty($filters['route_no'])) {
+                $opClause .= " AND EXISTS (SELECT 1 FROM routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
+                $params[':route_no'] = $filters['route_no'];
+            }
+            $sql = "SELECT tm.bus_reg_no,
+                           SUM(COALESCE(tm.speed_violations, 0)) AS violations
+                    FROM tracking_monitoring tm
+                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                    WHERE tm.operator_type='Private'
+                      AND DATE(tm.snapshot_at)=CURDATE() $opClause
+                    GROUP BY tm.bus_reg_no
+                    ORDER BY violations DESC LIMIT 9";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $rows   = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $labels = $values = [];
+            foreach ($rows as $r) {
+                $labels[] = $r['bus_reg_no'] ?? 'Unknown';
+                $values[] = (int)$r['violations'];
+            }
+            return ['labels' => $labels, 'values' => $values];
+        } catch (\Throwable $e) { return ['labels' => [], 'values' => []]; }
+    }
+
+    /** Monthly revenue trend (in millions). */
+    public function getRevenueData(array $filters = []): array
+    {
+        try {
+            $params   = [];
+            $opClause = '';
+            if ($this->hasOperator()) {
+                $opClause = ' AND b.private_operator_id = :op';
+                $params[':op'] = $this->operatorId();
+            }
+            $sql = "SELECT DATE_FORMAT(tm.snapshot_at, '%b') AS month,
+                           SUM(COALESCE(tm.revenue, 0)) AS revenue
+                    FROM tracking_monitoring tm
+                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                    WHERE tm.operator_type='Private'
+                      AND YEAR(tm.snapshot_at)=YEAR(CURDATE()) $opClause
+                    GROUP BY MONTH(tm.snapshot_at), DATE_FORMAT(tm.snapshot_at,'%b')
+                    ORDER BY MONTH(tm.snapshot_at)";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $rows   = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $labels = $values = [];
+            foreach ($rows as $r) {
+                $labels[] = $r['month'] ?? '';
+                $values[] = round((float)($r['revenue'] ?? 0) / 1000000, 1);
+            }
+            return ['labels' => $labels, 'values' => $values];
+        } catch (\Throwable $e) { return ['labels' => [], 'values' => []]; }
+    }
+
+    /** Wait-time bucket distribution. */
+    public function getWaitTimeData(array $filters = []): array
+    {
+        try {
+            $params    = [];
+            $opClause  = '';
+            $busClause = '';
+            $rtClause  = '';
+            if ($this->hasOperator()) {
+                $opClause = ' AND b.private_operator_id = :op';
+                $params[':op'] = $this->operatorId();
+            }
+            if (!empty($filters['route_no'])) {
+                $rtClause = " AND EXISTS (SELECT 1 FROM routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
+                $params[':route_no'] = $filters['route_no'];
+            }
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND tm.bus_reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+            $sql = "SELECT
+                        SUM(CASE WHEN tm.avg_delay_min < 5  THEN 1 ELSE 0 END) AS under_5,
+                        SUM(CASE WHEN tm.avg_delay_min >= 5  AND tm.avg_delay_min < 10 THEN 1 ELSE 0 END) AS b5_10,
+                        SUM(CASE WHEN tm.avg_delay_min >= 10 AND tm.avg_delay_min < 15 THEN 1 ELSE 0 END) AS b10_15,
+                        SUM(CASE WHEN tm.avg_delay_min >= 15 THEN 1 ELSE 0 END) AS over_15
+                    FROM tracking_monitoring tm
+                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                    WHERE tm.operator_type='Private'
+                      AND DATE(tm.snapshot_at)=CURDATE() $opClause $rtClause $busClause";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $row = $st->fetch(\PDO::FETCH_ASSOC) ?: [];
+            return [
+                ['label' => 'Under 5 min', 'value' => (int)($row['under_5']  ?? 0), 'color' => '#16a34a'],
+                ['label' => '5–10 min',    'value' => (int)($row['b5_10']    ?? 0), 'color' => '#84cc16'],
+                ['label' => '10–15 min',   'value' => (int)($row['b10_15']   ?? 0), 'color' => '#f3b944'],
+                ['label' => 'Over 15 min', 'value' => (int)($row['over_15']  ?? 0), 'color' => '#b91c1c'],
+            ];
+        } catch (\Throwable $e) { return []; }
+    }
+
+    /** Complaints grouped by route. */
+    public function getComplaintsByRouteData(array $filters = []): array
+    {
+        try {
+            $params    = [];
+            $opClause  = '';
+            $busClause = '';
+            if ($this->hasOperator()) {
+                $opClause = ' AND pb.private_operator_id = :op';
+                $params[':op'] = $this->operatorId();
+            }
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND c.bus_reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+            $sql = "SELECT r.route_no, COUNT(*) AS cnt
+                    FROM passenger_feedback c
+                    JOIN private_buses pb ON pb.reg_no = c.bus_reg_no
+                    LEFT JOIN routes r ON r.route_id = c.route_id
+                    WHERE c.operator_type='Private'
+                      AND LOWER(c.type)='complaint'
+                      AND DATE(c.created_at)=CURDATE() $opClause $busClause
+                    GROUP BY r.route_id, r.route_no
+                    ORDER BY cnt DESC LIMIT 8";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $rows   = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $labels = $values = [];
+            foreach ($rows as $r) {
+                $labels[] = $r['route_no'] ?? 'Unknown';
+                $values[] = (int)$r['cnt'];
+            }
+            return ['labels' => $labels, 'values' => $values];
+        } catch (\Throwable $e) { return ['labels' => [], 'values' => []]; }
     }
 }

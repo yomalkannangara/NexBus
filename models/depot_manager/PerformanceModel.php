@@ -189,11 +189,15 @@ class PerformanceModel extends BaseModel
             $params[':bus_reg'] = $filters['bus_reg'];
         }
 
-        // 1. Delayed buses (SLTB only)
-        $sql = "SELECT COUNT(*) FROM tracking_monitoring tm
-                WHERE tm.operator_type='SLTB'
-                  AND DATE(tm.snapshot_at)=CURDATE()
-                  AND tm.operational_status='Delayed' $routeClause $busClause";
+        // 1. Delayed buses (SLTB only) — latest snapshot per bus
+        $sql = "SELECT COUNT(*) FROM (
+                    SELECT tm.bus_reg_no,
+                           ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                    FROM tracking_monitoring tm
+                    WHERE tm.operator_type='SLTB'
+                      AND DATE(tm.snapshot_at)=CURDATE()
+                      AND tm.operational_status='Delayed' $routeClause $busClause
+                ) latest WHERE latest.rn = 1";
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
@@ -274,34 +278,50 @@ class PerformanceModel extends BaseModel
     public function getBusStatusData(array $filters = []): array
     {
         try {
-            $params = [];
-            $routeClause = '';
-            $busClause = '';
+            $u       = $this->me();
+            $depotId = $u['sltb_depot_id'] ?? $u['depot_id'] ?? null;
 
+            $params      = [];
+            $depotClause = '';
+            $routeClause = '';
+            $busClause   = '';
+
+            if ($depotId) {
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $params[':depot_id'] = (int)$depotId;
+            }
             if (!empty($filters['route_no'])) {
-                $routeClause = " AND EXISTS (SELECT 1 FROM sltb_routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
+                $routeClause = " AND EXISTS (SELECT 1 FROM routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
                 $params[':route_no'] = $filters['route_no'];
             }
             if (!empty($filters['bus_reg'])) {
-                $busClause = " AND tm.bus_reg_no = :bus_reg";
+                $busClause = ' AND tm.bus_reg_no = :bus_reg';
                 $params[':bus_reg'] = $filters['bus_reg'];
             }
 
-            $sql = "SELECT operational_status AS status, COUNT(*) AS total
-                    FROM tracking_monitoring tm
-                    WHERE tm.operator_type='SLTB' 
-                      AND DATE(tm.snapshot_at)=CURDATE() $routeClause $busClause
-                    GROUP BY operational_status
+            // Count distinct buses by their LATEST operational status today
+            $sql = "SELECT latest.operational_status AS status, COUNT(*) AS total
+                    FROM (
+                        SELECT tm.bus_reg_no,
+                               tm.operational_status,
+                               ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                        FROM tracking_monitoring tm
+                        WHERE tm.operator_type = 'SLTB'
+                          AND DATE(tm.snapshot_at) = CURDATE()
+                          $depotClause $routeClause $busClause
+                    ) AS latest
+                    WHERE latest.rn = 1
+                    GROUP BY latest.operational_status
                     ORDER BY total DESC";
-            
+
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
-            
+
             return array_map(fn($r) => [
-                'label' => ucfirst(strtolower($r['status'] ?? 'Unknown')),
-                'value' => (int)$r['total'],
-                'status' => $r['status']
+                'label'  => (string)($r['status'] ?? 'Unknown'),
+                'value'  => (int)$r['total'],
+                'status' => $r['status'],
             ], $rows);
         } catch (PDOException $e) {
             return [];

@@ -93,17 +93,15 @@
 .live-fleet-table th, .live-fleet-table td { padding:.5rem .75rem; border-bottom:1px solid #f0f0f0;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .live-fleet-table th { background:#f9fafb; font-weight:700; color:#374151; text-align:left; }
-.live-fleet-table th:nth-child(1) { width:12%; }
-.live-fleet-table th:nth-child(2) { width:9%; }
-.live-fleet-table th:nth-child(3) { width:26%; }
-.live-fleet-table th:nth-child(4) { width:13%; text-align:right; }
-.live-fleet-table th:nth-child(5) { width:13%; text-align:center; }
-.live-fleet-table th:nth-child(6) { width:12%; text-align:center; }
-.live-fleet-table th:nth-child(7) { width:15%; text-align:center; }
+.live-fleet-table th:nth-child(1) { width:14%; }
+.live-fleet-table th:nth-child(2) { width:10%; }
+.live-fleet-table th:nth-child(3) { width:30%; }
+.live-fleet-table th:nth-child(4) { width:14%; text-align:right; }
+.live-fleet-table th:nth-child(5) { width:15%; text-align:center; }
+.live-fleet-table th:nth-child(6) { width:17%; text-align:center; }
 .live-fleet-table td:nth-child(4) { text-align:right; font-weight:600; }
 .live-fleet-table td:nth-child(5),
-.live-fleet-table td:nth-child(6),
-.live-fleet-table td:nth-child(7) { text-align:center; }
+.live-fleet-table td:nth-child(6) { text-align:center; }
 .live-fleet-table tbody tr:nth-child(even) { background:#f9fafb; }
 .nb-table-empty { padding:.75rem; text-align:center; color:#6b7280; }
 </style>
@@ -240,11 +238,10 @@
           <th style="text-align:right">Speed (km/h)</th>
           <th style="text-align:center">Status</th>
           <th style="text-align:center">Location</th>
-          <th style="text-align:center">In DB</th>
         </tr>
       </thead>
       <tbody id="live-route-tbody">
-        <tr><td colspan="7" class="nb-table-empty">Loading…</td></tr>
+        <tr><td colspan="6" class="nb-table-empty">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -295,9 +292,6 @@
     return '?v=' . (is_file($p) ? filemtime($p) : time());
   };
 ?>
-<!-- Dummy values (fallback when PHP data is empty) -->
-<script src="/assets/js/analytics/dummyData.js<?= $jsv($jsBase,'dummyData.js') ?>"></script>
-
 <!-- Charts -->
 <script src="/assets/js/analytics/chartCore.js<?= $jsv($jsBase,'chartCore.js') ?>"></script>
 <script src="/assets/js/analytics/busStatus.js<?= $jsv($jsBase,'busStatus.js') ?>"></script>

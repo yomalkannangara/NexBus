@@ -233,7 +233,6 @@
       + '<td>' + spBadge + '</td>'
       + '<td><span class="lf-badge lf-badge--'+statusCls+'">' + status + '</span></td>'
       + '<td>' + locLink + '</td>'
-      + '<td>' + inDb + '</td>'
       + '</tr>';
   }
 

@@ -7,7 +7,7 @@
       'Active':'#16a34a','active':'#16a34a',
       'Maintenance':'#f59e0b','maintenance':'#f59e0b',
       'Inactive':'#6b7280','inactive':'#6b7280',
-      'On Time':'#16a34a','OnTime':'#16a34a',
+      'On Time':'#16a34a','OnTime':'#16a34a','Ontime':'#16a34a',
       'Delayed':'#b91c1c','delayed':'#b91c1c',
       'Cancelled':'#ef4444','cancelled':'#ef4444',
       'Breakdown':'#f59e0b','breakdown':'#f59e0b',
@@ -39,20 +39,32 @@
     if (!cvs) return;
 
     const D = NB.getData();
-    const F = window.ANALYTICS_DUMMY || {};
+    const fromServer = !!D._fromServer;
     let list = normalize(D.busStatus);
-    if (!list.length || !list.some((d) => (+d.value || 0) > 0)) {
-      list = (F.busStatus || [
-        { label: "On Time", value: 62, color: NB.colors.green },
-        { label: "Delayed", value: 25, color: NB.colors.red },
-        { label: "Cancelled", value: 5, color: NB.colors.redSoft },
-        { label: "Maintenance", value: 8, color: NB.colors.gold },
-      ]).slice();
+    const hasData = list.some((d) => (+d.value || 0) > 0);
+    if (!hasData) {
+      if (fromServer) {
+        // Real data from DB — just nothing yet; show empty state
+        list = [];
+      } else {
+        list = [
+          { label: "Active",      value: 0, color: NB.colors.green },
+          { label: "Maintenance", value: 0, color: NB.colors.gold },
+          { label: "Inactive",    value: 0, color: '#6b7280' },
+        ];
+      }
     }
 
     // Aspect matches other half-width cards
     NB.observe(cvs, 7 / 4, ({ ctx, W, H }) => {
       ctx.clearRect(0, 0, W, H);
+      if (!list.length) {
+        ctx.fillStyle = '#9ca3af'; ctx.font = '14px ui-sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('No bus status data available', W / 2, H / 2);
+        NB.setLegend(cvs.parentNode, []);
+        return;
+      }
       const cx = W / 2,
         cy = H / 2,
         R = Math.min(W, H) * 0.36,

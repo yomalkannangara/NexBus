@@ -441,8 +441,14 @@ public function reports()
 
     // Build analyticsJson for chart scripts
     $analytics = [
-        '_fromServer' => true,
-        'kpi'         => $kpi,
+        '_fromServer'        => true,
+        'kpi'                => $kpi,
+        'busStatus'          => $m->getBusStatusData($filters),
+        'delayedByRoute'     => $m->getDelayedByRouteData($filters),
+        'speedByBus'         => $m->getSpeedByBusData($filters),
+        'revenue'            => $m->getRevenueData($filters),
+        'waitTime'           => $m->getWaitTimeData($filters),
+        'complaintsByRoute'  => $m->getComplaintsByRouteData($filters),
     ];
 
     // Render view: views/bus_owner/reports.php

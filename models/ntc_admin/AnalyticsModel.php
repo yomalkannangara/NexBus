@@ -288,12 +288,19 @@ class AnalyticsModel extends BaseModel
     public function delayedToday(array $f = []): int
     {
         [$joins, $wheres, $params] = $this->tmFilters($f);
-        $wheres[] = "t.operational_status = 'Delayed'";
         $wheres[] = "DATE(t.snapshot_at) = CURDATE()";
         $joinSql  = implode(' ', array_map(fn($j) => str_replace(' t.', ' t.', $j), $joins));
         $whereSql = 'WHERE ' . implode(' AND ', $wheres);
+        // Count buses by their LATEST snapshot status only (not every row)
         $stmt = $this->pdo->prepare(
-            "SELECT COUNT(DISTINCT t.bus_reg_no) c FROM tracking_monitoring t $joinSql $whereSql"
+            "SELECT COUNT(*) c
+             FROM (
+                 SELECT t.bus_reg_no,
+                        t.operational_status,
+                        ROW_NUMBER() OVER (PARTITION BY t.bus_reg_no ORDER BY t.snapshot_at DESC) AS rn
+                 FROM tracking_monitoring t $joinSql $whereSql
+             ) latest
+             WHERE latest.rn = 1 AND latest.operational_status = 'Delayed'"
         );
         $stmt->execute($params);
         return (int)($stmt->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
