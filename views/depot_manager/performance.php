@@ -193,6 +193,63 @@
   </article>
 </section>
 
+<!-- ===== Live Fleet KPIs ===== -->
+<section class="kpi-wrap kpi-wrap--neo">
+  <article class="kpi2 tone-blue">
+    <header><h3>Active Buses Now</h3><span class="ico">
+      <svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M17 8C8 10 5.9 16.1 3 19h3s2.5-4 9.5-4.5c-1.7 1.1-3.5 3-4.5 4.5h3C15 17 17 14 21 12c-1-1-2-2-2-4z"/></svg>
+    </span></header>
+    <div class="value" id="kpi-active-buses">–</div>
+    <div class="hint" id="live-updated-at">Fetching…</div>
+  </article>
+
+  <article class="kpi2 tone-green">
+    <header><h3>Average Fleet Speed</h3><span class="ico">
+      <svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m1 14.93V15h-2v1.93A8 8 0 0 1 4.07 11H6V9H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 16.93z"/></svg>
+    </span></header>
+    <div class="value" id="kpi-avg-speed">–</div>
+    <div class="hint">Fleet average right now</div>
+  </article>
+</section>
+
+<!-- ===== Live Fleet Charts ===== -->
+<section class="charts-grid" style="margin-bottom:1.5rem">
+  <div class="chart-card">
+    <h2>Live Bus Status</h2>
+    <canvas id="liveStatusChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h2>Live Fleet Speed</h2>
+    <canvas id="liveSpeedChart"></canvas>
+  </div>
+</section>
+
+<!-- ===== Live Bus Fleet Table ===== -->
+<section class="chart-card" style="margin-bottom:1.5rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+    <h2 style="margin:0">Live Bus Fleet</h2>
+    <span style="font-size:.75rem;color:#6b7280" id="live-updated-at-table"></span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="nb-table live-fleet-table">
+      <thead>
+        <tr>
+          <th>Bus ID</th>
+          <th>Route</th>
+          <th>Operator / Depot</th>
+          <th style="text-align:right">Speed (km/h)</th>
+          <th style="text-align:center">Status</th>
+          <th style="text-align:center">Location</th>
+          <th style="text-align:center">In DB</th>
+        </tr>
+      </thead>
+      <tbody id="live-route-tbody">
+        <tr><td colspan="7" class="nb-table-empty">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <!-- ===== Analytics Charts ===== -->
 <section class="charts-grid">
   <div class="chart-card">
@@ -231,17 +288,24 @@
 <?= $analyticsJson ?? '{}' ?>
 </script>
 
+<?php
+  $jsBase = __DIR__ . '/../../public/assets/js/analytics/';
+  $jsv = static function(string $base, string $file): string {
+    $p = $base . $file;
+    return '?v=' . (is_file($p) ? filemtime($p) : time());
+  };
+?>
 <!-- Dummy values (fallback when PHP data is empty) -->
-<script src="/assets/js/analytics/dummyData.js"></script>
+<script src="/assets/js/analytics/dummyData.js<?= $jsv($jsBase,'dummyData.js') ?>"></script>
 
 <!-- Charts -->
-<script src="/assets/js/analytics/chartCore.js"></script>
-<script src="/assets/js/analytics/busStatus.js"></script>
-<script src="/assets/js/analytics/revenue.js"></script>
-<script src="/assets/js/analytics/speedByBus.js"></script>
-<script src="/assets/js/analytics/waitTime.js"></script>
-<script src="/assets/js/analytics/delayedByRoute.js"></script>
-<script src="/assets/js/analytics/complaintsRoute.js"></script>
+<script src="/assets/js/analytics/chartCore.js<?= $jsv($jsBase,'chartCore.js') ?>"></script>
+<script src="/assets/js/analytics/busStatus.js<?= $jsv($jsBase,'busStatus.js') ?>"></script>
+<script src="/assets/js/analytics/revenue.js<?= $jsv($jsBase,'revenue.js') ?>"></script>
+<script src="/assets/js/analytics/speedByBus.js<?= $jsv($jsBase,'speedByBus.js') ?>"></script>
+<script src="/assets/js/analytics/waitTime.js<?= $jsv($jsBase,'waitTime.js') ?>"></script>
+<script src="/assets/js/analytics/delayedByRoute.js<?= $jsv($jsBase,'delayedByRoute.js') ?>"></script>
+<script src="/assets/js/analytics/complaintsRoute.js<?= $jsv($jsBase,'complaintsRoute.js') ?>"></script>
 
 <!-- Live fleet (same as admin) -->
-<script src="/assets/js/analytics/liveFleet.js"></script>
+<script src="/assets/js/analytics/liveFleet.js<?= $jsv($jsBase,'liveFleet.js') ?>"></script>

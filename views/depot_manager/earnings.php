@@ -8,30 +8,7 @@ $top   = is_array($top   ?? null) ? $top   : [];
 $buses = is_array($buses ?? null) ? $buses : [];
 $month = is_array($month ?? null) ? $month : [];
 
-// Dummy defaults when controller data is missing
-if (!$top) {
-  $top = [
-    ['value' => 'Rs. 1,250,000', 'label' => 'Total Revenue (30d)', 'trend' => '+5.2%', 'sub' => 'vs. prior 30 days', 'color' => 'green'],
-    ['value' => 'Rs. 42,500',    'label' => 'Avg. Daily',          'trend' => '+2.1%', 'sub' => 'last 7 days',       'color' => 'maroon'],
-    ['value' => 'Rs. 310,000',   'label' => 'Ticket Sales (7d)',   'trend' => '-1.3%', 'sub' => 'week over week',    'color' => 'yellow'],
-  ];
-}
-
-if (!$buses) {
-  $buses = [
-    ['number' => 'NB-1234', 'route' => '138 - Colombo - Kandy', 'daily' => 'Rs. 85,000',  'weekly' => 'Rs. 520,000', 'eff' => '92%'],
-    ['number' => 'NB-4521', 'route' => '255 - Moratuwa - Nugegoda', 'daily' => 'Rs. 61,500', 'weekly' => 'Rs. 378,000', 'eff' => '81%'],
-    ['number' => 'NB-7788', 'route' => '101 - Pettah - Kadawatha',  'daily' => 'Rs. 49,000', 'weekly' => 'Rs. 296,000', 'eff' => '75%'],
-  ];
-}
-
-if (!$month) {
-  $month = [
-    'current'  => 'Rs. 1,050,000',
-    'previous' => 'Rs. 985,000',
-    'growth'   => '+6.6%',
-  ];
-}
+// No dummy fallbacks — always show real DB data
 
 function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
@@ -85,23 +62,35 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
             </div>
             <div class="right-cols">
               <div class="col">
-                <div class="muted small">Daily</div>
+                <div class="muted small">Latest Day</div>
                 <div class="fw-600"><?= h($b['daily'] ?? 'Rs. 0') ?></div>
               </div>
               <div class="col">
-                <div class="muted small">Weekly</div>
+                <div class="muted small">Last 7 Days</div>
                 <div class="fw-600"><?= h($b['weekly'] ?? 'Rs. 0') ?></div>
+              </div>
+              <div class="col">
+                <div class="muted small">All Time</div>
+                <div class="fw-600"><?= h($b['total'] ?? 'Rs. 0') ?></div>
               </div>
               <div class="col">
                 <div class="muted small">Efficiency</div>
                 <span class="chip chip-gold"><?= h($b['eff'] ?? '0%') ?></span>
               </div>
+              <?php if (!empty($b['status'])): ?>
+              <div class="col">
+                <div class="muted small">Status</div>
+                <?php $st = $b['status'];
+                      $stc = $st === 'Active' ? 'chip-green' : ($st === 'Maintenance' ? 'chip-gold' : 'chip-red'); ?>
+                <span class="chip <?= $stc ?>"><?= h($st) ?></span>
+              </div>
+              <?php endif; ?>
             </div>
           </div>
         <?php endforeach; ?>
       </div>
     <?php else: ?>
-      <div class="empty-note p-16">No bus income data.</div>
+      <div class="empty-note p-16">No earnings records found for SLTB buses in this depot.</div>
     <?php endif; ?>
   </div>
 

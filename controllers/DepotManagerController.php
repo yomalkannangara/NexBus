@@ -306,15 +306,15 @@ public function fleet()
 
             if ($act === 'add') {
                 $m->add($_POST);
-                return $this->redirect('/D/earnings?msg=added');
+                return $this->redirect('/M/earnings?msg=added');
             }
             if ($act === 'delete') {
                 $m->delete((int)($_POST['earning_id'] ?? 0));
-                return $this->redirect('/D/earnings?msg=deleted');
+                return $this->redirect('/M/earnings?msg=deleted');
             }
             if ($act === 'import_csv') {
                 $m->importCsv($_FILES['file'] ?? null);
-                return $this->redirect('/D/earnings?msg=imported');
+                return $this->redirect('/M/earnings?msg=imported');
             }
         }
 
