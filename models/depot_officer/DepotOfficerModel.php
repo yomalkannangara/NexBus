@@ -111,6 +111,9 @@ public function depot(int $depotId): ?array {
     public function createSpecialTimetable(int $depotId, array $d): bool { return $this->special->createSpecial($depotId,$d); }
     public function deleteSpecialTimetable(int $depotId, int $ttId): void { $this->special->deleteSpecial($depotId,$ttId); }
     public function specialTimetables(int $depotId): array { return $this->special->listSpecial($depotId); }
+    public function usualTimetables(int $depotId): array { return $this->special->listUsual($depotId); }
+    public function seasonalTimetables(int $depotId, string $refDate): array { return $this->special->listSeasonal($depotId, $refDate); }
+    public function currentTimetables(int $depotId, string $refDate): array { return $this->special->listCurrent($depotId, $refDate); }
 
     // Messages
     public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false, ?int $senderUserId=null, ?string $senderRole=null): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot,$senderUserId,$senderRole); }

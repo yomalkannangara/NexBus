@@ -5,6 +5,68 @@ use App\models\common\BaseModel;
 
 class SpecialTimetableModel extends BaseModel
 {
+        public function listUsual(int $depotId): array {
+                $sql = "SELECT tt.*, r.route_no
+                                FROM timetables tt
+                                JOIN sltb_buses b ON b.reg_no=tt.bus_reg_no AND b.sltb_depot_id=?
+                                LEFT JOIN routes r ON r.route_id=tt.route_id
+                                WHERE tt.operator_type='SLTB'
+                                    AND tt.effective_from IS NULL
+                                    AND tt.effective_to IS NULL
+                                ORDER BY tt.day_of_week, tt.departure_time, r.route_no+0, r.route_no";
+                $st = $this->pdo->prepare($sql);
+                $st->execute([$depotId]);
+                return $st->fetchAll();
+        }
+
+        public function listSeasonal(int $depotId, string $refDate): array {
+                $sql = "SELECT tt.*, r.route_no
+                                FROM timetables tt
+                                JOIN sltb_buses b ON b.reg_no=tt.bus_reg_no AND b.sltb_depot_id=:depot
+                                LEFT JOIN routes r ON r.route_id=tt.route_id
+                                WHERE tt.operator_type='SLTB'
+                                    AND (tt.effective_from IS NOT NULL OR tt.effective_to IS NOT NULL)
+                                ORDER BY
+                                    CASE
+                            WHEN (tt.effective_from IS NULL OR tt.effective_from <= :ref4)
+                             AND (tt.effective_to   IS NULL OR tt.effective_to   >= :ref5) THEN 0
+                            WHEN tt.effective_from > :ref6 THEN 1
+                                        ELSE 2
+                                    END,
+                                    tt.effective_from,
+                                    tt.day_of_week,
+                                    tt.departure_time";
+                $st = $this->pdo->prepare($sql);
+                $st->execute([
+                    ':depot' => $depotId,
+                    ':ref4' => $refDate,
+                    ':ref5' => $refDate,
+                    ':ref6' => $refDate,
+                ]);
+                return $st->fetchAll();
+        }
+
+        public function listCurrent(int $depotId, string $refDate): array {
+                $dow = (int)date('w', strtotime($refDate));
+                $sql = "SELECT tt.*, r.route_no
+                                FROM timetables tt
+                                JOIN sltb_buses b ON b.reg_no=tt.bus_reg_no AND b.sltb_depot_id=:depot
+                                LEFT JOIN routes r ON r.route_id=tt.route_id
+                                WHERE tt.operator_type='SLTB'
+                                    AND tt.day_of_week=:dow
+                                    AND (
+                                        (tt.effective_from IS NULL AND tt.effective_to IS NULL)
+                                        OR (
+                                            (tt.effective_from IS NULL OR tt.effective_from <= :ref1)
+                                            AND (tt.effective_to   IS NULL OR tt.effective_to   >= :ref2)
+                                        )
+                                    )
+                                ORDER BY tt.departure_time, r.route_no+0, r.route_no";
+                $st = $this->pdo->prepare($sql);
+                $st->execute([':depot' => $depotId, ':dow' => $dow, ':ref1' => $refDate, ':ref2' => $refDate]);
+                return $st->fetchAll();
+        }
+
     public function createSpecial(int $depotId, array $d): bool {
         $bus   = trim($d['bus_reg_no'] ?? '');
         $route = (int)($d['route_id'] ?? 0);

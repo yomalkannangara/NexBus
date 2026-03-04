@@ -1,263 +1,166 @@
-<?php /** @var array $routes,$buses,$special_tt */ ?>
-<div class="container">
-<section class="title-banner">
-  <h1>Emergency / Seasonal Timetables</h1>
-  <p>Create and manage temporary timetable overrides with clear departure/arrival scheduling.</p>
-</section>
+<?php
+$rows = $rows ?? [];
+$selectedView = $selected_view ?? 'current';
+$selectedDate = $selected_date ?? date('Y-m-d');
+$msg = $msg ?? null;
+$countCurrent = (int)($count_current ?? 0);
+$countUsual = (int)($count_usual ?? 0);
+$countSeasonal = (int)($count_seasonal ?? 0);
 
-<?php if(!empty($msg)): ?><div class="notice"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
+$flashMap = [
+    'readonly' => 'This timetable page is read-only for Depot Officer. Admin manages usual schedules and Depot Manager manages emergency schedules.',
+];
 
-<form method="post" class="card tt-form">
-  <input type="hidden" name="action" value="create_special_tt">
+$dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+?>
 
-  <div class="tt-top-row">
-    <label>
-      <span>Departure Time</span>
-      <input type="time" name="departure_time" required>
-    </label>
-    <label>
-      <span>Arrival Time</span>
-      <input type="time" name="arrival_time">
-    </label>
-  </div>
+<div class="container tt-viewer">
+  <section class="title-banner">
+    <h1>Depot Timetables</h1>
+    <p>Read-only timetable viewer: usual schedules from NTC Admin + seasonal/emergency schedules from Depot Manager.</p>
+  </section>
 
-  <div class="tt-grid">
-    <label>
-      <span>Bus</span>
-      <select name="bus_reg_no">
-        <?php foreach($buses as $b): ?><option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no']) ?></option><?php endforeach; ?>
-      </select>
-    </label>
-    <label>
-      <span>Route</span>
-      <select name="route_id">
-        <?php foreach($routes as $r): ?><option value="<?= (int)$r['route_id'] ?>"><?= htmlspecialchars($r['route_no'].' — '.$r['name']) ?></option><?php endforeach; ?>
-      </select>
-    </label>
-    <label>
-      <span>Effective From</span>
-      <input type="date" name="effective_from" required>
-    </label>
-    <label>
-      <span>Effective To</span>
-      <input type="date" name="effective_to">
-    </label>
-    <label>
-      <span>Day of Week</span>
-      <select name="day_of_week">
-        <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
-      </select>
-    </label>
-  </div>
+  <?php if (!empty($msg) && isset($flashMap[$msg])): ?>
+    <div class="notice"><?= htmlspecialchars($flashMap[$msg]) ?></div>
+  <?php endif; ?>
 
-  <div class="tt-actions">
-    <button type="submit">Save Timetable</button>
-  </div>
-</form>
+  <section class="card tt-toolbar">
+    <div class="tt-filter-row">
+      <a class="tt-tab <?= $selectedView === 'current' ? 'active' : '' ?>" href="/O/timetables?view=current&date=<?= urlencode($selectedDate) ?>">
+        Current Schedule
+        <span class="tt-count"><?= $countCurrent ?></span>
+      </a>
+      <a class="tt-tab <?= $selectedView === 'usual' ? 'active' : '' ?>" href="/O/timetables?view=usual&date=<?= urlencode($selectedDate) ?>">
+        Usual Schedule
+        <span class="tt-count"><?= $countUsual ?></span>
+      </a>
+      <a class="tt-tab <?= $selectedView === 'seasonal' ? 'active' : '' ?>" href="/O/timetables?view=seasonal&date=<?= urlencode($selectedDate) ?>">
+        Seasonal / Emergency
+        <span class="tt-count"><?= $countSeasonal ?></span>
+      </a>
+    </div>
 
-<h2 class="tt-heading">Existing Special Timetables</h2>
-<table class="table tt-table">
-<thead><tr><th>ID</th><th>Bus</th><th>Route</th><th>From</th><th>To</th><th>DOW</th><th>Dep</th><th>Arr</th><th>Actions</th></tr></thead>
-<tbody>
-<?php foreach($special_tt as $r): ?>
-<tr
-  id="row-<?= (int)$r['timetable_id'] ?>"
-  data-id="<?= (int)$r['timetable_id'] ?>"
-  data-bus="<?= htmlspecialchars($r['bus_reg_no']) ?>"
-  data-route-id="<?= (int)$r['route_id'] ?>"
-  data-from="<?= htmlspecialchars($r['effective_from']) ?>"
-  data-to="<?= htmlspecialchars($r['effective_to'] ?? '') ?>"
-  data-dow="<?= (int)$r['day_of_week'] ?>"
-  data-dep="<?= htmlspecialchars(substr($r['departure_time'],0,5)) ?>"
-  data-arr="<?= htmlspecialchars($r['arrival_time'] ? substr($r['arrival_time'],0,5) : '') ?>"
->
-<td><?= (int)$r['timetable_id'] ?></td>
-<td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
-<td><?= htmlspecialchars($r['route_no'] ?? '') ?></td>
-<td><?= htmlspecialchars($r['effective_from']) ?></td>
-<td><?= htmlspecialchars($r['effective_to'] ?? '') ?></td>
-<td><?= (int)$r['day_of_week'] ?></td>
-<td><?= htmlspecialchars(substr($r['departure_time'],0,5)) ?></td>
-<td><?= htmlspecialchars($r['arrival_time'] ? substr($r['arrival_time'],0,5) : '') ?></td>
-<td class="tt-actions-cell">
-  <div class="tt-row-actions">
-    <button type="button" class="btn-edit button outline">Edit</button>
-    <form method="post" class="tt-inline-form" onsubmit="return confirm('Delete this timetable?')">
-      <input type="hidden" name="action" value="delete_special_tt">
-      <input type="hidden" name="timetable_id" value="<?= (int)$r['timetable_id'] ?>">
-      <button class="button" type="submit">Delete</button>
+    <form method="get" class="tt-date-form">
+      <input type="hidden" name="view" value="<?= htmlspecialchars($selectedView) ?>">
+      <label>
+        <span>Reference Date</span>
+        <input type="date" name="date" value="<?= htmlspecialchars($selectedDate) ?>">
+      </label>
+      <button type="submit" class="button">Apply</button>
     </form>
-  </div>
-</td>
-</tr>
-<?php endforeach; ?>
-</tbody>
-</table>
+  </section>
+
+  <section class="card tt-table-card">
+    <div class="tt-head">
+      <h2>
+        <?php if ($selectedView === 'current'): ?>Current Schedule<?php endif; ?>
+        <?php if ($selectedView === 'usual'): ?>Usual Schedule<?php endif; ?>
+        <?php if ($selectedView === 'seasonal'): ?>Seasonal / Emergency Schedule<?php endif; ?>
+      </h2>
+      <span class="tt-meta">Reference: <?= htmlspecialchars($selectedDate) ?></span>
+    </div>
+
+    <?php if (empty($rows)): ?>
+      <div class="tt-empty">No timetable records found for this filter.</div>
+    <?php else: ?>
+      <div class="table-wrap">
+        <table class="table tt-table">
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Bus</th>
+              <th>Day</th>
+              <th>Departure</th>
+              <th>Arrival</th>
+              <th>Effective Window</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($rows as $r): ?>
+              <?php
+              $dayIdx = (int)($r['day_of_week'] ?? -1);
+              $dayText = $dayLabels[$dayIdx] ?? (string)$dayIdx;
+
+              $from = trim((string)($r['effective_from'] ?? ''));
+              $to = trim((string)($r['effective_to'] ?? ''));
+              $window = ($from === '' && $to === '')
+                  ? 'Always active'
+                  : (($from ?: '...') . ' → ' . ($to ?: '...'));
+              ?>
+              <tr>
+                <td>
+                  <strong><?= htmlspecialchars((string)($r['route_no'] ?? '-')) ?></strong>
+                  <?php if (!empty($r['route_name'])): ?>
+                    <div class="tt-sub"><?= htmlspecialchars((string)$r['route_name']) ?></div>
+                  <?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars((string)($r['bus_reg_no'] ?? '-')) ?></td>
+                <td><?= htmlspecialchars($dayText) ?></td>
+                <td><?= htmlspecialchars(substr((string)($r['departure_time'] ?? ''), 0, 5)) ?></td>
+                <td><?= htmlspecialchars(($r['arrival_time'] ?? null) ? substr((string)$r['arrival_time'], 0, 5) : '—') ?></td>
+                <td><?= htmlspecialchars($window) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </section>
 </div>
 
 <style>
-.tt-form {
-  padding: 16px;
-  display: grid;
-  gap: 14px;
+.tt-viewer { display:grid; gap:14px; }
+.tt-toolbar { display:grid; gap:12px; padding:14px; }
+.tt-filter-row { display:flex; flex-wrap:wrap; gap:8px; }
+
+.tt-tab {
+  text-decoration:none;
+  border:1px solid var(--border);
+  color:var(--text);
+  background:#fff;
+  border-radius:10px;
+  padding:8px 12px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
 }
-.tt-form label {
-  display: grid;
-  gap: 6px;
+.tt-tab.active {
+  border-color:var(--maroon);
+  color:var(--maroon);
+  background:color-mix(in srgb, var(--gold) 16%, #fff);
 }
-.tt-form label span {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 700;
-}
-.tt-top-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
-  gap: 12px;
-}
-.tt-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
-  gap: 12px;
-}
-.tt-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-.tt-heading {
-  margin: 16px 0 10px;
-  color: var(--maroon);
-}
-.tt-inline-form {
-  display: inline;
-}
-.tt-actions-cell {
-  min-width: 170px;
-}
-.tt-row-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  width: 100%;
-}
-.tt-row-actions .button {
-  min-width: 72px;
-}
-.tt-row-actions.is-editing .button {
-  min-width: 82px;
+.tt-count {
+  border-radius:999px;
+  border:1px solid var(--border);
+  min-width:24px;
+  height:24px;
+  padding:0 8px;
+  display:grid;
+  place-items:center;
+  font-size:12px;
 }
 
-@media (max-width: 900px) {
-  .tt-grid {
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-  }
+.tt-date-form {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap:10px;
 }
-@media (max-width: 640px) {
-  .tt-top-row,
-  .tt-grid {
-    grid-template-columns: 1fr;
-  }
-  .tt-actions {
-    justify-content: stretch;
-  }
-  .tt-actions .button,
-  .tt-actions button {
-    width: 100%;
-  }
-  .tt-row-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
+.tt-date-form label { display:grid; gap:4px; }
+.tt-date-form label span { font-size:12px; color:var(--muted); font-weight:700; }
+
+.tt-table-card { padding:14px; }
+.tt-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+.tt-head h2 { margin:0; color:var(--maroon); font-size:18px; }
+.tt-meta { font-size:12px; color:var(--muted); }
+
+.tt-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+.tt-empty { border:1px dashed var(--border); border-radius:10px; padding:20px; text-align:center; color:var(--muted); }
+
+@media (max-width: 760px) {
+  .tt-head { flex-direction:column; align-items:flex-start; }
+  .tt-tab { width:100%; justify-content:space-between; }
+  .tt-date-form { width:100%; }
 }
 </style>
-
-<script>
-(function(){
-  // Build options for inline edit
-  const BUSES = <?= json_encode(array_values(array_map(fn($b)=>$b['reg_no'], $buses ?? []))) ?>;
-  const ROUTES = <?= json_encode(array_values(array_map(fn($x)=>['id'=>(int)$x['route_id'],'label'=>$x['route_no'].' — '.$x['name']], $routes ?? [])), JSON_UNESCAPED_UNICODE) ?>;
-
-  function buildSelect(options, value){
-    const sel = document.createElement('select');
-    options.forEach(o=>{
-      const opt = document.createElement('option');
-      if (typeof o === 'string') { opt.value = o; opt.textContent = o; }
-      else { opt.value = o.id; opt.textContent = o.label; }
-      if (String(opt.value) === String(value)) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    return sel;
-  }
-  function buildDowSelect(value){
-    const labels=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const sel = document.createElement('select');
-    labels.forEach((lab,i)=>{
-      const opt=document.createElement('option');
-      opt.value=i; opt.textContent=lab; if (String(i)===String(value)) opt.selected=true;
-      sel.appendChild(opt);
-    });
-    return sel;
-  }
-  function toInput(type, value){ const i=document.createElement('input'); i.type=type; if (value) i.value=value; return i; }
-
-  document.querySelectorAll('.btn-edit').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const tr = btn.closest('tr');
-      if (!tr || tr.dataset.editing) return;
-      tr.dataset.editing = '1';
-      const tds = tr.querySelectorAll('td');
-      const id  = tr.dataset.id;
-
-      const busSel  = buildSelect(BUSES, tr.dataset.bus);
-      const routeSel= buildSelect(ROUTES, tr.dataset.routeId);
-      const fromI   = toInput('date', tr.dataset.from);
-      const toI     = toInput('date', tr.dataset.to);
-      const dowSel  = buildDowSelect(tr.dataset.dow);
-      const depI    = toInput('time', tr.dataset.dep);
-      const arrI    = toInput('time', tr.dataset.arr);
-
-      // Replace display cells with editors
-      tds[1].innerHTML=''; tds[1].appendChild(busSel);
-      tds[2].innerHTML=''; tds[2].appendChild(routeSel);
-      tds[3].innerHTML=''; tds[3].appendChild(fromI);
-      tds[4].innerHTML=''; tds[4].appendChild(toI);
-      tds[5].innerHTML=''; tds[5].appendChild(dowSel);
-      tds[6].innerHTML=''; tds[6].appendChild(depI);
-      tds[7].innerHTML=''; tds[7].appendChild(arrI);
-
-      // Actions: show Save/Cancel in a fixed, user-friendly position
-      const actTd = tds[8];
-      actTd.innerHTML='';
-      const actionWrap = document.createElement('div');
-      actionWrap.className = 'tt-row-actions is-editing';
-
-      const saveBtn = document.createElement('button');
-      saveBtn.type='button'; saveBtn.textContent='Save'; saveBtn.className = 'button';
-      const cancelBtn = document.createElement('button');
-      cancelBtn.type='button'; cancelBtn.textContent='Cancel'; cancelBtn.className = 'button outline';
-      actionWrap.appendChild(saveBtn);
-      actionWrap.appendChild(cancelBtn);
-      actTd.appendChild(actionWrap);
-
-      cancelBtn.addEventListener('click', ()=>{ window.location.reload(); });
-      saveBtn.addEventListener('click', ()=>{
-        const f = document.createElement('form');
-        f.method='post';
-        f.innerHTML = ''
-          + '<input type="hidden" name="action" value="edit_special_tt">'
-          + '<input type="hidden" name="timetable_id" value="'+id+'">'
-          + '<input type="hidden" name="bus_reg_no" value="'+busSel.value+'">'
-          + '<input type="hidden" name="route_id" value="'+routeSel.value+'">'
-          + '<input type="hidden" name="effective_from" value="'+fromI.value+'">'
-          + '<input type="hidden" name="effective_to" value="'+toI.value+'">'
-          + '<input type="hidden" name="day_of_week" value="'+dowSel.value+'">'
-          + '<input type="hidden" name="departure_time" value="'+depI.value+'">'
-          + '<input type="hidden" name="arrival_time" value="'+arrI.value+'">';
-        document.body.appendChild(f);
-        f.submit();
-      });
-    });
-  });
-})();
-</script>

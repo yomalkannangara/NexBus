@@ -3,7 +3,6 @@ namespace App\controllers;
 
 use App\models\depot_officer\DepotOfficerModel;
 use App\models\depot_officer\AssignmentModel;
-use App\models\depot_officer\SpecialTimetableModel;
 class DepotOfficerController extends \App\controllers\BaseController {
     private DepotOfficerModel $m;
 
@@ -91,30 +90,37 @@ public function assignments()
         $u = $this->m->me(); $dep = $this->m->myDepotId($u);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $act = $_POST['action'] ?? '';
-            if ($act === 'create_special_tt') {
-                $ok = $this->m->createSpecialTimetable($dep, $_POST);
-                $this->redirect('/O/timetables?msg=' . ($ok ? 'created' : 'error'));
-                return;
-            }
-            if ($act === 'delete_special_tt' && !empty($_POST['timetable_id'])) {
-                $this->m->deleteSpecialTimetable($dep, (int)$_POST['timetable_id']);
-                $this->redirect('/O/timetables?msg=deleted');
-                return;
-            }
-            if ($act === 'edit_special_tt' && !empty($_POST['timetable_id'])) {
-                $stm = new SpecialTimetableModel();
-                $ok = $stm->updateSpecial($dep, $_POST);
-                $this->redirect('/O/timetables?msg=' . ($ok ? 'updated' : 'error'));
-                return;
-            }
+            $this->redirect('/O/timetables?msg=readonly');
+            return;
         }
+
+        $view = in_array($_GET['view'] ?? '', ['current', 'usual', 'seasonal'], true)
+            ? (string)$_GET['view']
+            : 'current';
+
+        $date = (string)($_GET['date'] ?? date('Y-m-d'));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date = date('Y-m-d');
+        }
+
+        $current = $this->m->currentTimetables($dep, $date);
+        $usual = $this->m->usualTimetables($dep);
+        $seasonal = $this->m->seasonalTimetables($dep, $date);
+
+        $rows = match ($view) {
+            'usual' => $usual,
+            'seasonal' => $seasonal,
+            default => $current,
+        };
 
         $this->view('depot_officer','timetables',[
             'me'=>$u,
-            'routes'=>$this->m->routes(),
-            'buses'=>$this->m->depotBuses($dep),
-            'special_tt'=>$this->m->specialTimetables($dep),
+            'selected_view' => $view,
+            'selected_date' => $date,
+            'rows' => $rows,
+            'count_current' => count($current),
+            'count_usual' => count($usual),
+            'count_seasonal' => count($seasonal),
             'msg'=>$_GET['msg'] ?? null,
         ]);
     }
