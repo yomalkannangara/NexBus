@@ -5,12 +5,39 @@ use PDO;
 
 class TurnModel extends BaseModel
 {
+    private function currentDepotId(): int {
+        $u = $_SESSION['user'] ?? [];
+        return (int)($u['sltb_depot_id'] ?? $u['depot_id'] ?? 0);
+    }
+
     private function getRouteDisplayName(string $stopsJson): string {
         $stops = json_decode($stopsJson, true) ?: [];
         if (empty($stops)) return 'Unknown';
         $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
         $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
         return "$first - $last";
+    }
+
+    private function resolveEndDepotId(string $stopsJson): ?int
+    {
+        $stops = json_decode($stopsJson ?: '[]', true) ?: [];
+        if (empty($stops)) return null;
+        $last = $stops[count($stops)-1];
+        $token = is_array($last)
+            ? ($last['code'] ?? $last['stop'] ?? $last['name'] ?? '')
+            : (string)$last;
+        $token = trim((string)$token);
+        if ($token === '') return null;
+
+        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
+        $pst->execute([':tok'=>$token]);
+        $row = $pst->fetch(PDO::FETCH_ASSOC);
+        if ($row) return (int)$row['sltb_depot_id'];
+
+        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
+        $pst->execute([':tok'=>'%'.$token.'%']);
+        $row = $pst->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int)$row['sltb_depot_id'] : null;
     }
 
     public function running(): array
@@ -31,11 +58,18 @@ class TurnModel extends BaseModel
         $st->execute([':op'=>$this->opId]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 
+        $currentDepot = $this->currentDepotId();
+        $filtered = [];
         foreach ($rows as &$r) {
+            $endDepot = $this->resolveEndDepotId($r['stops_json'] ?? '[]');
+            if ($currentDepot > 0 && $endDepot !== null && $endDepot !== $currentDepot) {
+                continue;
+            }
             $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
             $r['delay_min'] = max(0, (int)round((strtotime($r['actual_dep']) - strtotime($r['sched_dep']))/60));
+            $filtered[] = $r;
         }
-        return $rows;
+        return $filtered;
     }
 
     public function complete(int $tripId): bool
@@ -50,38 +84,12 @@ class TurnModel extends BaseModel
         $trip = $st->fetch(PDO::FETCH_ASSOC);
         if (!$trip) return false;
 
-        // decode stops and determine last stop token
-        $stops = json_decode($trip['stops_json'] ?? '[]', true) ?: [];
-        $depotId = null;
-        if (!empty($stops)) {
-            $last = $stops[count($stops)-1];
-            $token = '';
-            if (is_array($last)) {
-                $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
-            } else {
-                $token = (string)$last;
-            }
-            $token = trim((string)$token);
-            if ($token !== '') {
-                // try match to sltb_depots by code then name
-                $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
-                $pst->execute([':tok'=>$token]);
-                $row = $pst->fetch(PDO::FETCH_ASSOC);
-                if ($row) {
-                    $depotId = (int)$row['sltb_depot_id'];
-                } else {
-                    $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
-                    $pst->execute([':tok'=>'%'.$token.'%']);
-                    $row = $pst->fetch(PDO::FETCH_ASSOC);
-                    if ($row) $depotId = (int)$row['sltb_depot_id'];
-                }
-            }
-        }
+        $depotId = $this->resolveEndDepotId($trip['stops_json'] ?? '[]');
 
         // If we resolved an end depot, enforce that current user is at that depot
         $currentUser = $_SESSION['user'] ?? [];
-        $currentDepot = (int)($currentUser['sltb_depot_id'] ?? 0);
-        if ($depotId !== null) {
+        $currentDepot = $this->currentDepotId();
+        if ($depotId !== null && $currentDepot > 0) {
             if ($depotId !== $currentDepot) return false;
         } else {
             // fallback: ensure private operator matches user's operator
@@ -117,35 +125,11 @@ class TurnModel extends BaseModel
         $trip = $st->fetch(PDO::FETCH_ASSOC);
         if (!$trip) return ['ok'=>false,'msg'=>'no_trip'];
 
-        $stops = json_decode($trip['stops_json'] ?? '[]', true) ?: [];
-        $depotId = null;
-        if (!empty($stops)) {
-            $last = $stops[count($stops)-1];
-            $token = '';
-            if (is_array($last)) {
-                $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
-            } else {
-                $token = (string)$last;
-            }
-            $token = trim((string)$token);
-            if ($token !== '') {
-                $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
-                $pst->execute([':tok'=>$token]);
-                $row = $pst->fetch(PDO::FETCH_ASSOC);
-                if ($row) {
-                    $depotId = (int)$row['sltb_depot_id'];
-                } else {
-                    $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
-                    $pst->execute([':tok'=>'%'.$token.'%']);
-                    $row = $pst->fetch(PDO::FETCH_ASSOC);
-                    if ($row) $depotId = (int)$row['sltb_depot_id'];
-                }
-            }
-        }
+        $depotId = $this->resolveEndDepotId($trip['stops_json'] ?? '[]');
 
         $currentUser = $_SESSION['user'] ?? [];
-        $currentDepot = (int)($currentUser['sltb_depot_id'] ?? 0);
-        if ($depotId !== null) {
+        $currentDepot = $this->currentDepotId();
+        if ($depotId !== null && $currentDepot > 0) {
             if ($depotId !== $currentDepot) return ['ok'=>false,'msg'=>'not_authorized'];
         } else {
             // fallback: ensure private operator matches user's operator

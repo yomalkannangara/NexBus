@@ -44,7 +44,16 @@
       </thead>
       <tbody>
         <?php foreach($rows as $r): ?>
-          <tr data-route-no="<?= htmlspecialchars($r['route_no'] ?? '') ?>" data-route-display="<?= htmlspecialchars($r['route_display'] ?? ($r['route_start'].' → '.$r['route_end'])) ?>">
+          <tr
+            data-route-no="<?= htmlspecialchars($r['route_no'] ?? '') ?>"
+            data-route-display="<?= htmlspecialchars($r['route_display'] ?? ($r['route_start'].' → '.$r['route_end'])) ?>"
+            data-assignment-id="<?= (int)$r['assignment_id'] ?>"
+            data-assigned-date="<?= htmlspecialchars($r['assigned_date'] ?? date('Y-m-d')) ?>"
+            data-shift="<?= htmlspecialchars($r['shift'] ?? 'Morning') ?>"
+            data-bus-reg="<?= htmlspecialchars($r['bus_reg_no'] ?? '') ?>"
+            data-driver-id="<?= (int)($r['sltb_driver_id'] ?? 0) ?>"
+            data-conductor-id="<?= (int)($r['sltb_conductor_id'] ?? 0) ?>"
+          >
             <td><?= htmlspecialchars($r['bus_reg_no']) ?></td>
             <td><?= htmlspecialchars($r['route_start'] ? ($r['route_start'] . ' → ' . $r['route_end']) : ($r['route_name'] ?? '-')) ?></td>
             <td><span class="tag"><?= htmlspecialchars($r['route_no'] ?? '-') ?></span></td>
@@ -57,13 +66,12 @@
             <td><?= $r['driver_name'] ? htmlspecialchars($r['driver_name']) : '<span class="muted">Unassigned</span>' ?></td>
             <td><?= $r['conductor_name'] ? htmlspecialchars($r['conductor_name']) : '<span class="muted">Unassigned</span>' ?></td>
             <td class="actions">
-              <button class="btn-icon edit" title="Edit"><i class="fa fa-edit"></i></button>
+              <button type="button" class="button outline btn-row-edit" title="Edit Assignment">Edit</button>
               <form method="post" class="inline" onsubmit="return confirm('Delete this assignment?')">
                 <input type="hidden" name="action" value="delete_assignment">
                 <input type="hidden" name="assignment_id" value="<?= (int)$r['assignment_id'] ?>">
-                <button class="btn-icon delete" title="Delete"><i class="fa fa-trash"></i></button>
+                <button class="button outline btn-row-delete" title="Delete">Delete</button>
               </form>
-              <button class="btn-icon assign" title="Assign Driver/Conductor"><i class="fa fa-users"></i></button>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -90,7 +98,7 @@
         <input list="buses" name="bus_reg_no" id="bus-select" required placeholder="Type or pick bus reg no">
         <datalist id="buses">
           <?php foreach($buses as $b): ?>
-            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars(($b['reg_no'] . ' — ' . ($b['route_name'] ?? ''))) ?></option>
+            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars(($b['reg_no'] . ' — Route ' . ($b['route_no'] ?? 'N/A') . ' — ' . (($b['route_name'] ?? '') ?: 'Destination N/A'))) ?></option>
           <?php endforeach; ?>
         </datalist>
       </label>
@@ -122,6 +130,46 @@
   </div>
 </div>
 
+<!-- Edit Modal -->
+<div id="editModal" class="modal hidden">
+  <div class="modal-content card">
+    <h2>Edit Assignment</h2>
+    <form method="post">
+      <input type="hidden" name="action" value="update_assignment">
+      <input type="hidden" name="assignment_id" id="edit-assignment-id">
+      <label>Date <input type="date" name="assigned_date" id="edit-assigned-date" required></label>
+      <label>Shift
+        <select name="shift" id="edit-shift" required>
+          <option>Morning</option><option>Evening</option><option>Night</option>
+        </select>
+      </label>
+      <label>Bus
+        <input list="buses" name="bus_reg_no" id="edit-bus-select" required placeholder="Type or pick bus reg no">
+      </label>
+      <label>Route Number <input type="text" id="edit-bus-route-no" readonly></label>
+      <label>Destination <input type="text" id="edit-bus-route-name" readonly></label>
+      <label>Driver
+        <select name="sltb_driver_id" id="edit-driver" required>
+          <?php foreach($drivers as $d): ?>
+            <option value="<?= (int)$d['sltb_driver_id'] ?>"><?= htmlspecialchars($d['full_name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <label>Conductor
+        <select name="sltb_conductor_id" id="edit-conductor" required>
+          <?php foreach($conductors as $c): ?>
+            <option value="<?= (int)$c['sltb_conductor_id'] ?>"><?= htmlspecialchars($c['full_name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Update</button>
+        <button type="button" id="closeEditModal" class="btn-outline">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 const modal = document.getElementById('addModal');
 document.getElementById('btnAddAssignment').onclick = ()=>modal.classList.remove('hidden');
@@ -130,7 +178,7 @@ document.getElementById('closeModal').onclick = ()=>modal.classList.add('hidden'
 // Build a JS map of bus -> route info for auto-fill
 const busInfo = {};
   <?php foreach($buses as $b): ?>
-    busInfo[<?= json_encode($b['reg_no']) ?>] = {
+    busInfo[<?= json_encode(strtoupper(trim((string)$b['reg_no']))) ?>] = {
     route_no: <?= json_encode($b['route_no'] ?? '') ?>,
     route_name: <?= json_encode($b['route_name'] ?? '') ?>,
     route_start: <?= json_encode($b['route_start'] ?? '') ?>,
@@ -141,14 +189,47 @@ const busInfo = {};
 const busSelect = document.getElementById('bus-select');
 const routeNoInput = document.getElementById('bus-route-no');
 const routeNameInput = document.getElementById('bus-route-name');
-function fillBusRoute() {
-  const v = busSelect.value;
+const editModal = document.getElementById('editModal');
+const editBusSelect = document.getElementById('edit-bus-select');
+const editRouteNoInput = document.getElementById('edit-bus-route-no');
+const editRouteNameInput = document.getElementById('edit-bus-route-name');
+function normalizeBusReg(value) {
+  return (value || '').trim().toUpperCase();
+}
+function fillBusRouteFor(inputEl, routeNoEl, routeNameEl) {
+  const v = normalizeBusReg(inputEl.value);
   const info = busInfo[v] || {route_no:'', route_name:'', route_start:'', route_end:''};
-  routeNoInput.value = info.route_no || '';
-  routeNameInput.value = info.route_name || (info.route_start && info.route_end ? (info.route_start + ' → ' + info.route_end) : '');
+  routeNoEl.value = info.route_no || 'N/A';
+  routeNameEl.value = info.route_name || (info.route_start && info.route_end ? (info.route_start + ' → ' + info.route_end) : 'N/A');
+}
+function fillBusRoute() {
+  fillBusRouteFor(busSelect, routeNoInput, routeNameInput);
+}
+function fillEditBusRoute() {
+  fillBusRouteFor(editBusSelect, editRouteNoInput, editRouteNameInput);
 }
 busSelect.addEventListener('change', fillBusRoute);
+busSelect.addEventListener('input', fillBusRoute);
 fillBusRoute();
+editBusSelect.addEventListener('change', fillEditBusRoute);
+editBusSelect.addEventListener('input', fillEditBusRoute);
+
+document.getElementById('closeEditModal').onclick = ()=>editModal.classList.add('hidden');
+
+document.querySelectorAll('.styled-table tbody tr .btn-row-edit').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tr = btn.closest('tr');
+    if (!tr) return;
+    document.getElementById('edit-assignment-id').value = tr.dataset.assignmentId || '';
+    document.getElementById('edit-assigned-date').value = tr.dataset.assignedDate || '';
+    document.getElementById('edit-shift').value = tr.dataset.shift || 'Morning';
+    editBusSelect.value = tr.dataset.busReg || '';
+    document.getElementById('edit-driver').value = tr.dataset.driverId || '';
+    document.getElementById('edit-conductor').value = tr.dataset.conductorId || '';
+    fillEditBusRoute();
+    editModal.classList.remove('hidden');
+  });
+});
 
 // Show override remark/UI when override button clicked
 const overrideLabel = document.getElementById('label-override-remark');

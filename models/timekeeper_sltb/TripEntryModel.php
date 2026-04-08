@@ -19,6 +19,75 @@ class TripEntryModel extends BaseModel
         return "$first - $last";
     }
 
+    private function emergencyTypeAndPriority(string $reason): array
+    {
+        $r = strtolower($reason);
+        $isBreakdown = str_contains($r, 'breakdown')
+            || str_contains($r, 'engine')
+            || str_contains($r, 'mechanical')
+            || str_contains($r, 'failure');
+
+        return $isBreakdown
+            ? ['type' => 'Breakdown', 'priority' => 'critical']
+            : ['type' => 'Alert', 'priority' => 'urgent'];
+    }
+
+    private function notifyDepotEmergency(int $depotId, int $tripId, array $trip, string $reason): void
+    {
+        if ($depotId <= 0) return;
+
+        $event = $this->emergencyTypeAndPriority($reason);
+        $u = $_SESSION['user'] ?? [];
+        $sourceUserId = (int)($u['user_id'] ?? $u['id'] ?? 0);
+        $sourceRole = (string)($u['role'] ?? 'SLTBTimekeeper');
+        $sourceName = trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''));
+        if ($sourceName === '') $sourceName = (string)($u['name'] ?? 'SLTB Timekeeper');
+
+        $message = sprintf(
+            'EMERGENCY UPDATE: Trip #%d was cancelled by %s. Bus: %s, Route ID: %d. Reason: %s',
+            $tripId,
+            $sourceName,
+            (string)($trip['bus_reg_no'] ?? 'N/A'),
+            (int)($trip['route_id'] ?? 0),
+            $reason
+        );
+
+        $metadata = json_encode([
+            'source' => 'sltb_timekeeper_emergency',
+            'source_role' => $sourceRole,
+            'source_user_id' => $sourceUserId,
+            'source_name' => $sourceName,
+            'event_kind' => 'trip_cancelled',
+            'trip_id' => $tripId,
+            'timetable_id' => (int)($trip['timetable_id'] ?? 0),
+            'route_id' => (int)($trip['route_id'] ?? 0),
+            'bus_reg_no' => (string)($trip['bus_reg_no'] ?? ''),
+            'depot_id' => $depotId,
+            'reason' => $reason,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $stRecipients = $this->pdo->prepare(
+            "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+        );
+        $stRecipients->execute([':depot' => $depotId]);
+        $recipientIds = array_map('intval', $stRecipients->fetchAll(PDO::FETCH_COLUMN));
+        if (empty($recipientIds)) return;
+
+        $ins = $this->pdo->prepare(
+            "INSERT INTO notifications (user_id, type, message, is_seen, priority, metadata, created_at)
+             VALUES (:uid, :type, :message, 0, :priority, :metadata, NOW())"
+        );
+        foreach ($recipientIds as $rid) {
+            $ins->execute([
+                ':uid' => $rid,
+                ':type' => $event['type'],
+                ':message' => $message,
+                ':priority' => $event['priority'],
+                ':metadata' => $metadata,
+            ]);
+        }
+    }
+
     /** Today’s SLTB timetables for my depot; marks current window & whether already started today. */
     public function todayList(): array
     {
@@ -113,7 +182,7 @@ class TripEntryModel extends BaseModel
         $reasonText = trim((string)($reason ?? ''));
         if ($reasonText === '') return ['ok'=>false,'msg'=>'no_reason'];
 
-        $trip = $this->pdo->prepare("SELECT sltb_trip_id, status, sltb_depot_id FROM sltb_trips WHERE sltb_trip_id=:id AND trip_date=CURDATE()");
+        $trip = $this->pdo->prepare("SELECT sltb_trip_id, timetable_id, route_id, bus_reg_no, status, sltb_depot_id FROM sltb_trips WHERE sltb_trip_id=:id AND trip_date=CURDATE()");
         $trip->execute([':id'=>$tripId]);
         $t = $trip->fetch(PDO::FETCH_ASSOC);
         if (!$t) return ['ok'=>false,'msg'=>'no_trip'];
@@ -126,6 +195,10 @@ class TripEntryModel extends BaseModel
              WHERE sltb_trip_id=:id AND status='InProgress'"
         );
         $upd->execute([':user'=>($_SESSION['user']['user_id'] ?? null), ':reason'=>$reasonText, ':id'=>$tripId]);
-        return ['ok'=>$upd->rowCount() > 0, 'msg'=>$upd->rowCount()>0 ? null : 'update_failed'];
+        $ok = $upd->rowCount() > 0;
+        if ($ok) {
+            $this->notifyDepotEmergency((int)$t['sltb_depot_id'], $tripId, $t, $reasonText);
+        }
+        return ['ok'=>$ok, 'msg'=>$ok ? null : 'update_failed'];
     }
 }

@@ -44,6 +44,8 @@ public function allToday(int $depotId): array {
                 a.assigned_date,
                 a.shift,
                 a.bus_reg_no,
+                a.sltb_driver_id,
+                a.sltb_conductor_id,
                 b.status AS bus_status,
                 COALESCE(b.capacity,0) AS capacity,
                 d.full_name AS driver_name,
@@ -70,23 +72,30 @@ public function allToday(int $depotId): array {
             LEFT JOIN sltb_drivers d    ON d.sltb_driver_id    = a.sltb_driver_id
             LEFT JOIN sltb_conductors c ON c.sltb_conductor_id = a.sltb_conductor_id
 
-            /* --- pick ONE timetable row per bus for today (earliest dep) --- */
+            /* --- pick ONE active timetable route per bus (prefer today's service) --- */
             LEFT JOIN (
-                SELECT t1.*
-                FROM timetables t1
-                JOIN (
-                    SELECT bus_reg_no, MIN(departure_time) AS dep
-                    FROM timetables
-                    WHERE operator_type='SLTB'
-                      AND day_of_week = DAYOFWEEK(CURDATE())-1
-                      AND effective_from <= CURDATE()
-                      AND (effective_to IS NULL OR effective_to >= CURDATE())
-                    GROUP BY bus_reg_no
-                ) m ON m.bus_reg_no = t1.bus_reg_no AND m.dep = t1.departure_time
-                WHERE t1.operator_type='SLTB'
-                  AND t1.day_of_week = DAYOFWEEK(CURDATE())-1
-                  AND t1.effective_from <= CURDATE()
-                  AND (t1.effective_to IS NULL OR t1.effective_to >= CURDATE())
+                SELECT
+                    t.bus_reg_no,
+                    CAST(
+                        SUBSTRING_INDEX(
+                            GROUP_CONCAT(
+                                t.route_id
+                                ORDER BY
+                                    (t.day_of_week = DAYOFWEEK(CURDATE())-1) DESC,
+                                    t.effective_from DESC,
+                                    t.departure_time ASC,
+                                    t.timetable_id DESC
+                                SEPARATOR ','
+                            ),
+                            ',',
+                            1
+                        ) AS UNSIGNED
+                    ) AS route_id
+                FROM timetables t
+                WHERE t.operator_type='SLTB'
+                  AND t.effective_from <= CURDATE()
+                  AND (t.effective_to IS NULL OR t.effective_to >= CURDATE())
+                GROUP BY t.bus_reg_no
             ) tt ON tt.bus_reg_no = a.bus_reg_no
 
             LEFT JOIN routes r ON r.route_id = tt.route_id
@@ -132,22 +141,29 @@ public function allToday(int $depotId): array {
                                r.stops_json
                            FROM sltb_buses b
                          LEFT JOIN (
-                                 /* pick one timetable row per bus for today (earliest dep) */
-                                 SELECT t1.bus_reg_no, t1.route_id
-                                 FROM timetables t1
-                                 JOIN (
-                                     SELECT bus_reg_no, MIN(departure_time) AS dep
-                                     FROM timetables
-                                     WHERE operator_type='SLTB'
-                                         AND day_of_week = DAYOFWEEK(CURDATE())-1
-                                         AND effective_from <= CURDATE()
-                                         AND (effective_to IS NULL OR effective_to >= CURDATE())
-                                     GROUP BY bus_reg_no
-                                 ) m ON m.bus_reg_no = t1.bus_reg_no AND m.dep = t1.departure_time
-                                 WHERE t1.operator_type='SLTB'
-                                     AND t1.day_of_week = DAYOFWEEK(CURDATE())-1
-                                     AND t1.effective_from <= CURDATE()
-                                     AND (t1.effective_to IS NULL OR t1.effective_to >= CURDATE())
+                                 /* pick one active timetable route per bus (prefer today's service) */
+                                 SELECT
+                                     t.bus_reg_no,
+                                     CAST(
+                                         SUBSTRING_INDEX(
+                                             GROUP_CONCAT(
+                                                 t.route_id
+                                                 ORDER BY
+                                                     (t.day_of_week = DAYOFWEEK(CURDATE())-1) DESC,
+                                                     t.effective_from DESC,
+                                                     t.departure_time ASC,
+                                                     t.timetable_id DESC
+                                                 SEPARATOR ','
+                                             ),
+                                             ',',
+                                             1
+                                         ) AS UNSIGNED
+                                     ) AS route_id
+                                 FROM timetables t
+                                 WHERE t.operator_type='SLTB'
+                                   AND t.effective_from <= CURDATE()
+                                   AND (t.effective_to IS NULL OR t.effective_to >= CURDATE())
+                                 GROUP BY t.bus_reg_no
                          ) tt ON tt.bus_reg_no = b.reg_no
                          LEFT JOIN routes r ON r.route_id = tt.route_id
                                  WHERE b.sltb_depot_id = ? AND b.status='Active'
@@ -326,6 +342,25 @@ public function allToday(int $depotId): array {
             $st  = $this->pdo->prepare($sql);
             return $st->execute([$driverId, $conductorId, $assignmentId, $depotId]);
         }
+    }
+
+    public function update(int $depotId, array $d): bool {
+        $assignmentId = (int)($d['assignment_id'] ?? 0);
+        $assignedDate = trim((string)($d['assigned_date'] ?? ''));
+        $shift = trim((string)($d['shift'] ?? ''));
+        $bus = trim((string)($d['bus_reg_no'] ?? ''));
+        $driverId = (int)($d['sltb_driver_id'] ?? 0);
+        $conductorId = (int)($d['sltb_conductor_id'] ?? 0);
+
+        if ($assignmentId <= 0 || !$assignedDate || !$shift || !$bus || $driverId <= 0 || $conductorId <= 0) {
+            return false;
+        }
+
+        $sql = "UPDATE sltb_assignments
+                   SET assigned_date=?, shift=?, bus_reg_no=?, sltb_driver_id=?, sltb_conductor_id=?
+                 WHERE assignment_id=? AND sltb_depot_id=?";
+        $st = $this->pdo->prepare($sql);
+        return (bool)$st->execute([$assignedDate, $shift, $bus, $driverId, $conductorId, $assignmentId, $depotId]);
     }
 
     public function delete(int $id, int $depotId): bool {

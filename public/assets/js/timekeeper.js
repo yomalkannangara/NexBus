@@ -125,8 +125,8 @@
       
       // Use themed modal to collect reason
       window.showReasonModal(
-        'Cancel Trip',
-        'Why are you cancelling this trip? (required)'
+        'Stop Trip',
+        'Why are you stopping this trip in the middle? (required)'
       ).then(reason => {
         if (reason === null) { 
           btn.disabled = false; 
@@ -134,7 +134,7 @@
         } // user cancelled modal
 
         // Confirm before sending using pretty confirm
-        window.confirmPretty('Are you sure you want to cancel this trip?').then(ok => {
+        window.confirmPretty('Are you sure you want to stop this trip?').then(ok => {
           if (!ok) { btn.disabled = false; return; }
 
           postForm(endpoint, { 

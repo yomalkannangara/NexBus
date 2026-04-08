@@ -32,7 +32,11 @@
                 <div class="route-name"><?= htmlspecialchars($r['route_name']) ?></div>
               </div>
             </td>
-            <td class="mono" data-label="Bus"><?= htmlspecialchars($r['bus_reg_no']) ?></td>
+            <td class="mono" data-label="Bus">
+              <a class="tk-map-link" href="/TS/dashboard?focus_bus=<?= urlencode((string)($r['bus_reg_no'] ?? '')) ?>">
+                <?= htmlspecialchars($r['bus_reg_no']) ?>
+              </a>
+            </td>
             <td data-label="Status">
               <span class="badge js-badge <?= $already?'gray':($isCurrent?'green':'blue') ?>">
                 <?= $already ? 'Recorded' : ($isCurrent ? 'Current' : 'Scheduled') ?>
@@ -41,7 +45,7 @@
             <td data-label="Action">
               <button class="btn btn-start" data-action="start" data-tt="<?= (int)$r['timetable_id'] ?>" <?= $already?'disabled':''; ?>>Start</button>
               <?php if (!empty($r['trip_id']) && ($r['trip_status'] ?? '') === 'InProgress'): ?>
-                <button class="btn btn-cancel" data-action="cancel" data-trip-id="<?= (int)$r['trip_id'] ?>">Cancel</button>
+                <button class="btn btn-cancel" data-action="cancel" data-trip-id="<?= (int)$r['trip_id'] ?>">Stop Trip</button>
               <?php endif; ?>
             </td>
           </tr>
@@ -51,4 +55,14 @@
     </div>
   </div>
 </section>
+
+<style>
+  .tk-map-link {
+    color: var(--maroon);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .tk-map-link:hover { color: color-mix(in srgb, var(--maroon) 85%, black); }
+</style>
 

@@ -19,6 +19,101 @@ class TurnModel extends BaseModel
         return "$first - $last";
     }
 
+    private function resolveEndDepotId(string $stopsJson): ?int
+    {
+        $stops = json_decode($stopsJson ?: '[]', true) ?: [];
+        if (empty($stops)) return null;
+
+        $last = $stops[count($stops)-1];
+        $token = '';
+        if (is_array($last)) {
+            $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
+        } else {
+            $token = (string)$last;
+        }
+        $token = trim($token);
+        if ($token === '') return null;
+
+        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
+        $pst->execute([':tok'=>$token]);
+        $row = $pst->fetch(PDO::FETCH_ASSOC);
+        if ($row) return (int)$row['sltb_depot_id'];
+
+        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
+        $pst->execute([':tok'=>'%'.$token.'%']);
+        $row = $pst->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int)$row['sltb_depot_id'] : null;
+    }
+
+    private function emergencyTypeAndPriority(string $reason): array
+    {
+        $r = strtolower($reason);
+        $isBreakdown = str_contains($r, 'breakdown')
+            || str_contains($r, 'engine')
+            || str_contains($r, 'mechanical')
+            || str_contains($r, 'failure');
+
+        return $isBreakdown
+            ? ['type' => 'Breakdown', 'priority' => 'critical']
+            : ['type' => 'Alert', 'priority' => 'urgent'];
+    }
+
+    private function notifyDepotEmergency(int $depotId, int $tripId, array $trip, string $reason): void
+    {
+        if ($depotId <= 0) return;
+
+        $event = $this->emergencyTypeAndPriority($reason);
+        $u = $_SESSION['user'] ?? [];
+        $sourceUserId = (int)($u['user_id'] ?? $u['id'] ?? 0);
+        $sourceRole = (string)($u['role'] ?? 'SLTBTimekeeper');
+        $sourceName = trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''));
+        if ($sourceName === '') $sourceName = (string)($u['name'] ?? 'SLTB Timekeeper');
+
+        $message = sprintf(
+            'EMERGENCY UPDATE: Trip #%d was cancelled by %s at end depot. Bus: %s, Route ID: %d. Reason: %s',
+            $tripId,
+            $sourceName,
+            (string)($trip['bus_reg_no'] ?? 'N/A'),
+            (int)($trip['route_id'] ?? 0),
+            $reason
+        );
+
+        $metadata = json_encode([
+            'source' => 'sltb_timekeeper_emergency',
+            'source_role' => $sourceRole,
+            'source_user_id' => $sourceUserId,
+            'source_name' => $sourceName,
+            'event_kind' => 'trip_cancelled_end_depot',
+            'trip_id' => $tripId,
+            'timetable_id' => (int)($trip['timetable_id'] ?? 0),
+            'route_id' => (int)($trip['route_id'] ?? 0),
+            'bus_reg_no' => (string)($trip['bus_reg_no'] ?? ''),
+            'depot_id' => $depotId,
+            'reason' => $reason,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $stRecipients = $this->pdo->prepare(
+            "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+        );
+        $stRecipients->execute([':depot' => $depotId]);
+        $recipientIds = array_map('intval', $stRecipients->fetchAll(PDO::FETCH_COLUMN));
+        if (empty($recipientIds)) return;
+
+        $ins = $this->pdo->prepare(
+            "INSERT INTO notifications (user_id, type, message, is_seen, priority, metadata, created_at)
+             VALUES (:uid, :type, :message, 0, :priority, :metadata, NOW())"
+        );
+        foreach ($recipientIds as $rid) {
+            $ins->execute([
+                ':uid' => $rid,
+                ':type' => $event['type'],
+                ':message' => $message,
+                ':priority' => $event['priority'],
+                ':metadata' => $metadata,
+            ]);
+        }
+    }
+
     public function running(): array
     {
         $sql = <<<SQL
@@ -32,24 +127,29 @@ class TurnModel extends BaseModel
           TIMESTAMPDIFF(MINUTE, st.scheduled_departure_time, st.departure_time) AS delay_min
         FROM sltb_trips st
         JOIN routes r     ON r.route_id = st.route_id
-        JOIN sltb_buses b ON b.reg_no   = st.bus_reg_no
-        WHERE st.trip_date=CURDATE() AND st.status='InProgress' AND b.sltb_depot_id=:depot
+        WHERE st.trip_date=CURDATE() AND st.status='InProgress'
         ORDER BY st.scheduled_departure_time, r.route_no+0, r.route_no
         SQL;
 
         $st = $this->pdo->prepare($sql);
-        $st->execute([':depot'=>$this->depotId()]);
+        $st->execute();
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        $currentDepot = $this->depotId();
+        $filtered = [];
         foreach ($rows as &$r) {
+            $endDepot = $this->resolveEndDepotId($r['stops_json'] ?? '[]');
+            if ($endDepot === null || $endDepot !== $currentDepot) continue;
             $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+            $filtered[] = $r;
         }
-        return $rows;
+        return $filtered;
     }
 
     public function complete(int $tripId): bool
     {
         // load trip + route stops
-        $q = "SELECT st.sltb_trip_id, st.route_id, r.stops_json
+          $q = "SELECT st.sltb_trip_id, st.timetable_id, st.route_id, st.bus_reg_no, r.stops_json
               FROM sltb_trips st
               LEFT JOIN routes r ON r.route_id = st.route_id
               WHERE st.sltb_trip_id = :id AND st.status='InProgress' AND st.trip_date=CURDATE()";
@@ -59,31 +159,7 @@ class TurnModel extends BaseModel
         if (!$trip) return false;
 
         // decode stops and determine last stop token
-        $stops = json_decode($trip['stops_json'] ?? '[]', true) ?: [];
-        if (empty($stops)) return false; // cannot validate without route stops
-        $last = $stops[count($stops)-1];
-        $token = '';
-        if (is_array($last)) {
-            $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
-        } else {
-            $token = (string)$last;
-        }
-        $token = trim($token);
-        if ($token === '') return false;
-
-        // try to resolve token to a depot id: prefer code match, then name LIKE
-        $depotId = null;
-        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
-        $pst->execute([':tok'=>$token]);
-        $row = $pst->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
-            $depotId = (int)$row['sltb_depot_id'];
-        } else {
-            $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
-            $pst->execute([':tok'=>'%'.$token.'%']);
-            $row = $pst->fetch(PDO::FETCH_ASSOC);
-            if ($row) $depotId = (int)$row['sltb_depot_id'];
-        }
+        $depotId = $this->resolveEndDepotId($trip['stops_json'] ?? '[]');
 
         // enforce Option B: only the timekeeper at the route's ending depot can close
         if ($depotId === null) return false;
@@ -100,7 +176,7 @@ class TurnModel extends BaseModel
     }
 
     /** Cancel an in-progress trip from the route end timekeeper page. */
-    public function cancel(int $tripId, ?string $reason=null): bool
+    public function cancel(int $tripId, ?string $reason=null): array
     {
         // load trip + route stops
         $q = "SELECT st.sltb_trip_id, st.route_id, r.stops_json
@@ -110,32 +186,9 @@ class TurnModel extends BaseModel
         $st = $this->pdo->prepare($q);
         $st->execute([':id'=>$tripId]);
         $trip = $st->fetch(PDO::FETCH_ASSOC);
-        if (!$trip) return false;
+        if (!$trip) return ['ok'=>false,'msg'=>'no_trip'];
 
-        $stops = json_decode($trip['stops_json'] ?? '[]', true) ?: [];
-        if (empty($stops)) return false;
-        $last = $stops[count($stops)-1];
-        $token = '';
-        if (is_array($last)) {
-            $token = $last['code'] ?? $last['stop'] ?? $last['name'] ?? '';
-        } else {
-            $token = (string)$last;
-        }
-        $token = trim($token);
-        if ($token === '') return false;
-
-        $depotId = null;
-        $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE code = :tok LIMIT 1');
-        $pst->execute([':tok'=>$token]);
-        $row = $pst->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
-            $depotId = (int)$row['sltb_depot_id'];
-        } else {
-            $pst = $this->pdo->prepare('SELECT sltb_depot_id FROM sltb_depots WHERE name LIKE :tok LIMIT 1');
-            $pst->execute([':tok'=>'%'.$token.'%']);
-            $row = $pst->fetch(PDO::FETCH_ASSOC);
-            if ($row) $depotId = (int)$row['sltb_depot_id'];
-        }
+        $depotId = $this->resolveEndDepotId($trip['stops_json'] ?? '[]');
 
         if ($depotId === null) return ['ok'=>false,'msg'=>'no_depot_match'];
         if ($depotId !== $this->depotId()) return ['ok'=>false,'msg'=>'not_authorized'];
@@ -149,6 +202,10 @@ class TurnModel extends BaseModel
              WHERE sltb_trip_id = :id AND status='InProgress' AND trip_date=CURDATE()"
         );
         $upd->execute([':user'=>($_SESSION['user']['user_id'] ?? null), ':reason'=>$reasonText, ':adp'=>$depotId, ':id'=>$tripId]);
-        return ['ok'=>$upd->rowCount() > 0, 'msg'=>$upd->rowCount()>0 ? null : 'update_failed'];
+        $ok = $upd->rowCount() > 0;
+        if ($ok) {
+            $this->notifyDepotEmergency($depotId, $tripId, $trip, $reasonText);
+        }
+        return ['ok'=>$ok, 'msg'=>$ok ? null : 'update_failed'];
     }
 }
