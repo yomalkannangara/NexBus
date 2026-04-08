@@ -420,8 +420,6 @@ public function feedback()
         if ($act === 'reply') {
             $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
             $msg = $_POST['message'] ?? ($_POST['response'] ?? '');
-            // Mark in progress when replying
-            if ($id !== '') $m->updateStatus((string)$id, 'In Progress');
             $m->sendResponse((string)$id, (string)$msg);
             return $this->redirect('/B/feedback?msg=replied');
         }
@@ -434,6 +432,12 @@ public function feedback()
             return $this->redirect('/B/feedback?msg=resolved');
         }
 
+        if ($act === 'not_solved') {
+            $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
+            if ($id !== '') $m->updateStatus((string)$id, 'Open');
+            return $this->redirect('/B/feedback?msg=not_solved');
+        }
+
         if ($act === 'close') {
             $id = $_POST['complaint_id'] ?? ($_POST['feedback_ref'] ?? ($_POST['id'] ?? ''));
             if ($id !== '') $m->updateStatus((string)$id, 'Closed');
@@ -441,9 +445,11 @@ public function feedback()
         }
 
         if ($act === 'update_status') {
+            $status = (string)($_POST['status'] ?? 'Open');
+            $normalizedStatus = strcasecmp(trim($status), 'Resolved') === 0 ? 'Resolved' : 'Open';
             $m->updateStatus(
                 $_POST['feedback_ref'] ?? ($_POST['id'] ?? ''),
-                $_POST['status']       ?? 'Open'
+                $normalizedStatus
             );
             return $this->redirect('/B/feedback?msg=status_updated');
         }
