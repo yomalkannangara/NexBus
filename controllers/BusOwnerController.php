@@ -178,9 +178,11 @@ class BusOwnerController extends BaseController
         $opId = $m->getResolvedOperatorId();
 
         $this->view('bus_owner', 'drivers', [
-            'drivers'     => $m->all(),
-            'conductors'  => $m->allConductors(),
-            'opId'        => $opId,
+            'drivers'        => $m->all(),
+            'conductors'     => $m->allConductors(),
+            'opId'           => $opId,
+            'driver_logs'    => $m->getAllDriverLogs(),    // keyed by private_driver_id
+            'conductor_logs' => $m->getAllConductorLogs(), // keyed by private_conductor_id
         ]);
     }
 

@@ -112,6 +112,14 @@ class DriverModel extends BaseModel
         $name = trim((string)($d['full_name'] ?? ''));
         if ($name === '') return false;
 
+        $newStatus = $d['status'] ?? 'Active';
+        $newReason = ($newStatus === 'Suspended') ? ($d['suspend_reason'] ?? null) : null;
+
+        // Fetch old status before updating so we can log the transition
+        $stOld = $this->pdo->prepare("SELECT status FROM private_drivers WHERE private_driver_id = :id LIMIT 1");
+        $stOld->execute([':id' => $id]);
+        $oldStatus = (string)($stOld->fetchColumn() ?: 'Active');
+
         $sql = "UPDATE private_drivers
                    SET full_name = :name,
                        license_no = :license,
@@ -123,19 +131,21 @@ class DriverModel extends BaseModel
             ':name'    => $name,
             ':license' => $d['license_no'] ?? null,
             ':phone'   => $d['phone'] ?? null,
-            ':status'  => $d['status'] ?? 'Active',
-            ':reason'  => ($d['status'] ?? 'Active') === 'Suspended' ? ($d['suspend_reason'] ?? null) : null,
+            ':status'  => $newStatus,
+            ':reason'  => $newReason,
             ':id'      => $id,
         ];
         if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
         $st = $this->pdo->prepare($sql);
         try {
-            return $st->execute($params);
-        } catch (\PDOException $e) {
-            // Duplicate entry
-            if ($e->getCode() == 23000) {
-                return false;
+            $ok = $st->execute($params);
+            // Log the status change if it actually changed
+            if ($ok && strcasecmp($oldStatus, $newStatus) !== 0) {
+                $this->logStatusChange('driver', $id, $oldStatus, $newStatus, $newReason);
             }
+            return $ok;
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) return false;
             throw $e;
         }
     }
@@ -217,6 +227,14 @@ class DriverModel extends BaseModel
         $name = trim((string)($d['full_name'] ?? ''));
         if ($name === '') return false;
 
+        $newStatus = $d['status'] ?? 'Active';
+        $newReason = ($newStatus === 'Suspended') ? ($d['suspend_reason'] ?? null) : null;
+
+        // Fetch old status before updating
+        $stOld = $this->pdo->prepare("SELECT status FROM private_conductors WHERE private_conductor_id = :id LIMIT 1");
+        $stOld->execute([':id' => $id]);
+        $oldStatus = (string)($stOld->fetchColumn() ?: 'Active');
+
         $sql = "UPDATE private_conductors
                    SET full_name = :name,
                        phone = :phone,
@@ -226,13 +244,17 @@ class DriverModel extends BaseModel
         $params = [
             ':name'   => $name,
             ':phone'  => $d['phone'] ?? null,
-            ':status' => $d['status'] ?? 'Active',
-            ':reason' => ($d['status'] ?? 'Active') === 'Suspended' ? ($d['suspend_reason'] ?? null) : null,
+            ':status' => $newStatus,
+            ':reason' => $newReason,
             ':id'     => $id,
         ];
         if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
         $st = $this->pdo->prepare($sql);
-        return $st->execute($params);
+        $ok = $st->execute($params);
+        if ($ok && strcasecmp($oldStatus, $newStatus) !== 0) {
+            $this->logStatusChange('conductor', $id, $oldStatus, $newStatus, $newReason);
+        }
+        return $ok;
     }
 
     public function deleteConductor(int $id): bool
@@ -254,5 +276,94 @@ class DriverModel extends BaseModel
             return (int)$st->fetchColumn();
         }
         return (int)$this->pdo->query("SELECT COUNT(*) FROM private_conductors")->fetchColumn();
+    }
+
+    /* =========================
+     * Status-change logging
+     * ========================= */
+
+    /**
+     * Insert a row into private_staff_status_logs whenever status changes.
+     */
+    private function logStatusChange(
+        string $staffType,
+        int    $staffId,
+        string $oldStatus,
+        string $newStatus,
+        ?string $reason
+    ): void {
+        try {
+            $st = $this->pdo->prepare(
+                "INSERT INTO private_staff_status_logs
+                    (staff_type, staff_id, old_status, new_status, reason, changed_at)
+                 VALUES (:type, :sid, :old, :new, :reason, NOW())"
+            );
+            $st->execute([
+                ':type'   => $staffType,
+                ':sid'    => $staffId,
+                ':old'    => $oldStatus,
+                ':new'    => $newStatus,
+                ':reason' => $reason,
+            ]);
+        } catch (\PDOException $e) {
+            // Log failure is non-fatal — swallow silently
+            error_log('[DriverModel::logStatusChange] ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Return all status-change log entries for a given driver or conductor,
+     * ordered newest first.
+     *
+     * @param string $staffType  'driver' | 'conductor'
+     * @param int    $staffId    private_driver_id or private_conductor_id
+     * @return array
+     */
+    public function getStatusLogs(string $staffType, int $staffId): array
+    {
+        if ($staffId <= 0) return [];
+        $st = $this->pdo->prepare(
+            "SELECT log_id, staff_type, staff_id, old_status, new_status, reason,
+                    DATE_FORMAT(changed_at, '%Y-%m-%d %H:%i') AS changed_at_fmt
+               FROM private_staff_status_logs
+              WHERE staff_type = :type AND staff_id = :sid
+              ORDER BY changed_at DESC"
+        );
+        $st->execute([':type' => $staffType, ':sid' => $staffId]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Return status logs for ALL drivers belonging to this operator,
+     * keyed by driver id.
+     */
+    public function getAllDriverLogs(): array
+    {
+        $drivers = $this->all();
+        $result  = [];
+        foreach ($drivers as $d) {
+            $id = (int)($d['private_driver_id'] ?? 0);
+            if ($id > 0) {
+                $result[$id] = $this->getStatusLogs('driver', $id);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Return status logs for ALL conductors belonging to this operator,
+     * keyed by conductor id.
+     */
+    public function getAllConductorLogs(): array
+    {
+        $conductors = $this->allConductors();
+        $result     = [];
+        foreach ($conductors as $c) {
+            $id = (int)($c['private_conductor_id'] ?? 0);
+            if ($id > 0) {
+                $result[$id] = $this->getStatusLogs('conductor', $id);
+            }
+        }
+        return $result;
     }
 }
