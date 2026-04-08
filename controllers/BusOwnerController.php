@@ -101,6 +101,9 @@ class BusOwnerController extends BaseController
         }
 
         $m = new BusModel();
+        if ($m->isMaintenanceBus($regNo)) {
+            return $this->redirect('/B/fleet?msg=assign_blocked');
+        }
         $success = $m->assignDriverConductor($regNo, $driverId, $conductorId);
 
         error_log("[fleetAssign] assign result: " . ($success ? 'success' : 'failed') . " for reg_no={$regNo}");

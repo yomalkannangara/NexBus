@@ -30,6 +30,8 @@ public function assignments()
 {
     $m = new AssignmentModel();
     $depotId = $_SESSION['user']['sltb_depot_id'] ?? null;
+    $actorId = (int)($_SESSION['user']['user_id'] ?? 0);
+    $senderRole = (string)($_SESSION['user']['role'] ?? 'DepotOfficer');
     if (!$depotId) { $this->redirect('/login'); return; }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -37,6 +39,18 @@ public function assignments()
         if ($act === 'create_assignment') {
             $res = $m->create($_POST, $depotId);
             if ($res === true || $res === 1 || $res === '1') {
+                $this->sendAssignmentAutomation(
+                    $depotId,
+                    $actorId,
+                    $senderRole,
+                    'created',
+                    [
+                        'assigned_date' => (string)($_POST['assigned_date'] ?? date('Y-m-d')),
+                        'shift' => (string)($_POST['shift'] ?? ''),
+                        'bus_reg_no' => (string)($_POST['bus_reg_no'] ?? ''),
+                    ],
+                    [(int)($_POST['sltb_driver_id'] ?? 0), (int)($_POST['sltb_conductor_id'] ?? 0)]
+                );
                 $this->redirect('?module=depot_officer&page=assignments&msg=created');
                 return;
             }
@@ -54,23 +68,71 @@ public function assignments()
             return;
         }
         if ($act === 'update_assignment') {
+            $assignmentId = (int)($_POST['assignment_id'] ?? 0);
+            $before = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
             $ok = $m->update($depotId, $_POST);
+            if ($ok) {
+                $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
+                $recipients = [
+                    (int)($before['sltb_driver_id'] ?? 0),
+                    (int)($before['sltb_conductor_id'] ?? 0),
+                    (int)($after['sltb_driver_id'] ?? 0),
+                    (int)($after['sltb_conductor_id'] ?? 0),
+                ];
+                $ctx = [
+                    'assigned_date' => (string)($after['assigned_date'] ?? $_POST['assigned_date'] ?? date('Y-m-d')),
+                    'shift' => (string)($after['shift'] ?? $_POST['shift'] ?? ''),
+                    'bus_reg_no' => (string)($after['bus_reg_no'] ?? $_POST['bus_reg_no'] ?? ''),
+                ];
+                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'updated', $ctx, $recipients);
+            }
             $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'updated' : 'error'));
             return;
         }
         if ($act === 'reassign_staff') {
+            $assignmentId = (int)($_POST['assignment_id'] ?? 0);
+            $before = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
             $ok = $m->reassign(
                 $depotId,
-                (int)$_POST['assignment_id'],
+                $assignmentId,
                 (int)$_POST['sltb_driver_id'],
                 (int)$_POST['sltb_conductor_id'],
                 $_POST['shift'] ?? null
             );
+            if ($ok) {
+                $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
+                $recipients = [
+                    (int)($before['sltb_driver_id'] ?? 0),
+                    (int)($before['sltb_conductor_id'] ?? 0),
+                    (int)($after['sltb_driver_id'] ?? 0),
+                    (int)($after['sltb_conductor_id'] ?? 0),
+                ];
+                $ctx = [
+                    'assigned_date' => (string)($after['assigned_date'] ?? $before['assigned_date'] ?? date('Y-m-d')),
+                    'shift' => (string)($after['shift'] ?? $_POST['shift'] ?? $before['shift'] ?? ''),
+                    'bus_reg_no' => (string)($after['bus_reg_no'] ?? $before['bus_reg_no'] ?? ''),
+                ];
+                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'reassigned', $ctx, $recipients);
+            }
             $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'updated' : 'error'));
             return;
         }
         if ($act === 'delete_assignment') {
-            $ok = $m->delete((int)$_POST['assignment_id'], $depotId);
+            $assignmentId = (int)($_POST['assignment_id'] ?? 0);
+            $before = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
+            $ok = $m->delete($assignmentId, $depotId);
+            if ($ok && $before) {
+                $ctx = [
+                    'assigned_date' => (string)($before['assigned_date'] ?? date('Y-m-d')),
+                    'shift' => (string)($before['shift'] ?? ''),
+                    'bus_reg_no' => (string)($before['bus_reg_no'] ?? ''),
+                ];
+                $recipients = [
+                    (int)($before['sltb_driver_id'] ?? 0),
+                    (int)($before['sltb_conductor_id'] ?? 0),
+                ];
+                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'deleted', $ctx, $recipients, 'urgent');
+            }
             $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'deleted' : 'error'));
             return;
         }
@@ -176,7 +238,17 @@ public function assignments()
             $scope     = in_array($_POST['scope'] ?? '', ['individual','role','depot','bus','route'], true)
                          ? $_POST['scope'] : 'individual';
             $allDepot  = ($_POST['all_depot'] ?? '0') === '1';
-            $to        = array_values(array_filter(array_map('intval', (array)($_POST['to'] ?? []))));
+            $rawTo     = (array)($_POST['to'] ?? []);
+
+            if ($scope === 'role') {
+                $to = array_values(array_filter(array_map(static fn($v) => trim((string)$v), $rawTo)));
+            } elseif ($scope === 'bus') {
+                $to = array_values(array_filter(array_map(static fn($v) => trim((string)$v), $rawTo)));
+            } elseif ($scope === 'route' || $scope === 'individual') {
+                $to = array_values(array_filter(array_map('intval', $rawTo)));
+            } else {
+                $to = [];
+            }
 
             $senderRole = (string)($u['role'] ?? 'DepotOfficer');
             $ok = ($text && ($to || $allDepot))
@@ -974,5 +1046,40 @@ public function trip_logs(): void{
             'assignments'=> $m->getAssignments($busReg),
             'trips'      => $m->getTrips($busReg),
         ]);
+    }
+
+    private function sendAssignmentAutomation(
+        int $depotId,
+        int $senderUserId,
+        string $senderRole,
+        string $event,
+        array $context,
+        array $recipientIds,
+        string $priority = 'normal'
+    ): void {
+        $bus = trim((string)($context['bus_reg_no'] ?? ''));
+        $date = trim((string)($context['assigned_date'] ?? date('Y-m-d')));
+        $shift = trim((string)($context['shift'] ?? ''));
+
+        $labels = [
+            'created' => 'Assignment created',
+            'updated' => 'Assignment updated',
+            'reassigned' => 'Staff reassigned',
+            'deleted' => 'Assignment deleted',
+        ];
+        $label = $labels[$event] ?? 'Assignment updated';
+
+        $message = "OPERATION UPDATE: {$label} for bus {$bus} on {$date}";
+        if ($shift !== '') {
+            $message .= " ({$shift} shift)";
+        }
+        $message .= '.';
+
+        $recipients = array_values(array_unique(array_filter(array_map('intval', $recipientIds), static fn($v) => $v > 0)));
+        if (!$recipients) {
+            return;
+        }
+
+        $this->m->sendMessage($depotId, $recipients, $message, $priority, 'individual', false, $senderUserId, $senderRole);
     }
 }

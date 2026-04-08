@@ -363,6 +363,18 @@ public function allToday(int $depotId): array {
         return (bool)$st->execute([$assignedDate, $shift, $bus, $driverId, $conductorId, $assignmentId, $depotId]);
     }
 
+    public function findById(int $depotId, int $assignmentId): ?array {
+        $st = $this->pdo->prepare(
+            "SELECT assignment_id, assigned_date, shift, bus_reg_no, sltb_driver_id, sltb_conductor_id
+             FROM sltb_assignments
+             WHERE assignment_id=? AND sltb_depot_id=?
+             LIMIT 1"
+        );
+        $st->execute([$assignmentId, $depotId]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     public function delete(int $id, int $depotId): bool {
         $st = $this->pdo->prepare(
             "DELETE FROM sltb_assignments WHERE assignment_id=? AND sltb_depot_id=?"

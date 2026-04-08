@@ -156,7 +156,12 @@ $flashMessages = [
 }
 .msg-item:hover { background: #fffaf5; }
 .msg-item.active { background: #fef9ef; border-left:3px solid var(--maroon,#7f1d1d); }
+.msg-item.unread {
+    background: #fff7f2;
+    border-left: 3px solid var(--maroon,#7f1d1d);
+}
 .msg-item.unread .msg-item-subject { font-weight:800; }
+.msg-item.unread .msg-item-preview { color:#6b7280; font-weight:600; }
 .msg-item-avatar {
     width:34px; height:34px; border-radius:50%; flex-shrink:0;
     display:grid; place-items:center; font-size:13px; font-weight:800;
@@ -172,6 +177,19 @@ $flashMessages = [
     width:7px; height:7px; border-radius:50%;
     background: var(--maroon,#7f1d1d);
     flex-shrink:0; margin-top:4px;
+}
+.msg-unread-badge {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    height:18px;
+    padding:0 7px;
+    border-radius:999px;
+    background: var(--maroon,#7f1d1d);
+    color:#fff;
+    font-size:10px;
+    font-weight:800;
+    margin-top:4px;
 }
 .msg-empty {
     padding:40px 20px; text-align:center; color:#9ca3af; font-size:13px;
@@ -531,6 +549,7 @@ $flashMessages = [
                         </div>
                         <?php if ($isUnread): ?>
                             <div class="msg-unread-dot"></div>
+                            <div class="msg-unread-badge">Unread</div>
                         <?php endif; ?>
                     </div>
                     <?php endforeach; ?>
@@ -642,11 +661,11 @@ $flashMessages = [
                         <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
                             <?php if (!empty($buses)): ?>
                                 <?php foreach ($buses as $b): 
-                                    $bid = (int)($b['bus_id'] ?? 0);
-                                    $breg = htmlspecialchars($b['bus_registration_no'] ?? '');
+                                    $bid = (string)($b['bus_id'] ?? $b['reg_no'] ?? '');
+                                    $breg = htmlspecialchars((string)($b['bus_registration_no'] ?? $b['reg_no'] ?? ''));
                                 ?>
                                 <label class="msg-recipient-item" style="border:1px solid #e9e3da;border-radius:8px;cursor:pointer;">
-                                    <input type="checkbox" name="to[]" value="<?= $bid ?>" class="bus-cb" onchange="updateBusTags()">
+                                    <input type="checkbox" name="to[]" value="<?= htmlspecialchars($bid) ?>" class="bus-cb" onchange="updateBusTags()">
                                     <span class="ri-name">🚌 <?= $breg ?></span>
                                 </label>
                                 <?php endforeach; ?>
@@ -788,6 +807,7 @@ function connectSSE() {
                     <div class="msg-item-time">just now</div>
                 </div>
                 <div class="msg-unread-dot"></div>
+                <div class="msg-unread-badge">Unread</div>
             `;
             
             msgList.insertBefore(item, msgList.firstChild);
@@ -844,7 +864,6 @@ function esc(s) {
 
 /* ─── Inbox filter ──────────────────────────────────────────────────── */
 const filterBtns = document.querySelectorAll('.msg-inbox-filter .msg-filter-btn');
-const msgItems   = document.querySelectorAll('#msgList .msg-item');
 let   activeFilter = 'all';
 
 filterBtns.forEach(btn => {
@@ -860,6 +879,7 @@ document.getElementById('inboxSearch').addEventListener('input', applyInboxFilte
 
 function applyInboxFilter() {
     const q = document.getElementById('inboxSearch').value.toLowerCase();
+    const msgItems = document.querySelectorAll('#msgList .msg-item');
     msgItems.forEach(item => {
         const type   = item.dataset.type || '';
         const unread = item.dataset.unread === '1';
@@ -881,6 +901,8 @@ window.openThread = function(el) {
     el.classList.add('active');
     const unreadDot = el.querySelector('.msg-unread-dot');
     if (unreadDot) unreadDot.remove();
+    const unreadBadge = el.querySelector('.msg-unread-badge');
+    if (unreadBadge) unreadBadge.remove();
     el.classList.remove('unread');
     el.dataset.unread = '0';
     updateStatsBadges();
@@ -1009,7 +1031,7 @@ window.removeRoleTag = function(role) {
 
 /* ─── Bus scope → tags ──────────────────────────────────────────────── */
 const busesByKey = <?php 
-    echo json_encode(array_map(fn($b) => ['id' => (int)($b['bus_id'] ?? 0), 'reg' => $b['bus_registration_no'] ?? ''], $buses ?? []), JSON_UNESCAPED_UNICODE);
+    echo json_encode(array_map(fn($b) => ['id' => (string)($b['bus_id'] ?? $b['reg_no'] ?? ''), 'reg' => (string)($b['bus_registration_no'] ?? $b['reg_no'] ?? '')], $buses ?? []), JSON_UNESCAPED_UNICODE);
 ?>;
 
 window.updateBusTags = function() {
@@ -1017,18 +1039,23 @@ window.updateBusTags = function() {
     const tags = document.getElementById('selectedBusTags');
     tags.innerHTML = '';
     checked.forEach(cb => {
-        const bus = busesByKey.find(b => b.id === parseInt(cb.value));
+        const bus = busesByKey.find(b => String(b.id) === String(cb.value));
         const label = bus ? bus.reg : 'Bus ' + cb.value;
         const tag = document.createElement('span');
         tag.className = 'msg-tag';
-        tag.innerHTML = '🚌 ' + esc(label) + '<span class="msg-tag-rm" onclick="removeBusTag(' + cb.value + ')">×</span>';
+        tag.innerHTML = '🚌 ' + esc(label) + '<span class="msg-tag-rm" data-bus-id="' + esc(String(cb.value)) + '">×</span>';
+        tag.querySelector('.msg-tag-rm')?.addEventListener('click', function() {
+            removeBusTag(this.getAttribute('data-bus-id') || '');
+        });
         tags.appendChild(tag);
     });
 };
 
 window.removeBusTag = function(busId) {
-    const cb = document.querySelector('.bus-cb[value="' + busId + '"]');
-    if (cb) { cb.checked = false; updateBusTags(); }
+    document.querySelectorAll('.bus-cb').forEach(cb => {
+        if (String(cb.value) === String(busId)) cb.checked = false;
+    });
+    updateBusTags();
 };
 
 /* ─── Route scope → tags ────────────────────────────────────────────── */
@@ -1071,7 +1098,7 @@ window.applyTemplate = function(btn) {
     };
     const busRegById = (busId) => {
         if (!busId) return '';
-        const bus = busesByKey.find(b => b.id === parseInt(busId, 10));
+        const bus = busesByKey.find(b => String(b.id) === String(busId));
         return bus ? (bus.reg || ('Bus ' + busId)) : ('Bus ' + busId);
     };
     const pad2 = (n) => String(n).padStart(2, '0');
@@ -1167,6 +1194,14 @@ window.submitCompose = function() {
         const anyRole = document.querySelector('.role-cb:checked');
         if (!anyRole) { alert('Please select at least one role.'); return; }
     }
+    if (scope === 'bus') {
+        const anyBus = document.querySelector('.bus-cb:checked');
+        if (!anyBus) { alert('Please select at least one bus.'); return; }
+    }
+    if (scope === 'route') {
+        const anyRoute = document.querySelector('.route-cb:checked');
+        if (!anyRoute) { alert('Please select at least one route.'); return; }
+    }
 
     // For depot-wide, add all staff ids
     if (allDepot) {
@@ -1198,45 +1233,12 @@ document.getElementById('quickReplySend').addEventListener('click', function() {
     submitCompose();
 });
 
-/* ─── Quick actions ─────────────────────────────────────────────────── */
-window.ackMessage = function() {
-    if (!currentItem) return;
-    const nid = currentItem.dataset.id;
-    // Append acknowledgement bubble
-    const body = document.getElementById('threadBody');
-    const ackEl = document.createElement('div');
-    ackEl.className = 'msg-bubble-wrap me';
-    ackEl.innerHTML = '<div class="msg-bubble-avatar" style="background:linear-gradient(135deg,#059669,#065f46)">✓</div>'
-        + '<div><div class="msg-bubble">Acknowledged.</div>'
-        + '<div class="msg-bubble-time">You · just now</div></div>';
-    body.appendChild(ackEl);
-    body.scrollTop = body.scrollHeight;
-};
-
-window.escalateMessage = function() {
-    if (!currentItem) return;
-    if (!confirm('Escalate this message to the Depot Manager?')) return;
-    const body = document.getElementById('threadBody');
-    const el = document.createElement('div');
-    el.className = 'msg-bubble-wrap system';
-    el.innerHTML = '<div class="msg-bubble-avatar sys">⬆</div>'
-        + '<div><div class="msg-bubble">Escalated to Depot Manager.</div>'
-        + '<div class="msg-bubble-time">System · just now</div></div>';
-    body.appendChild(el);
-    body.scrollTop = body.scrollHeight;
-};
-
 /* ─── Refresh ───────────────────────────────────────────────────────── */
 document.getElementById('btnRefresh').addEventListener('click', () => {
     location.reload();
 });
 
 /* ─── Helpers ───────────────────────────────────────────────────────── */
-function esc(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-}
 function capitalise(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function formatRelTime(ts) {
     if (!ts) return '';
