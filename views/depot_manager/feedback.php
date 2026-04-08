@@ -8,10 +8,10 @@ $feedback_refs = is_array($feedback_refs ?? null) ? $feedback_refs : [];
 $feedback_list = is_array($feedback_list ?? null) ? $feedback_list : [];
 
 // Count by status
-$counts = ['total' => count($feedback_list), 'Open' => 0, 'In Progress' => 0, 'Resolved' => 0, 'Closed' => 0];
+$counts = ['total' => count($feedback_list), 'Resolved' => 0];
 foreach ($feedback_list as $f) {
     $s = $f['status'] ?? 'Open';
-    if (array_key_exists($s, $counts)) $counts[$s]++;
+    if ($s === 'Resolved') $counts['Resolved']++;
 }
 
 function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
@@ -51,24 +51,6 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
         <div class="fb-stat-label">Total</div>
       </div>
     </div>
-    <div class="fb-stat-card fb-stat-card--open">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v4M12 16h.01"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['Open'] ?></div>
-        <div class="fb-stat-label">Open</div>
-      </div>
-    </div>
-    <div class="fb-stat-card fb-stat-card--progress">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['In Progress'] ?></div>
-        <div class="fb-stat-label">In Progress</div>
-      </div>
-    </div>
     <div class="fb-stat-card fb-stat-card--resolved">
       <div class="fb-stat-icon">
         <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -76,15 +58,6 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
       <div>
         <div class="fb-stat-num"><?= $counts['Resolved'] ?></div>
         <div class="fb-stat-label">Resolved</div>
-      </div>
-    </div>
-    <div class="fb-stat-card fb-stat-card--closed">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['Closed'] ?></div>
-        <div class="fb-stat-label">Closed</div>
       </div>
     </div>
   </div>
@@ -96,10 +69,7 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
         <label class="fb-filter-label" for="fb-filter-status">Status:</label>
         <select id="fb-filter-status" class="fb-toolbar__select fb-toolbar__select--primary">
           <option value="">All</option>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
           <option value="Resolved">Resolved</option>
-          <option value="Closed">Closed</option>
         </select>
       </div>
       <div class="fb-filter-group">
@@ -140,13 +110,8 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
       $passenger= (string)($f['passenger'] ?? '');
       $bus      = (string)($f['bus_or_route'] ?? '');
 
-      $statClass = match(strtolower($stat)) {
-        'open'        => 'fb-badge--open',
-        'in progress' => 'fb-badge--progress',
-        'resolved'    => 'fb-badge--resolved',
-        'closed'      => 'fb-badge--closed',
-        default       => 'fb-badge--open',
-      };
+      $statClass = 'fb-badge--resolved';
+      $showBadge = ($stat === 'Resolved');
       $typeClass = match(strtolower($type)) {
         'complaint'  => 'fb-chip--complaint',
         'suggestion' => 'fb-chip--suggestion',
@@ -162,7 +127,9 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
       <div class="fb-card__top">
         <div class="fb-card__ref-row">
           <span class="fb-card__ref"><?= h($ref) ?></span>
+          <?php if ($showBadge): ?>
           <span class="fb-badge <?= $statClass ?>"><?= h($stat) ?></span>
+          <?php endif; ?>
           <?php if ($type): ?>
           <span class="fb-chip <?= $typeClass ?>"><?= h($type) ?></span>
           <?php endif; ?>
@@ -311,10 +278,6 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
               <button type="submit" name="action" value="resolve" class="fb-btn fb-btn--resolve">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Mark Resolved
-              </button>
-              <button type="submit" name="action" value="close" class="fb-btn fb-btn--close">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                Close
               </button>
             </div>
           </form>
