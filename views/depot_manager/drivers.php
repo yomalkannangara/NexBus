@@ -86,7 +86,14 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
       <tbody>
       <?php if (!empty($drivers)): ?>
         <?php foreach ($drivers as $d): ?>
-          <tr>
+          <?php
+            $drvId   = (int)($d['private_driver_id'] ?? 0);
+            $drvLogs = $driver_logs[$drvId] ?? [];
+          ?>
+          <tr class="js-profile-row" style="cursor:pointer;"
+              data-type="driver"
+              data-profile='<?= htmlspecialchars(json_encode($d, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES, "UTF-8"); ?>'
+              data-logs='<?= htmlspecialchars(json_encode($drvLogs, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES, "UTF-8"); ?>'>
             <td>
               <div class="driver-info">
                 <div class="driver-avatar">
@@ -101,7 +108,6 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
                 </div>
                 <div>
                   <div class="driver-name"><?= htmlspecialchars($d['full_name'] ?? ''); ?></div>
-                  <div class="driver-id">DRV-<?= (int)($d['private_driver_id'] ?? 0); ?></div>
                 </div>
               </div>
             </td>
@@ -229,7 +235,14 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
       <tbody>
       <?php if (!empty($conductors ?? [])): ?>
         <?php foreach ($conductors as $c): ?>
-          <tr>
+          <?php
+            $cndId   = (int)($c['private_conductor_id'] ?? 0);
+            $cndLogs = $conductor_logs[$cndId] ?? [];
+          ?>
+          <tr class="js-profile-row" style="cursor:pointer;"
+              data-type="conductor"
+              data-profile='<?= htmlspecialchars(json_encode($c, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES, "UTF-8"); ?>'
+              data-logs='<?= htmlspecialchars(json_encode($cndLogs, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES, "UTF-8"); ?>'>
             <td>
               <div class="driver-info">
                 <div class="driver-avatar">
@@ -244,7 +257,6 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
                 </div>
                 <div>
                   <div class="driver-name"><?= htmlspecialchars($c['full_name'] ?? ''); ?></div>
-                  <div class="driver-id">CND-<?= (int)($c['private_conductor_id'] ?? 0); ?></div>
                 </div>
               </div>
             </td>
@@ -523,6 +535,154 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
     </div>
   </div>
 </div>
+
+<!-- ============================================================
+     PROFILE DETAIL MODAL
+     ============================================================ -->
+<div id="profileDetailModal" class="profile-modal" hidden>
+  <div class="profile-modal__backdrop" id="profileModalBackdrop"></div>
+  <div class="profile-modal__panel">
+
+    <!-- Hero header -->
+    <div class="profile-modal__hero">
+      <div class="profile-modal__avatar" id="pmAvatar">?</div>
+      <div class="profile-modal__hero-info">
+        <h2 class="profile-modal__hero-name" id="pmName">—</h2>
+        <p class="profile-modal__hero-id" id="pmAssignedId">—</p>
+      </div>
+      <button type="button" class="profile-modal__close" id="btnCloseProfileModal" aria-label="Close profile">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Scrollable body -->
+    <div class="profile-modal__body">
+
+      <!-- Basic Details -->
+      <div class="profile-modal__section">
+        <p class="profile-modal__section-title">Basic Details</p>
+        <div class="profile-modal__grid">
+          <div class="profile-modal__field">
+            <span class="profile-modal__field-label">Full Name</span>
+            <span class="profile-modal__field-value" id="pmFullName">—</span>
+          </div>
+          <div class="profile-modal__field">
+            <span class="profile-modal__field-label">Phone Number</span>
+            <span class="profile-modal__field-value" id="pmPhone">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credentials (License – drivers only) -->
+      <div class="profile-modal__section" id="pmCredentialsSection">
+        <p class="profile-modal__section-title">Credentials</p>
+        <div class="profile-modal__grid">
+          <div class="profile-modal__field" id="pmLicenseField">
+            <span class="profile-modal__field-label">License Number</span>
+            <span class="profile-modal__field-value profile-modal__field-value--mono" id="pmLicense">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Status -->
+      <div class="profile-modal__section">
+        <p class="profile-modal__section-title">Current Status</p>
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span class="status-badge" id="pmStatusBadge">Active</span>
+          <span style="font-size:13px; color:#6B7280;" id="pmStatusNote"></span>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="profile-modal__section" style="padding:0;">
+        <div class="profile-modal__stats">
+          <div class="profile-modal__stat">
+            <div class="profile-modal__stat-num" id="pmSuspendCount">0</div>
+            <div class="profile-modal__stat-lbl">Times Suspended</div>
+          </div>
+          <div class="profile-modal__stat">
+            <div class="profile-modal__stat-num" id="pmCurrentStatus">—</div>
+            <div class="profile-modal__stat-lbl">Current Status</div>
+          </div>
+          <div class="profile-modal__stat">
+            <div class="profile-modal__stat-num" id="pmHistoryCount">0</div>
+            <div class="profile-modal__stat-lbl">History Events</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History & Logs -->
+      <div class="profile-modal__section">
+        <p class="profile-modal__section-title">History &amp; Logs</p>
+        <div class="profile-modal__timeline" id="pmTimeline"></div>
+      </div>
+
+    </div><!-- /.profile-modal__body -->
+  </div><!-- /.profile-modal__panel -->
+</div><!-- /#profileDetailModal -->
+
+<style>
+  /* ============================================
+   * Profile Detail Modal
+   * ============================================ */
+  .profile-modal[hidden]           { display: none !important; }
+  .profile-modal                   { position: fixed; inset: 0; z-index: 1000000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .profile-modal__backdrop         { position: absolute; inset: 0; background: rgba(0,0,0,.50); backdrop-filter: blur(2px); }
+  .profile-modal__panel            { position: relative; width: min(600px, 100%); max-height: 88vh; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.22); overflow: hidden; display: flex; flex-direction: column; }
+
+  /* Header band */
+  .profile-modal__hero             { background: linear-gradient(135deg, #7F0032 0%, #9B1042 100%); padding: 28px 28px 22px; display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+  .profile-modal__avatar           { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.18); border: 2.5px solid rgba(255,255,255,.4); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: #fff; letter-spacing: .5px; flex-shrink: 0; }
+  .profile-modal__hero-info        { flex: 1; min-width: 0; }
+  .profile-modal__hero-name        { font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 3px; line-height: 1.2; }
+  .profile-modal__hero-id          { font-size: 13px; color: rgba(255,255,255,.7); margin: 0; font-weight: 500; }
+  .profile-modal__close            { background: rgba(255,255,255,.15); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .18s; }
+  .profile-modal__close:hover      { background: rgba(255,255,255,.30); }
+
+  /* Scrollable body */
+  .profile-modal__body             { overflow-y: auto; padding: 0; flex: 1; }
+
+  /* Info section */
+  .profile-modal__section          { padding: 20px 28px; border-bottom: 1.5px solid #F5F0D8; }
+  .profile-modal__section:last-child { border-bottom: none; }
+  .profile-modal__section-title    { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #9CA3AF; margin: 0 0 14px; }
+  .profile-modal__grid             { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .profile-modal__grid--triple     { grid-template-columns: 1fr 1fr 1fr; }
+  .profile-modal__field            { display: flex; flex-direction: column; gap: 4px; }
+  .profile-modal__field-label      { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: .8px; }
+  .profile-modal__field-value      { font-size: 14px; font-weight: 600; color: #111827; }
+  .profile-modal__field-value--mono { font-family: 'Courier New', monospace; font-size: 13.5px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 4px 10px; display: inline-block; color: #374151; }
+
+  /* Status badge inside modal (reuse existing but enforce sizing) */
+  .profile-modal .status-badge     { font-size: 13px; padding: 5px 16px; }
+
+  /* Timeline */
+  .profile-modal__timeline         { display: flex; flex-direction: column; gap: 0; }
+  .profile-modal__tl-item         { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px dashed #F0EBD0; position: relative; }
+  .profile-modal__tl-item:last-child { border-bottom: none; }
+  .profile-modal__tl-dot-wrap     { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 28px; }
+  .profile-modal__tl-dot          { width: 12px; height: 12px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+  .profile-modal__tl-dot--suspend { background: #F97316; box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
+  .profile-modal__tl-dot--active  { background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+  .profile-modal__tl-line         { flex: 1; width: 2px; background: #F0EBD0; margin-top: 4px; }
+  .profile-modal__tl-content      { flex: 1; min-width: 0; }
+  .profile-modal__tl-event        { font-size: 13px; font-weight: 700; margin: 0 0 2px; }
+  .profile-modal__tl-event--suspend { color: #C2410C; }
+  .profile-modal__tl-event--active  { color: #065F46; }
+  .profile-modal__tl-date         { font-size: 12px; color: #9CA3AF; margin: 0 0 6px; }
+  .profile-modal__tl-reason       { font-size: 13px; color: #4B5563; background: #FAFAFA; border: 1px solid #F0EBD0; border-radius: 8px; padding: 8px 12px; margin: 0; line-height: 1.5; }
+  .profile-modal__tl-empty        { font-size: 13px; color: #9CA3AF; font-style: italic; padding: 6px 0; }
+
+  /* Stats strip */
+  .profile-modal__stats            { display: flex; gap: 0; }
+  .profile-modal__stat             { flex: 1; text-align: center; padding: 14px 10px; border-right: 1.5px solid #F5F0D8; }
+  .profile-modal__stat:last-child  { border-right: none; }
+  .profile-modal__stat-num         { font-size: 22px; font-weight: 700; color: #7F0032; line-height: 1; }
+  .profile-modal__stat-lbl         { font-size: 11px; color: #9CA3AF; text-transform: uppercase; letter-spacing: .8px; margin-top: 4px; }
+
+  /* Row hover highlight */
+  .js-profile-row:hover            { background: rgba(127,0,50,.04) !important; transition: background .15s; }
+</style>
 
 <script>
 // View Suspend Reason handler
@@ -1134,5 +1294,215 @@ document.addEventListener('DOMContentLoaded', function () {
     containerId: 'cnd-pagination-container'
   });
 });
+</script>
+
+<script>
+/* ================================================================
+   PROFILE DETAIL MODAL — Row-click handler
+   ================================================================ */
+(function () {
+  const modal    = document.getElementById('profileDetailModal');
+  const backdrop = document.getElementById('profileModalBackdrop');
+  const btnClose = document.getElementById('btnCloseProfileModal');
+
+  // Elements to populate
+  const elAvatar       = document.getElementById('pmAvatar');
+  const elName         = document.getElementById('pmName');
+  const elAssignedId   = document.getElementById('pmAssignedId');
+  const elFullName     = document.getElementById('pmFullName');
+  const elPhone        = document.getElementById('pmPhone');
+  const elLicenseField = document.getElementById('pmLicenseField');
+  const elLicense      = document.getElementById('pmLicense');
+  const elCredSection  = document.getElementById('pmCredentialsSection');
+  const elStatusBadge  = document.getElementById('pmStatusBadge');
+  const elStatusNote   = document.getElementById('pmStatusNote');
+  const elSuspendCount = document.getElementById('pmSuspendCount');
+  const elCurrentSt    = document.getElementById('pmCurrentStatus');
+  const elHistoryCount = document.getElementById('pmHistoryCount');
+  const elTimeline     = document.getElementById('pmTimeline');
+
+  // Helper: initials from full name
+  function initials(name) {
+    var parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    var ini = parts[0][0].toUpperCase();
+    if (parts.length > 1) ini += parts[parts.length - 1][0].toUpperCase();
+    return ini;
+  }
+
+  // Escape for safe HTML insertion
+  function esc(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /*
+   * buildTimeline(logs, data, type)
+   *
+   * logs  – array of status-log rows from private_staff_status_logs
+   *         (each: { old_status, new_status, reason, changed_at_fmt })
+   *         ordered newest-first from the server.
+   * data  – the raw driver/conductor row.
+   * type  – 'driver' | 'conductor'
+   *
+   * Strategy:
+   *  - If logs table has entries, show every log entry.
+   *  - Always append a "Registered" baseline at the bottom.
+   *  - If no log entries exist yet (pre-migration staff), fall back to
+   *    inferring a single event from the current status / suspend_reason.
+   */
+  function buildTimeline(logs, data, type) {
+    var html   = '';
+    var events = [];  // [{evType:'suspend'|'active', label, date, reason}]
+
+    if (logs && logs.length > 0) {
+      // ── Real log data ──────────────────────────────────────────
+      logs.forEach(function (row) {
+        var toSuspended = (row.new_status || '').toLowerCase() === 'suspended';
+        events.push({
+          evType : toSuspended ? 'suspend' : 'active',
+          label  : toSuspended ? 'Suspended' : 'Reactivated',
+          date   : row.changed_at_fmt || null,
+          reason : row.reason || ''
+        });
+      });
+    } else {
+      // ── Fallback: infer from current status/reason ─────────────
+      var status      = (data.status || 'Active');
+      var reason      = data.suspend_reason || '';
+      var isSuspended = status.toLowerCase() === 'suspended';
+
+      if (isSuspended && reason) {
+        events.push({ evType:'suspend', label:'Suspended', date:null, reason:reason });
+      } else if (!isSuspended && reason) {
+        events.push({ evType:'active', label:'Reactivated', date:null,
+                      reason:'Previously suspended. Reason: ' + reason });
+      }
+    }
+
+    // Always add a Registered baseline at the end (oldest event)
+    events.push({
+      evType : 'active',
+      label  : 'Registered',
+      date   : null,
+      reason : (type === 'driver' ? 'Driver' : 'Conductor') + ' registered and set to Active.'
+    });
+
+    if (events.length === 0) {
+      return '<p class="profile-modal__tl-empty">No history events recorded.</p>';
+    }
+
+    events.forEach(function (ev, idx) {
+      var isSusp   = ev.evType === 'suspend';
+      var dotCls   = isSusp ? 'profile-modal__tl-dot--suspend' : 'profile-modal__tl-dot--active';
+      var evCls    = isSusp ? 'profile-modal__tl-event--suspend' : 'profile-modal__tl-event--active';
+      var dateStr  = ev.date ? '<p class="profile-modal__tl-date">' + esc(ev.date) + '</p>' : '';
+      var showLine = (idx < events.length - 1);
+      html += [
+        '<div class="profile-modal__tl-item">',
+          '<div class="profile-modal__tl-dot-wrap">',
+            '<div class="profile-modal__tl-dot ' + dotCls + '"></div>',
+            showLine ? '<div class="profile-modal__tl-line"></div>' : '',
+          '</div>',
+          '<div class="profile-modal__tl-content">',
+            '<p class="profile-modal__tl-event ' + evCls + '">' + esc(ev.label) + '</p>',
+            dateStr,
+            ev.reason
+              ? '<p class="profile-modal__tl-reason">' + esc(ev.reason) + '</p>'
+              : '',
+          '</div>',
+        '</div>'
+      ].join('');
+    });
+
+    return html;
+  }
+
+  function openProfile(data, logs, type) {
+    var status      = (data.status || 'Active');
+    var isSuspended = status.toLowerCase() === 'suspended';
+    var assignedId  = type === 'driver'
+      ? 'DRV-' + (data.private_driver_id || '')
+      : 'CND-' + (data.private_conductor_id || '');
+
+    // Hero
+    elAvatar.textContent     = initials(data.full_name);
+    elName.textContent       = data.full_name || '—';
+    elAssignedId.textContent = assignedId;
+
+    // Basic details
+    elFullName.textContent = data.full_name || '—';
+    elPhone.textContent    = data.phone     || '—';
+
+    // Credentials — license only for drivers
+    if (type === 'driver') {
+      elCredSection.removeAttribute('hidden');
+      elLicenseField.style.display = '';
+      elLicense.textContent = data.license_no || 'N/A';
+    } else {
+      elCredSection.setAttribute('hidden', '');
+    }
+
+    // Status badge
+    elStatusBadge.textContent = status;
+    elStatusBadge.className   = 'status-badge ' + (isSuspended ? 'status-suspended' : 'status-active');
+    elStatusNote.textContent  = isSuspended && data.suspend_reason
+      ? 'Reason: ' + data.suspend_reason
+      : '';
+
+    // Quick stats — count from real logs
+    var suspendCount = 0;
+    if (logs && logs.length > 0) {
+      logs.forEach(function (row) {
+        if ((row.new_status || '').toLowerCase() === 'suspended') suspendCount++;
+      });
+    } else {
+      // Fallback
+      suspendCount = isSuspended ? 1 : (data.suspend_reason ? 1 : 0);
+    }
+    var historyCount = (logs && logs.length > 0) ? logs.length + 1 : suspendCount + 1;
+    elSuspendCount.textContent = suspendCount;
+    elCurrentSt.textContent    = status;
+    elCurrentSt.style.color    = isSuspended ? '#F97316' : '#10B981';
+    elHistoryCount.textContent = historyCount;
+
+    // Timeline
+    elTimeline.innerHTML = buildTimeline(logs, data, type);
+
+    // Show modal
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeProfile() {
+    modal.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+  }
+
+  // Close handlers
+  if (btnClose)  btnClose.addEventListener('click', closeProfile);
+  if (backdrop)  backdrop.addEventListener('click', closeProfile);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeProfile();
+  });
+
+  // Row click — exclude clicks on action buttons
+  document.querySelectorAll('.js-profile-row').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+      if (e.target.closest('.action-buttons')) return;
+      var data = {};
+      var logs = [];
+      try { data = JSON.parse(row.dataset.profile || '{}'); } catch (err) {}
+      try { logs = JSON.parse(row.dataset.logs    || '[]'); } catch (err) {}
+      var type = row.dataset.type || 'driver';
+      openProfile(data, logs, type);
+    });
+  });
+
+  // Prevent action button clicks from bubbling to row
+  document.querySelectorAll('.action-buttons a, .action-buttons button').forEach(function (btn) {
+    btn.addEventListener('click', function (e) { e.stopPropagation(); });
+  });
+})();
 </script>
 
