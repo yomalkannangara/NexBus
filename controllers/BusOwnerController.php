@@ -466,6 +466,320 @@ public function reports()
     ]);
 }
 
+public function reportsDetails()
+{
+    $m = new ReportModel();
+
+    $chart = trim($_GET['chart'] ?? 'bus_status');
+    $chartMeta = [
+        'bus_status' => 'Bus Status',
+        'live_status' => 'Live Bus Status',
+        'delayed_by_route' => 'Delayed Buses by Route',
+        'speed_by_bus' => 'High Speed Violations by Bus',
+        'live_speed' => 'Live Fleet Speed',
+        'revenue' => 'Revenue',
+        'wait_time' => 'Bus Wait Time Distribution',
+        'complaints_by_route' => 'Complaints by Route',
+    ];
+    if (!isset($chartMeta[$chart])) {
+        $chart = 'bus_status';
+    }
+
+    $routeNo = trim($_GET['route_no'] ?? '');
+    $busReg = trim($_GET['bus_reg'] ?? '');
+    $status = trim($_GET['status'] ?? '');
+    $filters = [
+        'route_no' => $routeNo,
+        'bus_reg' => $busReg,
+    ];
+
+    $analytics = [
+        'busStatus' => $m->getBusStatusData($filters),
+        'delayedByRoute' => $m->getDelayedByRouteData($filters),
+        'speedByBus' => $m->getSpeedByBusData($filters),
+        'revenue' => $m->getRevenueData($filters),
+        'waitTime' => $m->getWaitTimeData($filters),
+        'complaintsByRoute' => $m->getComplaintsByRouteData($filters),
+    ];
+
+    $rows = [];
+    $columns = [];
+    $summaryCards = [];
+    $ownerId = (int)($_SESSION['user']['private_operator_id'] ?? 0);
+
+    if ($chart === 'bus_status' || $chart === 'live_status') {
+        $columns = [
+            'bus_reg_no' => 'Bus ID',
+            'owner_name' => 'Owner',
+            'route_no' => 'Route',
+            'operational_status' => 'Status',
+            'speed' => 'Speed (km/h)',
+            'avg_delay_min' => 'Avg Delay (min)',
+            'snapshot_at' => 'Last Snapshot',
+        ];
+
+        $params = [];
+        $where = ["x.rn = 1", "x.operator_type = 'Private'"];
+        if ($ownerId > 0) {
+            $where[] = 'pb.private_operator_id = :owner_id';
+            $params[':owner_id'] = $ownerId;
+        }
+        if ($routeNo !== '') {
+            $where[] = 'r.route_no = :route_no';
+            $params[':route_no'] = $routeNo;
+        }
+        if ($busReg !== '') {
+            $where[] = 'x.bus_reg_no LIKE :bus_reg';
+            $params[':bus_reg'] = '%' . $busReg . '%';
+        }
+        if ($status !== '') {
+            $where[] = 'x.operational_status = :status';
+            $params[':status'] = $status;
+        }
+
+        $sql = "SELECT
+                    x.bus_reg_no,
+                    COALESCE(pbo.name, 'Owner Fleet') AS owner_name,
+                    COALESCE(r.route_no, '-') AS route_no,
+                    COALESCE(x.operational_status, 'Unknown') AS operational_status,
+                    ROUND(COALESCE(x.speed, 0), 1) AS speed,
+                    ROUND(COALESCE(x.avg_delay_min, 0), 1) AS avg_delay_min,
+                    DATE_FORMAT(x.snapshot_at, '%Y-%m-%d %H:%i') AS snapshot_at
+                FROM (
+                    SELECT tm.*,
+                           ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                    FROM tracking_monitoring tm
+                ) x
+                JOIN private_buses pb ON pb.reg_no = x.bus_reg_no
+                LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
+                LEFT JOIN routes r ON r.route_id = x.route_id
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY x.snapshot_at DESC
+                LIMIT 250";
+        $st = $GLOBALS['db']->prepare($sql);
+        $st->execute($params);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $total = count($rows);
+        $delayed = count(array_filter($rows, static fn($r) => strcasecmp((string)($r['operational_status'] ?? ''), 'Delayed') === 0));
+        $summaryCards = [
+            ['title' => 'Total Buses', 'value' => (string)$total, 'hint' => 'Latest snapshots'],
+            ['title' => 'Delayed', 'value' => (string)$delayed, 'hint' => 'Current delayed buses'],
+            ['title' => 'Filtered Rows', 'value' => (string)$total, 'hint' => 'In detail table'],
+        ];
+    }
+
+    if ($chart === 'speed_by_bus') {
+        $columns = ['bus_reg_no' => 'Bus ID', 'violations' => 'Speed Violations'];
+        $labels = $analytics['speedByBus']['labels'] ?? [];
+        $values = $analytics['speedByBus']['values'] ?? [];
+        foreach ($labels as $i => $label) {
+            $rows[] = ['bus_reg_no' => $label, 'violations' => (int)($values[$i] ?? 0)];
+        }
+        $summaryCards = [
+            ['title' => 'Buses', 'value' => (string)count($rows), 'hint' => 'In ranking'],
+            ['title' => 'Total Violations', 'value' => (string)array_sum(array_column($rows, 'violations')), 'hint' => 'Chart total'],
+        ];
+    }
+
+    if ($chart === 'live_speed') {
+        $columns = [
+            'bus_reg_no' => 'Bus ID',
+            'route_no' => 'Route',
+            'speed' => 'Speed (km/h)',
+            'operational_status' => 'Status',
+            'snapshot_at' => 'Last Snapshot',
+        ];
+
+        $params = [];
+        $where = ["x.rn = 1", "x.operator_type = 'Private'"];
+        if ($ownerId > 0) {
+            $where[] = 'pb.private_operator_id = :owner_id';
+            $params[':owner_id'] = $ownerId;
+        }
+        if ($routeNo !== '') {
+            $where[] = 'r.route_no = :route_no';
+            $params[':route_no'] = $routeNo;
+        }
+        if ($busReg !== '') {
+            $where[] = 'x.bus_reg_no LIKE :bus_reg';
+            $params[':bus_reg'] = '%' . $busReg . '%';
+        }
+        $sql = "SELECT
+                    x.bus_reg_no,
+                    COALESCE(r.route_no, '-') AS route_no,
+                    ROUND(COALESCE(x.speed, 0), 1) AS speed,
+                    COALESCE(x.operational_status, 'Unknown') AS operational_status,
+                    DATE_FORMAT(x.snapshot_at, '%Y-%m-%d %H:%i') AS snapshot_at
+                FROM (
+                    SELECT tm.*,
+                           ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                    FROM tracking_monitoring tm
+                ) x
+                JOIN private_buses pb ON pb.reg_no = x.bus_reg_no
+                LEFT JOIN routes r ON r.route_id = x.route_id
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY x.speed DESC
+                LIMIT 250";
+        $st = $GLOBALS['db']->prepare($sql);
+        $st->execute($params);
+        $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $speeds = array_map(static fn($r) => (float)($r['speed'] ?? 0), $rows);
+        $avgSpeed = count($speeds) ? round(array_sum($speeds) / count($speeds), 1) : 0;
+        $highSpeed = count(array_filter($speeds, static fn($v) => $v > 60));
+        $summaryCards = [
+            ['title' => 'Tracked Buses', 'value' => (string)count($rows), 'hint' => 'Latest live snapshots'],
+            ['title' => 'Average Speed', 'value' => number_format($avgSpeed, 1) . ' km/h', 'hint' => 'Current fleet average'],
+            ['title' => 'Over 60 km/h', 'value' => (string)$highSpeed, 'hint' => 'Live high-speed buses'],
+        ];
+    }
+
+    if ($chart === 'delayed_by_route') {
+        $columns = ['route_no' => 'Route', 'delayed' => 'Delayed', 'total' => 'Total', 'delay_rate' => 'Delay Rate'];
+        $labels = $analytics['delayedByRoute']['labels'] ?? [];
+        $delayed = $analytics['delayedByRoute']['delayed'] ?? [];
+        $total = $analytics['delayedByRoute']['total'] ?? [];
+        foreach ($labels as $i => $label) {
+            $d = (int)($delayed[$i] ?? 0);
+            $t = (int)($total[$i] ?? 0);
+            $rows[] = ['route_no' => $label, 'delayed' => $d, 'total' => $t, 'delay_rate' => $t > 0 ? round(($d / $t) * 100, 1) . '%' : '0%'];
+        }
+        $summaryCards = [
+            ['title' => 'Routes', 'value' => (string)count($rows), 'hint' => 'Included in chart'],
+            ['title' => 'Total Delayed', 'value' => (string)array_sum(array_column($rows, 'delayed')), 'hint' => 'Across listed routes'],
+        ];
+    }
+
+    if ($chart === 'revenue') {
+        $columns = ['period' => 'Month', 'revenue_mn' => 'Revenue (LKR Mn)'];
+        $labels = $analytics['revenue']['labels'] ?? [];
+        $values = $analytics['revenue']['values'] ?? [];
+        foreach ($labels as $i => $label) {
+            $rows[] = ['period' => $label, 'revenue_mn' => number_format((float)($values[$i] ?? 0), 2)];
+        }
+        $summaryCards = [
+            ['title' => 'Months', 'value' => (string)count($rows), 'hint' => 'Trend points'],
+            ['title' => 'Total Revenue', 'value' => number_format(array_sum(array_map('floatval', $values)), 2) . ' Mn', 'hint' => 'Summed trend'],
+        ];
+    }
+
+    if ($chart === 'wait_time') {
+        $columns = ['bucket' => 'Wait Time Bucket', 'count' => 'Count'];
+        foreach (($analytics['waitTime'] ?? []) as $item) {
+            $rows[] = ['bucket' => (string)($item['label'] ?? ''), 'count' => (int)($item['value'] ?? 0)];
+        }
+        $summaryCards = [
+            ['title' => 'Buckets', 'value' => (string)count($rows), 'hint' => 'Wait-time groups'],
+            ['title' => 'Total Records', 'value' => (string)array_sum(array_column($rows, 'count')), 'hint' => 'Across all buckets'],
+        ];
+    }
+
+    if ($chart === 'complaints_by_route') {
+        $columns = ['route_no' => 'Route', 'complaints' => 'Complaints'];
+        $labels = $analytics['complaintsByRoute']['labels'] ?? [];
+        $values = $analytics['complaintsByRoute']['values'] ?? [];
+        foreach ($labels as $i => $label) {
+            $rows[] = ['route_no' => $label, 'complaints' => (int)($values[$i] ?? 0)];
+        }
+        $summaryCards = [
+            ['title' => 'Routes', 'value' => (string)count($rows), 'hint' => 'With complaints'],
+            ['title' => 'Total Complaints', 'value' => (string)array_sum(array_column($rows, 'complaints')), 'hint' => 'Chart total'],
+        ];
+    }
+
+    $sumWhere = ["x.rn = 1", "x.operator_type = 'Private'"];
+    $sumParams = [];
+    if ($ownerId > 0) {
+        $sumWhere[] = 'pb.private_operator_id = :sum_owner_id';
+        $sumParams[':sum_owner_id'] = $ownerId;
+    }
+    if ($routeNo !== '') {
+        $sumWhere[] = 'r.route_no = :sum_route_no';
+        $sumParams[':sum_route_no'] = $routeNo;
+    }
+    if ($busReg !== '') {
+        $sumWhere[] = 'x.bus_reg_no LIKE :sum_bus_reg';
+        $sumParams[':sum_bus_reg'] = '%' . $busReg . '%';
+    }
+    $sumWhereSql = implode(' AND ', $sumWhere);
+
+    $sumBaseSql = "FROM (
+            SELECT tm.*,
+                   ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+            FROM tracking_monitoring tm
+        ) x
+        JOIN private_buses pb ON pb.reg_no = x.bus_reg_no
+        LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
+        LEFT JOIN routes r ON r.route_id = x.route_id
+        WHERE $sumWhereSql";
+
+    $byRouteColumns = [
+        'route_no' => 'Route',
+        'total_buses' => 'Total Buses',
+        'delayed_buses' => 'Delayed Buses',
+        'avg_speed' => 'Avg Speed (km/h)',
+    ];
+    $stRoute = $GLOBALS['db']->prepare(
+        "SELECT
+            COALESCE(r.route_no, '-') AS route_no,
+            COUNT(*) AS total_buses,
+            SUM(CASE WHEN x.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed_buses,
+            ROUND(AVG(COALESCE(x.speed, 0)), 1) AS avg_speed
+         $sumBaseSql
+         GROUP BY COALESCE(r.route_no, '-')
+         ORDER BY total_buses DESC"
+    );
+    $stRoute->execute($sumParams);
+    $byRouteRows = $stRoute->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    $byDepotColumns = [
+        'depot_owner' => 'Depot / Owner',
+        'total_buses' => 'Total Buses',
+        'delayed_buses' => 'Delayed Buses',
+        'avg_speed' => 'Avg Speed (km/h)',
+    ];
+    $stOwner = $GLOBALS['db']->prepare(
+        "SELECT
+            COALESCE(pbo.name, 'Owner Fleet') AS depot_owner,
+            COUNT(*) AS total_buses,
+            SUM(CASE WHEN x.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed_buses,
+            ROUND(AVG(COALESCE(x.speed, 0)), 1) AS avg_speed
+         $sumBaseSql
+         GROUP BY COALESCE(pbo.name, 'Owner Fleet')
+         ORDER BY total_buses DESC"
+    );
+    $stOwner->execute($sumParams);
+    $byDepotRows = $stOwner->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    $this->view('support', 'analytics_detail', [
+        'pageTitle' => 'Owner Reports Drilldown',
+        'pageSubtitle' => 'Detailed operational data for ' . $chartMeta[$chart],
+        'chartLabel' => $chartMeta[$chart],
+        'detailPath' => '/B/reports/details',
+        'backUrl' => '/B/reports?' . http_build_query(array_filter([
+            'route_no' => $routeNo,
+            'bus_reg' => $busReg,
+        ])),
+        'filterValues' => [
+            'chart' => $chart,
+            'route_no' => $routeNo,
+            'bus_reg' => $busReg,
+        ],
+        'filterOptions' => [
+            'routes' => $m->getOperatorRoutes(),
+            'buses' => $m->getOperatorBuses(),
+        ],
+        'summaryCards' => $summaryCards,
+        'columns' => $columns,
+        'rows' => $rows,
+        'byRouteColumns' => $byRouteColumns,
+        'byRouteRows' => $byRouteRows,
+        'byDepotColumns' => $byDepotColumns,
+        'byDepotRows' => $byDepotRows,
+    ]);
+}
+
 /** /B/reports/export - Export performance data as CSV */
 public function exportReports()
 {

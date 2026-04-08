@@ -296,21 +296,504 @@ public function trip_logs(): void{
         ];
 
         if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-            $csv = $this->m->buildCsvReport($dep, $from, $to, $filters);
+            $tracking = new \App\models\depot_officer\TrackingModel();
+            $logs = $tracking->logs($from, $to, $filters);
+            $out = fopen('php://temp', 'r+');
+            fputcsv($out, ['trip_date', 'route', 'turn_number', 'bus_id', 'departure_time', 'arrival_time', 'status']);
+            foreach ($logs as $r) {
+                fputcsv($out, [
+                    $r['trip_date'] ?? '',
+                    $r['route'] ?? '',
+                    $r['turn_number'] ?? '',
+                    $r['bus_id'] ?? '',
+                    $r['departure_time'] ?? '',
+                    $r['arrival_time'] ?? '',
+                    $r['status'] ?? '',
+                ]);
+            }
+            rewind($out);
+            $csv = stream_get_contents($out) ?: '';
             header('Content-Type: text/csv');
             header('Content-Disposition: attachment; filename="depot-report-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
             echo $csv; exit;
         }
 
+        $analyticsPack = $this->buildOfficerAnalyticsPack($dep, $from, $to, [
+            'route_no' => '',
+            'route_id' => (int)($filters['route'] ?? 0),
+            'bus_reg' => (string)($filters['bus_id'] ?? ''),
+            'status' => (string)($filters['status'] ?? ''),
+        ]);
+
         $this->view('depot_officer','reports',[
             'me'=>$u,
             'from'=>$from,
             'to'=>$to,
-            'kpis'=>$this->m->kpiSummary($dep, $from, $to, $filters),
+            'kpis'=>$analyticsPack['kpis'],
+            'analyticsJson'=>json_encode(
+                $analyticsPack['chartData'],
+                JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK |
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            ),
             'routes'=>$this->m->routes(),
             'buses'=>$this->m->depotBuses($dep),
             'filters'=>$filters,
         ]);
+    }
+
+    public function reportDetails() {
+        $u = $this->m->me();
+        $dep = $this->m->myDepotId($u);
+
+        $chart = trim($_GET['chart'] ?? 'bus_status');
+        $chartMeta = [
+            'bus_status' => 'Bus Status',
+            'delayed_by_route' => 'Delayed Trips by Route',
+            'speed_by_bus' => 'Speed Violations by Bus',
+            'revenue' => 'Revenue',
+            'wait_time' => 'Bus Wait Time Distribution',
+            'complaints_by_route' => 'Complaints by Route',
+        ];
+        if (!isset($chartMeta[$chart])) {
+            $chart = 'bus_status';
+        }
+
+        $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
+        $to = $_GET['to'] ?? date('Y-m-d');
+        $routeNo = trim($_GET['route_no'] ?? '');
+        $routeId = (int)($_GET['route'] ?? 0);
+        $busReg = trim($_GET['bus_reg'] ?? ($_GET['bus_id'] ?? ''));
+        $status = trim($_GET['status'] ?? '');
+
+        $filters = [
+            'route_no' => $routeNo,
+            'route_id' => $routeId,
+            'bus_reg' => $busReg,
+            'status' => $status,
+        ];
+
+        $pack = $this->buildOfficerAnalyticsPack($dep, $from, $to, $filters);
+        $analytics = $pack['chartData'];
+
+        $rows = [];
+        $columns = [];
+        $summaryCards = [];
+
+        if ($chart === 'bus_status') {
+            $columns = [
+                'bus_reg_no' => 'Bus ID',
+                'route_no' => 'Route',
+                'operational_status' => 'Status',
+                'speed' => 'Speed (km/h)',
+                'avg_delay_min' => 'Avg Delay (min)',
+                'snapshot_at' => 'Last Snapshot',
+            ];
+            $rows = $pack['busStatusRows'];
+            $statusRows = $analytics['busStatus'] ?? [];
+            $total = array_sum(array_map(static fn($r) => (int)($r['value'] ?? 0), $statusRows));
+            $delayed = 0;
+            foreach ($statusRows as $s) {
+                if (strcasecmp((string)($s['label'] ?? ''), 'Delayed') === 0) {
+                    $delayed += (int)($s['value'] ?? 0);
+                }
+            }
+            $summaryCards = [
+                ['title' => 'Total Buses', 'value' => (string)$total, 'hint' => 'Latest snapshots'],
+                ['title' => 'Delayed', 'value' => (string)$delayed, 'hint' => 'Current delayed buses'],
+                ['title' => 'Filtered Rows', 'value' => (string)count($rows), 'hint' => 'In detail table'],
+            ];
+        }
+
+        if ($chart === 'delayed_by_route') {
+            $columns = ['route_no' => 'Route', 'delayed' => 'Delayed', 'total' => 'Total', 'delay_rate' => 'Delay Rate'];
+            $labels = $analytics['delayedByRoute']['labels'] ?? [];
+            $delayed = $analytics['delayedByRoute']['delayed'] ?? [];
+            $total = $analytics['delayedByRoute']['total'] ?? [];
+            foreach ($labels as $i => $label) {
+                $d = (int)($delayed[$i] ?? 0);
+                $t = (int)($total[$i] ?? 0);
+                $rows[] = [
+                    'route_no' => $label,
+                    'delayed' => $d,
+                    'total' => $t,
+                    'delay_rate' => $t > 0 ? round(($d / $t) * 100, 1) . '%' : '0%',
+                ];
+            }
+            $summaryCards = [
+                ['title' => 'Routes', 'value' => (string)count($rows), 'hint' => 'Included in chart'],
+                ['title' => 'Total Delayed', 'value' => (string)array_sum(array_column($rows, 'delayed')), 'hint' => 'Across listed routes'],
+            ];
+        }
+
+        if ($chart === 'speed_by_bus') {
+            $columns = ['bus_reg_no' => 'Bus ID', 'violations' => 'Speed Violations'];
+            $labels = $analytics['speedByBus']['labels'] ?? [];
+            $values = $analytics['speedByBus']['values'] ?? [];
+            foreach ($labels as $i => $label) {
+                $rows[] = ['bus_reg_no' => $label, 'violations' => (int)($values[$i] ?? 0)];
+            }
+            $summaryCards = [
+                ['title' => 'Buses', 'value' => (string)count($rows), 'hint' => 'With violations'],
+                ['title' => 'Total Violations', 'value' => (string)array_sum(array_column($rows, 'violations')), 'hint' => 'Chart total'],
+            ];
+        }
+
+        if ($chart === 'revenue') {
+            $columns = ['period' => 'Month', 'revenue_mn' => 'Revenue (LKR Mn)'];
+            $labels = $analytics['revenue']['labels'] ?? [];
+            $values = $analytics['revenue']['values'] ?? [];
+            foreach ($labels as $i => $label) {
+                $rows[] = ['period' => $label, 'revenue_mn' => number_format((float)($values[$i] ?? 0), 2)];
+            }
+            $summaryCards = [
+                ['title' => 'Months', 'value' => (string)count($rows), 'hint' => 'Trend points'],
+                ['title' => 'Total Revenue', 'value' => number_format(array_sum(array_map('floatval', $values)), 2) . ' Mn', 'hint' => 'Summed trend'],
+            ];
+        }
+
+        if ($chart === 'wait_time') {
+            $columns = ['bucket' => 'Wait Time Bucket', 'count' => 'Count'];
+            foreach (($analytics['waitTime'] ?? []) as $item) {
+                $rows[] = [
+                    'bucket' => (string)($item['label'] ?? ''),
+                    'count' => (int)($item['value'] ?? 0),
+                ];
+            }
+            $summaryCards = [
+                ['title' => 'Buckets', 'value' => (string)count($rows), 'hint' => 'Wait-time groups'],
+                ['title' => 'Total Records', 'value' => (string)array_sum(array_column($rows, 'count')), 'hint' => 'Across all buckets'],
+            ];
+        }
+
+        if ($chart === 'complaints_by_route') {
+            $columns = ['route_no' => 'Route', 'complaints' => 'Complaints'];
+            $labels = $analytics['complaintsByRoute']['labels'] ?? [];
+            $values = $analytics['complaintsByRoute']['values'] ?? [];
+            foreach ($labels as $i => $label) {
+                $rows[] = ['route_no' => $label, 'complaints' => (int)($values[$i] ?? 0)];
+            }
+            $summaryCards = [
+                ['title' => 'Routes', 'value' => (string)count($rows), 'hint' => 'With complaints'],
+                ['title' => 'Total Complaints', 'value' => (string)array_sum(array_column($rows, 'complaints')), 'hint' => 'Chart total'],
+            ];
+        }
+
+        $routeOptions = [];
+        foreach (($this->m->routes() ?? []) as $r) {
+            if (!empty($r['route_no'])) {
+                $routeOptions[] = ['route_no' => $r['route_no']];
+            }
+        }
+
+        $byRouteColumns = [
+            'route_no' => 'Route',
+            'total_buses' => 'Total Buses',
+            'delayed_buses' => 'Delayed Buses',
+            'avg_speed' => 'Avg Speed (km/h)',
+        ];
+        $routeBuckets = [];
+        foreach (($pack['busStatusRows'] ?? []) as $r) {
+            $key = (string)($r['route_no'] ?? '-');
+            if (!isset($routeBuckets[$key])) {
+                $routeBuckets[$key] = ['route_no' => $key, 'total_buses' => 0, 'delayed_buses' => 0, 'speed_sum' => 0.0];
+            }
+            $routeBuckets[$key]['total_buses']++;
+            if (strcasecmp((string)($r['operational_status'] ?? ''), 'Delayed') === 0) {
+                $routeBuckets[$key]['delayed_buses']++;
+            }
+            $routeBuckets[$key]['speed_sum'] += (float)($r['speed'] ?? 0);
+        }
+        $byRouteRows = [];
+        foreach ($routeBuckets as $rb) {
+            $count = max(1, (int)$rb['total_buses']);
+            $rb['avg_speed'] = number_format(((float)$rb['speed_sum']) / $count, 1);
+            unset($rb['speed_sum']);
+            $byRouteRows[] = $rb;
+        }
+
+        $depot = $this->m->depot($dep);
+        $depotName = (string)($depot['name'] ?? ('Depot #' . $dep));
+        $totalBuses = count($pack['busStatusRows'] ?? []);
+        $delayedBuses = 0;
+        $speedTotal = 0.0;
+        foreach (($pack['busStatusRows'] ?? []) as $r) {
+            if (strcasecmp((string)($r['operational_status'] ?? ''), 'Delayed') === 0) {
+                $delayedBuses++;
+            }
+            $speedTotal += (float)($r['speed'] ?? 0);
+        }
+        $byDepotColumns = [
+            'depot_owner' => 'Depot / Owner',
+            'total_buses' => 'Total Buses',
+            'delayed_buses' => 'Delayed Buses',
+            'avg_speed' => 'Avg Speed (km/h)',
+        ];
+        $byDepotRows = [[
+            'depot_owner' => $depotName,
+            'total_buses' => $totalBuses,
+            'delayed_buses' => $delayedBuses,
+            'avg_speed' => $totalBuses > 0 ? number_format($speedTotal / $totalBuses, 1) : '0.0',
+        ]];
+
+        $this->view('support', 'analytics_detail', [
+            'pageTitle' => 'Depot Reports Drilldown',
+            'pageSubtitle' => 'Detailed operational data for ' . $chartMeta[$chart],
+            'chartLabel' => $chartMeta[$chart],
+            'detailPath' => '/O/reports/details',
+            'backUrl' => '/O/reports?' . http_build_query(array_filter([
+                'from' => $from,
+                'to' => $to,
+                'route' => $routeId ?: null,
+                'bus_id' => $busReg,
+                'status' => $status,
+            ])),
+            'filterValues' => [
+                'chart' => $chart,
+                'route_no' => $routeNo,
+                'bus_reg' => $busReg,
+                'from' => $from,
+                'to' => $to,
+            ],
+            'filterOptions' => [
+                'routes' => $routeOptions,
+                'buses' => $this->m->depotBuses($dep),
+                'showDateRange' => true,
+            ],
+            'summaryCards' => $summaryCards,
+            'columns' => $columns,
+            'rows' => $rows,
+            'byRouteColumns' => $byRouteColumns,
+            'byRouteRows' => $byRouteRows,
+            'byDepotColumns' => $byDepotColumns,
+            'byDepotRows' => $byDepotRows,
+        ]);
+    }
+
+    private function buildOfficerAnalyticsPack(int $depotId, string $from, string $to, array $filters): array
+    {
+        $params = [
+            ':depot_id' => $depotId,
+            ':from' => $from,
+            ':to' => $to,
+        ];
+
+        $where = [
+            'sb.sltb_depot_id = :depot_id',
+            'DATE(tm.snapshot_at) BETWEEN :from AND :to',
+        ];
+
+        if (!empty($filters['route_no'])) {
+            $where[] = 'r.route_no = :route_no';
+            $params[':route_no'] = $filters['route_no'];
+        } elseif (!empty($filters['route_id'])) {
+            $where[] = 'tm.route_id = :route_id';
+            $params[':route_id'] = (int)$filters['route_id'];
+        }
+        if (!empty($filters['bus_reg'])) {
+            $where[] = 'tm.bus_reg_no LIKE :bus_reg';
+            $params[':bus_reg'] = '%' . $filters['bus_reg'] . '%';
+        }
+        if (!empty($filters['status'])) {
+            $where[] = 'tm.operational_status = :status';
+            $params[':status'] = $filters['status'];
+        }
+
+        $whereSql = implode(' AND ', $where);
+
+        $sqlLatest = "SELECT
+                x.bus_reg_no,
+                COALESCE(r.route_no, '-') AS route_no,
+                COALESCE(x.operational_status, 'Unknown') AS operational_status,
+                ROUND(COALESCE(x.speed, 0), 1) AS speed,
+                ROUND(COALESCE(x.avg_delay_min, 0), 1) AS avg_delay_min,
+                DATE_FORMAT(x.snapshot_at, '%Y-%m-%d %H:%i') AS snapshot_at
+            FROM (
+                SELECT tm.*,
+                       ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                FROM tracking_monitoring tm
+                JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+                LEFT JOIN routes r ON r.route_id = tm.route_id
+                WHERE $whereSql
+            ) x
+            LEFT JOIN routes r ON r.route_id = x.route_id
+            WHERE x.rn = 1
+            ORDER BY x.snapshot_at DESC
+            LIMIT 250";
+        $stLatest = $GLOBALS['db']->prepare($sqlLatest);
+        $stLatest->execute($params);
+        $busStatusRows = $stLatest->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $statusCountMap = [];
+        foreach ($busStatusRows as $r) {
+            $k = $r['operational_status'] ?? 'Unknown';
+            if (!isset($statusCountMap[$k])) {
+                $statusCountMap[$k] = 0;
+            }
+            $statusCountMap[$k]++;
+        }
+        $busStatus = [];
+        foreach ($statusCountMap as $label => $value) {
+            $busStatus[] = ['label' => $label, 'value' => (int)$value];
+        }
+
+        $sqlDelayed = "SELECT
+                COALESCE(r.route_no, '-') AS route_no,
+                COUNT(*) AS total,
+                SUM(CASE WHEN tm.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed
+            FROM tracking_monitoring tm
+            JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+            LEFT JOIN routes r ON r.route_id = tm.route_id
+            WHERE $whereSql
+            GROUP BY COALESCE(r.route_no, '-')
+            ORDER BY delayed DESC
+            LIMIT 10";
+        $stDelayed = $GLOBALS['db']->prepare($sqlDelayed);
+        $stDelayed->execute($params);
+        $delayedRows = $stDelayed->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $sqlSpeed = "SELECT tm.bus_reg_no, COALESCE(SUM(tm.speed_violations), 0) AS violations
+            FROM tracking_monitoring tm
+            JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+            LEFT JOIN routes r ON r.route_id = tm.route_id
+            WHERE $whereSql
+            GROUP BY tm.bus_reg_no
+            ORDER BY violations DESC
+            LIMIT 10";
+        $stSpeed = $GLOBALS['db']->prepare($sqlSpeed);
+        $stSpeed->execute($params);
+        $speedRows = $stSpeed->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $sqlRevenue = "SELECT
+                DATE_FORMAT(tm.snapshot_at, '%b %Y') AS month_label,
+                YEAR(tm.snapshot_at) AS yr,
+                MONTH(tm.snapshot_at) AS mo,
+                ROUND(SUM(COALESCE(tm.revenue, 0)) / 1000000, 2) AS revenue_mn
+            FROM tracking_monitoring tm
+            JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+            LEFT JOIN routes r ON r.route_id = tm.route_id
+            WHERE $whereSql
+            GROUP BY YEAR(tm.snapshot_at), MONTH(tm.snapshot_at), DATE_FORMAT(tm.snapshot_at, '%b %Y')
+            ORDER BY yr, mo";
+        $stRevenue = $GLOBALS['db']->prepare($sqlRevenue);
+        $stRevenue->execute($params);
+        $revenueRows = $stRevenue->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $sqlWait = "SELECT
+                SUM(CASE WHEN tm.avg_delay_min < 5 THEN 1 ELSE 0 END) AS under_5,
+                SUM(CASE WHEN tm.avg_delay_min >= 5 AND tm.avg_delay_min < 10 THEN 1 ELSE 0 END) AS between_5_10,
+                SUM(CASE WHEN tm.avg_delay_min >= 10 AND tm.avg_delay_min < 15 THEN 1 ELSE 0 END) AS between_10_15,
+                SUM(CASE WHEN tm.avg_delay_min >= 15 THEN 1 ELSE 0 END) AS over_15
+            FROM tracking_monitoring tm
+            JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+            LEFT JOIN routes r ON r.route_id = tm.route_id
+            WHERE $whereSql";
+        $stWait = $GLOBALS['db']->prepare($sqlWait);
+        $stWait->execute($params);
+        $waitRow = $stWait->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+        $fbParams = [
+            ':depot_id' => $depotId,
+            ':from' => $from,
+            ':to' => $to,
+        ];
+        $fbWhere = [
+            'sb.sltb_depot_id = :depot_id',
+            "DATE(c.created_at) BETWEEN :from AND :to",
+            "LOWER(c.type) = 'complaint'",
+        ];
+        if (!empty($filters['route_no'])) {
+            $fbWhere[] = 'r.route_no = :route_no';
+            $fbParams[':route_no'] = $filters['route_no'];
+        } elseif (!empty($filters['route_id'])) {
+            $fbWhere[] = 'c.route_id = :route_id';
+            $fbParams[':route_id'] = (int)$filters['route_id'];
+        }
+        if (!empty($filters['bus_reg'])) {
+            $fbWhere[] = 'c.bus_reg_no LIKE :bus_reg';
+            $fbParams[':bus_reg'] = '%' . $filters['bus_reg'] . '%';
+        }
+        $sqlComplaints = "SELECT COALESCE(r.route_no, '-') AS route_no, COUNT(*) AS cnt
+            FROM passenger_feedback c
+            LEFT JOIN routes r ON r.route_id = c.route_id
+            JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no
+            WHERE " . implode(' AND ', $fbWhere) . "
+            GROUP BY COALESCE(r.route_no, '-')
+            ORDER BY cnt DESC
+            LIMIT 10";
+        $stComplaints = $GLOBALS['db']->prepare($sqlComplaints);
+        $stComplaints->execute($fbParams);
+        $complaintsRows = $stComplaints->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $sqlKpi = "SELECT
+                SUM(CASE WHEN tm.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed,
+                ROUND(AVG(COALESCE(tm.avg_delay_min, 0)), 1) AS avg_delay
+            FROM tracking_monitoring tm
+            JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+            LEFT JOIN routes r ON r.route_id = tm.route_id
+            WHERE $whereSql";
+        $stKpi = $GLOBALS['db']->prepare($sqlKpi);
+        $stKpi->execute($params);
+        $kpiRow = $stKpi->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+        $tripParams = [':depot_id' => $depotId, ':from' => $from, ':to' => $to];
+        $tripWhere = [
+            'sb.sltb_depot_id = :depot_id',
+            'COALESCE(t.trip_date, CURDATE()) BETWEEN :from AND :to',
+        ];
+        if (!empty($filters['route_id'])) {
+            $tripWhere[] = 't.route_id = :route_id';
+            $tripParams[':route_id'] = (int)$filters['route_id'];
+        }
+        if (!empty($filters['bus_reg'])) {
+            $tripWhere[] = 't.bus_reg_no LIKE :bus_reg';
+            $tripParams[':bus_reg'] = '%' . $filters['bus_reg'] . '%';
+        }
+        $sqlTrips = "SELECT
+                COUNT(*) AS trips,
+                SUM(CASE WHEN t.status = 'Cancelled' THEN 1 ELSE 0 END) AS breakdowns
+            FROM sltb_trips t
+            JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+            WHERE " . implode(' AND ', $tripWhere);
+        $stTrips = $GLOBALS['db']->prepare($sqlTrips);
+        $stTrips->execute($tripParams);
+        $tripRow = $stTrips->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            'kpis' => [
+                'delayed' => (int)($kpiRow['delayed'] ?? 0),
+                'trips' => (int)($tripRow['trips'] ?? 0),
+                'avgDelayMin' => (float)($kpiRow['avg_delay'] ?? 0),
+                'breakdowns' => (int)($tripRow['breakdowns'] ?? 0),
+            ],
+            'chartData' => [
+                '_fromServer' => true,
+                'busStatus' => $busStatus,
+                'delayedByRoute' => [
+                    'labels' => array_column($delayedRows, 'route_no'),
+                    'delayed' => array_map('intval', array_column($delayedRows, 'delayed')),
+                    'total' => array_map('intval', array_column($delayedRows, 'total')),
+                ],
+                'speedByBus' => [
+                    'labels' => array_column($speedRows, 'bus_reg_no'),
+                    'values' => array_map('intval', array_column($speedRows, 'violations')),
+                ],
+                'revenue' => [
+                    'labels' => array_column($revenueRows, 'month_label'),
+                    'values' => array_map('floatval', array_column($revenueRows, 'revenue_mn')),
+                ],
+                'waitTime' => [
+                    ['label' => 'Under 5 min', 'value' => (int)($waitRow['under_5'] ?? 0), 'color' => '#16a34a'],
+                    ['label' => '5-10 min', 'value' => (int)($waitRow['between_5_10'] ?? 0), 'color' => '#f3b944'],
+                    ['label' => '10-15 min', 'value' => (int)($waitRow['between_10_15'] ?? 0), 'color' => '#f59e0b'],
+                    ['label' => 'Over 15 min', 'value' => (int)($waitRow['over_15'] ?? 0), 'color' => '#b91c1c'],
+                ],
+                'complaintsByRoute' => [
+                    'labels' => array_column($complaintsRows, 'route_no'),
+                    'values' => array_map('intval', array_column($complaintsRows, 'cnt')),
+                ],
+            ],
+            'busStatusRows' => $busStatusRows,
+        ];
     }
 
     public function attendance() {

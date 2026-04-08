@@ -58,6 +58,7 @@ $routes = [
     '/A/users'         => ['NtcAdminController','users'],
     '/A/depots_owners' => ['NtcAdminController','depots_owners'],
     '/A/analytics'     => ['NtcAdminController','analytics'],
+    '/A/analytics/details' => ['NtcAdminController','analyticsDetails'],
     '/A/profile'       => ['NtcAdminController','profile'],
 
     // Passenger
@@ -73,6 +74,7 @@ $routes = [
     '/O'               => ['DepotOfficerController','dashboard'],
     '/O/dashboard'     => ['DepotOfficerController','dashboard'],
     '/O/reports'       => ['DepotOfficerController','reports'],
+    '/O/reports/details' => ['DepotOfficerController','reportDetails'],
     '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
@@ -87,6 +89,7 @@ $routes = [
     '/M/feedback'       => ['DepotManagerController','feedback'],
     '/M/drivers'    => ['DepotManagerController','drivers'],    // NEW
     '/M/performance'      => ['DepotManagerController','performance'],      // NEW
+    '/M/performance/details' => ['DepotManagerController','performanceDetails'],
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
     '/M/profile'      => ['DepotManagerController','profile'],      // NEW
 
@@ -116,6 +119,7 @@ $routes = [
     '/B/fleet'  => ['BusOwnerController','fleet'],
     '/B/fleet/assign' => ['BusOwnerController','fleetAssign'],
     '/B/reports'    => ['BusOwnerController','reports'],
+    '/B/reports/details' => ['BusOwnerController','reportsDetails'],
     '/B/reports/export' => ['BusOwnerController','exportReports'],
     '/B/feedback' => ['BusOwnerController','feedback'],
     '/B/earnings'   => ['BusOwnerController','earnings'],

@@ -274,7 +274,6 @@ body {
 /* If older users-only button styles exist, neutralize them for the new scheme */
 /* .status-btn{ */ /* legacy - keep from affecting new status-box */
   /* all: unset; */
-}
 
 /* ---------------- PANELS + FORMS ---------------- */
 .filters,
@@ -549,6 +548,26 @@ input:checked + .slider:before { transform: translateX(20px) }
 .kpi2.tone-green { --tone:#1e9e4a; }
 .kpi2.tone-orange{ --tone:#e06a00; }
 .kpi2.tone-blue  { --tone:#3b82f6; }
+
+/* Chart drilldown action button (used in all role dashboards) */
+.js-chart-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--maroon);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+}
+.js-chart-detail-btn:hover {
+  background: #fff7e6;
+}
 
 /* ---------------- ACCESSIBILITY ---------------- */
 @media (prefers-reduced-motion:reduce) {

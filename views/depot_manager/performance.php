@@ -4,6 +4,9 @@
   $curRno  = $filters['route_no'] ?? '';
   $curBus  = $filters['bus_reg']  ?? '';
   $hasFilter = ($curRno !== '' || $curBus !== '');
+  $dq = '';
+  if ($curRno !== '') $dq .= '&route_no=' . urlencode($curRno);
+  if ($curBus !== '') $dq .= '&bus_reg=' . urlencode($curBus);
 ?>
 <style>
 /* ===== CSS Variables (from admin.css) ===== */
@@ -212,13 +215,15 @@
 
 <!-- ===== Live Fleet Charts ===== -->
 <section class="charts-grid" style="margin-bottom:1.5rem">
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=live_status<?= $dq ?>">View Live Bus Status Details</a>
     <h2>Live Bus Status</h2>
-    <canvas id="liveStatusChart"></canvas>
+    <canvas id="liveStatusChart" data-drill-key="live_status" data-drill-base="/M/performance/details"></canvas>
   </div>
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=live_speed<?= $dq ?>">View Live Fleet Speed Details</a>
     <h2>Live Fleet Speed</h2>
-    <canvas id="liveSpeedChart"></canvas>
+    <canvas id="liveSpeedChart" data-drill-key="live_speed" data-drill-base="/M/performance/details"></canvas>
   </div>
 </section>
 
@@ -249,34 +254,40 @@
 
 <!-- ===== Analytics Charts ===== -->
 <section class="charts-grid">
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=bus_status<?= $dq ?>">View Bus Status Details</a>
     <h2>Bus Status</h2>
-    <canvas id="busStatusChart"></canvas>
+    <canvas id="busStatusChart" data-drill-key="bus_status" data-drill-base="/M/performance/details"></canvas>
   </div>
 
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=delayed_by_route<?= $dq ?>">View Delayed Route Details</a>
     <h2>Delayed Buses by Route</h2>
-    <canvas id="delayedByRouteChart"></canvas>
+    <canvas id="delayedByRouteChart" data-drill-key="delayed_by_route" data-drill-base="/M/performance/details"></canvas>
   </div>
 
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=speed_by_bus<?= $dq ?>">View Speed Violation Details</a>
     <h2>High Speed Violations by Bus</h2>
-    <canvas id="speedByBusChart"></canvas>
+    <canvas id="speedByBusChart" data-drill-key="speed_by_bus" data-drill-base="/M/performance/details"></canvas>
   </div>
 
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=revenue<?= $dq ?>">View Revenue Details</a>
     <h2>Revenue</h2>
-    <canvas id="revenueChart"></canvas>
+    <canvas id="revenueChart" data-drill-key="revenue" data-drill-base="/M/performance/details"></canvas>
   </div>
 
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=wait_time<?= $dq ?>">View Wait Time Details</a>
     <h2>Bus Wait Time Distribution</h2>
-    <canvas id="waitTimeChart"></canvas>
+    <canvas id="waitTimeChart" data-drill-key="wait_time" data-drill-base="/M/performance/details"></canvas>
   </div>
 
-  <div class="chart-card">
+  <div class="chart-card" style="position:relative">
+    <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/M/performance/details?chart=complaints_by_route<?= $dq ?>">View Complaint Details</a>
     <h2>Complaints by Route</h2>
-    <canvas id="complaintsRouteChart"></canvas>
+    <canvas id="complaintsRouteChart" data-drill-key="complaints_by_route" data-drill-base="/M/performance/details"></canvas>
   </div>
 </section>
 
@@ -300,6 +311,7 @@
 <script src="/assets/js/analytics/waitTime.js<?= $jsv($jsBase,'waitTime.js') ?>"></script>
 <script src="/assets/js/analytics/delayedByRoute.js<?= $jsv($jsBase,'delayedByRoute.js') ?>"></script>
 <script src="/assets/js/analytics/complaintsRoute.js<?= $jsv($jsBase,'complaintsRoute.js') ?>"></script>
+<script src="/assets/js/analytics/drilldown.js<?= $jsv($jsBase,'drilldown.js') ?>"></script>
 
 <!-- Live fleet (same as admin) -->
 <script src="/assets/js/analytics/liveFleet.js<?= $jsv($jsBase,'liveFleet.js') ?>"></script>

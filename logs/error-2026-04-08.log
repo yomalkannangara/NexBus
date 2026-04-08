@@ -1,0 +1,10 @@
+[08-Apr-2026 14:20:54 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'delayed
+            FROM tracking_monitoring tm
+            JOIN sltb_buses...' at line 4 in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php:650
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(650): PDO->prepare('SELECT\r\n       ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(321): App\controllers\DepotOfficerController->buildOfficerAnalyticsPack(1, '2026-04-08', '2026-04-08', Array)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->reports()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(199): run('DepotOfficerCon...', 'reports')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 650

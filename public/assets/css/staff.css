@@ -439,6 +439,26 @@ input:focus-visible, select:focus-visible { outline:0; box-shadow: 0 0 0 4px var
   }
 }
 
+/* Chart drilldown action button (shared with other role dashboards) */
+.js-chart-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--maroon);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+}
+.js-chart-detail-btn:hover {
+  background: #fff7e6;
+}
+
 /* badges + buttons used on these pages */
 .mono{ font-family: ui-monospace, Menlo, Consolas, monospace; }
 .route-no{ font-weight:700; }

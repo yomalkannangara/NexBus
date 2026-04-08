@@ -1,4 +1,11 @@
-<?php /** @var array $kpis */ ?>
+<?php /** @var array $kpis */
+	$dq = '';
+	if (!empty($from)) $dq .= '&from=' . urlencode((string)$from);
+	if (!empty($to)) $dq .= '&to=' . urlencode((string)$to);
+	if (!empty($filters['route'])) $dq .= '&route=' . urlencode((string)$filters['route']);
+	if (!empty($filters['bus_id'])) $dq .= '&bus_reg=' . urlencode((string)$filters['bus_id']);
+	if (!empty($filters['status'])) $dq .= '&status=' . urlencode((string)$filters['status']);
+?>
 
 <section class="page-hero">
 	<h1>Depot Reports</h1>
@@ -117,28 +124,39 @@
 <!-- ===== Analytics Overview ===== -->
 <section class="charts-grid">
 	<div class="chart-card">
+		<a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=bus_status<?= $dq ?>">View Bus Status Details</a>
 		<h2>Bus Status</h2>
-		<canvas id="busStatusChart"></canvas>
+		<canvas id="busStatusChart" data-drill-key="bus_status" data-drill-base="/O/reports/details"></canvas>
 	</div>
 
 	<div class="chart-card">
+		<a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=delayed_by_route<?= $dq ?>">View Delayed Route Details</a>
 		<h2>Delayed Trips by Route</h2>
-		<canvas id="delayedByRouteChart"></canvas>
+		<canvas id="delayedByRouteChart" data-drill-key="delayed_by_route" data-drill-base="/O/reports/details"></canvas>
 	</div>
 
 	<div class="chart-card">
+		<a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=speed_by_bus<?= $dq ?>">View Speed Violation Details</a>
 		<h2>Speed Violations by Bus</h2>
-		<canvas id="speedByBusChart"></canvas>
+		<canvas id="speedByBusChart" data-drill-key="speed_by_bus" data-drill-base="/O/reports/details"></canvas>
 	</div>
 
 	<div class="chart-card">
+		<a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=revenue<?= $dq ?>">View Revenue Details</a>
 		<h2>Revenue</h2>
-		<canvas id="revenueChart"></canvas>
+		<canvas id="revenueChart" data-drill-key="revenue" data-drill-base="/O/reports/details"></canvas>
 	</div>
 
 	<div class="chart-card">
+		<a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=wait_time<?= $dq ?>">View Wait Time Details</a>
 		<h2>Bus Wait Time Distribution</h2>
-		<canvas id="waitTimeChart"></canvas>
+		<canvas id="waitTimeChart" data-drill-key="wait_time" data-drill-base="/O/reports/details"></canvas>
+	</div>
+
+	<div class="chart-card">
+		<a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=complaints_by_route<?= $dq ?>">View Complaint Details</a>
+		<h2>Complaints by Route</h2>
+		<canvas id="complaintsRouteChart" data-drill-key="complaints_by_route" data-drill-base="/O/reports/details"></canvas>
 	</div>
 </section>
 
@@ -155,6 +173,8 @@
 <script src="/assets/js/analytics/speedByBus.js"></script>
 <script src="/assets/js/analytics/waitTime.js"></script>
 <script src="/assets/js/analytics/delayedByRoute.js"></script>
+<script src="/assets/js/analytics/complaintsRoute.js"></script>
+<script src="/assets/js/analytics/drilldown.js"></script>
 
 <style>
 	/* Force KPI cards into single horizontal line - depot officer specific */

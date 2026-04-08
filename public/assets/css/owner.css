@@ -1609,6 +1609,26 @@ tr.row-updated {
 .prof-icon--lock    { background: #fef9e7; color: #b45309; }
 .prof-icon--company { background: #eff6ff; color: #1d4ed8; }
 .prof-icon--danger  { background: #fee2e2; color: #dc2626; }
+
+/* Chart drilldown action button (shared with other role dashboards) */
+.js-chart-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+}
+.js-chart-detail-btn:hover {
+  background: #f8fafc;
+}
 .prof-card-title {
   font-size: 16px;
   font-weight: 700;
