@@ -113,17 +113,46 @@ class BusModel extends BaseModel
         return $st->execute($params);
     }
 
-    /** Delete a bus record (only from own fleet) */
+    /** Delete a bus record (only from own fleet) — cascades child rows first */
     public function delete(string $regNo): bool
     {
-        $sql = "DELETE FROM private_buses WHERE reg_no = :reg_no";
-        $params = [':reg_no' => $regNo];
+        // Verify the bus belongs to this operator before doing anything
         if ($this->hasOperator()) {
-            $sql .= " AND private_operator_id = :op";
-            $params[':op'] = $this->operatorId; // ✅ fixed
+            $chk = $this->pdo->prepare(
+                "SELECT 1 FROM private_buses WHERE reg_no = :r AND private_operator_id = :op LIMIT 1"
+            );
+            $chk->execute([':r' => $regNo, ':op' => $this->operatorId]);
+            if (!$chk->fetchColumn()) return false; // not yours
         }
-        $st = $this->pdo->prepare($sql);
-        return $st->execute($params);
+
+        $this->pdo->beginTransaction();
+        try {
+            // 1. FK-constrained child tables (must go first)
+            $this->pdo->prepare("DELETE FROM private_trips       WHERE bus_reg_no = :r")->execute([':r' => $regNo]);
+            $this->pdo->prepare("DELETE FROM private_assignments WHERE bus_reg_no = :r")->execute([':r' => $regNo]);
+
+            // 2. Non-FK tables that reference this bus
+            $this->pdo->prepare("DELETE FROM timetables WHERE bus_reg_no = :r AND operator_type = 'Private'")->execute([':r' => $regNo]);
+            $this->pdo->prepare("DELETE FROM earnings    WHERE bus_reg_no = :r AND operator_type = 'Private'")->execute([':r' => $regNo]);
+
+            // 3. Finally delete the bus itself
+            $sql    = "DELETE FROM private_buses WHERE reg_no = :r";
+            $params = [':r' => $regNo];
+            if ($this->hasOperator()) {
+                $sql .= " AND private_operator_id = :op";
+                $params[':op'] = $this->operatorId;
+            }
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+
+            $this->pdo->commit();
+            return $st->rowCount() > 0;
+
+        } catch (\PDOException $e) {
+            $this->pdo->rollBack();
+            error_log('[BusModel::delete] ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /** Assign driver and/or conductor to a bus */

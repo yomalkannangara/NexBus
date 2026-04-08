@@ -147,4 +147,145 @@ class EarningModel extends BaseModel
         $st->execute([':op' => $op]);
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * KPI summary: total revenue, top route, active bus count.
+     * Expenses are not stored separately, so we derive an expense estimate
+     * (or just show 0 until an expenses table is added).
+     */
+    public function getKpiStats(): array
+    {
+        $op = $this->operatorId();
+        if (!$op) return ['total_revenue' => 0, 'total_expenses' => 0, 'top_route' => 'N/A', 'active_buses' => 0];
+
+        // Total revenue
+        $st = $this->pdo->prepare(
+            "SELECT COALESCE(SUM(e.amount), 0)
+               FROM earnings e
+               JOIN private_buses b ON b.reg_no = e.bus_reg_no
+              WHERE e.operator_type = 'Private' AND b.private_operator_id = :op"
+        );
+        $st->execute([':op' => $op]);
+        $totalRevenue = (float)$st->fetchColumn();
+
+        // Active buses
+        $st = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM private_buses WHERE private_operator_id = :op AND status = 'Active'"
+        );
+        $st->execute([':op' => $op]);
+        $activeBuses = (int)$st->fetchColumn();
+
+        // Top route (by total earnings)
+        $st = $this->pdo->prepare(
+            "SELECT r.route_no, SUM(e.amount) AS total
+               FROM earnings e
+               JOIN private_buses b ON b.reg_no = e.bus_reg_no
+               LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no
+               LEFT JOIN routes r ON r.route_id = t.route_id
+              WHERE e.operator_type = 'Private' AND b.private_operator_id = :op
+              GROUP BY r.route_no
+              ORDER BY total DESC
+              LIMIT 1"
+        );
+        $st->execute([':op' => $op]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        $topRoute = $row && $row['route_no'] ? 'Route ' . $row['route_no'] : 'N/A';
+
+        return [
+            'total_revenue'  => $totalRevenue,
+            'total_expenses' => 0,   // placeholder until expense tracking table is added
+            'top_route'      => $topRoute,
+            'active_buses'   => $activeBuses,
+        ];
+    }
+
+    /**
+     * Revenue for each of the last N days — for the line chart.
+     * Returns ['labels' => [...], 'values' => [...]]
+     *
+     * NOTE: $days is cast to int at the signature level — safe to embed directly.
+     * PDO named params do not work inside MySQL INTERVAL syntax.
+     */
+    public function getRevenueTrend(int $days = 7): array
+    {
+        $op = $this->operatorId();
+        if (!$op) return ['labels' => [], 'values' => []];
+
+        $days = max(1, (int)$days); // extra safety guard
+
+        $st = $this->pdo->prepare(
+            "SELECT DATE(e.date) AS day, COALESCE(SUM(e.amount), 0) AS total
+               FROM earnings e
+               JOIN private_buses b ON b.reg_no = e.bus_reg_no
+              WHERE e.operator_type = 'Private'
+                AND b.private_operator_id = :op
+                AND DATE(e.date) >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
+              GROUP BY DATE(e.date)
+              ORDER BY day ASC"
+        );
+        $st->execute([':op' => $op]);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        // Ensure all N days appear even if no data
+        $map = [];
+        foreach ($rows as $r) $map[$r['day']] = (float)$r['total'];
+
+        $labels = [];
+        $values = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-{$i} days"));
+            $labels[] = date('d M', strtotime($d));
+            $values[] = $map[$d] ?? 0;
+        }
+        return ['labels' => $labels, 'values' => $values];
+    }
+
+    /**
+     * Revenue grouped by route — for the doughnut chart.
+     * Returns ['labels' => [...], 'values' => [...]]
+     */
+    public function getRevenueByRoute(): array
+    {
+        $op = $this->operatorId();
+        if (!$op) return ['labels' => [], 'values' => []];
+
+        $st = $this->pdo->prepare(
+            "SELECT COALESCE(r.route_no, 'Unassigned') AS route_no,
+                    COALESCE(SUM(e.amount), 0) AS total
+               FROM earnings e
+               JOIN private_buses b ON b.reg_no = e.bus_reg_no
+               LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no
+               LEFT JOIN routes r ON r.route_id = t.route_id
+              WHERE e.operator_type = 'Private' AND b.private_operator_id = :op
+              GROUP BY COALESCE(r.route_no, 'Unassigned')
+              ORDER BY total DESC
+              LIMIT 8"
+        );
+        $st->execute([':op' => $op]);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'labels' => array_map(fn($r) => 'Route ' . $r['route_no'], $rows),
+            'values' => array_map(fn($r) => (float)$r['total'], $rows),
+        ];
+    }
+
+    /** Unique route numbers for filter dropdown */
+    public function getUniqueRoutes(): array
+    {
+        $op = $this->operatorId();
+        if (!$op) return [];
+        $st = $this->pdo->prepare(
+            "SELECT DISTINCT r.route_no
+               FROM earnings e
+               JOIN private_buses b ON b.reg_no = e.bus_reg_no
+               LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no
+               LEFT JOIN routes r ON r.route_id = t.route_id
+              WHERE e.operator_type = 'Private' AND b.private_operator_id = :op
+                AND r.route_no IS NOT NULL
+              ORDER BY r.route_no"
+        );
+        $st->execute([':op' => $op]);
+        return $st->fetchAll(PDO::FETCH_COLUMN);
+    }
 }

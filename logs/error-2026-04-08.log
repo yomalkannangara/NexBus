@@ -8,3 +8,19 @@ Stack trace:
 #3 C:\xampp\htdocs\NexBus-1\public\index.php(199): run('DepotOfficerCon...', 'reports')
 #4 {main}
   thrown in C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php on line 650
+[08-Apr-2026 16:06:26 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`nexbus`.`private_trips`, CONSTRAINT `fk_ptrip_bus` FOREIGN KEY (`bus_reg_no`) REFERENCES `private_buses` (`reg_no`)) in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php:126
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php(126): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(64): App\models\bus_owner\BusModel->delete('PA-1001')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(201): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php on line 126
+[08-Apr-2026 16:07:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`nexbus`.`private_trips`, CONSTRAINT `fk_ptrip_bus` FOREIGN KEY (`bus_reg_no`) REFERENCES `private_buses` (`reg_no`)) in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php:126
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php(126): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(64): App\models\bus_owner\BusModel->delete('PB-1002')
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->fleet()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(201): run('BusOwnerControl...', 'fleet')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php on line 126

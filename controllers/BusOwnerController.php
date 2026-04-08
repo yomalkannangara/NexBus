@@ -240,12 +240,63 @@ class BusOwnerController extends BaseController
                 }
             }
 
-            // Pass buses for dropdown — use false to include ALL statuses while testing
+            // ── Fetch all earnings once ──────────────────────────────
+            $earnings = $m->getAll();
+
+            // ── Revenue Trend: last 7 dates that have ACTUAL data ─────
+            // Group earnings by date first
+            $dateMap = [];
+            foreach ($earnings as $e) {
+                $d = substr($e['date'] ?? '', 0, 10); // normalise to YYYY-MM-DD
+                if ($d !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) {
+                    $dateMap[$d] = ($dateMap[$d] ?? 0) + (float)($e['amount'] ?? 0);
+                }
+            }
+            // Sort newest-first, keep up to 7 dates, then reverse to oldest→newest for chart
+            krsort($dateMap);
+            $dateMap = array_slice($dateMap, 0, 7, true);
+            ksort($dateMap); // oldest → newest
+            $revenueTrend = [
+                'labels' => array_map(fn($d) => date('d M', strtotime($d)), array_keys($dateMap)),
+                'values' => array_values($dateMap),
+            ];
+
+
+            // ── Income by Route: group $earnings by route_number ──────
+            $routeMap = [];
+            foreach ($earnings as $e) {
+                $rno = trim($e['route_number'] ?? '');
+                $key = $rno !== '' ? 'Route ' . $rno : 'Unassigned';
+                $routeMap[$key] = ($routeMap[$key] ?? 0) + (float)($e['amount'] ?? 0);
+            }
+            arsort($routeMap);
+            $routeMap       = array_slice($routeMap, 0, 8, true);
+            $revenueByRoute = [
+                'labels' => array_keys($routeMap),
+                'values' => array_values($routeMap),
+            ];
+
+            // ── Unique routes for filter dropdown ─────────────────────
+            $filterRoutes = [];
+            foreach ($earnings as $e) {
+                $rno = trim($e['route_number'] ?? '');
+                if ($rno !== '' && !in_array($rno, $filterRoutes, true)) {
+                    $filterRoutes[] = $rno;
+                }
+            }
+            sort($filterRoutes);
+
             $this->view('bus_owner', 'earnings', [
-                'earnings' => $m->getAll(),
-                'buses'    => $m->getMyBuses(false), // false => include all; true => only Active
+                'earnings'       => $earnings,
+                'buses'          => $m->getMyBuses(false),
+                'kpi'            => $m->getKpiStats(),
+                'revenueTrend'   => $revenueTrend,
+                'revenueByRoute' => $revenueByRoute,
+                'filterRoutes'   => $filterRoutes,
             ]);
         }
+
+
 
 
 /** /B/earnings/export - Export earnings data as Excel */
