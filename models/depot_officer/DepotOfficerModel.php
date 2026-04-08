@@ -117,7 +117,9 @@ public function depot(int $depotId): ?array {
 
     // Messages
     public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false, ?int $senderUserId=null, ?string $senderRole=null): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot,$senderUserId,$senderRole); }
-    public function recentMessages(int $depotId, int $myId, int $limit=20, string $filter='all'): array { return $this->msg->recent($depotId,$limit, $filter); }
+    public function recentMessages(int $depotId, int $myId, int $limit=20, string $filter='all'): array {
+        return call_user_func([$this->msg, 'recent'], $depotId, $myId, $limit, $filter);
+    }
     public function markMessageRead(int $messageId, int $userId): void { $this->msg->markRead($messageId, $userId); }
     public function acknowledgeMessage(int $messageId, int $userId): void { $this->msg->acknowledge($messageId, $userId); }
     public function escalateMessage(int $messageId, int $userId): void { $this->msg->escalate($messageId, $userId); }
@@ -149,7 +151,7 @@ public function depot(int $depotId): ?array {
     public function depotBusesForMessaging(int $depotId): array {
         try {
             $st = $this->pdo->prepare(
-                "SELECT bus_id, bus_registration_no FROM sltb_buses WHERE sltb_depot_id=? ORDER BY bus_registration_no"
+                "SELECT reg_no AS bus_id, reg_no AS bus_registration_no FROM sltb_buses WHERE sltb_depot_id=? ORDER BY reg_no"
             );
             $st->execute([$depotId]);
             return $st->fetchAll(PDO::FETCH_ASSOC);
@@ -166,7 +168,15 @@ public function depot(int $depotId): ?array {
             $st->execute([$depotId]);
             return $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
-            return [];
+            try {
+                $st = $this->pdo->prepare(
+                    "SELECT route_id, route_no AS route_name FROM routes WHERE is_active=1 ORDER BY route_no+0, route_no"
+                );
+                $st->execute();
+                return $st->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Throwable $e2) {
+                return [];
+            }
         }
     }
 }

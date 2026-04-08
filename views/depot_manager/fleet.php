@@ -189,9 +189,14 @@
                               : ($status === 'Inactive' ? 'badge-red' : 'badge-blue'));
 
                 // Determine assignment status
-                $assignment = (isset($r['driver']) && $r['driver']) && (isset($r['conductor']) && $r['conductor']) 
-                            ? '<span class="badge badge-green">Fully Assigned</span>'
-                            : '<span class="badge badge-yellow">Incomplete</span>';
+                $assignmentState = strtolower((string)($r['assignment_state'] ?? 'unassigned'));
+                if ($assignmentState === 'completed') {
+                  $assignment = '<span class="badge badge-green">Completed</span>';
+                } elseif ($assignmentState === 'incomplete') {
+                  $assignment = '<span class="badge badge-yellow">Incomplete</span>';
+                } else {
+                  $assignment = '<span class="badge badge-blue">Unassigned</span>';
+                }
 
                 // Maintenance status
                 $maintenance_status = 'Scheduled';
