@@ -11,8 +11,6 @@ class SpecialTimetableModel extends BaseModel
                                 JOIN sltb_buses b ON b.reg_no=tt.bus_reg_no AND b.sltb_depot_id=?
                                 LEFT JOIN routes r ON r.route_id=tt.route_id
                                 WHERE tt.operator_type='SLTB'
-                                    AND tt.effective_from IS NULL
-                                    AND tt.effective_to IS NULL
                                 ORDER BY tt.day_of_week, tt.departure_time, r.route_no+0, r.route_no";
                 $st = $this->pdo->prepare($sql);
                 $st->execute([$depotId]);
@@ -25,7 +23,7 @@ class SpecialTimetableModel extends BaseModel
                                 JOIN sltb_buses b ON b.reg_no=tt.bus_reg_no AND b.sltb_depot_id=:depot
                                 LEFT JOIN routes r ON r.route_id=tt.route_id
                                 WHERE tt.operator_type='SLTB'
-                                    AND (tt.effective_from IS NOT NULL OR tt.effective_to IS NOT NULL)
+                                    AND tt.effective_from IS NOT NULL
                                 ORDER BY
                                     CASE
                             WHEN (tt.effective_from IS NULL OR tt.effective_from <= :ref4)

@@ -53,6 +53,11 @@ public function assignments()
             $this->redirect('?module=depot_officer&page=assignments&msg=error');
             return;
         }
+        if ($act === 'update_assignment') {
+            $ok = $m->update($depotId, $_POST);
+            $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'updated' : 'error'));
+            return;
+        }
         if ($act === 'reassign_staff') {
             $ok = $m->reassign(
                 $depotId,
