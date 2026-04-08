@@ -61,17 +61,15 @@ class DashboardModel extends BaseModel
                                WHERE b.sltb_depot_id=:d AND tm.operational_status='Delayed' AND DATE(tm.snapshot_at)=CURDATE()", [':d' => $depotId])
             : $this->countSafe("SELECT COUNT(*) c FROM tracking_monitoring WHERE operational_status='Delayed' AND DATE(snapshot_at)=CURDATE()");
         
-        // Broken buses today for this depot  
-        $brokenToday = $depotId
-            ? $this->countSafe("SELECT COUNT(DISTINCT mj.bus_reg_no) c FROM maintenance_jobs mj 
-                               JOIN sltb_buses b ON mj.bus_reg_no = b.reg_no 
-                               WHERE b.sltb_depot_id=:d AND mj.status='Breakdown' AND DATE(mj.created_at)=CURDATE()", [':d' => $depotId])
-            : $this->countSafe("SELECT COUNT(*) c FROM maintenance_jobs WHERE status='Breakdown' AND DATE(created_at)=CURDATE()");
+        // Broken buses: align with Fleet page "In Maintenance" count
+        $brokenBuses = $depotId
+            ? $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE sltb_depot_id=:d AND status='Maintenance'", [':d' => $depotId])
+            : $this->countSafe("SELECT COUNT(*) c FROM sltb_buses WHERE status='Maintenance'");
 
         return [
             ['title' => "Today's Complaints",  'value' => (string)$complaintsToday, 'change' => '', 'trend' => '', 'icon' => 'alert', 'color' => 'orange'],
             ['title' => 'Delayed Buses Today', 'value' => (string)$delayedToday,    'change' => '', 'trend' => '', 'icon' => 'clock', 'color' => 'red'],
-            ['title' => 'Broken Buses Today',  'value' => (string)$brokenToday,     'change' => '', 'trend' => '', 'icon' => 'alert', 'color' => 'red'],
+            ['title' => 'Broken Busses',       'value' => (string)$brokenBuses,     'change' => '', 'trend' => '', 'icon' => 'alert', 'color' => 'red'],
         ];
     }
 

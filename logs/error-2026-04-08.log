@@ -24,3 +24,18 @@ Stack trace:
 #3 C:\xampp\htdocs\NexBus-1\public\index.php(201): run('BusOwnerControl...', 'fleet')
 #4 {main}
   thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\BusModel.php on line 126
+[08-Apr-2026 16:47:52 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.private_staff_status_logs' doesn't exist in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php:326
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(326): PDO->prepare('SELECT log_id, ...')
+#1 C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php(347): App\models\bus_owner\DriverModel->getStatusLogs('driver', 3)
+#2 C:\xampp\htdocs\NexBus-1\controllers\BusOwnerController.php(184): App\models\bus_owner\DriverModel->getAllDriverLogs()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\BusOwnerController->drivers()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(201): run('BusOwnerControl...', 'drivers')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\bus_owner\DriverModel.php on line 326
+[08-Apr-2026 18:47:55 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-1002, driver_id=3, conductor_id=9
+[08-Apr-2026 18:47:55 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-1002
+[08-Apr-2026 19:46:39 Asia/Colombo] FleetModel::countBusesWithFilters error: SQLSTATE[HY093]: Invalid parameter number
+[08-Apr-2026 19:46:39 Asia/Colombo] FleetModel::countBusesWithFilters error: SQLSTATE[HY093]: Invalid parameter number
+[08-Apr-2026 19:46:39 Asia/Colombo] FleetModel::countBusesWithFilters error: SQLSTATE[HY093]: Invalid parameter number
+[08-Apr-2026 19:46:39 Asia/Colombo] FleetModel::countBusesWithFilters error: SQLSTATE[HY093]: Invalid parameter number

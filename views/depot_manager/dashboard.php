@@ -113,16 +113,6 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
         </div>
       </a>
 
-      <a href="/M/health" class="qa-card">
-        <div class="qa-card-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7h-4l-3-3-3 3H6a2 2 0 0 0-2 2v7a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V9a2 2 0 0 0-2-2z"/></svg>
-        </div>
-        <div class="qa-card-content">
-          <div class="qa-card-label">Health</div>
-          <div class="qa-card-desc">Maintenance &amp; issues</div>
-        </div>
-      </a>
-
       <a href="/M/earnings" class="qa-card">
         <div class="qa-card-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
