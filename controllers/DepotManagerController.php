@@ -91,16 +91,53 @@ public function fleet()
             'route'       => trim($_GET['route'] ?? ''),
             'status'      => trim($_GET['status'] ?? ''),
             'capacity'    => trim($_GET['capacity'] ?? ''),
-            'assignment'  => trim($_GET['assignment'] ?? ''), // currently unused
+            'assignment'  => trim($_GET['assignment'] ?? ''),
+            'bus_class'   => trim($_GET['bus_class'] ?? ''),
+            'model'       => trim($_GET['model'] ?? ''),
+            'year_range'  => trim($_GET['year_range'] ?? ''),
         ];
 
-        $this->view('depot_manager', 'fleet', [
+        $this->view('depot_manager', 'fleet_new', [
             'summary' => $m->summaryCards($filters),
             'rows'    => $m->list($filters),
             'routes'  => $m->routes(),
             'buses'   => $m->buses(),
             'filters' => $filters,
             'msg'     => $_GET['msg'] ?? null,
+        ]);
+    }
+
+    public function busProfile()
+    {
+        $busReg = trim($_GET['reg_no'] ?? '');
+        if ($busReg === '') {
+            if (!empty($_GET['json'])) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['ok' => false, 'msg' => 'missing_reg_no']);
+                return;
+            }
+            return $this->redirect('/M/fleet');
+        }
+
+        $m = new FleetModel();
+        $bus = $m->getBusByReg($busReg);
+        if (empty($bus)) {
+            if (!empty($_GET['json'])) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['ok' => false, 'msg' => 'not_found']);
+                return;
+            }
+            return $this->redirect('/M/fleet');
+        }
+
+        if (!empty($_GET['json'])) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true, 'bus' => $bus]);
+            return;
+        }
+
+        $this->view('depot_manager', 'bus_profile', [
+            'bus' => $bus,
         ]);
     }
 

@@ -116,6 +116,31 @@ class FleetModel extends BaseModel
             }
         }
 
+        // Bus class filter
+        if (!empty($filters['bus_class'])) {
+            $clauses[] = "sb.bus_class = :bus_class";
+            $params[':bus_class'] = $filters['bus_class'];
+        }
+
+        // Bus model filter
+        if (!empty($filters['model'])) {
+            $clauses[] = "sb.bus_model = :model";
+            $params[':model'] = $filters['model'];
+        }
+
+        // Year range filter
+        if (!empty($filters['year_range'])) {
+            if ($filters['year_range'] === 'before-2010') {
+                $clauses[] = "sb.year_of_manufacture < 2010";
+            } elseif ($filters['year_range'] === '2010-2015') {
+                $clauses[] = "sb.year_of_manufacture BETWEEN 2010 AND 2015";
+            } elseif ($filters['year_range'] === '2015-2020') {
+                $clauses[] = "sb.year_of_manufacture BETWEEN 2015 AND 2020";
+            } elseif ($filters['year_range'] === 'after-2020') {
+                $clauses[] = "sb.year_of_manufacture > 2020";
+            }
+        }
+
         $where = '';
         if (!empty($clauses)) {
             $where = 'WHERE sb.sltb_depot_id=:d AND ' . implode(' AND ', $clauses);
@@ -142,6 +167,9 @@ class FleetModel extends BaseModel
             'route'       => $filters['route'] ?? '',
             'capacity'    => $filters['capacity'] ?? '',
             'assignment'  => $filters['assignment'] ?? '',
+            'bus_class'   => $filters['bus_class'] ?? '',
+            'model'       => $filters['model'] ?? '',
+            'year_range'  => $filters['year_range'] ?? '',
             // deliberately NOT including status
         ];
 
@@ -226,6 +254,7 @@ class FleetModel extends BaseModel
             $sql = "
                 SELECT
                     sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
                     r.route_no, r.stops_json,
                     tm.lat AS current_lat,
                     tm.lng AS current_lng,
@@ -263,7 +292,11 @@ class FleetModel extends BaseModel
                 $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
             }
             return $rows;
-        } catch (PDOException $e) { return []; }
+        } catch (PDOException $e) {
+            error_log('FleetModel::list() error: ' . $e->getMessage());
+            error_log('SQL: ' . ($sql ?? 'unknown'));
+            return [];
+        }
     }
 
     public function routes(): array
@@ -291,19 +324,76 @@ class FleetModel extends BaseModel
         } catch (PDOException $e) { return []; }
     }
 
+    public function getBusByReg(string $regNo): array
+    {
+        try {
+            $sql = "
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.reg_no = :reg_no
+            ";
+
+            $did = $this->depotId();
+            if ($did !== null) {
+                $sql .= " AND sb.sltb_depot_id = :d";
+            }
+
+            $st = $this->pdo->prepare($sql);
+            $st->bindValue(':reg_no', $regNo);
+            if ($did !== null) {
+                $st->bindValue(':d', $did, PDO::PARAM_INT);
+            }
+            $st->execute();
+            $row = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+            if (!empty($row)) {
+                $row['route'] = $this->getRouteDisplayName($row['stops_json'] ?? '[]');
+            }
+            return $row;
+        } catch (PDOException $e) {
+            error_log('FleetModel::getBusByReg error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
     public function createBus(array $d): bool
     {
         if (!$this->hasDepot()) return false;
         try {
-            $sql = "INSERT INTO sltb_buses (reg_no, sltb_depot_id, chassis_no, capacity, status)
-                    VALUES (:reg_no, :depot, :chassis_no, :capacity, :status)";
+            $sql = "INSERT INTO sltb_buses (reg_no, sltb_depot_id, chassis_no, capacity, status, bus_model, year_of_manufacture, manufacture_date, bus_class)
+                    VALUES (:reg_no, :depot, :chassis_no, :capacity, :status, :bus_model, :year_of_manufacture, :manufacture_date, :bus_class)";
             $st  = $this->pdo->prepare($sql);
             return $st->execute([
-                ':reg_no'     => trim((string)($d['reg_no'] ?? '')),
-                ':depot'      => $this->depotId(),
-                ':chassis_no' => $d['chassis_no'] ?? null,
-                ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
-                ':status'     => $this->statusOrDefault($d['status'] ?? null),
+                ':reg_no'                => trim((string)($d['reg_no'] ?? '')),
+                ':depot'                 => $this->depotId(),
+                ':chassis_no'            => $d['chassis_no'] ?? null,
+                ':capacity'              => isset($d['capacity']) ? (int)$d['capacity'] : null,
+                ':status'                => $this->statusOrDefault($d['status'] ?? null),
+                ':bus_model'             => $d['bus_model'] ?? null,
+                ':year_of_manufacture'   => !empty($d['year_manufacture']) ? (int)$d['year_manufacture'] : null,
+                ':manufacture_date'      => $d['manufacture_date'] ?? null,
+                ':bus_class'             => in_array($d['bus_class'] ?? '', ['Normal', 'Semi Luxury', 'Luxury'], true) ? $d['bus_class'] : 'Normal',
             ]);
         } catch (PDOException $e) { return false; }
     }
@@ -315,7 +405,9 @@ class FleetModel extends BaseModel
             $reg = trim((string)($d['reg_no'] ?? ''));
             if ($reg === '') return false;
             $sql = "UPDATE sltb_buses
-                       SET chassis_no=:chassis_no, capacity=:capacity, status=:status
+                       SET chassis_no=:chassis_no, capacity=:capacity, status=:status,
+                           bus_model=:bus_model, year_of_manufacture=:year_of_manufacture,
+                           manufacture_date=:manufacture_date, bus_class=:bus_class
                      WHERE reg_no=:reg_no AND sltb_depot_id=:depot";
             $st = $this->pdo->prepare($sql);
             $st->bindValue(':depot', $this->depotId(), PDO::PARAM_INT);
@@ -323,6 +415,10 @@ class FleetModel extends BaseModel
             $st->bindValue(':chassis_no', $d['chassis_no'] ?? null);
             $st->bindValue(':capacity', isset($d['capacity']) ? (int)$d['capacity'] : null, PDO::PARAM_INT);
             $st->bindValue(':status', $this->statusOrDefault($d['status'] ?? null));
+            $st->bindValue(':bus_model', $d['bus_model'] ?? null);
+            $st->bindValue(':year_of_manufacture', !empty($d['year_manufacture']) ? (int)$d['year_manufacture'] : null, PDO::PARAM_INT);
+            $st->bindValue(':manufacture_date', $d['manufacture_date'] ?? null);
+            $st->bindValue(':bus_class', in_array($d['bus_class'] ?? '', ['Normal', 'Semi Luxury', 'Luxury'], true) ? $d['bus_class'] : 'Normal');
             return $st->execute();
         } catch (PDOException $e) { return false; }
     }
