@@ -87,11 +87,11 @@ public function fleet()
         // collect filters from querystring
         $filters = [
             'search'      => trim($_GET['search'] ?? ''),
+            'bus'         => trim($_GET['bus'] ?? ''),
             'route'       => trim($_GET['route'] ?? ''),
             'status'      => trim($_GET['status'] ?? ''),
             'capacity'    => trim($_GET['capacity'] ?? ''),
             'assignment'  => trim($_GET['assignment'] ?? ''), // currently unused
-            'maintenance' => trim($_GET['maintenance'] ?? ''), // unused
         ];
 
         $this->view('depot_manager', 'fleet', [
@@ -102,6 +102,83 @@ public function fleet()
             'filters' => $filters,
             'msg'     => $_GET['msg'] ?? null,
         ]);
+    }
+
+    public function reverseGeocode()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $lat = $_GET['lat'] ?? null;
+        $lng = $_GET['lng'] ?? null;
+
+        if (!is_numeric($lat) || !is_numeric($lng)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'name' => null]);
+            return;
+        }
+
+        $lat = (float)$lat;
+        $lng = (float)$lng;
+
+        if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'name' => null]);
+            return;
+        }
+
+        $url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&addressdetails=1&lat=' . rawurlencode((string)$lat) . '&lon=' . rawurlencode((string)$lng);
+
+        $payload = null;
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_TIMEOUT => 5,
+                CURLOPT_HTTPHEADER => ['Accept: application/json'],
+                CURLOPT_USERAGENT => 'NexBus/1.0 (depot-manager)',
+            ]);
+            $res = curl_exec($ch);
+            $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($res !== false && $code >= 200 && $code < 300) {
+                $payload = json_decode($res, true);
+            }
+        }
+
+        if (!$payload) {
+            $ctx = stream_context_create([
+                'http' => [
+                    'method'  => 'GET',
+                    'timeout' => 5,
+                    'header'  => "Accept: application/json\r\nUser-Agent: NexBus/1.0 (depot-manager)\r\n",
+                ]
+            ]);
+            $res = @file_get_contents($url, false, $ctx);
+            if ($res !== false) {
+                $payload = json_decode($res, true);
+            }
+        }
+
+        $name = null;
+        if (is_array($payload)) {
+            $a = (array)($payload['address'] ?? []);
+            $name = $a['road']
+                ?? $a['suburb']
+                ?? $a['neighbourhood']
+                ?? $a['city_district']
+                ?? $a['city']
+                ?? $a['town']
+                ?? $a['village']
+                ?? $a['county']
+                ?? ($payload['display_name'] ?? null);
+        }
+
+        if (!$name) {
+            $name = number_format($lat, 5, '.', '') . ', ' . number_format($lng, 5, '.', '');
+        }
+
+        echo json_encode(['ok' => true, 'name' => $name]);
     }
 
     /* =========================

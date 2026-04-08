@@ -50,6 +50,10 @@ class FleetModel extends BaseModel
             $clauses[] = "r.route_no = :route";
             $params[':route'] = $filters['route'];
         }
+        if (!empty($filters['bus'])) {
+            $clauses[] = "sb.reg_no = :bus";
+            $params[':bus'] = $filters['bus'];
+        }
         if (!empty($filters['status'])) {
             $clauses[] = "sb.status = :status";
             $params[':status'] = $filters['status'];
@@ -64,11 +68,17 @@ class FleetModel extends BaseModel
             }
         }
         if (!empty($filters['search'])) {
+            $searchRaw  = trim((string)$filters['search']);
+            $searchNorm = strtoupper(str_replace(['-', ' '], '', $searchRaw));
             $clauses[] = "(
-                sb.reg_no LIKE :search OR 
-                r.route_no LIKE :search
+                sb.reg_no LIKE :search_raw OR
+                UPPER(REPLACE(REPLACE(sb.reg_no, '-', ''), ' ', '')) LIKE :search_norm OR
+                CAST(r.route_no AS CHAR) LIKE :search_raw OR
+                r.stops_json LIKE :search
             )";
-            $params[':search'] = '%'.$filters['search'].'%';
+            $params[':search_raw']  = '%'.$searchRaw.'%';
+            $params[':search_norm'] = '%'.$searchNorm.'%';
+            $params[':search']      = '%'.$searchRaw.'%';
         }
 
         // Assignment filter: check if bus has assignments with driver AND conductor
@@ -106,17 +116,6 @@ class FleetModel extends BaseModel
             }
         }
 
-        // Maintenance filter: for now, based on status column
-        if (!empty($filters['maintenance'])) {
-            if ($filters['maintenance'] === 'overdue' || $filters['maintenance'] === 'due-soon') {
-                // Both map to buses currently in Maintenance status
-                $clauses[] = "sb.status = 'Maintenance'";
-            } elseif ($filters['maintenance'] === 'scheduled') {
-                // Scheduled = Active (normal operation)
-                $clauses[] = "sb.status = 'Active'";
-            }
-        }
-
         $where = '';
         if (!empty($clauses)) {
             $where = 'WHERE sb.sltb_depot_id=:d AND ' . implode(' AND ', $clauses);
@@ -139,10 +138,10 @@ class FleetModel extends BaseModel
         // Build base filters (excluding status so we can count each status separately)
         $baseFilters = [
             'search'      => $filters['search'] ?? '',
+            'bus'         => $filters['bus'] ?? '',
             'route'       => $filters['route'] ?? '',
             'capacity'    => $filters['capacity'] ?? '',
             'assignment'  => $filters['assignment'] ?? '',
-            'maintenance' => $filters['maintenance'] ?? '',
             // deliberately NOT including status
         ];
 
@@ -228,6 +227,8 @@ class FleetModel extends BaseModel
                 SELECT
                     sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
                     r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
                     CONCAT(tm.lat, ',', tm.lng) AS current_location,
                     NULL AS last_maintenance, NULL AS next_service
                 FROM sltb_buses sb

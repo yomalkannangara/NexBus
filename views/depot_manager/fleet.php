@@ -45,18 +45,6 @@
   <!-- Filter & Search Bar -->
   <form id="fleetFilterForm" method="get" class="fleet-filter-section">
     <div class="fleet-filter-top">
-      <div class="fleet-search-box">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" 
-               name="search"
-               id="fleetSearchInput" 
-               class="fleet-search-input" 
-               placeholder="Search by bus number, registration, or route..."
-               value="<?= htmlspecialchars($filters['search'] ?? '') ?>">
-      </div>
       <button type="button" class="fleet-filter-toggle" id="fleetFilterToggle">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -75,6 +63,19 @@
             <?php if (!empty($routes)): foreach ($routes as $r): ?>
               <option value="<?= htmlspecialchars($r['route_no']) ?>" <?= isset($filters['route']) && $filters['route'] == $r['route_no'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars(($r['route_no'] ?? '') . ' - ' . ($r['name'] ?? '')) ?>
+              </option>
+            <?php endforeach; endif; ?>
+          </select>
+        </div>
+
+        <div class="filter-control">
+          <label>Bus Number</label>
+          <select name="bus" id="fleetFilterBus" class="fleet-select">
+            <option value="">All Buses</option>
+            <?php if (!empty($buses)): foreach ($buses as $b): ?>
+              <?php $busReg = (string)($b['reg_no'] ?? ''); ?>
+              <option value="<?= htmlspecialchars($busReg) ?>" <?= ($filters['bus'] ?? '') === $busReg ? 'selected' : '' ?>>
+                <?= htmlspecialchars($busReg) ?>
               </option>
             <?php endforeach; endif; ?>
           </select>
@@ -110,15 +111,6 @@
           </select>
         </div>
 
-        <div class="filter-control">
-          <label>Maintenance Due</label>
-          <select name="maintenance" id="fleetFilterMaintenance" class="fleet-select">
-            <option value="">All</option>
-            <option value="due-soon" <?= ($filters['maintenance'] ?? '')==='due-soon' ? 'selected' : '' ?>>Due Soon (7 days)</option>
-            <option value="overdue" <?= ($filters['maintenance'] ?? '')==='overdue' ? 'selected' : '' ?>>Overdue</option>
-            <option value="scheduled" <?= ($filters['maintenance'] ?? '')==='scheduled' ? 'selected' : '' ?>>Scheduled</option>
-          </select>
-        </div>
       </div>
 
       <div class="fleet-filter-actions">
@@ -166,8 +158,7 @@
                 <th>Status</th>
                 <th>Assignment</th>
                 <th>Capacity</th>
-                <th>Location</th>
-                <th>Maintenance</th>
+                <th>Current Location</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -180,8 +171,13 @@
                 $chassis_no = (string)($r['chassis_no'] ?? '');
                 $route      = htmlspecialchars($r['route'] ?? '—');
                 $route_no   = htmlspecialchars($r['route_no'] ?? '');
-                $location   = htmlspecialchars($r['current_location'] ?? '—');
-                $next_service = htmlspecialchars($r['next_service'] ?? '—');
+                $latRaw     = $r['current_lat'] ?? null;
+                $lngRaw     = $r['current_lng'] ?? null;
+                $hasCoords  = is_numeric($latRaw) && is_numeric($lngRaw);
+                $latAttr    = $hasCoords ? htmlspecialchars((string)$latRaw) : '';
+                $lngAttr    = $hasCoords ? htmlspecialchars((string)$lngRaw) : '';
+                $coordText  = $hasCoords ? (round((float)$latRaw, 6) . ', ' . round((float)$lngRaw, 6)) : '—';
+                $location   = htmlspecialchars($coordText);
                 
                 // Determine status badge color
                 $status_badge = $status === 'Active' ? 'badge-green'
@@ -193,13 +189,6 @@
                             ? '<span class="badge badge-green">Fully Assigned</span>'
                             : '<span class="badge badge-yellow">Incomplete</span>';
 
-                // Maintenance status
-                $maintenance_status = 'Scheduled';
-                if (strpos(strtolower($next_service), 'overdue') !== false) {
-                  $maintenance_status = '<span class="maintenance-alert">⚠ Overdue</span>';
-                } else if (strpos(strtolower($next_service), 'soon') !== false) {
-                  $maintenance_status = '<span class="maintenance-due">📅 Due Soon</span>';
-                }
               ?>
               <tr class="fleet-row">
                 <td class="fleet-bus-number">
@@ -224,9 +213,8 @@
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
-                  <?= $location ?>
+                  <a class="js-location-name" data-lat="<?= $latAttr ?>" data-lng="<?= $lngAttr ?>" href="/M/dashboard?bus=<?= rawurlencode($reg_no) ?>" title="Open on dashboard map"><?= $location ?></a>
                 </td>
-                <td><?= $maintenance_status ?></td>
                 <td>
                   <div class="fleet-actions">
                     <button class="fleet-action-btn js-edit" 
@@ -257,8 +245,13 @@
             $chassis_no = (string)($r['chassis_no'] ?? '');
             $route      = htmlspecialchars($r['route'] ?? '—');
             $route_no   = htmlspecialchars($r['route_no'] ?? '');
-            $location   = htmlspecialchars($r['current_location'] ?? '—');
-            $next_service = htmlspecialchars($r['next_service'] ?? '—');
+            $latRaw     = $r['current_lat'] ?? null;
+            $lngRaw     = $r['current_lng'] ?? null;
+            $hasCoords  = is_numeric($latRaw) && is_numeric($lngRaw);
+            $latAttr    = $hasCoords ? htmlspecialchars((string)$latRaw) : '';
+            $lngAttr    = $hasCoords ? htmlspecialchars((string)$lngRaw) : '';
+            $coordText  = $hasCoords ? (round((float)$latRaw, 6) . ', ' . round((float)$lngRaw, 6)) : '—';
+            $location   = htmlspecialchars($coordText);
             
             $status_icon = $status === 'Active' ? '✓' : ($status === 'Maintenance' ? '⚙' : '⊘');
             $status_color = $status === 'Active' ? 'green' : ($status === 'Maintenance' ? 'yellow' : 'red');
@@ -281,12 +274,8 @@
                   <span class="info-value"><?= $capacity ?> seats</span>
                 </div>
                 <div class="card-info-row">
-                  <span class="info-label">Location:</span>
-                  <span class="info-value"><?= $location ?></span>
-                </div>
-                <div class="card-info-row">
-                  <span class="info-label">Maintenance:</span>
-                  <span class="info-value"><?= $next_service ?></span>
+                  <span class="info-label">Current Location:</span>
+                  <a class="info-value js-location-name" data-lat="<?= $latAttr ?>" data-lng="<?= $lngAttr ?>" href="/M/dashboard?bus=<?= rawurlencode($reg_no) ?>" title="Open on dashboard map"><?= $location ?></a>
                 </div>
               </div>
 
@@ -1344,7 +1333,7 @@
     });
 
     // if any filters already applied on page load, open panel
-    const anyFilter = <?= (!empty($filters['search']) || !empty($filters['route']) || !empty($filters['status']) || !empty($filters['capacity']) || !empty($filters['assignment']) || !empty($filters['maintenance'])) ? 'true' : 'false'; ?>;
+    const anyFilter = <?= (!empty($filters['search']) || !empty($filters['bus']) || !empty($filters['route']) || !empty($filters['status']) || !empty($filters['capacity']) || !empty($filters['assignment'])) ? 'true' : 'false'; ?>;
     if (anyFilter) {
       filtersPanel.style.display = 'block';
       filterToggle.classList.add('active');
@@ -1369,5 +1358,44 @@
       document.getElementById('btnAddBus').click();
     });
   }
+
+  const locationNodes = Array.from(document.querySelectorAll('.js-location-name'));
+  if (locationNodes.length) {
+    const locationCache = new Map();
+
+    const reverseGeocode = async (lat, lng) => {
+      const key = `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`;
+      if (locationCache.has(key)) return locationCache.get(key);
+
+      const url = `/M/reverseGeocode?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
+      try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Reverse geocode failed');
+        const data = await res.json();
+        const place = (data && data.ok && data.name)
+          ? String(data.name)
+          : `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+        locationCache.set(key, place);
+        return place;
+      } catch (_) {
+        const fallback = `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+        locationCache.set(key, fallback);
+        return fallback;
+      }
+    };
+
+    const run = async () => {
+      for (const node of locationNodes) {
+        const lat = node.dataset.lat;
+        const lng = node.dataset.lng;
+        if (!lat || !lng) continue;
+        const name = await reverseGeocode(lat, lng);
+        node.textContent = name;
+      }
+    };
+
+    run();
+  }
+
 })();
 </script>

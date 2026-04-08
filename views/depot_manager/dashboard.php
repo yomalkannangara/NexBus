@@ -178,6 +178,7 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
     var allBuses  = [];
     var filterRoute = '';
     var filterBus   = '';
+    var deepLinkBus = (new URLSearchParams(window.location.search).get('bus') || '').trim();
 
     function makePinIcon(speed){
       var over = speed > 60;
@@ -319,6 +320,22 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
           if(c) c.textContent = buses.length+' buses';
           if(v) v.textContent = viols+' speeding';
           if(u) u.textContent = 'Updated '+new Date().toLocaleTimeString();
+
+          if (deepLinkBus) {
+            var input = document.getElementById('map-filter-bus');
+            if (input) {
+              input.value = deepLinkBus;
+            }
+            filterBus = deepLinkBus.toUpperCase();
+            applyMapFilters();
+
+            var mk = markers[deepLinkBus];
+            if (mk) {
+              map.setView(mk.getLatLng(), 14);
+              mk.openPopup();
+            }
+            deepLinkBus = '';
+          }
         })
         .catch(function(){});
     }
