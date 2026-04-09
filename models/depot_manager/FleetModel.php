@@ -89,8 +89,8 @@ class FleetModel extends BaseModel
                     EXISTS (
                         SELECT 1 FROM sltb_assignments sa
                         WHERE sa.bus_reg_no = sb.reg_no
-                        AND sa.sltb_driver_id IS NOT NULL
-                        AND sa.sltb_conductor_id IS NOT NULL
+                        AND COALESCE(sa.sltb_driver_id, 0) > 0
+                        AND COALESCE(sa.sltb_conductor_id, 0) > 0
                         AND DATE(sa.assigned_date) = CURDATE()
                     )
                 )";
@@ -100,7 +100,7 @@ class FleetModel extends BaseModel
                     EXISTS (
                         SELECT 1 FROM sltb_assignments sa
                         WHERE sa.bus_reg_no = sb.reg_no
-                        AND (sa.sltb_driver_id IS NULL OR sa.sltb_conductor_id IS NULL)
+                        AND (COALESCE(sa.sltb_driver_id, 0) = 0 OR COALESCE(sa.sltb_conductor_id, 0) = 0)
                         AND DATE(sa.assigned_date) = CURDATE()
                     )
                 )";
@@ -258,6 +258,13 @@ class FleetModel extends BaseModel
                     r.route_no, r.stops_json,
                     tm.lat AS current_lat,
                     tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
                     CONCAT(tm.lat, ',', tm.lng) AS current_location,
                     NULL AS last_maintenance, NULL AS next_service
                 FROM sltb_buses sb
@@ -268,6 +275,16 @@ class FleetModel extends BaseModel
                 ) s1 ON s1.bus_reg_no = sb.reg_no
                 LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
                 LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
                 LEFT JOIN (
                     SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
                     FROM tracking_monitoring x

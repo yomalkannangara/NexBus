@@ -5,6 +5,25 @@ use PDO;
 
 class BusModel extends BaseModel
 {
+    private function normalizeBusClass(?string $busClass): string
+    {
+        $allowed = ['AC', 'Semi-Luxury', 'Normal'];
+        $value = trim((string)$busClass);
+        return in_array($value, $allowed, true) ? $value : 'Normal';
+    }
+
+    private function normalizeYear($year): ?int
+    {
+        if ($year === null || $year === '') {
+            return null;
+        }
+        $y = (int)$year;
+        if ($y < 1900 || $y > 2100) {
+            return null;
+        }
+        return $y;
+    }
+
     private function getRouteDisplayName(string $stopsJson): string {
         $stops = json_decode($stopsJson, true) ?: [];
         if (empty($stops)) return 'Unknown';
@@ -23,6 +42,10 @@ class BusModel extends BaseModel
                     b.reg_no AS bus_number,
                     b.private_operator_id,
                     b.chassis_no,
+                    b.manufactured_date,
+                    b.manufactured_year,
+                    b.model,
+                    b.bus_class,
                     b.capacity,
                     b.status,
                     b.driver_id,
@@ -69,14 +92,18 @@ class BusModel extends BaseModel
     public function create(array $d): bool
     {
         $sql = "INSERT INTO private_buses 
-                    (reg_no, private_operator_id, chassis_no, capacity, status)
-                VALUES (:reg_no, :op, :chassis_no, :capacity, :status)";
+                    (reg_no, private_operator_id, chassis_no, manufactured_date, manufactured_year, model, bus_class, capacity, status)
+                VALUES (:reg_no, :op, :chassis_no, :manufactured_date, :manufactured_year, :model, :bus_class, :capacity, :status)";
         $st = $this->pdo->prepare($sql);
         try {
             return $st->execute([
                 ':reg_no'     => $d['reg_no'] ?? null,
                 ':op'         => $d['private_operator_id'] ?? $this->operatorId,
                 ':chassis_no' => $d['chassis_no'] ?? null,
+                ':manufactured_date' => $d['manufactured_date'] ?? null,
+                ':manufactured_year' => $this->normalizeYear($d['manufactured_year'] ?? null),
+                ':model'      => $d['model'] ?? null,
+                ':bus_class'  => $this->normalizeBusClass($d['bus_class'] ?? null),
                 ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
                 ':status'     => $d['status'] ?? 'Active',
             ]);
@@ -94,11 +121,19 @@ class BusModel extends BaseModel
     {
         $sql = "UPDATE private_buses
                    SET chassis_no = :chassis_no,
+                       manufactured_date = :manufactured_date,
+                       manufactured_year = :manufactured_year,
+                       model      = :model,
+                       bus_class  = :bus_class,
                        capacity   = :capacity,
                        status     = :status
                  WHERE reg_no = :reg_no";
         $params = [
             ':chassis_no' => $d['chassis_no'] ?? null,
+            ':manufactured_date' => $d['manufactured_date'] ?? null,
+            ':manufactured_year' => $this->normalizeYear($d['manufactured_year'] ?? null),
+            ':model'      => $d['model'] ?? null,
+            ':bus_class'  => $this->normalizeBusClass($d['bus_class'] ?? null),
             ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
             ':status'     => $d['status'] ?? 'Active',
             ':reg_no'     => $regNo,
@@ -156,12 +191,30 @@ class BusModel extends BaseModel
     }
 
     /** Assign driver and/or conductor to a bus */
+    public function isMaintenanceBus(string $regNo): bool
+    {
+        $sql = "SELECT status FROM private_buses WHERE reg_no = :reg_no";
+        $params = [':reg_no' => $regNo];
+
+        if ($this->hasOperator()) {
+            $sql .= " AND private_operator_id = :op";
+            $params[':op'] = $this->operatorId;
+        }
+
+        $sql .= " LIMIT 1";
+        $st = $this->pdo->prepare($sql);
+        $st->execute($params);
+        $status = (string)($st->fetchColumn() ?: '');
+        return in_array(strtolower($status), ['maintenance', 'inactive'], true);
+    }
+
     public function assignDriverConductor(string $regNo, ?int $driverId, ?int $conductorId): bool
     {
         $sql = "UPDATE private_buses
                    SET driver_id = :driver_id,
                        conductor_id = :conductor_id
-                 WHERE reg_no = :reg_no";
+                 WHERE reg_no = :reg_no
+                                     AND status NOT IN ('Maintenance', 'Inactive')";
 
         $params = [
             ':driver_id'    => $driverId,
@@ -221,6 +274,10 @@ class BusModel extends BaseModel
         $sql = "SELECT 
                     b.reg_no AS bus_number,
                     b.chassis_no,
+                    b.manufactured_date,
+                    b.manufactured_year,
+                    b.model,
+                    b.bus_class,
                     b.capacity,
                     b.status,
                     r.stops_json,

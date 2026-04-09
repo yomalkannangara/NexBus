@@ -78,6 +78,7 @@ $routes = [
     '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
+    '/O/messages/stream' => ['DepotOfficerController','sseStream'],
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
     '/O/attendance'    => ['DepotOfficerController','attendance'],    // 
   '/O/profile'       => ['DepotOfficerController','profile'],

@@ -1,1 +1,136 @@
 [03-Mar-2026 00:10:51 Asia/Colombo] PHP Warning:  Undefined array key "average_rating" in C:\xampp\htdocs\NexBus-1\views\depot_manager\performance.php on line 175
+[03-Mar-2026 11:45:18 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(107): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:45:20 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(107): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:19 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:20 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:24 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:24 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:46:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'r.name' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:71
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(71): PDO->prepare('SELECT tt.*, r....')
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 71
+[03-Mar-2026 11:47:58 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:72
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(72): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 72
+[03-Mar-2026 11:47:59 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:72
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(72): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(116): App\models\depot_officer\SpecialTimetableModel->listCurrent(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(106): App\models\depot_officer\DepotOfficerModel->currentTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 72
+[03-Mar-2026 11:59:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number: parameter was not defined in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:40
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(40): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(115): App\models\depot_officer\SpecialTimetableModel->listSeasonal(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(108): App\models\depot_officer\DepotOfficerModel->seasonalTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 40
+[03-Mar-2026 11:59:29 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number: parameter was not defined in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:40
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(40): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(115): App\models\depot_officer\SpecialTimetableModel->listSeasonal(1, '2026-03-03')
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(108): App\models\depot_officer\DepotOfficerModel->seasonalTimetables(1, '2026-03-03')
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(197): run('DepotOfficerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 40

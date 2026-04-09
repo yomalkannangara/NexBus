@@ -120,6 +120,25 @@ class ReportModel extends BaseModel
     private function countComplaints(): int
     {
         $op = $this->operatorId();
+        // Primary source in this schema
+        try {
+            $sql = "SELECT COUNT(*)
+                    FROM complaints c
+                    JOIN private_buses pb ON pb.reg_no = c.bus_reg_no
+                    WHERE c.operator_type='Private'
+                      AND LOWER(COALESCE(c.category, ''))='complaint'";
+            $params = [];
+            if ($op) {
+                $sql .= " AND pb.private_operator_id = :op";
+                $params[':op'] = $op;
+            }
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            return (int)$st->fetchColumn();
+        } catch (\Throwable $e) {
+            // fall through to legacy candidates
+        }
+
         $candidates = [
             // table => operator column candidates (first found used)
             'passenger_feedback' => ['private_operator_id', 'operator_id'],
@@ -326,18 +345,32 @@ class ReportModel extends BaseModel
         try {
             $params   = [];
             $opClause = '';
+            $routeClause = '';
+            $busClause = '';
             if ($this->hasOperator()) {
-                $opClause = ' AND b.private_operator_id = :op';
+                $opClause = ' AND pb.private_operator_id = :op';
                 $params[':op'] = $this->operatorId();
             }
+            if (!empty($filters['route_no'])) {
+                $routeClause = " AND EXISTS (
+                    SELECT 1 FROM routes r2 WHERE r2.route_id = t.route_id AND r2.route_no = :route_no
+                )";
+                $params[':route_no'] = $filters['route_no'];
+            }
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND e.bus_reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
             $sql = "SELECT DATE_FORMAT(tm.snapshot_at, '%b') AS month,
-                           SUM(COALESCE(tm.revenue, 0)) AS revenue
-                    FROM tracking_monitoring tm
-                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
-                    WHERE tm.operator_type='Private'
-                      AND YEAR(tm.snapshot_at)=YEAR(CURDATE()) $opClause
-                    GROUP BY MONTH(tm.snapshot_at), DATE_FORMAT(tm.snapshot_at,'%b')
-                    ORDER BY MONTH(tm.snapshot_at)";
+                           SUM(COALESCE(e.amount, 0)) AS revenue,
+                           MONTH(e.date) AS month_num
+                    FROM earnings e
+                    JOIN private_buses pb ON pb.reg_no = e.bus_reg_no
+                    LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no AND t.operator_type='Private'
+                    WHERE e.operator_type='Private'
+                      AND YEAR(e.date)=YEAR(CURDATE()) $opClause $routeClause $busClause
+                    GROUP BY MONTH(e.date), DATE_FORMAT(e.date,'%b')
+                    ORDER BY month_num";
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows   = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
@@ -398,6 +431,7 @@ class ReportModel extends BaseModel
             $params    = [];
             $opClause  = '';
             $busClause = '';
+            $routeClause = '';
             if ($this->hasOperator()) {
                 $opClause = ' AND pb.private_operator_id = :op';
                 $params[':op'] = $this->operatorId();
@@ -406,13 +440,18 @@ class ReportModel extends BaseModel
                 $busClause = ' AND c.bus_reg_no = :bus_reg';
                 $params[':bus_reg'] = $filters['bus_reg'];
             }
+            if (!empty($filters['route_no'])) {
+                $routeClause = ' AND r.route_no = :route_no';
+                $params[':route_no'] = $filters['route_no'];
+            }
             $sql = "SELECT r.route_no, COUNT(*) AS cnt
-                    FROM passenger_feedback c
+                    FROM complaints c
                     JOIN private_buses pb ON pb.reg_no = c.bus_reg_no
                     LEFT JOIN routes r ON r.route_id = c.route_id
                     WHERE c.operator_type='Private'
-                      AND LOWER(c.type)='complaint'
-                      AND DATE(c.created_at)=CURDATE() $opClause $busClause
+                      AND LOWER(COALESCE(c.category, ''))='complaint'
+                      AND c.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                      $opClause $busClause $routeClause
                     GROUP BY r.route_id, r.route_no
                     ORDER BY cnt DESC LIMIT 8";
             $st = $this->pdo->prepare($sql);

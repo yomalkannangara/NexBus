@@ -33,27 +33,35 @@ class MessageModel extends BaseModel
             $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
 
         } elseif ($scope === 'route') {
-            // userIds are route_ids; expand to drivers/conductors assigned to those routes
+            // userIds are route_ids; expand to drivers/conductors assigned to buses serving those routes
             $routeIds = array_map('intval', $userIds);
             $in = implode(',', array_fill(0, count($routeIds), '?'));
             $st = $this->pdo->prepare(
                 "SELECT DISTINCT u.user_id FROM users u
                  JOIN sltb_assignments a ON (a.sltb_driver_id=u.user_id OR a.sltb_conductor_id=u.user_id)
-                 WHERE u.sltb_depot_id=? AND a.route_id IN ($in)"
+                 JOIN timetables t ON t.bus_reg_no=a.bus_reg_no AND t.operator_type='SLTB'
+                 WHERE u.sltb_depot_id=?
+                   AND a.sltb_depot_id=?
+                   AND a.assigned_date=CURDATE()
+                   AND t.route_id IN ($in)"
             );
-            $st->execute(array_merge([$depotId], $routeIds));
+            $st->execute(array_merge([$depotId, $depotId], $routeIds));
             $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
 
         } elseif ($scope === 'bus') {
-            // userIds are bus_ids; expand to drivers/conductors assigned to those buses
-            $busIds = array_map('intval', $userIds);
-            $in = implode(',', array_fill(0, count($busIds), '?'));
+            // userIds are bus registration numbers
+            $busRegs = array_values(array_filter(array_map(static fn($v) => trim((string)$v), $userIds)));
+            if (!$busRegs) return [];
+            $in = implode(',', array_fill(0, count($busRegs), '?'));
             $st = $this->pdo->prepare(
                 "SELECT DISTINCT u.user_id FROM users u
                  JOIN sltb_assignments a ON (a.sltb_driver_id=u.user_id OR a.sltb_conductor_id=u.user_id)
-                 WHERE u.sltb_depot_id=? AND a.bus_id IN ($in)"
+                 WHERE u.sltb_depot_id=?
+                   AND a.sltb_depot_id=?
+                   AND a.assigned_date=CURDATE()
+                   AND a.bus_reg_no IN ($in)"
             );
-            $st->execute(array_merge([$depotId], $busIds));
+            $st->execute(array_merge([$depotId, $depotId], $busRegs));
             $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
         }
 
@@ -118,7 +126,7 @@ class MessageModel extends BaseModel
         }
     }
 
-    public function recent(int $depotId, int $limit=20, string $filter='all'): array {
+    public function recent(int $depotId, int $userId, int $limit=20, string $filter='all'): array {
                 $sql = "SELECT n.*,
                                              CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
                                              COALESCE(
@@ -128,10 +136,12 @@ class MessageModel extends BaseModel
                                              ) AS full_name,
                                              JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_role')) AS source_role
                                 FROM notifications n
-                                JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
+                                                                JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
                                 LEFT JOIN users su
                                     ON su.user_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_user_id')) AS UNSIGNED)
-                WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')";
+                                WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')
+                                    AND n.user_id = ?
+                                    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
         
         if ($filter === 'unread') {
             $sql .= " AND n.is_seen=0";
@@ -143,7 +153,7 @@ class MessageModel extends BaseModel
         
         $sql .= " ORDER BY n.created_at DESC LIMIT {$limit}";
         $st=$this->pdo->prepare($sql);
-        $st->execute([$depotId]);
+        $st->execute([$depotId, $userId]);
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 

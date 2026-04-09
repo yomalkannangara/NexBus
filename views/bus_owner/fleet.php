@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Content-only Fleet view (structure only)
 // Expects: $buses (array), BASE_URL defined by layout.
 
@@ -9,8 +9,9 @@ $_flashMsgs = [
     'deleted'     => ['Bus deleted successfully.',                                true],
     'saved'       => ['Bus saved successfully.',                                  true],
     'assigned'    => ['Driver & conductor assigned.',                             true],
+    'assign_blocked' => ['Assignment locked: bus is Maintenance or Out of Service.', false],
     'duplicate'   => ['A bus with that registration number already exists.',      false],
-    'assign_fail' => ['Assignment failed — bus not found or not owned by you.',   false],
+    'assign_fail' => ['Assignment failed - bus not found or not owned by you.',   false],
     'error'       => ['An error occurred. Please try again.',                    false],
 ];
 $_flashKey  = $_GET['msg'] ?? '';
@@ -90,12 +91,24 @@ if (!empty($buses)) {
   </div>
 
   <div class="filter-group">
-    <label for="filter-capacity">Capacity:</label>
-    <select id="filter-capacity" class="filter-select">
+    <label for="filter-bus-class">Bus Class:</label>
+    <select id="filter-bus-class" class="filter-select">
       <option value="all">All</option>
-      <option value="small">Small (&lt;30 seats)</option>
-      <option value="medium">Medium (30-50 seats)</option>
-      <option value="large">Large (&gt;50 seats)</option>
+      <option value="Normal">Normal</option>
+      <option value="Semi-Luxury">Semi-Luxury</option>
+      <option value="AC">AC</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="filter-bus-age">Bus Age:</label>
+    <select id="filter-bus-age" class="filter-select">
+      <option value="all">All</option>
+      <option value="0-5">0-5 years</option>
+      <option value="6-10">6-10 years</option>
+      <option value="11-15">11-15 years</option>
+      <option value="16+">16+ years</option>
+      <option value="unknown">Unknown year</option>
     </select>
   </div>
 
@@ -112,276 +125,356 @@ if (!empty($buses)) {
 <div class="card">
   <h3 class="card-title">Fleet Overview</h3>
 
-  <div class="table-container">
-    <table class="data-table" id="fleet-table">
-      <thead>
-        <tr>
-          <th>Bus Number</th>
-          <th>Route</th>
-          <th class="sortable" data-sort-key="route_number">
-            Route Number <span class="sort-arrow"></span>
-          </th>
-          <th class="sortable" data-sort-key="status">
-            Status <span class="sort-arrow"></span>
-          </th>
-          <th class="sortable" data-sort-key="location">
-            Current Location <span class="sort-arrow"></span>
-          </th>
-          <th>Capacity</th>
-          <th>Assigned Driver</th>
-          <th>Assigned Conductor</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+  <?php if (!empty($buses)): ?>
+    <div class="fleet-cards-grid" id="fleet-cards-grid">
+      <?php foreach ($buses as $b): ?>
+        <?php
+          $status = !empty($b['status']) ? (string)$b['status'] : 'Active';
+          $statusDisplay = ($status === 'Inactive') ? 'Out of Service' : $status;
+          $isAssignmentLocked = in_array(strtolower($status), ['maintenance', 'inactive'], true);
+          $map = ['Active'=>'status-active','Maintenance'=>'status-maintenance','Out of Service'=>'status-out','Inactive'=>'status-out'];
+          $cls = $map[$status] ?? 'status-active';
+          $drvName  = $b['driver_name']     ?? $b['assigned_driver']   ?? $b['driver']    ?? null;
+          $condName = $b['conductor_name']  ?? $b['assigned_conductor']?? $b['conductor'] ?? null;
+          $hasDriver = !empty($drvName) ? '1' : '0';
+          $hasConductor = !empty($condName) ? '1' : '0';
+          $routeNo = trim((string)($b['route_number'] ?? ''));
+          $routeTagText = $routeNo !== '' ? ('Route ' . $routeNo) : 'Route Unassigned';
+          $destinationText = trim((string)($b['route'] ?? '')) !== '' ? (string)$b['route'] : 'Unassigned Destination';
+          $busClass = trim((string)($b['bus_class'] ?? '')) !== '' ? (string)$b['bus_class'] : 'Normal';
+            $busIconClass = 'fleet-card-bus-icon--normal';
+            if ($busClass === 'Semi-Luxury') {
+              $busIconClass = 'fleet-card-bus-icon--semi-luxury';
+            } elseif ($busClass === 'AC') {
+              $busIconClass = 'fleet-card-bus-icon--ac';
+            }
+        ?>
+        <article class="fleet-card js-bus-profile-card"
+          data-bus-number="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
+          data-status="<?= htmlspecialchars($status); ?>"
+          data-driver-assigned="<?= $hasDriver; ?>"
+          data-conductor-assigned="<?= $hasConductor; ?>"
+          data-route-number="<?= htmlspecialchars($b['route_number'] ?? ''); ?>"
+          data-route-tag="<?= htmlspecialchars($routeTagText); ?>"
+          data-destination="<?= htmlspecialchars($destinationText); ?>"
+          data-location="<?= htmlspecialchars($b['current_location'] ?? ''); ?>"
+          data-capacity="<?= (int)($b['capacity'] ?? 0); ?>"
+          data-bus-class="<?= htmlspecialchars($busClass); ?>"
+          data-manufactured-date="<?= htmlspecialchars($b['manufactured_date'] ?? ''); ?>"
+          data-manufactured-year="<?= htmlspecialchars((string)($b['manufactured_year'] ?? '')); ?>"
+          data-model="<?= htmlspecialchars($b['model'] ?? ''); ?>"
+          data-chassis-no="<?= htmlspecialchars($b['chassis_no'] ?? ''); ?>"
+          data-driver-license="<?= htmlspecialchars($b['driver_license'] ?? ''); ?>"
+          data-conductor-id="<?= htmlspecialchars((string)($b['conductor_id_display'] ?? '')); ?>"
+          data-driver-name="<?= htmlspecialchars($drvName ?? ''); ?>"
+          data-conductor-name="<?= htmlspecialchars($condName ?? ''); ?>"
+          tabindex="0"
+        >
+          <div class="fleet-card-head">
+            <div class="fleet-card-reg-wrap">
+              <span class="fleet-card-reg"><?= htmlspecialchars($b['bus_number'] ?? ''); ?></span>
+              <span class="fleet-card-bus-icon <?= htmlspecialchars($busIconClass); ?>" aria-hidden="true">🚌</span>
+            </div>
+            <div class="fleet-card-status-wrap">
+              <span class="status-badge <?= $cls; ?>"><?= htmlspecialchars($statusDisplay); ?></span>
+              <?php if ($isAssignmentLocked): ?>
+                <span class="maintenance-lock-badge" title="Assignments are disabled for Maintenance and Out of Service buses">Assignment Locked</span>
+              <?php endif; ?>
+            </div>
+          </div>
 
-      <tbody>
-        <?php if (!empty($buses)): ?>
-          <?php foreach ($buses as $b): ?>
-            <?php
-              // Handle empty string status, not just null
-              $status = !empty($b['status']) ? (string)$b['status'] : 'Active';
-              // 'Inactive' is the DB value for the "Out of Service" option
-              $statusDisplay = ($status === 'Inactive') ? 'Out of Service' : $status;
-              $map    = ['Active'=>'status-active','Maintenance'=>'status-maintenance','Out of Service'=>'status-out','Inactive'=>'status-out'];
-              $cls    = $map[$status] ?? 'status-active';
+          <div class="fleet-card-body">
+            <div class="fleet-card-row fleet-card-row--full">
+              <span class="fleet-card-label">Route:</span>
+              <div class="destination-wrap">
+                <span><?= htmlspecialchars($destinationText); ?></span>
+                <span class="route-tag"><?= htmlspecialchars($routeTagText); ?></span>
+              </div>
+            </div>
 
-              // new: resolve assigned names with fallbacks
-              $drvName  = $b['driver_name']     ?? $b['assigned_driver']   ?? $b['driver']    ?? null;
-              $condName = $b['conductor_name']  ?? $b['assigned_conductor']?? $b['conductor'] ?? null;
-              
-              // Data for filtering
-              $hasDriver = !empty($drvName) ? '1' : '0';
-              $hasConductor = !empty($condName) ? '1' : '0';
-            ?>
-            <tr 
-              data-bus-number="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
-              data-status="<?= htmlspecialchars($status); ?>"
-              data-driver-assigned="<?= $hasDriver; ?>"
-              data-conductor-assigned="<?= $hasConductor; ?>"
-              data-route-number="<?= htmlspecialchars($b['route_number'] ?? ''); ?>"
-              data-location="<?= htmlspecialchars($b['current_location'] ?? ''); ?>"
-              data-capacity="<?= (int)($b['capacity'] ?? 0); ?>"
-              data-bus-number-search="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
-              data-driver-name="<?= htmlspecialchars($drvName ?? ''); ?>"
-              data-conductor-name="<?= htmlspecialchars($condName ?? ''); ?>"
-            >
-              <td><strong><?= htmlspecialchars($b['bus_number'] ?? ''); ?></strong></td>
-              <td><?= htmlspecialchars($b['route'] ?? ''); ?></td>
-              <td><span class="badge badge-yellow"><?= htmlspecialchars($b['route_number'] ?? ''); ?></span></td>
-              <td>
-                <span class="status-badge <?= $cls; ?>">
-                  <?= htmlspecialchars($statusDisplay); ?>
-                </span>
-              </td>
-              <td><?= htmlspecialchars($b['current_location'] ?? ''); ?></td>
-              <td><?= (int)($b['capacity'] ?? 0); ?> seats</td>
-              <td class="td-driver">
-                <?php if (!empty($drvName)): ?>
-                  <?= htmlspecialchars($drvName); ?>
-                <?php else: ?>
-                  <span class="text-secondary">Unassigned</span>
-                <?php endif; ?>
-              </td>
-              <td class="td-conductor">
-                <?php if (!empty($condName)): ?>
-                  <?= htmlspecialchars($condName); ?>
-                <?php else: ?>
-                  <span class="text-secondary">Unassigned</span>
-                <?php endif; ?>
-              </td>
-              <td>
-                <div class="action-buttons">
-                  <a href="#" class="icon-btn icon-btn-edit js-edit-bus" title="Edit" 
-                     data-bus='<?= htmlspecialchars(json_encode($b, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES, "UTF-8"); ?>'>
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                      <path d="M13 2l3 3-9 9H4v-3l9-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </a>
-                  <a href="#" class="icon-btn icon-btn-delete js-del-bus" title="Delete" data-bus-reg="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                      <path d="M2 5h14M7 8v5M11 8v5M3 5l1 10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-10M6 5V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                  </a>
-                  <a
-                    href="#"
-                    class="icon-btn js-assign"
-                    title="Assign Driver/Conductor"
-                    data-bus-reg="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
-                    data-driver-id="<?= isset($b['driver_id']) ? (int)$b['driver_id'] : 0; ?>"
-                    data-conductor-id="<?= isset($b['conductor_id']) ? (int)$b['conductor_id'] : 0; ?>"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M16 11a4 4 0 1 0-3.999-4A4 4 0 0 0 16 11Zm-8 3a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm8 2c-2.21 0-6 1.11-6 3.33V22h12v-2.67C22 17.11 18.21 16 16 16Zm-8-1c-2.67 0-8 1.34-8 4v3h6v-2.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </a>
-                </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <tr>
-            <td colspan="9" style="text-align:center;padding:40px;color:#6B7280;">
-              No buses found. Click "Add New Bus" to add your first bus.
-            </td>
-          </tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
+            <div class="fleet-card-grid-two">
+              <div class="fleet-card-row">
+                <span class="fleet-card-label">Model:</span>
+                <span class="fleet-card-value"><?= htmlspecialchars($b['model'] ?? '—'); ?></span>
+              </div>
+              <div class="fleet-card-row">
+                <span class="fleet-card-label">Year:</span>
+                <span class="fleet-card-value"><?= htmlspecialchars((string)($b['manufactured_year'] ?? '—')); ?></span>
+              </div>
+              <div class="fleet-card-row">
+                <span class="fleet-card-label">Capacity:</span>
+                <span class="fleet-card-value"><?= (int)($b['capacity'] ?? 0); ?> seats</span>
+              </div>
+              <div class="fleet-card-row">
+                <span class="fleet-card-label">Class:</span>
+                <span class="fleet-card-value"><?= htmlspecialchars($busClass); ?></span>
+              </div>
+            </div>
 
-  <!-- Pagination Controls -->
-  <div class="pagination-container">
-    <div class="pagination-controls">
-      <button class="pagination-btn" id="prev-page" disabled>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Previous
-      </button>
-      <div class="pagination-pages" id="pagination-pages"></div>
-      <button class="pagination-btn" id="next-page" disabled>
-        Next
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+            <div class="fleet-card-row fleet-card-row--full">
+              <span class="fleet-card-label">Current Location:</span>
+              <span class="fleet-card-location"><?= htmlspecialchars($b['current_location'] ?? '—'); ?></span>
+            </div>
+          </div>
+
+          <div class="fleet-card-footer">
+            <div class="action-buttons">
+              <a href="#" class="icon-btn icon-btn-edit js-edit-bus" title="Edit"
+                 data-bus='<?= htmlspecialchars(json_encode($b, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES, "UTF-8"); ?>'>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <path d="M13 2l3 3-9 9H4v-3l9-9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <a href="#" class="icon-btn icon-btn-delete js-del-bus" title="Delete" data-bus-reg="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <path d="M2 5h14M7 8v5M11 8v5M3 5l1 10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-10M6 5V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </a>
+                <a href="#" class="icon-btn js-assign<?= $isAssignmentLocked ? ' is-disabled' : ''; ?>" title="<?= $isAssignmentLocked ? 'Unavailable while bus is Maintenance or Out of Service' : 'Assign Driver/Conductor'; ?>"
+                 data-bus-reg="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
+                 data-driver-id="<?= isset($b['driver_id']) ? (int)$b['driver_id'] : 0; ?>"
+                 data-conductor-id="<?= isset($b['conductor_id']) ? (int)$b['conductor_id'] : 0; ?>"
+                  data-assign-disabled="<?= $isAssignmentLocked ? '1' : '0'; ?>"
+                  aria-disabled="<?= $isAssignmentLocked ? 'true' : 'false'; ?>">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M16 11a4 4 0 1 0-3.999-4A4 4 0 0 0 16 11Zm-8 3a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm8 2c-2.21 0-6 1.11-6 3.33V22h12v-2.67C22 17.11 18.21 16 16 16Zm-8-1c-2.67 0-8 1.34-8 4v3h6v-2.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </article>
+      <?php endforeach; ?>
     </div>
-  </div>
+  <?php else: ?>
+    <div style="text-align:center;padding:40px;color:#6B7280;">
+      No buses found. Click "Add New Bus" to add your first bus.
+    </div>
+  <?php endif; ?>
 </div>
 
 <script>
-/* ---- Fleet filters + pagination ---- */
+/* ---- Fleet filters on cards ---- */
 document.addEventListener('DOMContentLoaded', function () {
-  var table = document.getElementById('fleet-table');
-  if (!table) return;
-  var tbody = table.querySelector('tbody');
-  if (!tbody) return;
+  var grid = document.getElementById('fleet-cards-grid');
+  if (!grid) return;
 
   var statusFilter   = document.getElementById('filter-status');
   var assignFilter   = document.getElementById('filter-assignment');
   var routeFilter    = document.getElementById('filter-route');
-  var capacityFilter = document.getElementById('filter-capacity');
+  var busClassFilter = document.getElementById('filter-bus-class');
+  var busAgeFilter   = document.getElementById('filter-bus-age');
   var searchInput    = document.getElementById('fleet-search');
 
-  var prevBtn        = document.getElementById('prev-page');
-  var nextBtn        = document.getElementById('next-page');
-  var pagesContainer = document.getElementById('pagination-pages');
-  var paginationEl   = document.querySelector('.pagination-container');
-
-  var allRows      = Array.from(tbody.querySelectorAll('tr'));
-  var filteredRows = allRows.slice();
-  var rowsPerPage  = 10;
-  var currentPage  = 1;
-
-  function totalPages() {
-    return Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
-  }
-
-  function renderPageNumbers() {
-    if (!pagesContainer) return;
-    pagesContainer.innerHTML = '';
-    var tp = totalPages();
-    if (tp <= 1) return;
-    for (var i = 1; i <= tp; i++) {
-      (function(page) {
-        var b = document.createElement('button');
-        b.className = 'page-number' + (page === currentPage ? ' active' : '');
-        b.textContent = page;
-        b.addEventListener('click', function () { goToPage(page); });
-        pagesContainer.appendChild(b);
-      })(i);
-    }
-  }
-
-  function showPage() {
-    var tp = totalPages();
-    if (currentPage > tp) currentPage = tp;
-    if (currentPage < 1)  currentPage = 1;
-
-    // If everything fits on one page, show all filtered rows and hide pagination
-    if (filteredRows.length <= rowsPerPage) {
-      allRows.forEach(function (r) { r.style.display = 'none'; });
-      filteredRows.forEach(function (r) { r.style.display = ''; });
-      if (paginationEl) paginationEl.style.display = 'none';
-      return;
-    }
-
-    // Multi-page: show only this page's slice
-    var startIdx = (currentPage - 1) * rowsPerPage;
-    var endIdx   = startIdx + rowsPerPage;
-
-    allRows.forEach(function (r) { r.style.display = 'none'; });
-    filteredRows.forEach(function (r, idx) {
-      if (idx >= startIdx && idx < endIdx) r.style.display = '';
-    });
-
-    if (paginationEl) paginationEl.style.display = '';
-    if (prevBtn) prevBtn.disabled = (currentPage === 1);
-    if (nextBtn) nextBtn.disabled = (currentPage >= tp);
-    renderPageNumbers();
-  }
-
-  function goToPage(p) { currentPage = p; showPage(); }
+  var allCards = Array.from(grid.querySelectorAll('.fleet-card'));
 
   var debounceTimer;
-  function filterTable() {
+  function filterCards() {
     var status     = statusFilter   ? statusFilter.value   : 'all';
     var assignment = assignFilter   ? assignFilter.value   : 'all';
     var route      = routeFilter    ? routeFilter.value    : 'all';
-    var capacity   = capacityFilter ? capacityFilter.value : 'all';
+    var busClass   = busClassFilter ? busClassFilter.value : 'all';
+    var busAge     = busAgeFilter   ? busAgeFilter.value   : 'all';
     var term       = searchInput    ? searchInput.value.toLowerCase().trim() : '';
 
-    filteredRows = allRows.filter(function (row) {
-      if (status !== 'all' && row.dataset.status !== status) return false;
+    allCards.forEach(function (card) {
+      var visible = true;
+      if (status !== 'all' && card.dataset.status !== status) visible = false;
       if (assignment !== 'all') {
-        var hd = row.dataset.driverAssigned === '1';
-        var hc = row.dataset.conductorAssigned === '1';
-        if      (assignment === 'fully')             return hd && hc;
-        else if (assignment === 'missing-driver')    return !hd;
-        else if (assignment === 'missing-conductor') return !hc;
-        else if (assignment === 'unassigned')        return !hd && !hc;
+        var hd = card.dataset.driverAssigned === '1';
+        var hc = card.dataset.conductorAssigned === '1';
+        if (assignment === 'fully' && !(hd && hc)) visible = false;
+        else if (assignment === 'missing-driver' && hd) visible = false;
+        else if (assignment === 'missing-conductor' && hc) visible = false;
+        else if (assignment === 'unassigned' && (hd || hc)) visible = false;
       }
-      if (route !== 'all' && row.dataset.routeNumber !== route) return false;
-      if (capacity !== 'all') {
-        var cap = parseInt(row.dataset.capacity) || 0;
-        if      (capacity === 'small')  { if (cap >= 30) return false; }
-        else if (capacity === 'medium') { if (cap < 30 || cap > 50) return false; }
-        else if (capacity === 'large')  { if (cap <= 50) return false; }
+      if (route !== 'all' && card.dataset.routeNumber !== route) visible = false;
+      if (busClass !== 'all' && card.dataset.busClass !== busClass) visible = false;
+      if (busAge !== 'all') {
+        var year = parseInt(card.dataset.manufacturedYear, 10);
+        if (busAge === 'unknown') {
+          if (!year || Number.isNaN(year)) visible = visible && true;
+          else visible = false;
+        } else {
+          if (!year || Number.isNaN(year)) {
+            visible = false;
+          } else {
+            var age = new Date().getFullYear() - year;
+            if (busAge === '0-5' && (age < 0 || age > 5)) visible = false;
+            else if (busAge === '6-10' && (age < 6 || age > 10)) visible = false;
+            else if (busAge === '11-15' && (age < 11 || age > 15)) visible = false;
+            else if (busAge === '16+' && age < 16) visible = false;
+          }
+        }
       }
       if (term) {
-        var bn = (row.dataset.busNumber    || '').toLowerCase();
-        var dn = (row.dataset.driverName   || '').toLowerCase();
-        var cn = (row.dataset.conductorName|| '').toLowerCase();
-        if (!bn.includes(term) && !dn.includes(term) && !cn.includes(term)) return false;
+        var bn = (card.dataset.busNumber || '').toLowerCase();
+        var dn = (card.dataset.driverName || '').toLowerCase();
+        var cn = (card.dataset.conductorName || '').toLowerCase();
+        if (!bn.includes(term) && !dn.includes(term) && !cn.includes(term)) visible = false;
       }
-      return true;
+      card.style.display = visible ? '' : 'none';
     });
-
-    currentPage = 1;
-    showPage();
   }
 
-  if (statusFilter)   statusFilter.addEventListener('change', filterTable);
-  if (assignFilter)   assignFilter.addEventListener('change', filterTable);
-  if (routeFilter)    routeFilter.addEventListener('change', filterTable);
-  if (capacityFilter) capacityFilter.addEventListener('change', filterTable);
+  if (statusFilter)   statusFilter.addEventListener('change', filterCards);
+  if (assignFilter)   assignFilter.addEventListener('change', filterCards);
+  if (routeFilter)    routeFilter.addEventListener('change', filterCards);
+  if (busClassFilter) busClassFilter.addEventListener('change', filterCards);
+  if (busAgeFilter)   busAgeFilter.addEventListener('change', filterCards);
   if (searchInput) {
     searchInput.addEventListener('input', function () {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(filterTable, 280);
+      debounceTimer = setTimeout(filterCards, 250);
     });
   }
-  if (prevBtn) prevBtn.addEventListener('click', function () { if (currentPage > 1) goToPage(currentPage - 1); });
-  if (nextBtn) nextBtn.addEventListener('click', function () { if (currentPage < totalPages()) goToPage(currentPage + 1); });
-
-  // Initial render — don't touch rows at all if everything fits
-  if (allRows.length <= rowsPerPage) {
-    if (paginationEl) paginationEl.style.display = 'none';
-  } else {
-    showPage();
-  }
+  filterCards();
 });
 </script>
+
+<style>
+  .fleet-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  .fleet-card {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    overflow: hidden;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .fleet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    border-color: #E3C36D;
+  }
+  .fleet-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px;
+    border-bottom: 1px solid #E5E7EB;
+  }
+  .fleet-card-reg-wrap { display: flex; align-items: center; gap: 8px; }
+  .fleet-card-status-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .maintenance-lock-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid #FCA5A5;
+    background: #FEF2F2;
+    color: #991B1B;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .fleet-card-reg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    padding: 4px 10px;
+    border-radius: 7px;
+    background: #7F1D3A;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .4px;
+  }
+  .fleet-card-bus-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #9CA3AF;
+    font-size: 13px;
+  }
+  .fleet-card-bus-icon--normal {
+    background: #9CA3AF;
+  }
+  .fleet-card-bus-icon--semi-luxury {
+    background: #FACC15;
+  }
+  .fleet-card-bus-icon--ac {
+    background: #D4AF37;
+  }
+  .fleet-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-bottom: 1px solid #E5E7EB;
+  }
+  .fleet-card-grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+  }
+  .fleet-card-row { display: flex; flex-direction: column; gap: 4px; }
+  .fleet-card-row--full { grid-column: 1 / -1; }
+  .fleet-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .fleet-card-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #374151;
+  }
+  .fleet-card-location {
+    font-size: 14px;
+    font-weight: 700;
+    color: #7F1D3A;
+  }
+  .destination-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 7px;
+    align-items: flex-start;
+  }
+  .route-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #FFF7ED;
+    border: 1px solid #FED7AA;
+    color: #9A3412;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .fleet-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 12px;
+    background: #F9FAFB;
+  }
+  .fleet-card-footer .action-buttons { gap: 8px; }
+  .fleet-card-footer .icon-btn { width: 34px; height: 34px; }
+  .fleet-card-footer .icon-btn.is-disabled {
+    pointer-events: none;
+    opacity: .45;
+    border-color: #D1D5DB;
+    color: #9CA3AF;
+    background: #F9FAFB;
+  }
+
+  @media (max-width: 640px) {
+    .fleet-cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
 
 <!-- Assign Driver/Conductor Modal -->
 <div class="modal" id="assignModal" hidden>
@@ -401,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <label class="bus-modal__label" for="assign_driver_id">Driver</label>
           <select id="assign_driver_id" name="driver_id" class="bus-modal__input">
             <option value="">Select Driver</option>
-            <option value="0">— Unassigned —</option>
+            <option value="0">-- Unassigned --</option>
             <?php if (!empty($drivers)): ?>
               <?php foreach ($drivers as $d): ?>
                 <option value="<?= $d['private_driver_id'] ?>">
@@ -415,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <label class="bus-modal__label" for="assign_conductor_id">Conductor</label>
           <select id="assign_conductor_id" name="conductor_id" class="bus-modal__input">
             <option value="">Select Conductor</option>
-            <option value="0">— Unassigned —</option>
+            <option value="0">-- Unassigned --</option>
             <?php if (!empty($conductors)): ?>
               <?php foreach ($conductors as $c): ?>
                 <option value="<?= $c['private_conductor_id'] ?>">
@@ -476,6 +569,10 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.js-assign').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
+      if (btn.getAttribute('data-assign-disabled') === '1') {
+        alert('This bus is Maintenance or Out of Service. Assignment is disabled.');
+        return;
+      }
       openModal(
         btn.getAttribute('data-bus-reg')       || '',
         btn.getAttribute('data-driver-id')     || '',
@@ -503,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var conductorId = condSel   ? condSel.value     : '';
 
     if (!regNo) {
-      alert('Cannot determine bus – please close and try again.');
+      alert('Cannot determine bus - please close and try again.');
       return;
     }
 
@@ -556,6 +653,26 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="bus-modal__field">
           <label class="bus-modal__label" for="bus_capacity">Capacity (Seats) *</label>
           <input type="number" name="capacity" id="bus_capacity" class="bus-modal__input" placeholder="e.g., 50" min="1" max="200" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_manufactured_date">Manufactured Date *</label>
+          <input type="date" name="manufactured_date" id="bus_manufactured_date" class="bus-modal__input" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_manufactured_year">Year *</label>
+          <input type="number" name="manufactured_year" id="bus_manufactured_year" class="bus-modal__input" placeholder="e.g., 2024" min="1900" max="2100" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_model">Model *</label>
+          <input type="text" name="model" id="bus_model" class="bus-modal__input" placeholder="e.g., Ashok Leyland Viking" required>
+        </div>
+        <div class="bus-modal__field">
+          <label class="bus-modal__label" for="bus_class">Bus Class *</label>
+          <select name="bus_class" id="bus_class" class="bus-modal__input" required>
+            <option value="Normal">Normal</option>
+            <option value="Semi-Luxury">Semi-Luxury</option>
+            <option value="AC">AC</option>
+          </select>
         </div>
         <div class="bus-modal__field">
           <label class="bus-modal__label" for="bus_status">Status</label>
@@ -645,6 +762,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
       document.getElementById('bus_chassis_no').value = busData.chassis_no || '';
       document.getElementById('bus_capacity').value   = busData.capacity   || '';
+      document.getElementById('bus_manufactured_date').value = busData.manufactured_date || '';
+      document.getElementById('bus_manufactured_year').value = busData.manufactured_year || '';
+      document.getElementById('bus_model').value = busData.model || '';
+      document.getElementById('bus_class').value = busData.bus_class || 'Normal';
       document.getElementById('bus_status').value     = busData.status     || 'Active';
 
       actionInput.value      = 'update';
@@ -661,10 +782,10 @@ document.addEventListener('DOMContentLoaded', function () {
   if (backdrop) backdrop.addEventListener('click', closeModal);
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal(); });
 
-  // Form submit — plain native submit, no fetch (session cookie sent automatically)
+  // Form submit - plain native submit, no fetch (session cookie sent automatically)
   if (form) {
     form.addEventListener('submit', function(e) {
-      // Sync visible reg_no display field → hidden field (for create mode)
+      // Sync visible reg_no display field to hidden field (for create mode)
       if (actionInput.value === 'create') {
         regNoHidden.value = regNoVisible.value.trim();
       }
@@ -676,9 +797,133 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       regNoVisible.style.borderColor = '';
-      // Let the browser submit the form normally — cookies included automatically
+      // Let the browser submit the form normally - cookies included automatically
     });
   }
+})();
+</script>
+
+<style>
+  .profile-modal[hidden] { display: none !important; }
+  .profile-modal { position: fixed; inset: 0; z-index: 1000000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .profile-modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.5); }
+  .profile-modal__panel { position: relative; width: min(700px, 100%); max-height: 88vh; overflow: hidden; border-radius: 18px; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,.22); display: flex; flex-direction: column; }
+  .profile-modal__hero { background: linear-gradient(135deg, #7F0032 0%, #9B1042 100%); padding: 24px; display: flex; align-items: center; gap: 14px; }
+  .profile-modal__avatar { width: 58px; height: 58px; border-radius: 50%; background: rgba(255,255,255,.2); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .profile-modal__hero-name { color: #fff; margin: 0 0 3px; font-size: 20px; font-weight: 700; }
+  .profile-modal__hero-id { color: rgba(255,255,255,.8); margin: 0; font-size: 13px; }
+  .profile-modal__close { margin-left: auto; background: rgba(255,255,255,.2); border: 0; width: 34px; height: 34px; border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer; }
+  .profile-modal__body { overflow-y: auto; }
+  .profile-modal__section { padding: 18px 24px; border-bottom: 1px solid #EFE7D2; }
+  .profile-modal__section-title { margin: 0 0 10px; color: #9CA3AF; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .profile-modal__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .profile-modal__field { display: flex; flex-direction: column; gap: 2px; }
+  .profile-modal__field-label { font-size: 11px; color: #9CA3AF; text-transform: uppercase; font-weight: 700; }
+  .profile-modal__field-value { font-size: 14px; font-weight: 600; color: #111827; }
+  .profile-modal__field-value--mono { font-family: 'Courier New', monospace; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 3px 8px; display: inline-block; }
+  .js-bus-profile-card { cursor: pointer; }
+  .js-bus-profile-card:focus-visible { outline: 2px solid #7F0032; outline-offset: 2px; }
+</style>
+
+<div id="busProfileModal" class="profile-modal" hidden>
+  <div class="profile-modal__backdrop" id="busProfileBackdrop"></div>
+  <div class="profile-modal__panel">
+    <div class="profile-modal__hero">
+      <div class="profile-modal__avatar" id="bpAvatar">B</div>
+      <div>
+        <h2 class="profile-modal__hero-name" id="bpBusNo">Bus</h2>
+        <p class="profile-modal__hero-id" id="bpRouteLine">Destination</p>
+      </div>
+      <button type="button" class="profile-modal__close" id="btnCloseBusProfile">×</button>
+    </div>
+    <div class="profile-modal__body">
+      <div class="profile-modal__section">
+        <p class="profile-modal__section-title">Bus Details</p>
+        <div class="profile-modal__grid">
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Bus Class</span><span class="profile-modal__field-value" id="bpBusClass">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Model</span><span class="profile-modal__field-value" id="bpModel">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Capacity</span><span class="profile-modal__field-value" id="bpCapacity">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Year</span><span class="profile-modal__field-value" id="bpYear">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Manufactured Date</span><span class="profile-modal__field-value" id="bpDate">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Chassis Number</span><span class="profile-modal__field-value profile-modal__field-value--mono" id="bpChassis">-</span></div>
+        </div>
+      </div>
+      <div class="profile-modal__section">
+        <p class="profile-modal__section-title">Assignments</p>
+        <div class="profile-modal__grid">
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Route</span><span class="profile-modal__field-value" id="bpRouteTag">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Current Location</span><span class="profile-modal__field-value" id="bpLocation">-</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Assigned Driver</span><span class="profile-modal__field-value" id="bpDriver">Unassigned</span></div>
+          <div class="profile-modal__field"><span class="profile-modal__field-label">Assigned Conductor</span><span class="profile-modal__field-value" id="bpConductor">Unassigned</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var modal = document.getElementById('busProfileModal');
+  if (!modal) return;
+  var closeBtn = document.getElementById('btnCloseBusProfile');
+  var backdrop = document.getElementById('busProfileBackdrop');
+
+  function text(v, fallback) {
+    var t = (v || '').toString().trim();
+    return t ? t : fallback;
+  }
+
+  function fill(card) {
+    var busNo = text(card.dataset.busNumber, '-');
+    var driver = text(card.dataset.driverName, 'Unassigned');
+    var conductor = text(card.dataset.conductorName, 'Unassigned');
+    var driverLicense = text(card.dataset.driverLicense, 'N/A');
+    var conductorId = text(card.dataset.conductorId, 'N/A');
+
+    document.getElementById('bpAvatar').textContent = busNo.slice(0, 2).toUpperCase();
+    document.getElementById('bpBusNo').textContent = busNo;
+    document.getElementById('bpRouteLine').textContent = text(card.dataset.destination, 'Unassigned Destination');
+    document.getElementById('bpBusClass').textContent = text(card.dataset.busClass, 'Normal');
+    document.getElementById('bpModel').textContent = text(card.dataset.model, '-');
+    document.getElementById('bpCapacity').textContent = text(card.dataset.capacity, '0') + ' seats';
+    document.getElementById('bpYear').textContent = text(card.dataset.manufacturedYear, '-');
+    document.getElementById('bpDate').textContent = text(card.dataset.manufacturedDate, '-');
+    document.getElementById('bpChassis').textContent = text(card.dataset.chassisNo, '-');
+    document.getElementById('bpRouteTag').textContent = text(card.dataset.routeTag, 'Route Unassigned');
+    document.getElementById('bpLocation').textContent = text(card.dataset.location, '-');
+    document.getElementById('bpDriver').textContent = driver === 'Unassigned' ? 'Unassigned' : (driver + ' (' + driverLicense + ')');
+    document.getElementById('bpConductor').textContent = conductor === 'Unassigned' ? 'Unassigned' : (conductor + ' (ID: ' + conductorId + ')');
+  }
+
+  function open(card) {
+    fill(card);
+    modal.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    modal.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.js-bus-profile-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.action-buttons, .icon-btn, a, button, input, select, textarea, form, label')) return;
+      open(card);
+    });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        open(card);
+      }
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', close);
+  if (backdrop) backdrop.addEventListener('click', close);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.hasAttribute('hidden')) close();
+  });
 })();
 </script>
 

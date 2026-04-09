@@ -7,14 +7,13 @@
 $feedback_refs = is_array($feedback_refs ?? null) ? $feedback_refs : [];
 $feedback_list = is_array($feedback_list ?? null) ? $feedback_list : [];
 
-// Count by status
-$counts = ['total' => count($feedback_list), 'Open' => 0, 'In Progress' => 0, 'Resolved' => 0, 'Closed' => 0];
-foreach ($feedback_list as $f) {
-    $s = $f['status'] ?? 'Open';
-    if (array_key_exists($s, $counts)) $counts[$s]++;
-}
-
 function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function ui_status_label(?string $status): string {
+  return strcasecmp(trim((string)$status), 'Resolved') === 0 ? 'Resolved' : 'Not Solved';
+}
+function ui_status_class(?string $status): string {
+  return strcasecmp(trim((string)$status), 'Resolved') === 0 ? 'fb-badge--resolved' : 'fb-badge--not-solved';
+}
 ?>
 
 <section id="feedbackPage">
@@ -23,7 +22,7 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
   <header class="page-header">
     <div>
       <h2 class="page-title">Passenger Feedback &amp; Complaints</h2>
-      <p class="page-subtitle">Private buses only  your operator</p>
+      <p class="page-subtitle">Private buses under your operator</p>
     </div>
   </header>
 
@@ -40,55 +39,6 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
   </div>
   <?php endif; ?>
 
-  <!-- Stats Row -->
-  <div class="fb-stats">
-    <div class="fb-stat-card fb-stat-card--total">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['total'] ?></div>
-        <div class="fb-stat-label">Total</div>
-      </div>
-    </div>
-    <div class="fb-stat-card fb-stat-card--open">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v4M12 16h.01"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['Open'] ?></div>
-        <div class="fb-stat-label">Open</div>
-      </div>
-    </div>
-    <div class="fb-stat-card fb-stat-card--progress">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['In Progress'] ?></div>
-        <div class="fb-stat-label">In Progress</div>
-      </div>
-    </div>
-    <div class="fb-stat-card fb-stat-card--resolved">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['Resolved'] ?></div>
-        <div class="fb-stat-label">Resolved</div>
-      </div>
-    </div>
-    <div class="fb-stat-card fb-stat-card--closed">
-      <div class="fb-stat-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-      </div>
-      <div>
-        <div class="fb-stat-num"><?= $counts['Closed'] ?></div>
-        <div class="fb-stat-label">Closed</div>
-      </div>
-    </div>
-  </div>
-
   <!-- Toolbar -->
   <div class="fb-toolbar" style="background:#fff;border-radius:10px;border:1.5px solid #e5e7eb;">
     <div class="fb-toolbar__filters">
@@ -96,10 +46,8 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
         <label class="fb-filter-label" for="fb-filter-status">Status:</label>
         <select id="fb-filter-status" class="fb-toolbar__select fb-toolbar__select--primary">
           <option value="">All</option>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
+          <option value="Not Solved">Not Solved</option>
           <option value="Resolved">Resolved</option>
-          <option value="Closed">Closed</option>
         </select>
       </div>
       <div class="fb-filter-group">
@@ -130,7 +78,8 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
     <?php foreach ($feedback_list as $f):
       $id       = (int)($f['id'] ?? 0);
       $ref      = (string)($f['ref_code'] ?? ('C' . str_pad((string)$id, 6, '0', STR_PAD_LEFT)));
-      $stat     = (string)($f['status'] ?? 'Open');
+      $statRaw  = (string)($f['status'] ?? 'Open');
+      $stat     = ui_status_label($statRaw);
       $rate     = (int)($f['rating'] ?? 0);
       $reply    = trim((string)($f['response'] ?? ''));
       $type     = (string)($f['type'] ?? '');
@@ -140,22 +89,18 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
       $passenger= (string)($f['passenger'] ?? '');
       $bus      = (string)($f['bus_or_route'] ?? '');
 
-      $statClass = match(strtolower($stat)) {
-        'open'        => 'fb-badge--open',
-        'in progress' => 'fb-badge--progress',
-        'resolved'    => 'fb-badge--resolved',
-        'closed'      => 'fb-badge--closed',
-        default       => 'fb-badge--open',
-      };
+      $statClass = ui_status_class($statRaw);
       $typeClass = match(strtolower($type)) {
         'complaint'  => 'fb-chip--complaint',
         'suggestion' => 'fb-chip--suggestion',
         default      => 'fb-chip--feedback',
       };
+      $isComplaint = strtolower(trim($type)) === 'complaint' || strtolower(trim($category)) === 'complaint';
     ?>
     <div class="fb-card js-fb-card"
          data-id="<?= $id ?>"
          data-status="<?= h($stat) ?>"
+         data-is-complaint="<?= $isComplaint ? '1' : '0' ?>"
          data-type="<?= h($type) ?>"
          data-search="<?= h(strtolower($ref . ' ' . $passenger . ' ' . $bus)) ?>">
 
@@ -308,13 +253,13 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                 Send Reply
               </button>
-              <button type="submit" name="action" value="resolve" class="fb-btn fb-btn--resolve">
+              <button type="submit" name="action" value="resolve" class="fb-btn fb-btn--resolve fb-btn--hidden" id="fb-btn-resolve">
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Mark Resolved
               </button>
-              <button type="submit" name="action" value="close" class="fb-btn fb-btn--close">
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                Close
+              <button type="submit" name="action" value="not_solved" class="fb-btn fb-btn--not-solved fb-btn--hidden" id="fb-btn-not-solved">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Mark Not Solved
               </button>
             </div>
           </form>
@@ -331,72 +276,44 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
   --fb-maroon:      #80143c;
   --fb-maroon-d:    #5e0f2c;
   --fb-gold:        #f3b944;
-  --fb-open:        #dc2626;
-  --fb-open-bg:     #fef2f2;
-  --fb-prog:        #d97706;
-  --fb-prog-bg:     #fffbeb;
+  --fb-not-solved:     #b45309;
+  --fb-not-solved-bg:  #fffbeb;
   --fb-res:         #059669;
   --fb-res-bg:      #ecfdf5;
-  --fb-closed:      #6b7280;
-  --fb-closed-bg:   #f3f4f6;
 }
+
+#feedbackPage {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.page-header { margin: 4px 0 0; }
+.page-title { margin: 0 0 6px; }
+.page-subtitle { margin: 0; }
 
 /* Alert */
 .fb-alert {
   display: flex; align-items: center; gap: 10px;
   padding: 13px 18px; border-radius: 10px;
-  font-weight: 500; font-size: 14px; margin-bottom: 20px;
+  font-weight: 500; font-size: 14px; margin: 0;
 }
 .fb-alert--success { background:#ecfdf5; color:#065f46; border:1px solid #6ee7b7; }
 .fb-alert--error   { background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; }
 
-/* Stats */
-.fb-stats {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  margin-bottom: 14px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1.5px solid #e5e7eb;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
-  overflow: hidden;
-}
-.fb-stat-card {
-  flex: 1;
-  padding: 12px 16px;
-  display: flex; align-items: center; gap: 10px;
-  border-right: 1px solid #f0f0f0;
-  transition: background .15s;
-}
-.fb-stat-card:last-child { border-right: none; }
-.fb-stat-card:hover { background: #fafafa; }
-.fb-stat-icon {
-  width: 34px; height: 34px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.fb-stat-icon svg { width: 16px; height: 16px; }
-.fb-stat-card--total    .fb-stat-icon { background:#f3f0ff; color:#7c3aed; }
-.fb-stat-card--open     .fb-stat-icon { background:var(--fb-open-bg); color:var(--fb-open); }
-.fb-stat-card--progress .fb-stat-icon { background:var(--fb-prog-bg); color:var(--fb-prog); }
-.fb-stat-card--resolved .fb-stat-icon { background:var(--fb-res-bg);  color:var(--fb-res);  }
-.fb-stat-card--closed   .fb-stat-icon { background:var(--fb-closed-bg); color:var(--fb-closed); }
-.fb-stat-num   { font-size: 20px; font-weight: 800; color: #111827; line-height: 1; }
-.fb-stat-label { font-size: 11px; color: #6b7280; font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
-
 /* Toolbar */
-.fb-toolbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:14px; padding:14px 18px; }
-.fb-toolbar__filters { display:flex; gap:14px; align-items:flex-end; }
+.fb-toolbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin: 0; padding:14px 18px; }
+.fb-toolbar__filters { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
 .fb-filter-group { display:flex; flex-direction:column; gap:4px; }
 .fb-filter-label { font-size:11.5px; font-weight:600; color:#6b7280; letter-spacing:.3px; padding-left:2px; }
 .fb-toolbar__select {
   padding:7px 12px; border:1.5px solid var(--fb-gold); border-radius:7px;
   font-size:13px; font-family:inherit; background:#fff; cursor:pointer;
-  transition:border-color .2s, box-shadow .2s; min-width:130px;
+  transition:border-color .2s, box-shadow .2s; min-width:160px;
 }
 .fb-toolbar__select--primary { border-color:var(--fb-maroon); }
 .fb-toolbar__select:focus { outline:none; border-color:var(--fb-maroon); box-shadow:0 0 0 3px rgba(128,20,60,.1); }
-.fb-toolbar__search { position:relative; min-width:270px; }
+.fb-toolbar__search { position:relative; min-width:280px; width:100%; max-width:420px; }
 .fb-toolbar__search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#9ca3af; pointer-events:none; }
 .fb-toolbar__input {
   width:100%; padding:8px 12px 8px 34px;
@@ -407,10 +324,10 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 .fb-toolbar__input:focus { outline:none; border-color:var(--fb-maroon); box-shadow:0 0 0 3px rgba(128,20,60,.1); }
 
 /* Card List */
-.fb-list { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+.fb-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:0; }
 .fb-card {
   background:#fff; border-radius:10px; border:1.5px solid #e5e7eb;
-  padding:13px 15px;
+  padding:14px 16px;
   transition:border-color .2s, box-shadow .2s, transform .15s;
 }
 .fb-card:hover { border-color:var(--fb-maroon); box-shadow:0 3px 12px rgba(128,20,60,.1); transform:translateY(-1px); }
@@ -424,10 +341,8 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
   padding:3px 10px; border-radius:20px;
   font-size:11.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
 }
-.fb-badge--open     { background:var(--fb-open-bg);    color:var(--fb-open);    }
-.fb-badge--progress { background:var(--fb-prog-bg);    color:var(--fb-prog);    }
+.fb-badge--not-solved { background:var(--fb-not-solved-bg); color:var(--fb-not-solved); }
 .fb-badge--resolved { background:var(--fb-res-bg);     color:var(--fb-res);     }
-.fb-badge--closed   { background:var(--fb-closed-bg);  color:var(--fb-closed);  }
 
 /* Chip */
 .fb-chip { display:inline-flex; align-items:center; padding:2px 9px; border-radius:5px; font-size:11px; font-weight:600; }
@@ -450,7 +365,7 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 /* Footer */
 .fb-card__footer {
   display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  border-top:1px solid #f3f4f6; padding-top:8px; margin-top:2px;
+  border-top:1px solid #f3f4f6; padding-top:10px; margin-top:6px;
 }
 .fb-card__rating { display:flex; align-items:center; gap:2px; flex:1; }
 .fb-star      { color:#d1d5db; }
@@ -486,14 +401,21 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 /* Modal */
 .fb-modal__backdrop {
   position:fixed; inset:0; background:rgba(0,0,0,.55);
-  backdrop-filter:blur(3px); z-index:1000;
-  display:flex; align-items:center; justify-content:center; padding:20px;
+  backdrop-filter:blur(3px); z-index:12000;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding:84px 20px 20px;
+  overflow-y:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
 }
+.fb-modal__backdrop::-webkit-scrollbar { width:0; height:0; }
 .fb-modal__backdrop[hidden] { display:none !important; }
 
 .fb-modal__panel {
-  background:#fff; border-radius:16px;
-  width:100%; max-width:640px; max-height:88vh;
+  background:#fff; border-radius:18px;
+  width:min(94vw, 900px);
+  max-height:calc(100vh - 104px);
+  margin:0 auto;
   display:flex; flex-direction:column;
   box-shadow:0 25px 50px rgba(0,0,0,.3);
   animation:fb-modal-in .2s ease; overflow:hidden;
@@ -505,11 +427,11 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 
 .fb-modal__head {
   background:linear-gradient(135deg, var(--fb-maroon), var(--fb-maroon-d));
-  padding:14px 18px; display:flex; align-items:center;
+  padding:16px 22px; display:flex; align-items:center;
   justify-content:space-between; border-bottom:3px solid var(--fb-gold); flex-shrink:0;
 }
 .fb-modal__head-inner { display:flex; align-items:center; gap:10px; }
-.fb-modal__title { margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:7px; }
+.fb-modal__title { margin:0; font-size:17px; font-weight:700; color:#fff; display:flex; align-items:center; gap:7px; }
 .fb-modal__ref { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.3); padding:2px 9px; border-radius:5px; font-size:13px; }
 .fb-modal__close {
   background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
@@ -519,41 +441,51 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 }
 .fb-modal__close:hover { background:rgba(255,255,255,.25); }
 
-.fb-modal__body { overflow-y:auto; padding:18px 20px; flex:1; display:flex; flex-direction:column; gap:16px; }
-.fb-modal__section { display:flex; flex-direction:column; gap:8px; }
+.fb-modal__body {
+  overflow-y:auto;
+  padding:22px 24px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.fb-modal__body::-webkit-scrollbar { width:0; height:0; }
+.fb-modal__section { display:flex; flex-direction:column; gap:10px; }
 .fb-modal__section-title {
   display:flex; align-items:center; gap:6px;
   font-size:12px; font-weight:700; color:var(--fb-maroon);
   text-transform:uppercase; letter-spacing:.5px;
-  padding-bottom:7px; border-bottom:1.5px solid #f3f4f6;
+  padding-bottom:9px; border-bottom:1.5px solid #f3f4f6;
 }
-.fb-modal__details-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-.fb-modal__detail { background:#f9fafb; border:1px solid #f0f0f0; border-radius:8px; padding:8px 11px; }
+.fb-modal__details-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.fb-modal__detail { background:#f9fafb; border:1px solid #f0f0f0; border-radius:10px; padding:12px 14px; }
 .fb-modal__detail-label { font-size:10.5px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px; }
 .fb-modal__detail-val { font-size:13px; color:#111827; font-weight:500; }
 .fb-modal__message {
   font-size:13.5px; color:#374151; line-height:1.6;
   background:#f9fafb; border:1px solid #f0f0f0;
-  border-radius:8px; padding:10px 13px; white-space:pre-wrap;
+  border-radius:10px; padding:13px 15px; white-space:pre-wrap;
 }
 .fb-modal__reply-text {
   font-size:13px; color:#6b7280; font-style:italic;
   background:#f9fafb; border:1px solid #f0f0f0;
-  border-radius:8px; padding:10px 13px; line-height:1.6; white-space:pre-wrap;
+  border-radius:10px; padding:13px 15px; line-height:1.6; white-space:pre-wrap;
 }
 .fb-modal__textarea {
-  width:100%; padding:9px 12px; border:1.5px solid #d1d5db;
+  width:100%; min-height:120px; padding:12px 14px; border:1.5px solid #d1d5db;
   border-radius:8px; font-size:13.5px; font-family:inherit;
   resize:vertical; transition:border-color .2s, box-shadow .2s; box-sizing:border-box;
 }
 .fb-modal__textarea:focus { outline:none; border-color:var(--fb-maroon); box-shadow:0 0 0 3px rgba(128,20,60,.1); }
-.fb-modal__actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.fb-modal__actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
 
 /* Buttons */
 .fb-btn {
   display:inline-flex; align-items:center; gap:5px;
-  padding:8px 15px; border:none; border-radius:8px;
-  font-size:13px; font-weight:700; cursor:pointer;
+  padding:10px 16px; border:none; border-radius:10px;
+  font-size:13.5px; font-weight:700; cursor:pointer;
   font-family:inherit; transition:background .2s, transform .15s, box-shadow .2s;
 }
 .fb-btn:hover { transform:translateY(-1px); }
@@ -561,22 +493,30 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 .fb-btn--reply:hover   { background:var(--fb-maroon-d); box-shadow:0 4px 12px rgba(128,20,60,.3); }
 .fb-btn--resolve { background:var(--fb-res-bg); color:var(--fb-res); border:1.5px solid #a7f3d0; }
 .fb-btn--resolve:hover { background:#d1fae5; }
-.fb-btn--close   { background:var(--fb-closed-bg); color:var(--fb-closed); border:1.5px solid #e5e7eb; }
-.fb-btn--close:hover   { background:#e5e7eb; }
+.fb-btn--not-solved { background:var(--fb-not-solved-bg); color:var(--fb-not-solved); border:1.5px solid #fcd34d; }
+.fb-btn--not-solved:hover { background:#fef3c7; }
+.fb-btn--hidden { display:none !important; }
 
 /* Responsive */
 @media (max-width:1024px) {
   .fb-list { grid-template-columns:1fr; }
 }
 @media (max-width:900px) {
-  .fb-stats { flex-wrap:wrap; }
-  .fb-stat-card { flex:1 1 45%; border-right:none; border-bottom:1px solid #f0f0f0; }
-  .fb-stat-card:last-child { border-bottom:none; }
+  .fb-toolbar { align-items:stretch; }
+  .fb-toolbar__search { max-width:none; }
 }
 @media (max-width:640px) {
-  .fb-stat-card { flex:1 1 100%; }
+  .fb-modal__backdrop { padding:74px 10px 10px; }
+  .fb-modal__panel {
+    width:100%;
+    max-height:calc(100vh - 84px);
+    border-radius:12px;
+  }
+  .fb-modal__head { padding:12px 14px; }
+  .fb-modal__body { padding:14px; gap:12px; }
   .fb-toolbar { flex-direction:column; align-items:stretch; }
-  .fb-toolbar__filters { flex-wrap:wrap; gap:10px; }
+  .fb-toolbar__filters { gap:10px; }
+  .fb-filter-group { min-width:100%; }
   .fb-toolbar__search { min-width:auto; }
   .fb-modal__details-grid { grid-template-columns:1fr; }
   .fb-modal__actions { flex-direction:column; }
@@ -643,14 +583,23 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
   var mReplySection=document.getElementById('fb-existing-reply-section');
   var mId         = document.getElementById('fb-m-id');
   var mMsgInput   = document.getElementById('fb-m-message-input');
+  var mResolveBtn = document.getElementById('fb-btn-resolve');
+  var mNotSolvedBtn = document.getElementById('fb-btn-not-solved');
+
+  function isComplaintRow(row) {
+    var t = (row && row.type ? String(row.type) : '').toLowerCase().trim();
+    var c = (row && row.category ? String(row.category) : '').toLowerCase().trim();
+    return t === 'complaint' || c === 'complaint';
+  }
 
   function statusClass(s) {
     var sl = (s||'').toLowerCase();
-    if (sl==='open')        return 'fb-badge--open';
-    if (sl==='in progress') return 'fb-badge--progress';
-    if (sl==='resolved')    return 'fb-badge--resolved';
-    if (sl==='closed')      return 'fb-badge--closed';
-    return 'fb-badge--open';
+    if (sl==='resolved') return 'fb-badge--resolved';
+    return 'fb-badge--not-solved';
+  }
+
+  function statusLabel(s) {
+    return (s || '').toLowerCase() === 'resolved' ? 'Resolved' : 'Not Solved';
   }
 
   function starsHTML(rate) {
@@ -662,10 +611,10 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
     return html + '<span style="color:#9ca3af;font-size:12px;margin-left:5px">'+rate+'/5</span>';
   }
 
-  function openModal(row) {
+  function openModal(row, isComplaint) {
     var ref = refForRow(row);
     if (mRef)   mRef.textContent = ref;
-    if (mBadge) { mBadge.textContent = row.status||'Open'; mBadge.className = 'fb-badge '+statusClass(row.status); }
+    if (mBadge) { mBadge.textContent = statusLabel(row.status); mBadge.className = 'fb-badge '+statusClass(row.status); }
     if (mPassenger) mPassenger.textContent = row.passenger || '';
     if (mBus)       mBus.textContent       = row.bus_or_route || '';
     if (mDate)      mDate.textContent      = row.date || '';
@@ -674,6 +623,11 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
     if (mMessage)   mMessage.textContent   = row.message || '';
     if (mId)        mId.value              = row.id;
     if (mMsgInput)  mMsgInput.value        = '';
+    var byCard = typeof isComplaint === 'boolean' ? isComplaint : false;
+    var byRow = isComplaintRow(row);
+    var showStatusButtons = byCard && byRow;
+    if (mResolveBtn) mResolveBtn.classList.toggle('fb-btn--hidden', !showStatusButtons);
+    if (mNotSolvedBtn) mNotSolvedBtn.classList.toggle('fb-btn--hidden', !showStatusButtons);
     if (mReply && mReplySection) {
       var r = (row.response||'').trim();
       if (r) { mReply.textContent = r; mReplySection.style.display = ''; }
@@ -695,8 +649,10 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
   document.addEventListener('click', function(e){
     var btn = e.target.closest('.js-fb-manage');
     if (!btn) return;
+    var card = btn.closest('.js-fb-card');
+    var isComplaint = !!(card && card.dataset.isComplaint === '1');
     var row = findRowById(btn.dataset.id);
-    if (row) openModal(row);
+    if (row) openModal(row, isComplaint);
   });
 
 })();
