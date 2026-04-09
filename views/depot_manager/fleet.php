@@ -197,7 +197,7 @@
               ?>
               <tr class="fleet-row">
                 <td class="fleet-bus-number">
-                  <span class="bus-badge"><?= htmlspecialchars($reg_no) ?></span>
+                  <a class="bus-badge" href="/M/bus_profile?bus_reg_no=<?= urlencode($reg_no) ?>"><?= htmlspecialchars($reg_no) ?></a>
                 </td>
                 <td>
                   <div class="route-info">
@@ -264,7 +264,7 @@
             <div class="fleet-card">
               <div class="fleet-card-header">
                 <div class="fleet-card-title">
-                  <h4><?= htmlspecialchars($reg_no) ?></h4>
+                  <h4><a href="/M/bus_profile?bus_reg_no=<?= urlencode($reg_no) ?>"><?= htmlspecialchars($reg_no) ?></a></h4>
                   <span class="status-badge status-<?= $status_color ?>"><?= htmlspecialchars($status) ?></span>
                 </div>
               </div>

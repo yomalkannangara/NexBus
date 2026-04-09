@@ -75,13 +75,15 @@ $routes = [
     '/O/dashboard'     => ['DepotOfficerController','dashboard'],
     '/O/reports'       => ['DepotOfficerController','reports'],
     '/O/reports/details' => ['DepotOfficerController','reportDetails'],
-    '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
+    '/O/assignments'            => ['DepotOfficerController','assignments'],
+    '/O/assignments/shifts'     => ['DepotOfficerController','assignmentShifts'],
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
     '/O/messages/stream' => ['DepotOfficerController','sseStream'],
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
     '/O/attendance'    => ['DepotOfficerController','attendance'],    // 
   '/O/profile'       => ['DepotOfficerController','profile'],
+    '/O/bus_profile'   => ['DepotOfficerController','bus_profile'],
     
     '/M'               => ['DepotManagerController','dashboard'],
     '/M/dashboard'     => ['DepotManagerController','dashboard'],
@@ -94,6 +96,7 @@ $routes = [
     '/M/performance/details' => ['DepotManagerController','performanceDetails'],
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
     '/M/profile'      => ['DepotManagerController','profile'],      // NEW
+    '/M/bus_profile'  => ['DepotManagerController','bus_profile'],
 
 
 

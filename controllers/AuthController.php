@@ -129,7 +129,7 @@ class AuthController extends BaseController
         exit;
     }
 
-    private function defaultHomeForRole(string $role): string
+    protected function defaultHomeForRole(?string $role): string
     {
         return match ($role) {
             'NTCAdmin'          => '/A/dashboard',

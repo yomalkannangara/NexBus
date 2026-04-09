@@ -4,6 +4,7 @@ $bus = $bus ?? [];
 $assignments = $assignments ?? [];
 $trips = $trips ?? [];
 $tracking = $tracking ?? [];
+$backUrl = $backUrl ?? '/O/dashboard';
 $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
 ?>
 
@@ -155,7 +156,7 @@ $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
 </section>
 
 <div style="margin-top:20px;padding:20px;text-align:center;">
-  <a href="?module=depot_officer&page=dashboard" class="button">← Back to Dashboard</a>
+  <a href="<?= htmlspecialchars($backUrl) ?>" class="button">← Back</a>
 </div>
 
 <style>

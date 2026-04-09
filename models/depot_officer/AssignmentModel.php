@@ -43,6 +43,7 @@ public function allToday(int $depotId): array {
                 a.assignment_id,
                 a.assigned_date,
                 a.shift,
+                a.timetable_id,
                 a.bus_reg_no,
                 a.sltb_driver_id,
                 a.sltb_conductor_id,
@@ -52,6 +53,7 @@ public function allToday(int $depotId): array {
                 c.full_name AS conductor_name,
                 r.route_no,
                 r.stops_json,
+                tt.departure_time,
                 tm.lat,
                 tm.lng,
                 tm.snapshot_at
@@ -137,6 +139,7 @@ public function allToday(int $depotId): array {
     public function buses(int $depotId): array {
                 // Return active buses along with their primary route (if any)
                    $sql = "SELECT b.reg_no,
+                               COALESCE(b.capacity, 0) AS capacity,
                                r.route_no,
                                r.stops_json
                            FROM sltb_buses b
@@ -181,6 +184,7 @@ public function allToday(int $depotId): array {
                     $r['route_name'] = trim($start . ' → ' . $end);
                     $r['route_start'] = $start ?: '';
                     $r['route_end']   = $end ?: '';
+                    $r['capacity']    = (int)($r['capacity'] ?? 0);
                 }
                 return $rows;
     }
@@ -219,10 +223,43 @@ public function allToday(int $depotId): array {
         return $rows;
     }
 
+    /** Return timetable trips for a bus on a given date (SLTB, day-of-week aware). */
+    public function shiftsForBus(string $busReg, string $date): array {
+        $dow = (int)date('w', strtotime($date));
+        $st = $this->pdo->prepare(
+            "SELECT t.timetable_id, t.departure_time, t.arrival_time, r.route_no, r.stops_json
+               FROM timetables t
+               LEFT JOIN routes r ON r.route_id = t.route_id
+              WHERE t.bus_reg_no = ? AND t.operator_type = 'SLTB' AND t.day_of_week = ?
+                AND t.effective_from <= ? AND (t.effective_to IS NULL OR t.effective_to >= ?)
+              ORDER BY t.departure_time"
+        );
+        $st->execute([$busReg, $dow, $date, $date]);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            $stops = json_decode($row['stops_json'] ?? '[]', true) ?: [];
+            $first = $stops[0] ?? null; $last = $stops[count($stops)-1] ?? null;
+            $start = is_array($first) ? ($first['stop'] ?? '') : (string)$first;
+            $end   = is_array($last)  ? ($last['stop']  ?? '') : (string)$last;
+            $row['route_display']   = trim(($row['route_no'] ?? '') . ' | ' . $start . ' to ' . $end);
+            $row['departure_label'] = substr($row['departure_time'] ?? '', 0, 5);
+            $row['arrival_label']   = substr($row['arrival_time']   ?? '', 0, 5);
+        }
+        return $rows;
+    }
+
     /** Create new assignment (relies on DB UNIQUE(bus_reg_no,assigned_date,shift)) */
     public function create(array $d, int $depotId): mixed {
         $assigned_date = $d['assigned_date'] ?? date('Y-m-d');
-        $shift = $d['shift'] ?? 'Morning';
+        $timetableId   = !empty($d['timetable_id']) ? (int)$d['timetable_id'] : null;
+        $shift = $d['shift'] ?? '';
+        if ($timetableId) {
+            $ts = $this->pdo->prepare("SELECT departure_time FROM timetables WHERE timetable_id=? LIMIT 1");
+            $ts->execute([$timetableId]);
+            $tr = $ts->fetch(PDO::FETCH_ASSOC);
+            if ($tr) { $shift = substr($tr['departure_time'], 0, 5); }
+        }
+        if (!$shift) { $shift = 'Morning'; }
         $bus = $d['bus_reg_no'] ?? '';
         $driver = (int)($d['sltb_driver_id'] ?? 0);
         $conductor = (int)($d['sltb_conductor_id'] ?? 0);
@@ -235,8 +272,13 @@ public function allToday(int $depotId): array {
         // If overrideRemark is provided we allow the operation but will record an audit row.
         $prevBusForDriver = null;
         if ($driver) {
-            $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND shift=? AND sltb_depot_id=? AND sltb_driver_id=? LIMIT 1");
-            $st->execute([$assigned_date, $shift, $depotId, $driver]);
+            if ($timetableId) {
+                $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND timetable_id=? AND sltb_depot_id=? AND sltb_driver_id=? LIMIT 1");
+                $st->execute([$assigned_date, $timetableId, $depotId, $driver]);
+            } else {
+                $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND shift=? AND sltb_depot_id=? AND sltb_driver_id=? LIMIT 1");
+                $st->execute([$assigned_date, $shift, $depotId, $driver]);
+            }
             $row = $st->fetch(\PDO::FETCH_ASSOC);
             if ($row && ($row['bus_reg_no'] ?? '') !== $bus) {
                 $prevBusForDriver = $row['bus_reg_no'] ?? null;
@@ -248,8 +290,13 @@ public function allToday(int $depotId): array {
 
         $prevBusForConductor = null;
         if ($conductor) {
-            $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND shift=? AND sltb_depot_id=? AND sltb_conductor_id=? LIMIT 1");
-            $st->execute([$assigned_date, $shift, $depotId, $conductor]);
+            if ($timetableId) {
+                $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND timetable_id=? AND sltb_depot_id=? AND sltb_conductor_id=? LIMIT 1");
+                $st->execute([$assigned_date, $timetableId, $depotId, $conductor]);
+            } else {
+                $st = $this->pdo->prepare("SELECT bus_reg_no FROM sltb_assignments WHERE assigned_date=? AND shift=? AND sltb_depot_id=? AND sltb_conductor_id=? LIMIT 1");
+                $st->execute([$assigned_date, $shift, $depotId, $conductor]);
+            }
             $row = $st->fetch(\PDO::FETCH_ASSOC);
             if ($row && ($row['bus_reg_no'] ?? '') !== $bus) {
                 $prevBusForConductor = $row['bus_reg_no'] ?? null;
@@ -262,6 +309,10 @@ public function allToday(int $depotId): array {
         // Build INSERT dynamically depending on whether override columns exist
         $baseCols = ['assigned_date','shift','bus_reg_no','sltb_driver_id','sltb_conductor_id','sltb_depot_id'];
         $values = [$assigned_date, $shift, $bus, $driver, $conductor, $depotId];
+        if ($timetableId && $this->columnExists('sltb_assignments','timetable_id')) {
+            $baseCols[] = 'timetable_id';
+            $values[] = $timetableId;
+        }
         if ($this->columnExists('sltb_assignments','override_remark')) {
             $baseCols[] = 'override_remark';
             $baseCols[] = 'overridden_by';
@@ -344,23 +395,81 @@ public function allToday(int $depotId): array {
         }
     }
 
-    public function update(int $depotId, array $d): bool {
+    public function update(int $depotId, array $d): bool|string {
         $assignmentId = (int)($d['assignment_id'] ?? 0);
         $assignedDate = trim((string)($d['assigned_date'] ?? ''));
+        $timetableId = !empty($d['timetable_id']) ? (int)$d['timetable_id'] : null;
         $shift = trim((string)($d['shift'] ?? ''));
+        if ($timetableId) {
+            $ts = $this->pdo->prepare("SELECT departure_time FROM timetables WHERE timetable_id=? LIMIT 1");
+            $ts->execute([$timetableId]);
+            $tr = $ts->fetch(\PDO::FETCH_ASSOC);
+            if ($tr) { $shift = substr($tr['departure_time'], 0, 5); }
+        }
+        if (!$shift) { $shift = 'Morning'; }
         $bus = trim((string)($d['bus_reg_no'] ?? ''));
         $driverId = (int)($d['sltb_driver_id'] ?? 0);
         $conductorId = (int)($d['sltb_conductor_id'] ?? 0);
 
-        if ($assignmentId <= 0 || !$assignedDate || !$shift || !$bus || $driverId <= 0 || $conductorId <= 0) {
+        if ($assignmentId <= 0 || !$assignedDate || !$bus || $driverId <= 0 || $conductorId <= 0) {
             return false;
         }
 
-        $sql = "UPDATE sltb_assignments
-                   SET assigned_date=?, shift=?, bus_reg_no=?, sltb_driver_id=?, sltb_conductor_id=?
-                 WHERE assignment_id=? AND sltb_depot_id=?";
+        // Prevent same driver being used on a different bus at the same exact shift/date
+        if ($driverId) {
+            if ($timetableId) {
+                $st = $this->pdo->prepare(
+                    "SELECT bus_reg_no FROM sltb_assignments
+                      WHERE assigned_date=? AND timetable_id=? AND sltb_depot_id=?
+                        AND sltb_driver_id=? AND assignment_id != ? LIMIT 1"
+                );
+                $st->execute([$assignedDate, $timetableId, $depotId, $driverId, $assignmentId]);
+            } else {
+                $st = $this->pdo->prepare(
+                    "SELECT bus_reg_no FROM sltb_assignments
+                      WHERE assigned_date=? AND shift=? AND sltb_depot_id=?
+                        AND sltb_driver_id=? AND assignment_id != ? LIMIT 1"
+                );
+                $st->execute([$assignedDate, $shift, $depotId, $driverId, $assignmentId]);
+            }
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($row && ($row['bus_reg_no'] ?? '') !== $bus) {
+                return 'conflict_driver::' . ($row['bus_reg_no'] ?? '');
+            }
+        }
+
+        // Prevent same conductor being used on a different bus at the same exact shift/date
+        if ($conductorId) {
+            if ($timetableId) {
+                $st = $this->pdo->prepare(
+                    "SELECT bus_reg_no FROM sltb_assignments
+                      WHERE assigned_date=? AND timetable_id=? AND sltb_depot_id=?
+                        AND sltb_conductor_id=? AND assignment_id != ? LIMIT 1"
+                );
+                $st->execute([$assignedDate, $timetableId, $depotId, $conductorId, $assignmentId]);
+            } else {
+                $st = $this->pdo->prepare(
+                    "SELECT bus_reg_no FROM sltb_assignments
+                      WHERE assigned_date=? AND shift=? AND sltb_depot_id=?
+                        AND sltb_conductor_id=? AND assignment_id != ? LIMIT 1"
+                );
+                $st->execute([$assignedDate, $shift, $depotId, $conductorId, $assignmentId]);
+            }
+            $row = $st->fetch(\PDO::FETCH_ASSOC);
+            if ($row && ($row['bus_reg_no'] ?? '') !== $bus) {
+                return 'conflict_conductor::' . ($row['bus_reg_no'] ?? '');
+            }
+        }
+
+        $setCols = ['assigned_date=?', 'shift=?', 'bus_reg_no=?', 'sltb_driver_id=?', 'sltb_conductor_id=?'];
+        $setVals = [$assignedDate, $shift, $bus, $driverId, $conductorId];
+        if ($this->columnExists('sltb_assignments', 'timetable_id')) {
+            $setCols[] = 'timetable_id=?';
+            $setVals[] = $timetableId;
+        }
+        $sql = "UPDATE sltb_assignments SET " . implode(', ', $setCols) . " WHERE assignment_id=? AND sltb_depot_id=?";
         $st = $this->pdo->prepare($sql);
-        return (bool)$st->execute([$assignedDate, $shift, $bus, $driverId, $conductorId, $assignmentId, $depotId]);
+        return (bool)$st->execute(array_merge($setVals, [$assignmentId, $depotId]));
     }
 
     public function findById(int $depotId, int $assignmentId): ?array {

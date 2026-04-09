@@ -833,4 +833,26 @@ public function fleet()
             'err'     => $_GET['err'] ?? null,
         ]);
     }
+
+    public function bus_profile()
+    {
+        $busReg = trim((string)($_GET['bus_reg_no'] ?? ''));
+        if ($busReg === '') {
+            return $this->redirect('/M/fleet');
+        }
+
+        $m = new \App\models\depot_officer\BusProfileModel();
+        $bus = $m->getBusByReg($busReg);
+        if (empty($bus)) {
+            return $this->redirect('/M/fleet');
+        }
+
+        $this->view('depot_officer', 'bus_profile', [
+            'bus'         => $bus,
+            'tracking'    => $m->getTracking($busReg),
+            'assignments' => $m->getAssignments($busReg),
+            'trips'       => $m->getTrips($busReg),
+            'backUrl'     => '/M/fleet',
+        ]);
+    }
 }

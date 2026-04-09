@@ -56,10 +56,12 @@ class BusModel extends BaseModel
                     d.license_no AS driver_license,
                     c.full_name AS conductor_name,
                     c.private_conductor_id AS conductor_id_display,
-                    CONCAT('Near ', 
-                        ELT(FLOOR(1 + RAND() * 5),
-                            'Colombo', 'Galle', 'Nugegoda', 'Panadura', 'Kottawa')
-                    ) AS current_location
+                    -- Real location from latest tracking snapshot
+                    tm_latest.lat               AS live_lat,
+                    tm_latest.lng               AS live_lng,
+                    tm_latest.speed             AS live_speed,
+                    tm_latest.operational_status AS live_status,
+                    tm_latest.snapshot_at       AS live_snapshot_at
                 FROM private_buses b
                 LEFT JOIN timetables t 
                     ON t.bus_reg_no = b.reg_no 
@@ -69,12 +71,28 @@ class BusModel extends BaseModel
                 LEFT JOIN private_drivers d
                     ON d.private_driver_id = b.driver_id
                 LEFT JOIN private_conductors c
-                    ON c.private_conductor_id = b.conductor_id";
+                    ON c.private_conductor_id = b.conductor_id
+                -- Latest tracking snapshot per bus (subquery avoids GROUP BY issues)
+                LEFT JOIN (
+                    SELECT tm.bus_reg_no,
+                           tm.lat,
+                           tm.lng,
+                           tm.speed,
+                           tm.operational_status,
+                           tm.snapshot_at
+                    FROM tracking_monitoring tm
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                        FROM   tracking_monitoring
+                        GROUP  BY bus_reg_no
+                    ) latest ON latest.bus_reg_no = tm.bus_reg_no
+                              AND latest.max_snap  = tm.snapshot_at
+                ) tm_latest ON tm_latest.bus_reg_no = b.reg_no";
 
         $params = [];
         if ($this->hasOperator()) {
             $sql .= " WHERE b.private_operator_id = :op";
-            $params[':op'] = $this->operatorId; // ✅ use property, not method
+            $params[':op'] = $this->operatorId;
         }
 
         $sql .= " GROUP BY b.reg_no ORDER BY b.reg_no DESC";
@@ -84,8 +102,36 @@ class BusModel extends BaseModel
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$r) {
             $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
+
+            // Build a human-readable current_location from real tracking data
+            $lat  = $r['live_lat']  !== null ? (float)$r['live_lat']  : null;
+            $lng  = $r['live_lng']  !== null ? (float)$r['live_lng']  : null;
+            $snap = $r['live_snapshot_at'] ?? null;
+
+            if ($lat !== null && $lng !== null) {
+                // Format: "6.9271° N, 79.8612° E  · 2 min ago"
+                $latStr = abs($lat) . '° ' . ($lat >= 0 ? 'N' : 'S');
+                $lngStr = abs($lng) . '° ' . ($lng >= 0 ? 'E' : 'W');
+                $age    = $snap ? $this->formatAge($snap) : '';
+                $r['current_location'] = $latStr . ',  ' . $lngStr . ($age ? '  · ' . $age : '');
+                $r['has_live_location'] = true;
+            } else {
+                $r['current_location']  = null; // view will show "No tracking data"
+                $r['has_live_location'] = false;
+            }
         }
         return $rows;
+    }
+
+    /** Return human-friendly age string for a snapshot timestamp */
+    private function formatAge(string $snapshot): string
+    {
+        $diff = time() - strtotime($snapshot);
+        if ($diff < 0)   return 'just now';
+        if ($diff < 60)  return $diff . 's ago';
+        if ($diff < 3600) return round($diff / 60) . ' min ago';
+        if ($diff < 86400) return round($diff / 3600) . 'h ago';
+        return round($diff / 86400) . 'd ago';
     }
 
     /** Create a new private bus */

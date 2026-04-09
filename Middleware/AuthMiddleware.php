@@ -3,6 +3,20 @@ namespace App\Middleware;
 
 class AuthMiddleware
 {
+    private static function defaultHomeForRole(?string $role): string
+    {
+        return match ($role) {
+            'NTCAdmin'          => '/A/dashboard',
+            'DepotManager'      => '/M',
+            'DepotOfficer'      => '/O',
+            'PrivateBusOwner'   => '/B',
+            'SLTBTimekeeper'    => '/TS',
+            'PrivateTimekeeper' => '/TP',
+            'Passenger'         => '/home',
+            default             => '/login',
+        };
+    }
+
     public static function check(): void
     {
         if (empty($_SESSION['user'])) {
@@ -16,8 +30,7 @@ class AuthMiddleware
     {
         self::check();
         if (!in_array($_SESSION['user']['role'], $roles)) {
-            http_response_code(403);
-            echo "<h1>403 Forbidden</h1>";
+            header('Location: ' . self::defaultHomeForRole($_SESSION['user']['role'] ?? null));
             exit;
         }
     }

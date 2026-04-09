@@ -71,6 +71,16 @@ public function assignments()
             $assignmentId = (int)($_POST['assignment_id'] ?? 0);
             $before = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
             $ok = $m->update($depotId, $_POST);
+            if (is_string($ok) && strpos($ok, 'conflict_driver::') === 0) {
+                $existing = explode('::', $ok, 2)[1] ?? '';
+                $this->redirect('?module=depot_officer&page=assignments&msg=conflict_driver&exists=' . urlencode($existing));
+                return;
+            }
+            if (is_string($ok) && strpos($ok, 'conflict_conductor::') === 0) {
+                $existing = explode('::', $ok, 2)[1] ?? '';
+                $this->redirect('?module=depot_officer&page=assignments&msg=conflict_conductor&exists=' . urlencode($existing));
+                return;
+            }
             if ($ok) {
                 $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
                 $recipients = [
@@ -147,6 +157,31 @@ public function assignments()
         'today'      => date('Y-m-d'),
         'msg'        => $_GET['msg'] ?? null,
     ]);
+}
+
+public function assignmentShifts()
+{
+    $m = new AssignmentModel();
+    $depotId = $_SESSION['user']['sltb_depot_id'] ?? null;
+    if (!$depotId) {
+        header('Content-Type: application/json');
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'error' => 'unauthorized']);
+        return;
+    }
+
+    $bus = trim((string)($_GET['bus_reg_no'] ?? ''));
+    $date = trim((string)($_GET['date'] ?? date('Y-m-d')));
+    if ($bus === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'invalid_params']);
+        return;
+    }
+
+    $rows = $m->shiftsForBus($bus, $date);
+    header('Content-Type: application/json');
+    echo json_encode(['ok' => true, 'items' => $rows]);
 }
 
 
@@ -285,21 +320,33 @@ public function assignments()
         $dep = $this->m->myDepotId($u);
         $uid = (int)($u['user_id'] ?? 0);
 
+        // Important: this endpoint stays open for a long time.
+        // Release session lock so parallel requests from the same user
+        // (page loads, ajax, navigation) do not block at session_start().
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         // Set headers for SSE
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
         header('Connection: keep-alive');
         header('X-Accel-Buffering: no');
 
-        // Persist connection for 5 minutes
-        set_time_limit(300);
+        // Keep process alive, but close stream ourselves before server hard timeout.
+        // This avoids recurring "Maximum execution time" fatals.
+        @set_time_limit(0);
 
         // Track last message ID to avoid sending duplicates
         $lastId = (int)($_GET['last_id'] ?? 0);
-        $count = 0;
-        $maxIterations = 300; // Poll for 5 minutes (1 second per iteration)
+        $startTs = time();
+        $streamLifetimeSec = 240; // close gracefully before common 300s PHP timeout
 
-        while ($count < $maxIterations) {
+        while ((time() - $startTs) < $streamLifetimeSec) {
+            if (connection_aborted()) {
+                break;
+            }
+
             // Fetch new messages since last_id
             $recent = $this->m->recentMessages($dep, $uid, 50, 'all');
             $recent = array_filter($recent, fn($n) => (int)($n['id'] ?? $n['notification_id'] ?? 0) > $lastId);
@@ -330,7 +377,6 @@ public function assignments()
 
             // Sleep for 1 second before next check
             sleep(1);
-            $count++;
         }
 
         // Close connection gracefully
@@ -723,13 +769,13 @@ public function trip_logs(): void{
         $sqlDelayed = "SELECT
                 COALESCE(r.route_no, '-') AS route_no,
                 COUNT(*) AS total,
-                SUM(CASE WHEN tm.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed
+                SUM(CASE WHEN tm.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delay_count
             FROM tracking_monitoring tm
             JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
             LEFT JOIN routes r ON r.route_id = tm.route_id
             WHERE $whereSql
             GROUP BY COALESCE(r.route_no, '-')
-            ORDER BY delayed DESC
+            ORDER BY delay_count DESC
             LIMIT 10";
         $stDelayed = $GLOBALS['db']->prepare($sqlDelayed);
         $stDelayed->execute($params);
@@ -747,19 +793,26 @@ public function trip_logs(): void{
         $stSpeed->execute($params);
         $speedRows = $stSpeed->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
+        // Revenue comes from the `earnings` table (tracking_monitoring has no revenue column)
+        $revWhere = ['sb.sltb_depot_id = :depot_id', 'e.date BETWEEN :from AND :to', "e.operator_type = 'SLTB'"];
+        $revParams = [':depot_id' => $depotId, ':from' => $from, ':to' => $to];
+        if (!empty($filters['bus_reg'])) {
+            $revWhere[] = 'e.bus_reg_no LIKE :bus_reg';
+            $revParams[':bus_reg'] = '%' . $filters['bus_reg'] . '%';
+        }
+        $revWhereSql = implode(' AND ', $revWhere);
         $sqlRevenue = "SELECT
-                DATE_FORMAT(tm.snapshot_at, '%b %Y') AS month_label,
-                YEAR(tm.snapshot_at) AS yr,
-                MONTH(tm.snapshot_at) AS mo,
-                ROUND(SUM(COALESCE(tm.revenue, 0)) / 1000000, 2) AS revenue_mn
-            FROM tracking_monitoring tm
-            JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
-            LEFT JOIN routes r ON r.route_id = tm.route_id
-            WHERE $whereSql
-            GROUP BY YEAR(tm.snapshot_at), MONTH(tm.snapshot_at), DATE_FORMAT(tm.snapshot_at, '%b %Y')
+                DATE_FORMAT(e.date, '%b %Y') AS month_label,
+                YEAR(e.date) AS yr,
+                MONTH(e.date) AS mo,
+                ROUND(SUM(e.amount) / 1000000, 2) AS revenue_mn
+            FROM earnings e
+            JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no
+            WHERE $revWhereSql
+            GROUP BY YEAR(e.date), MONTH(e.date), DATE_FORMAT(e.date, '%b %Y')
             ORDER BY yr, mo";
         $stRevenue = $GLOBALS['db']->prepare($sqlRevenue);
-        $stRevenue->execute($params);
+        $stRevenue->execute($revParams);
         $revenueRows = $stRevenue->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
         $sqlWait = "SELECT
@@ -783,7 +836,7 @@ public function trip_logs(): void{
         $fbWhere = [
             'sb.sltb_depot_id = :depot_id',
             "DATE(c.created_at) BETWEEN :from AND :to",
-            "LOWER(c.type) = 'complaint'",
+            "LOWER(c.category) = 'complaint'",
         ];
         if (!empty($filters['route_no'])) {
             $fbWhere[] = 'r.route_no = :route_no';
@@ -797,7 +850,7 @@ public function trip_logs(): void{
             $fbParams[':bus_reg'] = '%' . $filters['bus_reg'] . '%';
         }
         $sqlComplaints = "SELECT COALESCE(r.route_no, '-') AS route_no, COUNT(*) AS cnt
-            FROM passenger_feedback c
+            FROM complaints c
             LEFT JOIN routes r ON r.route_id = c.route_id
             JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no
             WHERE " . implode(' AND ', $fbWhere) . "
@@ -809,7 +862,7 @@ public function trip_logs(): void{
         $complaintsRows = $stComplaints->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
         $sqlKpi = "SELECT
-                SUM(CASE WHEN tm.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delayed,
+                SUM(CASE WHEN tm.operational_status = 'Delayed' THEN 1 ELSE 0 END) AS delay_count,
                 ROUND(AVG(COALESCE(tm.avg_delay_min, 0)), 1) AS avg_delay
             FROM tracking_monitoring tm
             JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
@@ -844,7 +897,7 @@ public function trip_logs(): void{
 
         return [
             'kpis' => [
-                'delayed' => (int)($kpiRow['delayed'] ?? 0),
+                'delayed' => (int)($kpiRow['delay_count'] ?? 0),
                 'trips' => (int)($tripRow['trips'] ?? 0),
                 'avgDelayMin' => (float)($kpiRow['avg_delay'] ?? 0),
                 'breakdowns' => (int)($tripRow['breakdowns'] ?? 0),
@@ -854,7 +907,7 @@ public function trip_logs(): void{
                 'busStatus' => $busStatus,
                 'delayedByRoute' => [
                     'labels' => array_column($delayedRows, 'route_no'),
-                    'delayed' => array_map('intval', array_column($delayedRows, 'delayed')),
+                    'delayed' => array_map('intval', array_column($delayedRows, 'delay_count')),
                     'total' => array_map('intval', array_column($delayedRows, 'total')),
                 ],
                 'speedByBus' => [
@@ -1031,13 +1084,13 @@ public function trip_logs(): void{
     {
         $busReg = $_GET['bus_reg_no'] ?? null;
         if (!$busReg) {
-            return $this->redirect('?module=depot_officer&page=dashboard');
+            return $this->redirect('/O/dashboard');
         }
 
         $m = new \App\models\depot_officer\BusProfileModel();
         $bus = $m->getBusByReg($busReg);
         if (empty($bus)) {
-            return $this->redirect('?module=depot_officer&page=dashboard');
+            return $this->redirect('/O/dashboard');
         }
 
         $this->view('depot_officer','bus_profile',[
