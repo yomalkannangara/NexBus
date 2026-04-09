@@ -53,3 +53,737 @@ Stack trace:
 #5 {main}
   thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
 [09-Apr-2026 07:23:51 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 412
+[09-Apr-2026 11:27:29 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:27:29 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:28:11 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:28:11 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:31 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:31 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:34 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:34 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:35 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:35 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:36 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:36 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:36 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:36 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:36 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:36 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:36 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:36 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:36 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:36 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:41 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:41 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:31:46 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:31:46 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:33:03 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[09-Apr-2026 11:33:03 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
+[09-Apr-2026 11:33:37 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'a.timetable_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:117
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(117): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 117
+[09-Apr-2026 11:33:40 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'a.timetable_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:117
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(117): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 117
+[09-Apr-2026 11:33:52 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'n.metadata' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:155
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(155): PDO->prepare('SELECT n.*,\r\n  ...')
+#1 [internal function]: App\models\depot_officer\MessageModel->recent(1, 53, 50, 'all')
+#2 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(121): call_user_func(Array, 1, 53, 50, 'all')
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(307): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53, 50, 'all')
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'messages')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 155
+[09-Apr-2026 11:34:21 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'n.metadata' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:155
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(155): PDO->prepare('SELECT n.*,\r\n  ...')
+#1 [internal function]: App\models\depot_officer\MessageModel->recent(1, 53, 50, 'all')
+#2 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(121): call_user_func(Array, 1, 53, 50, 'all')
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(307): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53, 50, 'all')
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'messages')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 155
+[09-Apr-2026 11:34:46 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'a.timetable_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:117
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(117): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 117
+[09-Apr-2026 11:47:48 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'a.timetable_id' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:117
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(117): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 117
+[09-Apr-2026 11:47:58 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'n.metadata' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php:155
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php(155): PDO->prepare('SELECT n.*,\r\n  ...')
+#1 [internal function]: App\models\depot_officer\MessageModel->recent(1, 53, 50, 'all')
+#2 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(121): call_user_func(Array, 1, 53, 50, 'all')
+#3 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(307): App\models\depot_officer\DepotOfficerModel->recentMessages(1, 53, 50, 'all')
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->messages()
+#5 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'messages')
+#6 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\MessageModel.php on line 155
+[09-Apr-2026 11:51:24 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tt.departure_time' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(121): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 121
+[09-Apr-2026 11:51:27 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tt.departure_time' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(121): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 121
+[09-Apr-2026 11:51:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tt.departure_time' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(121): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 121
+[09-Apr-2026 11:51:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tt.departure_time' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(121): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 121
+[09-Apr-2026 11:51:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tt.departure_time' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(121): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 121
+[09-Apr-2026 11:51:28 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tt.departure_time' in 'field list' in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php:121
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php(121): PDO->prepare('SELECT \r\n      ...')
+#1 C:\xampp\htdocs\NexBus-1\controllers\DepotOfficerController.php(152): App\models\depot_officer\AssignmentModel->allToday(1)
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotOfficerController->assignments()
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('DepotOfficerCon...', 'assignments')
+#4 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\AssignmentModel.php on line 121

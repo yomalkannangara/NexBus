@@ -6,6 +6,27 @@ use PDO;
 
 class MessageModel extends BaseModel
 {
+    private array $columnCache = [];
+
+    private function columnExists(string $table, string $column): bool {
+        $key = $table . ':' . $column;
+        if (array_key_exists($key, $this->columnCache)) {
+            return $this->columnCache[$key];
+        }
+
+        $st = $this->pdo->prepare(
+            "SELECT COUNT(*) AS c
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?"
+        );
+        $st->execute([$table, $column]);
+        $exists = ((int)$st->fetchColumn() > 0);
+        $this->columnCache[$key] = $exists;
+        return $exists;
+    }
+
     /**
      * Expand recipient IDs based on scope.
      * scope='individual': use provided userIds as-is.
@@ -109,15 +130,37 @@ class MessageModel extends BaseModel
         ];
         $metadataJson = json_encode($metadata, JSON_UNESCAPED_UNICODE);
 
+        $hasPriority = $this->columnExists('notifications', 'priority');
+        $hasMetadata = $this->columnExists('notifications', 'metadata');
+
+        $columns = ['user_id', 'type', 'message', 'is_seen'];
+        $values = ['?', '?', '?', '0'];
+        if ($hasPriority) {
+            $columns[] = 'priority';
+            $values[] = '?';
+        }
+        if ($hasMetadata) {
+            $columns[] = 'metadata';
+            $values[] = '?';
+        }
+        $columns[] = 'created_at';
+        $values[] = 'NOW()';
+
         $ins = $this->pdo->prepare(
-            "INSERT INTO notifications(user_id,type,message,is_seen,priority,metadata,created_at)
-             VALUES(?, 'Message', ?, 0, ?, ?, NOW())"
+            'INSERT INTO notifications(' . implode(',', $columns) . ') VALUES(' . implode(',', $values) . ')'
         );
 
         try {
             $this->pdo->beginTransaction();
             foreach ($okIds as $uid) {
-                $ins->execute([$uid, $text, $priority, $metadataJson]);
+                $params = [$uid, 'Message', $text];
+                if ($hasPriority) {
+                    $params[] = $priority;
+                }
+                if ($hasMetadata) {
+                    $params[] = $metadataJson;
+                }
+                $ins->execute($params);
             }
             return $this->pdo->commit();
         } catch (\Throwable $e) {
@@ -127,21 +170,35 @@ class MessageModel extends BaseModel
     }
 
     public function recent(int $depotId, int $userId, int $limit=20, string $filter='all'): array {
-                $sql = "SELECT n.*,
-                                             CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
-                                             COALESCE(
-                                                     NULLIF(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_name')), ''),
-                                                     NULLIF(CONCAT(su.first_name, ' ', COALESCE(su.last_name, '')), ''),
-                                                     CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END
-                                             ) AS full_name,
-                                             JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_role')) AS source_role
-                                FROM notifications n
-                                                                JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
-                                LEFT JOIN users su
-                                    ON su.user_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_user_id')) AS UNSIGNED)
-                                WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')
-                                    AND n.user_id = ?
-                                    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
+        $limit = max(1, (int)$limit);
+        $hasMetadata = $this->columnExists('notifications', 'metadata');
+
+        if ($hasMetadata) {
+            $sql = "SELECT n.*,
+                           CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
+                           COALESCE(
+                               NULLIF(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_name')), ''),
+                               NULLIF(CONCAT(su.first_name, ' ', COALESCE(su.last_name, '')), ''),
+                               CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END
+                           ) AS full_name,
+                           JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_role')) AS source_role
+                    FROM notifications n
+                    JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
+                    LEFT JOIN users su
+                        ON su.user_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_user_id')) AS UNSIGNED)
+                    WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')
+                      AND n.user_id = ?
+                      AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
+        } else {
+            $sql = "SELECT n.*,
+                           CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
+                           CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END AS full_name,
+                           NULL AS source_role
+                    FROM notifications n
+                    JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
+                    WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')
+                      AND n.user_id = ?";
+        }
         
         if ($filter === 'unread') {
             $sql .= " AND n.is_seen=0";
@@ -163,6 +220,11 @@ class MessageModel extends BaseModel
     }
 
     public function acknowledge(int $messageId, int $userId): void {
+        if (!$this->columnExists('notifications', 'metadata')) {
+            $this->markRead($messageId, $userId);
+            return;
+        }
+
         // Store acknowledgement in a custom metadata field or a separate table
         // For now, mark as read + add a note
         $st = $this->pdo->prepare(
@@ -173,6 +235,11 @@ class MessageModel extends BaseModel
     }
 
     public function escalate(int $messageId, int $userId): void {
+        if (!$this->columnExists('notifications', 'metadata')) {
+            $this->markRead($messageId, $userId);
+            return;
+        }
+
         // Mark as escalated in metadata
         $st = $this->pdo->prepare(
             "UPDATE notifications SET metadata=JSON_SET(COALESCE(metadata,'{}'), '$.escalated', true, '$.escalated_by', ?, '$.escalated_at', ?) 
@@ -182,6 +249,11 @@ class MessageModel extends BaseModel
     }
 
     public function archive(int $messageId, int $userId): void {
+        if (!$this->columnExists('notifications', 'metadata')) {
+            $this->markRead($messageId, $userId);
+            return;
+        }
+
         // Mark as archived in metadata
         $st = $this->pdo->prepare(
             "UPDATE notifications SET metadata=JSON_SET(COALESCE(metadata,'{}'), '$.archived', true, '$.archived_by', ?, '$.archived_at', ?) 

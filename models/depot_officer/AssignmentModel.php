@@ -39,11 +39,15 @@ class AssignmentModel extends BaseModel
 
     /** Grid for today's rows (capacity + latest location) */
 public function allToday(int $depotId): array {
+    $timetableSelect = $this->columnExists('sltb_assignments', 'timetable_id')
+        ? "a.timetable_id,"
+        : "NULL AS timetable_id,";
+
     $sql = "SELECT 
                 a.assignment_id,
                 a.assigned_date,
                 a.shift,
-                a.timetable_id,
+                {$timetableSelect}
                 a.bus_reg_no,
                 a.sltb_driver_id,
                 a.sltb_conductor_id,
@@ -93,6 +97,20 @@ public function allToday(int $depotId): array {
                             1
                         ) AS UNSIGNED
                     ) AS route_id
+                    ,
+                    SUBSTRING_INDEX(
+                        GROUP_CONCAT(
+                            t.departure_time
+                            ORDER BY
+                                (t.day_of_week = DAYOFWEEK(CURDATE())-1) DESC,
+                                t.effective_from DESC,
+                                t.departure_time ASC,
+                                t.timetable_id DESC
+                            SEPARATOR ','
+                        ),
+                        ',',
+                        1
+                    ) AS departure_time
                 FROM timetables t
                 WHERE t.operator_type='SLTB'
                   AND t.effective_from <= CURDATE()

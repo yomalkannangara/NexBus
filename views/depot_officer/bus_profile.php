@@ -4,7 +4,7 @@ $bus = $bus ?? [];
 $assignments = $assignments ?? [];
 $trips = $trips ?? [];
 $tracking = $tracking ?? [];
-$backUrl = $backUrl ?? '/O/dashboard';
+$backUrl = $backUrl ?? '/O/assignments';
 $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
 ?>
 
@@ -17,32 +17,34 @@ $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
 <section class="panel show">
   <div class="panel-head"><h2>Bus Information</h2></div>
   
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Registration Number</div>
-      <div style="font-size:1.5rem;font-weight:bold;color:#1f2937;"><?= $busReg ?></div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Make & Model</div>
-      <div style="font-size:1.125rem;color:#1f2937;"><?= htmlspecialchars($bus['make_model'] ?? 'N/A') ?></div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Capacity</div>
-      <div style="font-size:1.125rem;color:#1f2937;"><?= htmlspecialchars($bus['capacity'] ?? 'N/A') ?> seats</div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">License Expiry</div>
-      <div style="font-size:1.125rem;color:#1f2937;"><?= htmlspecialchars($bus['license_expiry'] ?? 'N/A') ?></div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Status</div>
-      <div style="font-size:1.125rem;">
-        <span class="badge" style="background:<?= ($bus['status'] === 'Active' ? '#ecfdf5' : '#fef2f2') ?>;color:<?= ($bus['status'] === 'Active' ? '#065f46' : '#991b1b') ?>;">
-          <?= htmlspecialchars($bus['status'] ?? 'Unknown') ?>
-        </span>
-      </div>
-    </div>
-  </div>
+  <table class="bus-profile-kv-table" aria-label="Bus information">
+    <tbody>
+      <tr>
+        <th>Registration Number</th>
+        <td class="bus-profile-kv-value--primary"><?= $busReg ?></td>
+      </tr>
+      <tr>
+        <th>Make &amp; Model</th>
+        <td><?= htmlspecialchars($bus['make_model'] ?? 'N/A') ?></td>
+      </tr>
+      <tr>
+        <th>Capacity</th>
+        <td><?= htmlspecialchars($bus['capacity'] ?? 'N/A') ?> seats</td>
+      </tr>
+      <tr>
+        <th>License Expiry</th>
+        <td><?= htmlspecialchars($bus['license_expiry'] ?? 'N/A') ?></td>
+      </tr>
+      <tr>
+        <th>Status</th>
+        <td>
+          <span class="badge" style="background:<?= ($bus['status'] === 'Active' ? '#ecfdf5' : '#fef2f2') ?>;color:<?= ($bus['status'] === 'Active' ? '#065f46' : '#991b1b') ?>;">
+            <?= htmlspecialchars($bus['status'] ?? 'Unknown') ?>
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- Current Tracking Status -->
@@ -50,32 +52,34 @@ $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
 <section class="panel show" style="margin-top:20px;">
   <div class="panel-head"><h2>Current Status</h2></div>
   
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;">
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Route</div>
-      <div style="font-size:1.125rem;font-weight:bold;color:#1f2937;"><?= htmlspecialchars($tracking['route_no'] ?? '-') ?></div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Operational Status</div>
-      <div style="font-size:1.125rem;">
-        <span class="badge" style="background:<?= ($tracking['operational_status'] === 'OnTime' ? '#ecfdf5' : ($tracking['operational_status'] === 'Delayed' ? '#fef3c7' : '#fef2f2')) ?>;color:<?= ($tracking['operational_status'] === 'OnTime' ? '#065f46' : ($tracking['operational_status'] === 'Delayed' ? '#92400e' : '#991b1b')) ?>;">
-          <?= htmlspecialchars($tracking['operational_status'] ?? 'Unknown') ?>
-        </span>
-      </div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Current Speed</div>
-      <div style="font-size:1.125rem;color:#1f2937;"><?= htmlspecialchars($tracking['speed'] ?? '0') ?> km/h</div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Average Delay</div>
-      <div style="font-size:1.125rem;color:#1f2937;">+<?= htmlspecialchars($tracking['avg_delay_min'] ?? '0') ?> min</div>
-    </div>
-    <div>
-      <div style="font-size:0.875rem;color:#6b7280;margin-bottom:4px;">Last Update</div>
-      <div style="font-size:1.125rem;color:#1f2937;"><?= htmlspecialchars($tracking['snapshot_at'] ?? 'N/A') ?></div>
-    </div>
-  </div>
+  <table class="bus-profile-kv-table" aria-label="Current status">
+    <tbody>
+      <tr>
+        <th>Route</th>
+        <td class="bus-profile-kv-value--strong"><?= htmlspecialchars($tracking['route_no'] ?? '-') ?></td>
+      </tr>
+      <tr>
+        <th>Operational Status</th>
+        <td>
+          <span class="badge" style="background:<?= ($tracking['operational_status'] === 'OnTime' ? '#ecfdf5' : ($tracking['operational_status'] === 'Delayed' ? '#fef3c7' : '#fef2f2')) ?>;color:<?= ($tracking['operational_status'] === 'OnTime' ? '#065f46' : ($tracking['operational_status'] === 'Delayed' ? '#92400e' : '#991b1b')) ?>;">
+            <?= htmlspecialchars($tracking['operational_status'] ?? 'Unknown') ?>
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <th>Current Speed</th>
+        <td><?= htmlspecialchars($tracking['speed'] ?? '0') ?> km/h</td>
+      </tr>
+      <tr>
+        <th>Average Delay</th>
+        <td>+<?= htmlspecialchars($tracking['avg_delay_min'] ?? '0') ?> min</td>
+      </tr>
+      <tr>
+        <th>Last Update</th>
+        <td><?= htmlspecialchars($tracking['snapshot_at'] ?? 'N/A') ?></td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 <?php endif; ?>
 
@@ -85,7 +89,7 @@ $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
   
   <?php if (!empty($assignments)): ?>
     <div style="overflow-x:auto;">
-      <table class="table" style="width:100%;border-collapse:collapse;">
+      <table class="table bus-profile-table" style="width:100%;border-collapse:collapse;">
         <thead>
           <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
             <th style="padding:12px;text-align:left;font-weight:600;">Route</th>
@@ -121,7 +125,7 @@ $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
   
   <?php if (!empty($trips)): ?>
     <div style="overflow-x:auto;">
-      <table class="table" style="width:100%;border-collapse:collapse;">
+      <table class="table bus-profile-table" style="width:100%;border-collapse:collapse;">
         <thead>
           <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
             <th style="padding:12px;text-align:left;font-weight:600;">Date</th>
@@ -169,4 +173,73 @@ $busReg = htmlspecialchars($bus['bus_reg_no'] ?? 'Unknown');
   .badge { display:inline-block;padding:4px 12px;border-radius:999px;font-weight:600;font-size:0.875rem; }
   .button { display:inline-block;padding:10px 20px;background:#7a0f2e;color:white;text-decoration:none;border-radius:8px;font-weight:500;transition:background 0.2s; }
   .button:hover { background:#a01845; }
+  .bus-profile-kv-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .bus-profile-kv-table th,
+  .bus-profile-kv-table td {
+    padding: 12px 20px;
+    border-top: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: table-cell !important;
+  }
+  .bus-profile-kv-table tr:first-child th,
+  .bus-profile-kv-table tr:first-child td {
+    border-top: 0;
+  }
+  .bus-profile-kv-table th {
+    width: min(36%, 280px);
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  .bus-profile-kv-table td {
+    color: #111827;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .bus-profile-kv-value--primary {
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .bus-profile-kv-value--strong {
+    font-weight: 700;
+  }
+  .bus-profile-table th,
+  .bus-profile-table td {
+    vertical-align: top;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  @media (max-width: 768px) {
+    .page-hero { padding: 22px; }
+    .page-hero h1 { font-size: 1.5rem; }
+    .bus-profile-kv-table th,
+    .bus-profile-kv-table td {
+      display: block !important;
+      width: 100%;
+      padding: 10px 16px;
+    }
+    .bus-profile-kv-table th {
+      border-top: 0;
+      padding-bottom: 2px;
+      font-size: 0.83rem;
+    }
+    .bus-profile-kv-table td {
+      padding-top: 2px;
+      border-top: 0;
+      font-size: 1rem;
+    }
+    .bus-profile-kv-value--primary {
+      font-size: 1.2rem;
+    }
+  }
 </style>
