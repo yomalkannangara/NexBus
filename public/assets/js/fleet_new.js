@@ -8,6 +8,33 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+  function normalizeBusReg(value) {
+    return String(value || '').trim().toUpperCase();
+  }
+
+  function focusBusCardFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const target = normalizeBusReg(params.get('focus_bus') || params.get('bus'));
+    if (!target) return;
+
+    const cards = $$('.js-bus-card[data-reg]');
+    const match = cards.find(card => normalizeBusReg(card.getAttribute('data-reg')) === target);
+    if (!match) return;
+
+    match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    match.classList.add('fleet-card-focus');
+    setTimeout(() => {
+      match.classList.remove('fleet-card-focus');
+    }, 2200);
+
+    if (window.history && typeof window.history.replaceState === 'function') {
+      params.delete('focus_bus');
+      const qs = params.toString();
+      const nextUrl = window.location.pathname + (qs ? ('?' + qs) : '');
+      window.history.replaceState({}, document.title, nextUrl);
+    }
+  }
+
   // ============= MODAL MANAGEMENT =============
   function openModal(modal) {
     if (!modal) return;
@@ -573,4 +600,6 @@
       }
     })();
   }
+
+  focusBusCardFromQuery();
 })();

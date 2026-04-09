@@ -199,6 +199,10 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
       return L.divIcon({html:svg,className:'',iconSize:[44,54],iconAnchor:[22,52],popupAnchor:[0,-50]});
     }
 
+    function fleetFocusUrl(busId){
+      return '/M/fleet?focus_bus=' + encodeURIComponent(String(busId || '').trim());
+    }
+
     function makePopup(b){
       var over = b.speedKmh > 60;
       var tag  = over
@@ -209,6 +213,7 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
         +'<b>🚌 Bus '+b.busId+'</b><br>'
         +'<span class="popup-route">Route <strong>'+b.routeNo+'</strong></span><br>'
         +tag+'<br>'
+        +'<a href="'+fleetFocusUrl(b.busId)+'" class="popup-fleet-link">Open in Fleet</a><br>'
         +'<small>Heading '+Math.round(b.heading||0)+'° &nbsp;·&nbsp; Updated '+upd+'</small>'
         +'</div>';
     }
@@ -307,6 +312,15 @@ function _svg(string $name, int $size = 18, string $stroke = 'currentColor'): st
               else    { if( map.hasLayer(markers[b.busId])) map.removeLayer(markers[b.busId]); }
             } else {
               var mk = L.marker([b.lat,b.lng],{icon:icon}).bindPopup(popup);
+              mk.on('mouseover', function(){
+                this.openPopup();
+              });
+              mk.on('mouseout', function(){
+                this.closePopup();
+              });
+              mk.on('click', function(){
+                window.location.href = fleetFocusUrl(b.busId);
+              });
               if(show) mk.addTo(map);
               markers[b.busId] = mk;
             }

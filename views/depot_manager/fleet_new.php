@@ -797,6 +797,18 @@ rsort($yearsList);
   border-color: var(--brand-red);
 }
 
+.fleet-card.fleet-card-focus {
+  border-color: #b91c1c;
+  box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.18), 0 10px 24px rgba(0, 0, 0, 0.14);
+  animation: fleetCardFocusPulse 1.1s ease 2;
+}
+
+@keyframes fleetCardFocusPulse {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
 .fleet-card-header {
   padding: 16px;
   background: #F9FAFB;
