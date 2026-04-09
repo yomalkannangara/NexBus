@@ -226,6 +226,269 @@ class EarningsModel extends BaseModel
         }
     }
 
+    /* ==================== Revenue Trend Chart (Last 7 days) ==================== */
+    public function revenueTrendChart(): array
+    {
+        try {
+            $sql = "
+                SELECT DATE(date) AS day, SUM(amount) AS total
+                FROM earnings
+                WHERE operator_type='SLTB' AND date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+                GROUP BY DATE(date)
+                ORDER BY day ASC
+            ";
+            
+            $st = $this->pdo->query($sql);
+            $rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : [];
+            
+            $labels = [];
+            $values = [];
+            
+            foreach ($rows as $r) {
+                $labels[] = date('M d', strtotime($r['day']));
+                $values[] = (float)($r['total'] ?? 0);
+            }
+            
+            return [
+                'labels' => $labels,
+                'values' => $values,
+                'count' => count($rows),
+            ];
+        } catch (PDOException $e) {
+            return ['labels' => [], 'values' => [], 'count' => 0];
+        }
+    }
+
+    /* ==================== Bus Performance Ranking ==================== */
+    public function busPerformanceRanking(): array
+    {
+        try {
+            $sql = "
+                SELECT
+                    e.bus_reg_no,
+                    SUM(e.amount) AS total_revenue,
+                    COUNT(e.earning_id) AS transaction_count,
+                    AVG(e.amount) AS avg_per_transaction
+                FROM earnings e
+                WHERE e.operator_type='SLTB'
+                GROUP BY e.bus_reg_no
+                ORDER BY total_revenue DESC
+            ";
+            
+            $st = $this->pdo->query($sql);
+            $rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : [];
+            
+            $result = [
+                'top' => [],
+                'bottom' => [],
+            ];
+            
+            if (!empty($rows)) {
+                // Top 5
+                $top = array_slice($rows, 0, 5);
+                foreach ($top as $r) {
+                    $result['top'][] = [
+                        'bus' => $r['bus_reg_no'],
+                        'revenue' => (float)($r['total_revenue'] ?? 0),
+                        'transactions' => (int)($r['transaction_count'] ?? 0),
+                        'avg' => (float)($r['avg_per_transaction'] ?? 0),
+                    ];
+                }
+                
+                // Bottom 5
+                $bottom = array_slice(array_reverse($rows), 0, 5);
+                foreach ($bottom as $r) {
+                    $result['bottom'][] = [
+                        'bus' => $r['bus_reg_no'],
+                        'revenue' => (float)($r['total_revenue'] ?? 0),
+                        'transactions' => (int)($r['transaction_count'] ?? 0),
+                        'avg' => (float)($r['avg_per_transaction'] ?? 0),
+                    ];
+                }
+            }
+            
+            return $result;
+        } catch (PDOException $e) {
+            return ['top' => [], 'bottom' => []];
+        }
+    }
+
+    /* ==================== Daily Income Distribution ==================== */
+    public function dailyIncomeDistribution(): array
+    {
+        try {
+            $sql = "
+                SELECT DATE(date) AS day, SUM(amount) AS total_income
+                FROM earnings
+                WHERE operator_type='SLTB' AND date >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
+                GROUP BY DATE(date)
+                ORDER BY day ASC
+            ";
+            
+            $st = $this->pdo->query($sql);
+            $rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : [];
+            
+            $labels = [];
+            $values = [];
+            
+            foreach ($rows as $r) {
+                $labels[] = date('d M', strtotime($r['day']));
+                $values[] = (float)($r['total_income'] ?? 0);
+            }
+            
+            return [
+                'labels' => $labels,
+                'values' => $values,
+            ];
+        } catch (PDOException $e) {
+            return ['labels' => [], 'values' => []];
+        }
+    }
+
+    /* ==================== Bus Performance Heatmap Data ==================== */
+    public function busPerformanceMetrics(): array
+    {
+        try {
+            $latestRow  = $this->row("SELECT MAX(date) d FROM earnings WHERE operator_type='SLTB'");
+            $latestDate = $latestRow['d'] ?? null;
+            $weekStart  = (new \DateTime($latestDate ?? 'today'))->modify('-6 days')->format('Y-m-d');
+            
+            $sql = "
+                SELECT
+                    e.bus_reg_no,
+                    SUM(e.amount) AS weekly_revenue,
+                    COUNT(e.earning_id) AS trips,
+                    AVG(e.amount) AS avg_revenue
+                FROM earnings e
+                WHERE e.operator_type='SLTB' AND e.date >= :week_start
+                GROUP BY e.bus_reg_no
+                ORDER BY weekly_revenue DESC
+            ";
+            
+            $st = $this->pdo->prepare($sql);
+            $st->execute([':week_start' => $weekStart]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+            
+            $maxRevenue = 0;
+            foreach ($rows as $r) {
+                $maxRevenue = max($maxRevenue, (float)($r['weekly_revenue'] ?? 0));
+            }
+            
+            $result = [];
+            foreach ($rows as $r) {
+                $revenue = (float)($r['weekly_revenue'] ?? 0);
+                $efficiency = $maxRevenue > 0 ? (100.0 * $revenue / $maxRevenue) : 0;
+                
+                $result[] = [
+                    'bus' => $r['bus_reg_no'],
+                    'revenue' => $revenue,
+                    'trips' => (int)($r['trips'] ?? 0),
+                    'avg' => (float)($r['avg_revenue'] ?? 0),
+                    'efficiency' => $efficiency,
+                ];
+            }
+            
+            return $result;
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    /* ==================== Compare Two Buses ==================== */
+    public function compareBuses(string $bus1, string $bus2): array
+    {
+        try {
+            $latestRow  = $this->row("SELECT MAX(date) d FROM earnings WHERE operator_type='SLTB'");
+            $latestDate = $latestRow['d'] ?? null;
+            
+            if (!$latestDate) {
+                return ['bus1' => null, 'bus2' => null];
+            }
+
+            $dt        = new \DateTime($latestDate);
+            $firstThis = (clone $dt)->modify('first day of this month')->format('Y-m-d');
+            $firstNext = (clone $dt)->modify('first day of next month')->format('Y-m-d');
+            $firstPrev = (clone $dt)->modify('first day of last month')->format('Y-m-d');
+            $latestDateSql = "'" . $latestDate . "'";
+
+            // Process each bus
+            $buses = [$bus1, $bus2];
+            $result = [];
+
+            foreach ($buses as $busReg) {
+                // Total income (all time)
+                $totalIncome = $this->scalar(
+                    "SELECT COALESCE(SUM(amount),0) v FROM earnings 
+                     WHERE operator_type='SLTB' AND bus_reg_no=?",
+                    [$busReg]
+                );
+
+                // This month income
+                $thisMonth = $this->scalar(
+                    "SELECT COALESCE(SUM(amount),0) v FROM earnings
+                     WHERE operator_type='SLTB' AND bus_reg_no=? AND date >= ? AND date < ?",
+                    [$busReg, $firstThis, $firstNext]
+                );
+
+                // Previous month income
+                $prevMonth = $this->scalar(
+                    "SELECT COALESCE(SUM(amount),0) v FROM earnings
+                     WHERE operator_type='SLTB' AND bus_reg_no=? AND date >= ? AND date < ?",
+                    [$busReg, $firstPrev, $firstThis]
+                );
+
+                // Last day income
+                $lastDayIncome = $this->scalar(
+                    "SELECT COALESCE(SUM(amount),0) v FROM earnings
+                     WHERE operator_type='SLTB' AND bus_reg_no=? AND DATE(date)=DATE(?)",
+                    [$busReg, $latestDate]
+                );
+
+                // Efficiency (compared to highest revenue bus)
+                $allBusesMax = $this->scalar(
+                    "SELECT COALESCE(MAX(total),0) v FROM (
+                        SELECT SUM(amount) as total FROM earnings 
+                        WHERE operator_type='SLTB' 
+                        GROUP BY bus_reg_no
+                    ) t"
+                );
+
+                $efficiency = $allBusesMax > 0 ? (100.0 * $totalIncome / $allBusesMax) : 0;
+
+                $result[$busReg === $bus1 ? 'bus1' : 'bus2'] = [
+                    'reg_no' => $busReg,
+                    'total_income' => $totalIncome,
+                    'this_month' => $thisMonth,
+                    'prev_month' => $prevMonth,
+                    'last_day' => $lastDayIncome,
+                    'efficiency' => $efficiency,
+                ];
+            }
+
+            return $result;
+        } catch (PDOException $e) {
+            return ['bus1' => null, 'bus2' => null];
+        }
+    }
+
+    /* ==================== Get All Bus List for Dropdown ==================== */
+    public function getAllBuses(): array
+    {
+        try {
+            $sql = "SELECT DISTINCT bus_reg_no FROM earnings WHERE operator_type='SLTB' ORDER BY bus_reg_no ASC";
+            $st = $this->pdo->query($sql);
+            $rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : [];
+            
+            $buses = [];
+            foreach ($rows as $r) {
+                $buses[] = $r['bus_reg_no'];
+            }
+            return $buses;
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
     /* ==================== Existing helpers ==================== */
     public function add(array $d): bool
     {
@@ -319,3 +582,4 @@ class EarningsModel extends BaseModel
         return str_contains($joined, 'bus') || str_contains($joined, 'amount');
     }
 }
+

@@ -759,10 +759,46 @@ public function fleet()
             }
         }
 
+        // Enhanced data for redesigned dashboard
+        $revenueTrend = $m->revenueTrendChart();
+        $busRanking = $m->busPerformanceRanking();
+        $dailyDistribution = $m->dailyIncomeDistribution();
+        $busMetrics = $m->busPerformanceMetrics();
+        
+        // Get comparison data if buses are selected
+        $comparisonData = null;
+        $compareB1 = $_GET['compare_b1'] ?? null;
+        $compareB2 = $_GET['compare_b2'] ?? null;
+        if ($compareB1 && $compareB2) {
+            $comparisonData = $m->compareBuses($compareB1, $compareB2);
+        }
+        
         $this->view('depot_manager', 'earnings', [
+            // Original data
             'top'   => $m->topSummary(),
             'buses' => $m->busIncomeDetail(),
             'month' => $m->monthlyOverview(),
+            
+            // New chart data
+            'revenueTrend' => $revenueTrend,
+            'busRanking' => $busRanking,
+            'dailyDistribution' => $dailyDistribution,
+            'busMetrics' => $busMetrics,
+            
+            // Bus list for dropdown
+            'allBuses' => $m->getAllBuses(),
+            'comparisonData' => $comparisonData,
+            'compareB1' => $compareB1,
+            'compareB2' => $compareB2,
+            
+            // Chart.js JSON
+            'revenueTrendJson' => json_encode($revenueTrend, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT),
+            'busRankingTopJson' => json_encode(
+                ['labels' => array_map(fn($b) => $b['bus'], $busRanking['top'] ?? []),
+                 'values' => array_map(fn($b) => $b['revenue'], $busRanking['top'] ?? [])],
+                JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT
+            ),
+            'dailyDistributionJson' => json_encode($dailyDistribution, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT),
         ]);
     }
 
