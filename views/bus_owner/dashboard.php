@@ -225,7 +225,8 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
           buses.forEach(function(b){
             seen[b.busId] = true;
             var speed = b.speedKmh ?? b.speed ?? 0;
-            var popup = '<div style="min-width:150px">'
+            var busIdEnc = encodeURIComponent(b.busId);
+            var popup = '<div style="min-width:160px;font-family:inherit">'
               +'<b style="font-size:.95rem">🚌 '+b.busId+'</b><br>'
               +'Route: <strong>'+(b.routeNo ?? b.route_no ?? '—')+'</strong><br>'
               +(speed > 60
@@ -233,7 +234,18 @@ $activePct   = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
                 : '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">✓ '+speed+' km/h</span>')+'<br>'
               +(b.owner ? '<small style="color:#6b7280">'+b.owner+'</small><br>' : '')
               +'<small style="color:#6b7280">'+new Date(b.updatedAt || b.snapshotAt || Date.now()).toLocaleTimeString()+'</small>'
+              +'<div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:7px">'
+              +'<a href="/B/fleet?focus='+busIdEnc+'" '
+              +'style="display:inline-flex;align-items:center;gap:4px;background:#80143c;color:#fff;'
+              +'padding:5px 12px;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none;'
+              +'transition:background .2s" '
+              +'onmouseover="this.style.background=\'#5e0f2c\'" onmouseout="this.style.background=\'#80143c\'">'
+              +'<svg width="11" height="11" fill="none" viewBox="0 0 24 24" style="flex-shrink:0">'
+              +'<path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>'
+              +'</svg>View Fleet Profile</a>'
+              +'</div>'
               +'</div>';
+
             if(markers[b.busId]){
               markers[b.busId].setLatLng([b.lat, b.lng])
                 .setIcon(busIcon(speed))

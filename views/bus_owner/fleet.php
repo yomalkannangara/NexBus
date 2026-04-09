@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Content-only Fleet view (structure only)
 // Expects: $buses (array), BASE_URL defined by layout.
 
@@ -158,6 +158,10 @@ if (!empty($buses)) {
           data-route-tag="<?= htmlspecialchars($routeTagText); ?>"
           data-destination="<?= htmlspecialchars($destinationText); ?>"
           data-location="<?= htmlspecialchars($b['current_location'] ?? ''); ?>"
+          data-lat="<?= $b['live_lat'] !== null ? (float)$b['live_lat'] : ''; ?>"
+          data-lng="<?= $b['live_lng'] !== null ? (float)$b['live_lng'] : ''; ?>"
+          data-snap-age="<?= htmlspecialchars($b['live_snapshot_at'] ?? ''); ?>"
+          data-has-live="<?= !empty($b['has_live_location']) ? '1' : '0'; ?>"
           data-capacity="<?= (int)($b['capacity'] ?? 0); ?>"
           data-bus-class="<?= htmlspecialchars($busClass); ?>"
           data-manufactured-date="<?= htmlspecialchars($b['manufactured_date'] ?? ''); ?>"
@@ -213,7 +217,17 @@ if (!empty($buses)) {
 
             <div class="fleet-card-row fleet-card-row--full">
               <span class="fleet-card-label">Current Location:</span>
-              <span class="fleet-card-location"><?= htmlspecialchars($b['current_location'] ?? '—'); ?></span>
+              <?php if (!empty($b['has_live_location'])): ?>
+                <span class="fleet-card-location fleet-card-location--live">
+                  <svg width="11" height="11" fill="currentColor" viewBox="0 0 10 10" style="flex-shrink:0"><circle cx="5" cy="5" r="5"/></svg>
+                  <span class="fleet-loc-text" style="color:#9ca3af;font-style:italic;font-weight:500">Locating…</span>
+                </span>
+              <?php else: ?>
+                <span class="fleet-card-location fleet-card-location--unknown">
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  No tracking data
+                </span>
+              <?php endif; ?>
             </div>
           </div>
 
@@ -435,9 +449,27 @@ document.addEventListener('DOMContentLoaded', function () {
     color: #374151;
   }
   .fleet-card-location {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .fleet-card-location--live {
     color: #7F1D3A;
+  }
+  .fleet-card-location--live svg {
+    color: #10B981; /* green pulse dot */
+    animation: loc-pulse 2s ease-in-out infinite;
+  }
+  @keyframes loc-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .4; }
+  }
+  .fleet-card-location--unknown {
+    color: #9CA3AF;
+    font-weight: 500;
+    font-style: italic;
   }
   .destination-wrap {
     display: inline-flex;
@@ -924,6 +956,176 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && !modal.hasAttribute('hidden')) close();
   });
+
+  // ── Auto-open from ?focus=BUS_ID (e.g. clicked from map) ──────────
+  (function() {
+    var params  = new URLSearchParams(window.location.search);
+    var focusId = (params.get('focus') || '').trim();
+    if (!focusId) return;
+
+    // Find the card whose data-bus-number matches (case-insensitive)
+    var target = Array.from(document.querySelectorAll('.js-bus-profile-card'))
+      .find(function(c) {
+        return (c.dataset.busNumber || '').toLowerCase() === focusId.toLowerCase();
+      });
+
+    if (!target) return;
+
+    // Scroll the card into view and briefly highlight it
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.style.transition = 'box-shadow .3s, border-color .3s';
+    target.style.boxShadow  = '0 0 0 3px #80143c, 0 8px 28px rgba(128,20,60,.35)';
+    target.style.borderColor = '#80143c';
+
+    // Open the profile modal after a short delay so the page has settled
+    setTimeout(function() {
+      open(target);
+      // Clean the ?focus= param from the URL without reloading
+      var cleanUrl = window.location.pathname + (window.location.search.replace(/([?&])focus=[^&]*/,'').replace(/^&/,'?') || '');
+      history.replaceState(null, '', cleanUrl || window.location.pathname);
+    }, 400);
+
+    // Remove highlight after modal closed or after 3s
+    setTimeout(function() {
+      target.style.boxShadow  = '';
+      target.style.borderColor = '';
+    }, 3000);
+  })();
+
+})();
+</script>
+
+<script>
+/* ── Reverse Geocoding: replace lat/lng with place names (Nominatim) ── */
+(function () {
+  var CACHE_KEY = 'fleet_geocache_v1';
+  var cache = {};
+  try { cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}'); } catch(e){}
+
+  function saveCache() {
+    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch(e){}
+  }
+
+  /* Round to 3 decimal places (~111m precision) for cache key */
+  function cacheKey(lat, lng) {
+    return Math.round(lat * 1000) / 1000 + ',' + Math.round(lng * 1000) / 1000;
+  }
+
+  /* Extract the best place label from a Nominatim response */
+  function placeName(data) {
+    if (!data || !data.address) return null;
+    var a = data.address;
+    /* Prefer smallest → largest granularity */
+    return a.suburb || a.neighbourhood || a.quarter
+        || a.village || a.hamlet
+        || a.town || a.city_district
+        || a.city || a.county
+        || a.state_district || a.state
+        || data.display_name.split(',')[0]
+        || null;
+  }
+
+  /* Format snapshot age string */
+  function formatAge(snapStr) {
+    if (!snapStr) return '';
+    var diff = Math.floor((Date.now() - new Date(snapStr).getTime()) / 1000);
+    if (diff < 0)    return 'just now';
+    if (diff < 60)   return diff + 's ago';
+    if (diff < 3600) return Math.round(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.round(diff / 3600) + 'h ago';
+    return Math.round(diff / 86400) + 'd ago';
+  }
+
+  /* Update a card's displayed location span */
+  function applyName(card, name, age) {
+    var span = card.querySelector('.fleet-card-location--live');
+    if (!span) return;
+    var locText = span.querySelector('.fleet-loc-text');
+    var label = 'Near ' + name + (age ? '  · ' + age : '');
+    if (locText) {
+      locText.textContent = label;
+      locText.style.color = '';
+      locText.style.fontStyle = '';
+      locText.style.fontWeight = '';
+    }
+    /* Also update data-location so the profile modal picks it up */
+    card.dataset.location = label;
+  }
+
+  /* Show age-only fallback when Nominatim fails */
+  function applyFallback(card, age) {
+    var span = card.querySelector('.fleet-card-location--live');
+    if (!span) return;
+    var locText = span.querySelector('.fleet-loc-text');
+    if (locText) {
+      locText.textContent = age ? '· ' + age : 'Location unavailable';
+      locText.style.color = '#9ca3af';
+      locText.style.fontStyle = 'normal';
+      locText.style.fontWeight = '500';
+    }
+  }
+
+  /* Fetch one lat/lng — rate-limited to 1 req per second (Nominatim policy) */
+  var queue = [];
+  var busy  = false;
+
+  function processQueue() {
+    if (busy || queue.length === 0) return;
+    busy = true;
+    var item = queue.shift();
+    var key  = cacheKey(item.lat, item.lng);
+
+    if (cache[key]) {
+      applyName(item.card, cache[key], formatAge(item.snap));
+      busy = false;
+      setTimeout(processQueue, 0);
+      return;
+    }
+
+    fetch(
+      'https://nominatim.openstreetmap.org/reverse'
+      + '?lat=' + item.lat + '&lon=' + item.lng
+      + '&format=json&accept-language=en&zoom=14',
+      { headers: { 'Accept': 'application/json' } }
+    )
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var name = placeName(data);
+      if (name) {
+        cache[key] = name;
+        saveCache();
+        applyName(item.card, name, formatAge(item.snap));
+      } else {
+        applyFallback(item.card, formatAge(item.snap));
+      }
+    })
+    .catch(function(){
+      /* Nominatim failed — show age only, no raw coords */
+      applyFallback(item.card, formatAge(item.snap));
+    })
+    .finally(function(){
+      busy = false;
+      setTimeout(processQueue, 1100); /* 1.1s between requests (Nominatim 1 req/s limit) */
+    });
+  }
+
+  /* Enqueue all live-location cards */
+  document.querySelectorAll('.js-bus-profile-card[data-has-live="1"]').forEach(function(card) {
+    var lat  = parseFloat(card.dataset.lat);
+    var lng  = parseFloat(card.dataset.lng);
+    var snap = card.dataset.snapAge || '';
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    var key = cacheKey(lat, lng);
+    if (cache[key]) {
+      /* Instant apply from cache — no queue delay */
+      applyName(card, cache[key], formatAge(snap));
+    } else {
+      queue.push({ card: card, lat: lat, lng: lng, snap: snap });
+    }
+  });
+
+  processQueue();
 })();
 </script>
 
