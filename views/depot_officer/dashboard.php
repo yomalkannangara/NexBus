@@ -25,7 +25,7 @@ $todayDelayed = $todayDelayed ?? [];
           <ul class="delayed-list">
             <?php foreach ($todayDelayed as $r): ?>
               <li>
-                <a class="delayed-link" href="?module=depot_officer&page=bus_profile&bus_reg_no=<?= urlencode($r['bus_reg_no'] ?? '') ?>">
+                <a class="delayed-link" href="/O/bus_profile?bus_reg_no=<?= urlencode($r['bus_reg_no'] ?? '') ?>">
                   <span class="delayed-main">
                     <strong><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></strong>
                     <span>• Route <?= htmlspecialchars($r['route_no'] ?? '-') ?></span>
@@ -83,7 +83,9 @@ $todayDelayed = $todayDelayed ?? [];
           <?php foreach ($todayDelayed as $r): ?>
             <tr>
               <td data-label="Time"><?= htmlspecialchars($r['snapshot_at'] ?? '') ?></td>
-              <td data-label="Bus"><strong><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></strong></td>
+              <td data-label="Bus">
+                <strong><a href="/O/bus_profile?bus_reg_no=<?= urlencode($r['bus_reg_no'] ?? '') ?>"><?= htmlspecialchars($r['bus_reg_no'] ?? '') ?></a></strong>
+              </td>
               <td data-label="Route"><?= htmlspecialchars($r['route_no'] ?? '-') ?></td>
               <td data-label="Status"><span class="badge do-status"><?= htmlspecialchars($r['operational_status'] ?? 'Unknown') ?></span></td>
             </tr>
@@ -317,7 +319,12 @@ document.addEventListener('DOMContentLoaded', function () {
       return L.divIcon({ html: svg, className: '', iconSize: [44, 54], iconAnchor: [22, 52], popupAnchor: [0, -50] });
     }
 
+    var busesRequestInFlight = false;
+    var busesPollTimer = null;
+
     function fetchBuses() {
+      if (busesRequestInFlight || document.hidden) return;
+      busesRequestInFlight = true;
       fetch('/api/buses/live')
         .then(function(r) { return r.json(); })
         .then(function(buses) {
@@ -351,11 +358,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
           });
         })
-        .catch(function(){});
+        .catch(function(){})
+        .finally(function(){ busesRequestInFlight = false; });
     }
 
     fetchBuses();
-    setInterval(fetchBuses, 15000);
+    busesPollTimer = setInterval(fetchBuses, 30000);
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) fetchBuses();
+    });
   }
 });
 </script>

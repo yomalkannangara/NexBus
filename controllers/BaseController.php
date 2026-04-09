@@ -3,6 +3,20 @@ namespace App\controllers;
 
 class BaseController
 {
+    protected function defaultHomeForRole(?string $role): string
+    {
+        return match ($role) {
+            'NTCAdmin'          => '/A/dashboard',
+            'DepotManager'      => '/M',
+            'DepotOfficer'      => '/O',
+            'PrivateBusOwner'   => '/B',
+            'SLTBTimekeeper'    => '/TS',
+            'PrivateTimekeeper' => '/TP',
+            'Passenger'         => '/home',
+            default             => '/login',
+        };
+    }
+
     // TEMP shim: lets old code keep working
     protected function view(string $module, string $page, array $data = []): void
     {
@@ -77,8 +91,7 @@ class BaseController
             exit;
         }
         if ($roles && !in_array($this->user['role'] ?? '', $roles, true)) {
-            http_response_code(403);
-            echo "<h1>403 Forbidden</h1>";
+            header('Location: ' . $this->defaultHomeForRole($this->user['role'] ?? null));
             exit;
         }
     }

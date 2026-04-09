@@ -107,7 +107,11 @@
       return L.divIcon({ html: svg, className: '', iconSize:[44,54], iconAnchor:[22,52], popupAnchor:[0,-50] });
     }
 
+    var busesRequestInFlight = false;
+
     function fetchBuses(){
+      if (busesRequestInFlight || document.hidden) return;
+      busesRequestInFlight = true;
       fetch('/api/buses/live')
         .then(function(r){ return r.json(); })
         .then(function(buses){
@@ -151,11 +155,15 @@
             }
           }
         })
-        .catch(function(){});
+        .catch(function(){})
+        .finally(function(){ busesRequestInFlight = false; });
     }
 
     fetchBuses();
-    setInterval(fetchBuses, 15000);
+    setInterval(fetchBuses, 30000);
+    document.addEventListener('visibilitychange', function(){
+      if (!document.hidden) fetchBuses();
+    });
   })();
   </script>
 </div>

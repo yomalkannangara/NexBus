@@ -133,6 +133,32 @@ $messages = [
 </script>
 
 <style>
+  .profile-shell {
+    display:grid;
+    gap:16px;
+  }
+  .profile-card {
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+    overflow:hidden;
+  }
+  .profile-card-body {
+    padding:18px;
+  }
+  .profile-section-title {
+    margin:0 0 14px;
+    font-size:1.05rem;
+  }
+  .profile-actions {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .profile-inline-form {
+    margin:10px 0 0;
+  }
   .profile-image-container .camera-btn {
     opacity: 0;
     transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
@@ -147,11 +173,10 @@ $messages = [
   }
 </style>
 
-<div class="grid-2">
-  <!-- LEFT COLUMN: PROFILE + PASSWORD -->
-  <section class="panel show">
-    <!-- Profile Details Section -->
-    <div class="panel-head"><h2>Profile</h2></div>
+<div class="profile-shell">
+  <section class="profile-card">
+    <div class="profile-card-body">
+    <h2 class="profile-section-title">Profile Details</h2>
     <form method="post" class="form-grid narrow">
       <input type="hidden" name="action" value="update_profile">
 
@@ -171,22 +196,27 @@ $messages = [
         <input name="phone" value="<?= htmlspecialchars($me['phone'] ?? '') ?>">
       </label>
 
-      <div class="form-actions">
+      <div class="profile-actions">
         <button class="btn primary">Save Changes</button>
-        <?php if ($profileImage): ?>
-          <form method="post" style="display:inline;">
-            <input type="hidden" name="action" value="delete_image">
-            <button type="submit" class="btn warn" onclick="return confirm('Delete your profile picture?');">Delete Image</button>
-          </form>
-        <?php endif; ?>
         <a href="/O/dashboard" class="btn">Cancel</a>
       </div>
     </form>
 
-    <hr class="sep">
+    <?php if ($profileImage): ?>
+      <form method="post" class="profile-inline-form" onsubmit="return confirm('Delete your profile picture?');">
+        <input type="hidden" name="action" value="delete_image">
+        <div class="profile-actions">
+          <button type="submit" class="btn warn">Delete Image</button>
+        </div>
+      </form>
+    <?php endif; ?>
 
-    <!-- Change Password Section -->
-    <div class="panel-head"><h2>Change Password</h2></div>
+    </div>
+  </section>
+
+  <section class="profile-card">
+    <div class="profile-card-body">
+    <h2 class="profile-section-title">Change Password</h2>
     <form method="post" class="form-grid narrow">
       <input type="hidden" name="action" value="change_password">
 
@@ -202,18 +232,10 @@ $messages = [
         <input type="password" name="confirm_password" required minlength="8">
       </label>
 
-      <div class="form-actions">
+      <div class="profile-actions">
         <button class="btn warn">Update Password</button>
       </div>
     </form>
+    </div>
   </section>
-
-</div>
-
-<!-- Account Actions -->
-<div class="panel" style="margin-top:16px">
-  <div class="panel-head"><h2>Account</h2></div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
-    <a href="/logout" class="btn danger">⇦ Logout</a>
-  </div>
 </div>
