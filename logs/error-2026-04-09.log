@@ -1,0 +1,55 @@
+[09-Apr-2026 03:08:22 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:137
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(137): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(113): App\models\depot_officer\SpecialTimetableModel->listSpecial(1, Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(364): App\models\depot_officer\DepotOfficerModel->specialTimetables(1, Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotManagerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(202): run('DepotManagerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
+[09-Apr-2026 03:08:23 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:137
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(137): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(113): App\models\depot_officer\SpecialTimetableModel->listSpecial(1, Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(364): App\models\depot_officer\DepotOfficerModel->specialTimetables(1, Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotManagerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(202): run('DepotManagerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
+[09-Apr-2026 03:09:25 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:137
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(137): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(113): App\models\depot_officer\SpecialTimetableModel->listSpecial(1, Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(364): App\models\depot_officer\DepotOfficerModel->specialTimetables(1, Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotManagerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(202): run('DepotManagerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
+[09-Apr-2026 03:09:26 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:137
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(137): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(113): App\models\depot_officer\SpecialTimetableModel->listSpecial(1, Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(364): App\models\depot_officer\DepotOfficerModel->specialTimetables(1, Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotManagerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(202): run('DepotManagerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
+[09-Apr-2026 03:09:27 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:137
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(137): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(113): App\models\depot_officer\SpecialTimetableModel->listSpecial(1, Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(364): App\models\depot_officer\DepotOfficerModel->specialTimetables(1, Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotManagerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(202): run('DepotManagerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
+[09-Apr-2026 03:09:32 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY093]: Invalid parameter number in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php:137
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php(137): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\NexBus-1\models\depot_officer\DepotOfficerModel.php(113): App\models\depot_officer\SpecialTimetableModel->listSpecial(1, Array)
+#2 C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php(364): App\models\depot_officer\DepotOfficerModel->specialTimetables(1, Array)
+#3 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\DepotManagerController->timetables()
+#4 C:\xampp\htdocs\NexBus-1\public\index.php(202): run('DepotManagerCon...', 'timetables')
+#5 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\models\depot_officer\SpecialTimetableModel.php on line 137
+[09-Apr-2026 07:23:51 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\controllers\DepotManagerController.php on line 412

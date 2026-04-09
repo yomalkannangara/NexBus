@@ -347,11 +347,65 @@ public function fleet()
             }
         }
 
+        $filters = [
+            'from'  => trim($_GET['from'] ?? ''),
+            'to'    => trim($_GET['to'] ?? ''),
+            'month' => trim($_GET['month'] ?? ''),
+            'year'  => trim($_GET['year'] ?? ''),
+            'bus'   => trim($_GET['bus'] ?? ''),
+            'route' => trim($_GET['route'] ?? ''),
+        ];
+
+        if ($filters['month'] !== '' && $filters['year'] === '') {
+            $filters['year'] = date('Y');
+        }
+
+        $special_tt = $off->specialTimetables($dep);
+        
+        // Apply bus filter
+        if ($filters['bus']) {
+            $special_tt = array_filter($special_tt, function($row) use ($filters) {
+                return $row['bus_reg_no'] === $filters['bus'];
+            });
+        }
+        
+        // Apply route filter
+        if ($filters['route']) {
+            $special_tt = array_filter($special_tt, function($row) use ($filters) {
+                return $row['route_no'] === $filters['route'];
+            });
+        }
+        
+        // Apply date range filter
+        if ($filters['from'] || $filters['to'] || $filters['year']) {
+            $from = $filters['from'];
+            $to = $filters['to'];
+            if ($from || $to) {
+                if (!$from) $from = $to;
+                if (!$to) $to = $from;
+            } else {
+                $year = (int)$filters['year'];
+                $month = (int)$filters['month'];
+                $from = sprintf('%04d-%02d-01', $year, $month ?: 1);
+                $to = $month ? date('Y-m-t', strtotime($from)) : sprintf('%04d-12-31', $year);
+            }
+
+            if ($from && $to) {
+                $special_tt = array_filter($special_tt, function($row) use ($from, $to) {
+                    $start = $row['effective_from'] ?: '0000-00-00';
+                    $end = $row['effective_to'] ?: '9999-12-31';
+                    return $start <= $to && $end >= $from;
+                });
+            }
+        }
+        
+        $special_tt = array_values($special_tt);
+
         $this->view('depot_manager', 'timetables', [
             'routes' => $off->routes(),
             'buses'  => $off->depotBuses($dep),
-            'special_tt' => $off->specialTimetables($dep),
-            'msg'    => $_GET['msg'] ?? null,
+            'special_tt' => $special_tt,
+            'filters' => $filters,
         ]);
     }
 
