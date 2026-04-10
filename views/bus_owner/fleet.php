@@ -44,6 +44,25 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
 </header>
 
 <?php
+// ── KPI computation from $buses array ────────────────────────────────
+$_kpi = [
+    'total'          => 0,
+    'active'         => 0,
+    'maintenance'    => 0,
+    'out_of_service' => 0,
+    'live_tracked'   => 0,
+];
+if (!empty($buses)) {
+    foreach ($buses as $_b) {
+        $_kpi['total']++;
+        $_st = strtolower((string)($_b['status'] ?? 'active'));
+        if ($_st === 'active')          $_kpi['active']++;
+        elseif ($_st === 'maintenance') $_kpi['maintenance']++;
+        elseif ($_st === 'inactive')    $_kpi['out_of_service']++;
+        if (!empty($_b['has_live_location'])) $_kpi['live_tracked']++;
+    }
+}
+
 // Extract unique routes for the Route filter dropdown
 $uniqueRoutes = [];
 if (!empty($buses)) {
@@ -57,17 +76,246 @@ if (!empty($buses)) {
 }
 ?>
 
+<!-- ── Fleet KPI Summary ─────────────────────────────────────────── -->
+<div class="fleet-kpi-grid" id="fleet-kpi-grid">
+
+  <!-- Total Fleet (show all) -->
+  <div class="fleet-kpi-card fleet-kpi-card--total fleet-kpi-card--active-filter" data-kpi-filter="all" role="button" tabindex="0" title="Show all buses">
+    <div class="fleet-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="1" y="7" width="22" height="13" rx="3" stroke="currentColor" stroke-width="2"/>
+        <path d="M1 10h22M7 20v2M17 20v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M5 7V5a2 2 0 012-2h10a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="fleet-kpi-body">
+      <span class="fleet-kpi-value"><?= $_kpi['total']; ?></span>
+      <span class="fleet-kpi-label">Total Fleet</span>
+    </div>
+    <div class="fleet-kpi-bar fleet-kpi-bar--total"></div>
+  </div>
+
+  <!-- Active -->
+  <div class="fleet-kpi-card fleet-kpi-card--active" data-kpi-filter="Active" role="button" tabindex="0" title="Show Active buses">
+    <div class="fleet-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="fleet-kpi-body">
+      <span class="fleet-kpi-value"><?= $_kpi['active']; ?></span>
+      <span class="fleet-kpi-label">Active</span>
+    </div>
+    <?php if ($_kpi['total'] > 0): ?>
+    <div class="fleet-kpi-progress-wrap">
+      <div class="fleet-kpi-progress-bar fleet-kpi-progress-bar--active" style="width:<?= round(($_kpi['active']/$_kpi['total'])*100); ?>%"></div>
+    </div>
+    <?php endif; ?>
+    <div class="fleet-kpi-bar fleet-kpi-bar--active"></div>
+  </div>
+
+  <!-- Maintenance -->
+  <div class="fleet-kpi-card fleet-kpi-card--maintenance" data-kpi-filter="Maintenance" role="button" tabindex="0" title="Show Maintenance buses">
+    <div class="fleet-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="fleet-kpi-body">
+      <span class="fleet-kpi-value"><?= $_kpi['maintenance']; ?></span>
+      <span class="fleet-kpi-label">Maintenance</span>
+    </div>
+    <div class="fleet-kpi-bar fleet-kpi-bar--maintenance"></div>
+  </div>
+
+  <!-- Out of Service -->
+  <div class="fleet-kpi-card fleet-kpi-card--out" data-kpi-filter="Inactive" role="button" tabindex="0" title="Show Out of Service buses">
+    <div class="fleet-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="fleet-kpi-body">
+      <span class="fleet-kpi-value"><?= $_kpi['out_of_service']; ?></span>
+      <span class="fleet-kpi-label">Out of Service</span>
+    </div>
+    <div class="fleet-kpi-bar fleet-kpi-bar--out"></div>
+  </div>
+
+
+
+  <!-- Live Tracked -->
+  <div class="fleet-kpi-card fleet-kpi-card--live" data-kpi-filter="live" role="button" tabindex="0" title="Show Live Tracked buses">
+    <div class="fleet-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="fleet-kpi-body">
+      <span class="fleet-kpi-value"><?= $_kpi['live_tracked']; ?></span>
+      <span class="fleet-kpi-label">Live Tracked</span>
+    </div>
+    <div class="fleet-kpi-bar fleet-kpi-bar--live"></div>
+    <?php if ($_kpi['live_tracked'] > 0): ?>
+    <span class="fleet-kpi-live-dot" title="Live data available"></span>
+    <?php endif; ?>
+  </div>
+
+</div>
+
+<style>
+/* ── Fleet KPI Summary Grid ──────────────────────────────────────── */
+.fleet-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.fleet-kpi-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.fleet-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,.09);
+}
+/* Active/selected KPI card state */
+.fleet-kpi-card--active-filter {
+  border-width: 2px;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+.fleet-kpi-card--total.fleet-kpi-card--active-filter   { border-color: #3B82F6; }
+.fleet-kpi-card--active.fleet-kpi-card--active-filter  { border-color: #10B981; }
+.fleet-kpi-card--maintenance.fleet-kpi-card--active-filter { border-color: #F59E0B; }
+.fleet-kpi-card--out.fleet-kpi-card--active-filter     { border-color: #EF4444; }
+.fleet-kpi-card--live.fleet-kpi-card--active-filter    { border-color: #10B981; }
+/* hint text on cards */
+.fleet-kpi-hint {
+  font-size: 10px;
+  color: #9CA3AF;
+  font-weight: 500;
+  letter-spacing: .3px;
+}
+.fleet-kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fleet-kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fleet-kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+.fleet-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #6B7280;
+}
+/* Bottom accent bar */
+.fleet-kpi-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 0 0 14px 14px;
+}
+/* Progress bar (used on Active card) */
+.fleet-kpi-progress-wrap {
+  height: 4px;
+  background: #E5E7EB;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.fleet-kpi-progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .6s ease;
+}
+/* Live pulsing dot */
+.fleet-kpi-live-dot {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: kpi-pulse 2s ease-in-out infinite;
+}
+@keyframes kpi-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(1.35); }
+}
+
+/* ── Card colour themes ──────────────────────────────────────────── */
+.fleet-kpi-card--total   .fleet-kpi-icon { background: #EFF6FF; color: #3B82F6; }
+.fleet-kpi-card--total   .fleet-kpi-value { color: #1D4ED8; }
+.fleet-kpi-card--total   .fleet-kpi-bar  { background: #3B82F6; }
+
+.fleet-kpi-card--active  .fleet-kpi-icon { background: #ECFDF5; color: #10B981; }
+.fleet-kpi-card--active  .fleet-kpi-value { color: #059669; }
+.fleet-kpi-card--active  .fleet-kpi-bar  { background: #10B981; }
+.fleet-kpi-progress-bar--active { background: #10B981; }
+
+.fleet-kpi-card--maintenance .fleet-kpi-icon  { background: #FFFBEB; color: #F59E0B; }
+.fleet-kpi-card--maintenance .fleet-kpi-value { color: #D97706; }
+.fleet-kpi-card--maintenance .fleet-kpi-bar   { background: #F59E0B; }
+
+.fleet-kpi-card--out     .fleet-kpi-icon  { background: #FEF2F2; color: #EF4444; }
+.fleet-kpi-card--out     .fleet-kpi-value { color: #DC2626; }
+.fleet-kpi-card--out     .fleet-kpi-bar   { background: #EF4444; }
+
+.fleet-kpi-card--assigned .fleet-kpi-icon  { background: #F5F3FF; color: #8B5CF6; }
+.fleet-kpi-card--assigned .fleet-kpi-value { color: #7C3AED; }
+.fleet-kpi-card--assigned .fleet-kpi-bar   { background: #8B5CF6; }
+
+.fleet-kpi-card--needs-staff .fleet-kpi-icon  { background: #FFF7ED; color: #F97316; }
+.fleet-kpi-card--needs-staff .fleet-kpi-value { color: #EA580C; }
+.fleet-kpi-card--needs-staff .fleet-kpi-bar   { background: #F97316; }
+
+.fleet-kpi-card--live    .fleet-kpi-icon  { background: #ECFDF5; color: #10B981; }
+.fleet-kpi-card--live    .fleet-kpi-value { color: #065F46; }
+.fleet-kpi-card--live    .fleet-kpi-bar   { background: #10B981; }
+
+@media (max-width: 640px) {
+  .fleet-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 380px) {
+  .fleet-kpi-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+
 <!-- Filter Bar & Search -->
 <div class="filter-bar">
-  <div class="filter-group">
-    <label for="filter-status">Status:</label>
-    <select id="filter-status" class="filter-select">
-      <option value="all">All</option>
-      <option value="Active">Active</option>
-      <option value="Maintenance">Maintenance</option>
-      <option value="Inactive">Out of Service</option>
-    </select>
-  </div>
 
   <div class="filter-group">
     <label for="filter-assignment">Assignment:</label>
@@ -244,12 +492,22 @@ if (!empty($buses)) {
                   <path d="M2 5h14M7 8v5M11 8v5M3 5l1 10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-10M6 5V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
               </a>
-                <a href="#" class="icon-btn js-assign<?= $isAssignmentLocked ? ' is-disabled' : ''; ?>" title="<?= $isAssignmentLocked ? 'Unavailable while bus is Maintenance or Out of Service' : 'Assign Driver/Conductor'; ?>"
+                <?php
+                $isFullyAssigned = !empty($drvName) && !empty($condName);
+                $assignBtnClass  = 'icon-btn js-assign';
+                if ($isAssignmentLocked) $assignBtnClass .= ' is-disabled';
+                elseif ($isFullyAssigned)  $assignBtnClass .= ' is-assigned';
+                $assignBtnTitle = $isAssignmentLocked
+                  ? 'Unavailable while bus is Maintenance or Out of Service'
+                  : ($isFullyAssigned ? 'Update Assignment' : 'Assign Driver/Conductor');
+              ?>
+              <a href="#" class="<?= $assignBtnClass; ?>" title="<?= $assignBtnTitle; ?>"
                  data-bus-reg="<?= htmlspecialchars($b['bus_number'] ?? ''); ?>"
                  data-driver-id="<?= isset($b['driver_id']) ? (int)$b['driver_id'] : 0; ?>"
                  data-conductor-id="<?= isset($b['conductor_id']) ? (int)$b['conductor_id'] : 0; ?>"
-                  data-assign-disabled="<?= $isAssignmentLocked ? '1' : '0'; ?>"
-                  aria-disabled="<?= $isAssignmentLocked ? 'true' : 'false'; ?>">
+                 data-fully-assigned="<?= $isFullyAssigned ? '1' : '0'; ?>"
+                 data-assign-disabled="<?= $isAssignmentLocked ? '1' : '0'; ?>"
+                 aria-disabled="<?= $isAssignmentLocked ? 'true' : 'false'; ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M16 11a4 4 0 1 0-3.999-4A4 4 0 0 0 16 11Zm-8 3a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm8 2c-2.21 0-6 1.11-6 3.33V22h12v-2.67C22 17.11 18.21 16 16 16Zm-8-1c-2.67 0-8 1.34-8 4v3h6v-2.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -272,18 +530,40 @@ document.addEventListener('DOMContentLoaded', function () {
   var grid = document.getElementById('fleet-cards-grid');
   if (!grid) return;
 
-  var statusFilter   = document.getElementById('filter-status');
+  // KPI card status filter state ('all' | 'Active' | 'Maintenance' | 'Inactive' | 'live')
+  var kpiStatusFilter = 'all';
+
   var assignFilter   = document.getElementById('filter-assignment');
   var routeFilter    = document.getElementById('filter-route');
   var busClassFilter = document.getElementById('filter-bus-class');
   var busAgeFilter   = document.getElementById('filter-bus-age');
   var searchInput    = document.getElementById('fleet-search');
 
-  var allCards = Array.from(grid.querySelectorAll('.fleet-card'));
+  var allCards    = Array.from(grid.querySelectorAll('.fleet-card'));
+  var kpiCards    = Array.from(document.querySelectorAll('#fleet-kpi-grid [data-kpi-filter]'));
+
+  // ── Highlight active KPI card ─────────────────────────────────────
+  function updateKpiActive() {
+    kpiCards.forEach(function(kc) {
+      kc.classList.toggle('fleet-kpi-card--active-filter', kc.dataset.kpiFilter === kpiStatusFilter);
+    });
+  }
+
+  // ── Wire KPI card clicks ──────────────────────────────────────────
+  kpiCards.forEach(function(kc) {
+    function handleKpiClick() {
+      kpiStatusFilter = kc.dataset.kpiFilter || 'all';
+      updateKpiActive();
+      filterCards();
+    }
+    kc.addEventListener('click', handleKpiClick);
+    kc.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleKpiClick(); }
+    });
+  });
 
   var debounceTimer;
   function filterCards() {
-    var status     = statusFilter   ? statusFilter.value   : 'all';
     var assignment = assignFilter   ? assignFilter.value   : 'all';
     var route      = routeFilter    ? routeFilter.value    : 'all';
     var busClass   = busClassFilter ? busClassFilter.value : 'all';
@@ -292,7 +572,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     allCards.forEach(function (card) {
       var visible = true;
-      if (status !== 'all' && card.dataset.status !== status) visible = false;
+
+      // ── KPI status filter ─────────────────────────────────────────
+      if (kpiStatusFilter !== 'all') {
+        if (kpiStatusFilter === 'live') {
+          if (card.dataset.hasLive !== '1') visible = false;
+        } else {
+          if (card.dataset.status !== kpiStatusFilter) visible = false;
+        }
+      }
+
       if (assignment !== 'all') {
         var hd = card.dataset.driverAssigned === '1';
         var hc = card.dataset.conductorAssigned === '1';
@@ -330,7 +619,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (statusFilter)   statusFilter.addEventListener('change', filterCards);
   if (assignFilter)   assignFilter.addEventListener('change', filterCards);
   if (routeFilter)    routeFilter.addEventListener('change', filterCards);
   if (busClassFilter) busClassFilter.addEventListener('change', filterCards);
@@ -341,6 +629,9 @@ document.addEventListener('DOMContentLoaded', function () {
       debounceTimer = setTimeout(filterCards, 250);
     });
   }
+
+  // Default: Total Fleet card selected
+  updateKpiActive();
   filterCards();
 });
 </script>
@@ -348,8 +639,15 @@ document.addEventListener('DOMContentLoaded', function () {
 <style>
   .fleet-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .fleet-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .fleet-cards-grid { grid-template-columns: 1fr; }
   }
   .fleet-card {
     border: 1px solid #E5E7EB;
@@ -502,6 +800,16 @@ document.addEventListener('DOMContentLoaded', function () {
     color: #9CA3AF;
     background: #F9FAFB;
   }
+  .fleet-card-footer .icon-btn.is-assigned {
+    background: var(--gold, #E3C36D);
+    border-color: #D4A017;
+    color: #7F1D3A;
+  }
+  .fleet-card-footer .icon-btn.is-assigned:hover {
+    background: #F59E0B;
+    border-color: #B7860E;
+    color: #7F1D3A;
+  }
 
   @media (max-width: 640px) {
     .fleet-cards-grid { grid-template-columns: 1fr; }
@@ -582,11 +890,66 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var currentRegNo = '';
 
-  function openModal(regNo, driverId, conductorId) {
+  // Collect driver/conductor IDs already taken by OTHER buses
+  function getTakenIds(currentRegNo) {
+    var takenDriverIds    = {};
+    var takenConductorIds = {};
+    document.querySelectorAll('.js-assign[data-bus-reg]').forEach(function(btn) {
+      if ((btn.getAttribute('data-bus-reg') || '') === currentRegNo) return; // skip current bus
+      var did = (btn.getAttribute('data-driver-id')    || '').trim();
+      var cid = (btn.getAttribute('data-conductor-id') || '').trim();
+      if (did && did !== '0') takenDriverIds[did]    = true;
+      if (cid && cid !== '0') takenConductorIds[cid] = true;
+    });
+    return { drivers: takenDriverIds, conductors: takenConductorIds };
+  }
+
+  // Show/hide options based on which IDs are taken by other buses
+  function filterDropdownOptions(taken, currentDriverId, currentConductorId) {
+    if (driverSel) {
+      Array.from(driverSel.options).forEach(function(opt) {
+        var val = opt.value;
+        // Always show: blank placeholder, "0" (unassigned), and current bus's own driver
+        if (!val || val === '0' || val === currentDriverId) {
+          opt.hidden = false;
+        } else {
+          opt.hidden = taken.drivers[val] === true;
+        }
+      });
+    }
+    if (condSel) {
+      Array.from(condSel.options).forEach(function(opt) {
+        var val = opt.value;
+        if (!val || val === '0' || val === currentConductorId) {
+          opt.hidden = false;
+        } else {
+          opt.hidden = taken.conductors[val] === true;
+        }
+      });
+    }
+  }
+
+  function openModal(regNo, driverId, conductorId, isUpdate) {
     currentRegNo = regNo || '';
     if (regNoInp)  regNoInp.value  = currentRegNo;
+
+    // Filter out staff already assigned to other buses
+    var taken = getTakenIds(currentRegNo);
+    filterDropdownOptions(taken, driverId, conductorId);
+
     if (driverSel) driverSel.value = (driverId && driverId !== '0') ? driverId : '';
     if (condSel)   condSel.value   = (conductorId && conductorId !== '0') ? conductorId : '';
+
+    // Update modal title & submit button label
+    var titleEl  = document.querySelector('.assign-modal__title');
+    var submitEl = modal.querySelector('button[type="submit"]');
+    if (isUpdate) {
+      if (titleEl)  titleEl.textContent  = 'Update Driver & Conductor';
+      if (submitEl) submitEl.textContent = 'Update';
+    } else {
+      if (titleEl)  titleEl.textContent  = 'Assign Driver & Conductor';
+      if (submitEl) submitEl.textContent = 'Assign';
+    }
     modal.removeAttribute('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -605,10 +968,12 @@ document.addEventListener('DOMContentLoaded', function () {
         alert('This bus is Maintenance or Out of Service. Assignment is disabled.');
         return;
       }
+      var isUpdate = btn.getAttribute('data-fully-assigned') === '1';
       openModal(
         btn.getAttribute('data-bus-reg')       || '',
         btn.getAttribute('data-driver-id')     || '',
-        btn.getAttribute('data-conductor-id')  || ''
+        btn.getAttribute('data-conductor-id')  || '',
+        isUpdate
       );
     });
   });

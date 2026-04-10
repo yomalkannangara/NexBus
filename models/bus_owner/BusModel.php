@@ -165,29 +165,37 @@ class BusModel extends BaseModel
     /** Update an existing bus record */
     public function update(string $regNo, array $d): bool
     {
+        $newStatus = $d['status'] ?? 'Active';
+        $isLocked  = in_array(strtolower($newStatus), ['maintenance', 'inactive'], true);
+
+        // When setting Maintenance / Out-of-Service, release assigned driver & conductor
+        // so they become available for other buses.
+        $releaseStaff = $isLocked ? ",\n                       driver_id    = NULL,\n                       conductor_id = NULL" : '';
+
         $sql = "UPDATE private_buses
-                   SET chassis_no = :chassis_no,
+                   SET chassis_no        = :chassis_no,
                        manufactured_date = :manufactured_date,
                        manufactured_year = :manufactured_year,
                        model      = :model,
                        bus_class  = :bus_class,
                        capacity   = :capacity,
-                       status     = :status
+                       status     = :status{$releaseStaff}
                  WHERE reg_no = :reg_no";
+
         $params = [
-            ':chassis_no' => $d['chassis_no'] ?? null,
-            ':manufactured_date' => $d['manufactured_date'] ?? null,
-            ':manufactured_year' => $this->normalizeYear($d['manufactured_year'] ?? null),
-            ':model'      => $d['model'] ?? null,
-            ':bus_class'  => $this->normalizeBusClass($d['bus_class'] ?? null),
-            ':capacity'   => isset($d['capacity']) ? (int)$d['capacity'] : null,
-            ':status'     => $d['status'] ?? 'Active',
-            ':reg_no'     => $regNo,
+            ':chassis_no'         => $d['chassis_no'] ?? null,
+            ':manufactured_date'  => $d['manufactured_date'] ?? null,
+            ':manufactured_year'  => $this->normalizeYear($d['manufactured_year'] ?? null),
+            ':model'              => $d['model'] ?? null,
+            ':bus_class'          => $this->normalizeBusClass($d['bus_class'] ?? null),
+            ':capacity'           => isset($d['capacity']) ? (int)$d['capacity'] : null,
+            ':status'             => $newStatus,
+            ':reg_no'             => $regNo,
         ];
 
         if ($this->hasOperator()) {
             $sql .= " AND private_operator_id = :op";
-            $params[':op'] = $this->operatorId; // ✅ fixed here too
+            $params[':op'] = $this->operatorId;
         }
 
         $st = $this->pdo->prepare($sql);
