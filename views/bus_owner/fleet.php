@@ -438,7 +438,7 @@ if (!empty($buses)) {
           data-route-number="<?= htmlspecialchars($b['route_number'] ?? ''); ?>"
           data-route-tag="<?= htmlspecialchars($routeTagText); ?>"
           data-destination="<?= htmlspecialchars($destinationText); ?>"
-          data-location="<?= htmlspecialchars($b['current_location'] ?? ''); ?>"
+          data-location="<?= htmlspecialchars($isAssignmentLocked ? '-' : ($b['current_location'] ?? '')); ?>"
           data-lat="<?= $b['live_lat'] !== null ? (float)$b['live_lat'] : ''; ?>"
           data-lng="<?= $b['live_lng'] !== null ? (float)$b['live_lng'] : ''; ?>"
           data-snap-age="<?= htmlspecialchars($b['live_snapshot_at'] ?? ''); ?>"
@@ -498,7 +498,9 @@ if (!empty($buses)) {
 
             <div class="fleet-card-row fleet-card-row--full">
               <span class="fleet-card-label">Current Location:</span>
-              <?php if (!empty($b['has_live_location'])): ?>
+              <?php if ($isAssignmentLocked): ?>
+                <span class="fleet-card-location fleet-card-location--unknown">-</span>
+              <?php elseif (!empty($b['has_live_location'])): ?>
                 <span class="fleet-card-location fleet-card-location--live">
                   <svg width="11" height="11" fill="currentColor" viewBox="0 0 10 10" style="flex-shrink:0"><circle cx="5" cy="5" r="5"/></svg>
                   <span class="fleet-loc-text" style="color:#9ca3af;font-style:italic;font-weight:500">Locating…</span>
@@ -1509,6 +1511,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* Enqueue all live-location cards */
   document.querySelectorAll('.js-bus-profile-card[data-has-live="1"]').forEach(function(card) {
+    var status = (card.dataset.status || '').toLowerCase();
+    if (status === 'maintenance' || status === 'inactive' || status === 'out of service') {
+      card.dataset.location = '-';
+      return;
+    }
+
     var lat  = parseFloat(card.dataset.lat);
     var lng  = parseFloat(card.dataset.lng);
     var snap = card.dataset.snapAge || '';

@@ -109,3 +109,7 @@
 [10-Apr-2026 20:47:28 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 820
 [10-Apr-2026 21:44:57 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-1001, driver_id=1, conductor_id=9
 [10-Apr-2026 21:44:57 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-1001
+[10-Apr-2026 22:11:04 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-1001, driver_id=5109, conductor_id=9
+[10-Apr-2026 22:11:04 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-1001
+[10-Apr-2026 22:11:18 Asia/Colombo] [fleetAssign] POST received: reg_no=PA-1002, driver_id=2, conductor_id=6104
+[10-Apr-2026 22:11:18 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PA-1002
