@@ -609,15 +609,17 @@ $pct = $summary['total'] > 0
     <div class="hist-search-bar">
         <!-- Name search -->
         <div class="hist-search-input-wrap">
-            <svg class="hist-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <svg class="hist-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
             </svg>
             <input type="text" id="hist-name-search" class="hist-search-input"
                    placeholder="Search by name…" autocomplete="off">
             <button type="button" id="hist-search-clear" class="hist-clear-btn" hidden aria-label="Clear search">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
         </div>
+
+        <span class="hist-bar-divider" aria-hidden="true"></span>
 
         <!-- Staff type filter -->
         <div class="hist-filter-group">
@@ -628,6 +630,8 @@ $pct = $summary['total'] > 0
                 <option value="conductor">Conductor</option>
             </select>
         </div>
+
+        <span class="hist-bar-divider" aria-hidden="true"></span>
 
         <!-- Status filter -->
         <div class="hist-filter-group">
@@ -641,7 +645,7 @@ $pct = $summary['total'] > 0
             </select>
         </div>
 
-        <!-- Result count badge -->
+        <!-- Result count badge flush right -->
         <span class="hist-result-count" id="hist-result-count"></span>
     </div>
 
@@ -650,20 +654,20 @@ $pct = $summary['total'] > 0
     .hist-search-bar {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 14px 22px;
+        gap: 8px;
+        padding: 10px 22px;
         background: #FFFDF6;
         border-bottom: 1px solid #e8d39a;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     .hist-search-input-wrap {
         position: relative;
-        flex: 1;
-        min-width: 180px;
+        width: 200px;
+        flex-shrink: 0;
     }
     .hist-search-icon {
         position: absolute;
-        left: 10px;
+        left: 9px;
         top: 50%;
         transform: translateY(-50%);
         color: #9CA3AF;
@@ -671,10 +675,10 @@ $pct = $summary['total'] > 0
     }
     .hist-search-input {
         width: 100%;
-        padding: 8px 32px 8px 34px;
+        padding: 7px 28px 7px 30px;
         border: 1.5px solid #e8d39a;
         border-radius: 8px;
-        font-size: .85rem;
+        font-size: .82rem;
         background: #fff;
         color: #2b2b2b;
         box-sizing: border-box;
@@ -687,7 +691,7 @@ $pct = $summary['total'] > 0
     }
     .hist-clear-btn {
         position: absolute;
-        right: 8px;
+        right: 7px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
@@ -699,13 +703,21 @@ $pct = $summary['total'] > 0
         align-items: center;
     }
     .hist-clear-btn:hover { color: #80143c; }
+    .hist-bar-divider {
+        width: 1px;
+        height: 22px;
+        background: #e8d39a;
+        flex-shrink: 0;
+        margin: 0 2px;
+    }
     .hist-filter-group {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
+        flex-shrink: 0;
     }
     .hist-filter-label {
-        font-size: .78rem;
+        font-size: .76rem;
         font-weight: 700;
         color: #80143c;
         white-space: nowrap;
@@ -713,8 +725,8 @@ $pct = $summary['total'] > 0
     .hist-filter-select {
         border: 1.5px solid #e8d39a;
         border-radius: 8px;
-        padding: 7px 10px;
-        font-size: .82rem;
+        padding: 6px 8px;
+        font-size: .80rem;
         background: #fff;
         color: #2b2b2b;
         cursor: pointer;
@@ -727,7 +739,7 @@ $pct = $summary['total'] > 0
     }
     .hist-result-count {
         margin-left: auto;
-        font-size: .75rem;
+        font-size: .73rem;
         font-weight: 700;
         color: #80143c;
         background: #fce8ef;
@@ -735,6 +747,7 @@ $pct = $summary['total'] > 0
         border-radius: 999px;
         padding: 3px 10px;
         white-space: nowrap;
+        flex-shrink: 0;
     }
     /* No-results row */
     .hist-no-results td {
