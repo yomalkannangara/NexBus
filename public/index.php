@@ -132,6 +132,7 @@ $routes = [
     '/B/performance'   => ['BusOwnerController','reports'],
     '/B/attendance'    => ['BusOwnerController','attendance'],
     '/B/profile'    => ['BusOwnerController','profile'],
+    '/B/live'       => ['BusOwnerController','ownerLive'], // owner-scoped live tracking endpoint
 
     // Live buses (no auth)
     // Writes from external API to tracking_monitoring (call via scheduler/cron)

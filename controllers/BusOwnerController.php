@@ -1080,4 +1080,103 @@ public function exportReports()
     ]);
 }
 
+
+    /**
+     * /B/live — owner-scoped live tracking JSON endpoint.
+     *
+     * Returns the same JSON shape as /live/buses/db but filtered to
+     * ONLY the buses that belong to the currently logged-in private bus owner.
+     * Called by liveFleet.js on the performance page (via LIVE_API override).
+     */
+    public function ownerLive(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+        // Must be authenticated as a PrivateBusOwner (belt-and-suspenders guard)
+        $ownerId = (int)($_SESSION['user']['private_operator_id'] ?? 0);
+        if ($ownerId <= 0) {
+            // No operator linked to this account — return empty fleet, not an error
+            echo '[]';
+            return;
+        }
+
+        if (!isset($GLOBALS['db'])) {
+            echo '[]';
+            return;
+        }
+
+        $pdo = $GLOBALS['db'];
+
+        try {
+            // Latest snapshot per bus in the last 30 minutes,
+            // restricted to buses owned by this private_operator_id.
+            $stmt = $pdo->prepare(
+                "SELECT
+                     tm.bus_reg_no                   AS busId,
+                     tm.operator_type                AS operatorType,
+                     ROUND(tm.speed, 1)              AS speedKmh,
+                     tm.lat,
+                     tm.lng,
+                     tm.heading,
+                     tm.operational_status           AS operationalStatus,
+                     tm.snapshot_at                  AS snapshotAt,
+                     r.route_no                      AS routeNo,
+                     pbo.name                        AS owner,
+                     pb.private_operator_id          AS ownerId
+                 FROM tracking_monitoring tm
+                 INNER JOIN (
+                     SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                     FROM   tracking_monitoring
+                     WHERE  snapshot_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+                     GROUP  BY bus_reg_no
+                 ) latest
+                     ON  latest.bus_reg_no = tm.bus_reg_no
+                     AND latest.max_snap   = tm.snapshot_at
+                 -- Restrict to this owner's private buses only
+                 JOIN private_buses pb
+                     ON  pb.reg_no = tm.bus_reg_no
+                     AND pb.private_operator_id = :owner_id
+                 LEFT JOIN private_bus_owners pbo
+                     ON  pbo.private_operator_id = pb.private_operator_id
+                 LEFT JOIN routes r
+                     ON  r.route_id = tm.route_id
+                 ORDER BY tm.snapshot_at DESC"
+            );
+            $stmt->execute([':owner_id' => $ownerId]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            error_log('[ownerLive] query error: ' . $e->getMessage());
+            echo '[]';
+            return;
+        }
+
+        if (empty($rows)) {
+            echo '[]';
+            return;
+        }
+
+        $out = array_map(static function (array $r) use ($ownerId): array {
+            return [
+                'busId'             => $r['busId'],
+                'routeNo'           => $r['routeNo'] ?? '',
+                'speedKmh'          => (float)($r['speedKmh'] ?? 0),
+                'operatorType'      => 'Private',
+                'depot'             => null,
+                'depotId'           => null,
+                'owner'             => $r['owner'] ?: ('Owner #' . $ownerId),
+                'ownerId'           => $ownerId,
+                'lat'               => $r['lat']     !== null ? (float)$r['lat']   : null,
+                'lng'               => $r['lng']     !== null ? (float)$r['lng']   : null,
+                'heading'           => $r['heading'] !== null ? (int)$r['heading'] : null,
+                'operationalStatus' => $r['operationalStatus'] ?? 'OnTime',
+                'snapshotAt'        => $r['snapshotAt'],
+                'updatedAt'         => $r['snapshotAt'],
+                'inDb'              => true,
+            ];
+        }, $rows);
+
+        echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    }
+
 }

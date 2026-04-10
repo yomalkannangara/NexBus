@@ -3,12 +3,18 @@
  * 10-second file cache, enriches with DB metadata),
  * applies URL-param filters (route_no, depot_id, owner_id),
  * and updates KPI cards, speed chart, status donut, live fleet table.
+ *
+ * Page-level override: set window._NEXBUS_LIVE_API before loading this
+ * script to use a different endpoint (e.g. /B/live for owner-scoped data).
  */
 (function () {
   'use strict';
 
-  // Calls the proxy endpoint which hits the external API (10s file cache).
-  const API         = '/live/buses/pull';
+  // Allow pages to override the API endpoint (e.g. bus owner performance page
+  // uses /B/live which is scoped server-side to the logged-in operator).
+  const API         = (typeof window._NEXBUS_LIVE_API === 'string' && window._NEXBUS_LIVE_API)
+                        ? window._NEXBUS_LIVE_API
+                        : '/live/buses/pull';
   const SPEED_LIMIT = 60;
   const REFRESH_MS  = 15000;
   const NB          = window.NBCharts;
@@ -17,7 +23,12 @@
   const _p         = new URLSearchParams(window.location.search);
   const F_ROUTE    = (_p.get('route_no')  || '').trim();
   const F_DEPOT_RAW = (_p.get('depot_id') || '').trim();
-  const F_OWNER_RAW = (_p.get('owner_id') || '').trim();
+  // Owner filter: prefer window._NEXBUS_OWNER_ID (server-injected) then URL param
+  const F_OWNER_RAW = (
+    (window._NEXBUS_OWNER_ID && String(window._NEXBUS_OWNER_ID) !== '0')
+      ? String(window._NEXBUS_OWNER_ID)
+      : (_p.get('owner_id') || '').trim()
+  );
   const F_DEPOT     = (/^\d+$/.test(F_DEPOT_RAW) && +F_DEPOT_RAW > 0) ? String(+F_DEPOT_RAW) : '';
   const F_OWNER     = (/^\d+$/.test(F_OWNER_RAW) && +F_OWNER_RAW > 0) ? String(+F_OWNER_RAW) : '';
 
