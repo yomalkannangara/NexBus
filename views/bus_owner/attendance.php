@@ -12,7 +12,7 @@ $statusLabels = ['Present'=>'Present','Absent'=>'Absent','Late'=>'Late','Half_Da
 $statusColors = ['Present'=>'#16a34a','Absent'=>'#dc2626','Late'=>'#d97706','Half_Day'=>'#7c3aed'];
 
 function attStatus(array $records, string $type, int $id): string {
-    return $records[$type.'__'.$id]['status'] ?? 'Present';
+    return $records[$type.'__'.$id]['status'] ?? 'Absent';
 }
 function attNote(array $records, string $type, int $id): string {
     return htmlspecialchars($records[$type.'__'.$id]['notes'] ?? '');
@@ -46,20 +46,65 @@ $pct = $summary['total'] > 0
 .day-nav .day-label { font-weight:600; font-size:.95rem; min-width:110px; text-align:center; }
 
 .att-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:28px; }
+
+@keyframes attCardIn {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+@keyframes attValPop {
+    0%   { transform:scale(.85); opacity:.4; }
+    60%  { transform:scale(1.08); }
+    100% { transform:scale(1);   opacity:1; }
+}
+
 .att-stat-card {
     background:#fff;
     border-radius:12px;
     padding:20px 18px 16px;
-    box-shadow:0 10px 28px rgba(17,24,39,.08);
+    box-shadow:0 2px 8px rgba(17,24,39,.06);
     border-left:4px solid var(--color);
     display:flex; flex-direction:column; gap:4px;
+    position:relative; overflow:hidden;
+    cursor:default;
+    /* entrance */
+    opacity:0;
+    animation:attCardIn .45s cubic-bezier(.22,.68,0,1.2) forwards;
+    /* hover */
+    transition:transform .15s ease, box-shadow .15s ease;
 }
-.att-stat-card .val { font-size:2rem; font-weight:700; color:var(--color); line-height:1; }
+/* staggered delays for each card */
+.att-stat-card:nth-child(1) { animation-delay:.05s; }
+.att-stat-card:nth-child(2) { animation-delay:.12s; }
+.att-stat-card:nth-child(3) { animation-delay:.19s; }
+.att-stat-card:nth-child(4) { animation-delay:.26s; }
+.att-stat-card:nth-child(5) { animation-delay:.33s; }
+
+.att-stat-card:hover {
+    transform:translateY(-3px);
+    box-shadow:0 8px 22px rgba(17,24,39,.10);
+}
+/* subtle colour shimmer on hover */
+.att-stat-card::before {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(120deg, transparent 60%, rgba(255,255,255,.55) 100%);
+    opacity:0;
+    transition:opacity .25s;
+    pointer-events:none;
+}
+.att-stat-card:hover::before { opacity:1; }
+
+.att-stat-card .val {
+    font-size:2rem; font-weight:700; color:var(--color); line-height:1;
+    display:inline-block;
+    animation:attValPop .5s cubic-bezier(.22,.68,0,1.2) forwards;
+    animation-delay:inherit;
+}
 .att-stat-card .lbl { font-size:.82rem; color:#6b7280; font-weight:500; }
 .att-stat-card .sub { font-size:.78rem; color:#9ca3af; }
 
 .pct-bar-wrap { background:#f1f5f9; border-radius:99px; height:8px; margin-top:8px; overflow:hidden; }
-.pct-bar      { height:100%; border-radius:99px; background:var(--color); transition:width .4s; }
+.pct-bar      { height:100%; border-radius:99px; background:var(--color); width:0; transition:width .8s cubic-bezier(.22,.68,0,1.2); }
 
 /* Date picker bar */
 .date-bar {
@@ -195,6 +240,38 @@ $pct = $summary['total'] > 0
 .note-input:focus { outline:none; border-color:#f3b944; box-shadow:0 0 0 3px rgba(243,185,68,.2); }
 
 .empty-staff { padding:24px; text-align:center; color:#9ca3af; font-size:.9rem; }
+
+/* ── Suspended row lock ────────────────────────────────────────── */
+.att-row--suspended {
+    background: repeating-linear-gradient(
+        45deg,
+        #f9fafb,
+        #f9fafb 6px,
+        #f3f4f6 6px,
+        #f3f4f6 12px
+    );
+    opacity: .72;
+    pointer-events: none;
+    user-select: none;
+}
+.att-row--suspended td { color: #9ca3af !important; }
+.att-row--suspended .staff-name { text-decoration: line-through; color: #9ca3af; }
+.att-lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F3F4F6;
+    border: 1px solid #D1D5DB;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: .72rem;
+    font-weight: 700;
+    color: #6B7280;
+    vertical-align: middle;
+    margin-left: 6px;
+    letter-spacing: .3px;
+}
+.att-lock-badge svg { flex-shrink: 0; }
 
 .submit-bar {
     display:flex; justify-content:flex-end; align-items:center; gap:14px;
@@ -365,12 +442,12 @@ $pct = $summary['total'] > 0
     <button type="submit" class="go-btn">View &amp; Mark</button>
 </form>
 
-<!-- Mark Attendance Form -->
-<form method="post" action="/B/attendance">
-<input type="hidden" name="work_date" value="<?= htmlspecialchars($date) ?>">
-
+<!-- Mark Attendance Forms -->
 <div class="mark-grid">
-    <!-- Drivers -->
+
+    <!-- Drivers Form -->
+    <form method="post" action="/B/attendance">
+    <input type="hidden" name="work_date" value="<?= htmlspecialchars($date) ?>">
     <div class="mark-card">
         <div class="mark-card-head">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -391,20 +468,26 @@ $pct = $summary['total'] > 0
             </thead>
             <tbody>
             <?php foreach ($drivers as $d):
-                $sel = attStatus($records, 'Driver', $d['id']);
+                $isSuspended = ($d['status'] === 'Suspended');
+                $sel = $isSuspended ? 'Absent' : attStatus($records, 'Driver', $d['id']);
                 $cls = 'is-' . strtolower(str_replace('_','-',$sel));
+                $rowClass = $isSuspended ? 'att-row--suspended' : '';
             ?>
-            <tr>
+            <tr class="<?= $rowClass ?>">
                 <td>
                     <span class="staff-name"><?= htmlspecialchars($d['full_name']) ?></span>
-                    <?php if ($d['status'] === 'Suspended'): ?>
-                    <span class="staff-suspended">&#x26A0; Suspended</span>
+                    <?php if ($isSuspended): ?>
+                    <span class="att-lock-badge">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        Suspended
+                    </span>
                     <?php endif; ?>
                 </td>
                 <td>
                     <select name="attendance[Driver][<?= $d['id'] ?>]"
                             class="att-select <?= $cls ?>"
-                            onchange="syncClass(this)">
+                            onchange="syncClass(this)"
+                            <?= $isSuspended ? 'disabled' : '' ?>>
                         <?php foreach ($statusLabels as $val => $lbl): ?>
                         <option value="<?= $val ?>" <?= $sel===$val?'selected':'' ?>><?= $lbl ?></option>
                         <?php endforeach; ?>
@@ -413,8 +496,9 @@ $pct = $summary['total'] > 0
                 <td>
                     <input type="text" name="notes[Driver][<?= $d['id'] ?>]"
                            class="note-input"
-                           value="<?= attNote($records,'Driver',$d['id']) ?>"
-                           placeholder="Optional note…">
+                           value="<?= $isSuspended ? '' : attNote($records,'Driver',$d['id']) ?>"
+                           placeholder="<?= $isSuspended ? 'Unavailable — staff suspended' : 'Optional note…' ?>"
+                           <?= $isSuspended ? 'disabled' : '' ?>>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -427,8 +511,11 @@ $pct = $summary['total'] > 0
         </div>
         <?php endif; ?>
     </div>
+    </form>
 
-    <!-- Conductors -->
+    <!-- Conductors Form -->
+    <form method="post" action="/B/attendance">
+    <input type="hidden" name="work_date" value="<?= htmlspecialchars($date) ?>">
     <div class="mark-card">
         <div class="mark-card-head" style="background:linear-gradient(90deg,#80143c,#a8274e);border-bottom:3px solid #f3b944;">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -449,20 +536,26 @@ $pct = $summary['total'] > 0
             </thead>
             <tbody>
             <?php foreach ($conductors as $c):
-                $sel = attStatus($records, 'Conductor', $c['id']);
+                $isSuspended = ($c['status'] === 'Suspended');
+                $sel = $isSuspended ? 'Absent' : attStatus($records, 'Conductor', $c['id']);
                 $cls = 'is-' . strtolower(str_replace('_','-',$sel));
+                $rowClass = $isSuspended ? 'att-row--suspended' : '';
             ?>
-            <tr>
+            <tr class="<?= $rowClass ?>">
                 <td>
                     <span class="staff-name"><?= htmlspecialchars($c['full_name']) ?></span>
-                    <?php if ($c['status'] === 'Suspended'): ?>
-                    <span class="staff-suspended">&#x26A0; Suspended</span>
+                    <?php if ($isSuspended): ?>
+                    <span class="att-lock-badge">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        Suspended
+                    </span>
                     <?php endif; ?>
                 </td>
                 <td>
                     <select name="attendance[Conductor][<?= $c['id'] ?>]"
                             class="att-select <?= $cls ?>"
-                            onchange="syncClass(this)">
+                            onchange="syncClass(this)"
+                            <?= $isSuspended ? 'disabled' : '' ?>>
                         <?php foreach ($statusLabels as $val => $lbl): ?>
                         <option value="<?= $val ?>" <?= $sel===$val?'selected':'' ?>><?= $lbl ?></option>
                         <?php endforeach; ?>
@@ -471,8 +564,9 @@ $pct = $summary['total'] > 0
                 <td>
                     <input type="text" name="notes[Conductor][<?= $c['id'] ?>]"
                            class="note-input"
-                           value="<?= attNote($records,'Conductor',$c['id']) ?>"
-                           placeholder="Optional note…">
+                           value="<?= $isSuspended ? '' : attNote($records,'Conductor',$c['id']) ?>"
+                           placeholder="<?= $isSuspended ? 'Unavailable — staff suspended' : 'Optional note…' ?>"
+                           <?= $isSuspended ? 'disabled' : '' ?>>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -485,8 +579,10 @@ $pct = $summary['total'] > 0
         </div>
         <?php endif; ?>
     </div>
+    </form>
+
 </div>
-</form>
+
 
 <!-- History Section -->
 <section class="history-section">
@@ -544,4 +640,45 @@ function syncClass(sel) {
     const map = {'Present':'is-present','Absent':'is-absent','Late':'is-late','Half_Day':'is-half'};
     sel.className = 'att-select ' + (map[sel.value] || '');
 }
+
+// ── Entrance animations ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+
+    // 1. Count-up animation on .val elements
+    document.querySelectorAll('.att-stat-card .val').forEach(function (el) {
+        var raw  = el.textContent.trim();
+        var isPct = raw.endsWith('%');
+        var target = parseInt(raw, 10);
+        if (isNaN(target) || target === 0) return;
+
+        el.textContent = isPct ? '0%' : '0';
+
+        // start after the card's entrance animation delay
+        var cardDelay = parseFloat(getComputedStyle(el.closest('.att-stat-card')).animationDelay) || 0;
+        setTimeout(function () {
+            var duration = 700;
+            var start    = performance.now();
+            function step(now) {
+                var progress = Math.min((now - start) / duration, 1);
+                // ease-out cubic
+                var eased = 1 - Math.pow(1 - progress, 3);
+                var cur   = Math.round(eased * target);
+                el.textContent = isPct ? cur + '%' : cur;
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }, cardDelay * 1000 + 100);
+    });
+
+    // 2. Trigger progress bars after their card animates in
+    document.querySelectorAll('.pct-bar').forEach(function (bar) {
+        var targetWidth = bar.style.width; // e.g. "72%"
+        bar.style.width = '0';
+        var card = bar.closest('.att-stat-card');
+        var delay = parseFloat(getComputedStyle(card).animationDelay) || 0;
+        setTimeout(function () {
+            bar.style.width = targetWidth;
+        }, delay * 1000 + 200);
+    });
+});
 </script>

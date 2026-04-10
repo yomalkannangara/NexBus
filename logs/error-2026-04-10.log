@@ -8,3 +8,51 @@
 [10-Apr-2026 11:06:14 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-1001
 [10-Apr-2026 11:06:48 Asia/Colombo] [fleetAssign] POST received: reg_no=PA-1002, driver_id=2, conductor_id=1
 [10-Apr-2026 11:06:48 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PA-1002
+[10-Apr-2026 15:07:25 Asia/Colombo] FleetModel::list() error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sb.year_of_manufacture' in 'field list'
+[10-Apr-2026 15:07:25 Asia/Colombo] SQL: 
+                SELECT
+                    sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
+                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    r.route_no, r.stops_json,
+                    tm.lat AS current_lat,
+                    tm.lng AS current_lng,
+                    sa_today.sltb_driver_id,
+                    sa_today.sltb_conductor_id,
+                    CASE
+                        WHEN sa_today.assignment_id IS NULL THEN 'unassigned'
+                        WHEN COALESCE(sa_today.sltb_driver_id, 0) > 0 AND COALESCE(sa_today.sltb_conductor_id, 0) > 0 THEN 'completed'
+                        ELSE 'incomplete'
+                    END AS assignment_state,
+                    CONCAT(tm.lat, ',', tm.lng) AS current_location,
+                    NULL AS last_maintenance, NULL AS next_service
+                FROM sltb_buses sb
+                LEFT JOIN (
+                    SELECT bus_reg_no, MAX(timetable_id) AS max_tt
+                    FROM timetables WHERE operator_type='SLTB'
+                    GROUP BY bus_reg_no
+                ) s1 ON s1.bus_reg_no = sb.reg_no
+                LEFT JOIN timetables tt ON tt.timetable_id = s1.max_tt
+                LEFT JOIN routes r ON r.route_id = tt.route_id
+                LEFT JOIN (
+                    SELECT x.assignment_id, x.bus_reg_no, x.sltb_driver_id, x.sltb_conductor_id
+                    FROM sltb_assignments x
+                    INNER JOIN (
+                        SELECT bus_reg_no, MAX(assignment_id) AS max_assignment_id
+                        FROM sltb_assignments
+                        WHERE DATE(assigned_date)=CURDATE()
+                        GROUP BY bus_reg_no
+                    ) p ON p.max_assignment_id = x.assignment_id
+                ) sa_today ON sa_today.bus_reg_no = sb.reg_no
+                LEFT JOIN (
+                    SELECT x.bus_reg_no, MAX(x.snapshot_at) AS maxsnap
+                    FROM tracking_monitoring x
+                    WHERE x.operator_type='SLTB'
+                    GROUP BY x.bus_reg_no
+                ) lg ON lg.bus_reg_no = sb.reg_no
+                LEFT JOIN tracking_monitoring tm
+                  ON tm.bus_reg_no = sb.reg_no
+                 AND tm.operator_type='SLTB'
+                 AND tm.snapshot_at = lg.maxsnap
+                WHERE sb.sltb_depot_id=:d
+                ORDER BY sb.reg_no DESC
+                LIMIT 200
