@@ -136,7 +136,6 @@
     const regNo = $('#form_reg_no')?.value?.trim();
     const capacity = $('#form_capacity')?.value?.trim();
     const yearMfg = $('#form_year_manufacture')?.value?.trim();
-    const mfgDate = $('#form_manufacture_date')?.value;
 
     if (!regNo) {
       toast('Bus number is required', false);
@@ -151,15 +150,6 @@
     if (yearMfg && (isNaN(yearMfg) || parseInt(yearMfg) < 1980 || parseInt(yearMfg) > 2026)) {
       toast('Year must be between 1980 and 2026', false);
       return false;
-    }
-
-    if (mfgDate) {
-      const date = new Date(mfgDate);
-      const today = new Date();
-      if (date > today) {
-        toast('Manufacture date cannot be in the future', false);
-        return false;
-      }
     }
 
     return true;
@@ -197,7 +187,6 @@
     $('#form_capacity').value = '';
     $('#form_bus_model').value = '';
     $('#form_year_manufacture').value = '';
-    $('#form_manufacture_date').value = '';
     $('#form_bus_class').value = 'Normal';
     
     $$('.class-option').forEach((btn, idx) => {
@@ -220,7 +209,6 @@
         capacity: $('#form_capacity').value,
         bus_model: $('#form_bus_model').value,
         year_manufacture: $('#form_year_manufacture').value,
-        manufacture_date: $('#form_manufacture_date').value,
         bus_class: $('#form_bus_class').value
       };
 
@@ -301,7 +289,6 @@
     const capacityValue = remote?.capacity || cardEl.dataset.capacity || cardEl.querySelector('.card-row:last-child .card-info:first-child .card-value')?.textContent?.replace(' seats', '') || '—';
     const busClassText = remote?.bus_class || cardEl.dataset.busClass || cardEl.querySelector('.card-row:last-child .card-info:last-child .card-value')?.textContent || 'Normal';
     const chassis = remote?.chassis_no || cardEl.dataset.chassis || '—';
-    const mfgDate = remote?.manufacture_date || cardEl.dataset.manufactureDate || '—';
 
     // Normalize the bus class and use a consistent color mapping for the profile icon
     const getBusIcon = (busClassText) => {
@@ -358,10 +345,6 @@
             <div class="profile-field">
               <label class="profile-field-label">Chassis Number</label>
               <div class="profile-field-value">${chassis}</div>
-            </div>
-            <div class="profile-field">
-              <label class="profile-field-label">Manufacture Date</label>
-              <div class="profile-field-value">${mfgDate}</div>
             </div>
             <div class="profile-field">
               <label class="profile-field-label">Current Route</label>
@@ -426,10 +409,9 @@
       statusSelect.value = status;
     }
 
-    // Note: chassis_no and manufacture_date are not available in card display
-    // They would need to be fetched via API call for full editing capability
+    // Note: chassis_no is not available in card display
+    // It would need to be fetched via API call for full editing capability
     $('#form_chassis_no').value = '';
-    $('#form_manufacture_date').value = '';
 
     // Form is now populated with available data
   }

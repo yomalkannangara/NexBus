@@ -1086,10 +1086,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <label class="bus-modal__label" for="bus_capacity">Capacity (Seats) *</label>
           <input type="number" name="capacity" id="bus_capacity" class="bus-modal__input" placeholder="e.g., 50" min="1" max="200" required>
         </div>
-        <div class="bus-modal__field">
-          <label class="bus-modal__label" for="bus_manufactured_date">Manufactured Date *</label>
-          <input type="date" name="manufactured_date" id="bus_manufactured_date" class="bus-modal__input" required>
-        </div>
+
         <div class="bus-modal__field">
           <label class="bus-modal__label" for="bus_manufactured_year">Year *</label>
           <input type="number" name="manufactured_year" id="bus_manufactured_year" class="bus-modal__input" placeholder="e.g., 2024" min="1900" max="2100" required>
@@ -1276,7 +1273,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="profile-modal__field"><span class="profile-modal__field-label">Model</span><span class="profile-modal__field-value" id="bpModel">-</span></div>
           <div class="profile-modal__field"><span class="profile-modal__field-label">Capacity</span><span class="profile-modal__field-value" id="bpCapacity">-</span></div>
           <div class="profile-modal__field"><span class="profile-modal__field-label">Year</span><span class="profile-modal__field-value" id="bpYear">-</span></div>
-          <div class="profile-modal__field"><span class="profile-modal__field-label">Manufactured Date</span><span class="profile-modal__field-value" id="bpDate">-</span></div>
+
           <div class="profile-modal__field"><span class="profile-modal__field-label">Chassis Number</span><span class="profile-modal__field-value profile-modal__field-value--mono" id="bpChassis">-</span></div>
         </div>
       </div>
@@ -1319,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('bpModel').textContent = text(card.dataset.model, '-');
     document.getElementById('bpCapacity').textContent = text(card.dataset.capacity, '0') + ' seats';
     document.getElementById('bpYear').textContent = text(card.dataset.manufacturedYear, '-');
-    document.getElementById('bpDate').textContent = text(card.dataset.manufacturedDate, '-');
+
     document.getElementById('bpChassis').textContent = text(card.dataset.chassisNo, '-');
     document.getElementById('bpRouteTag').textContent = text(card.dataset.routeTag, 'Route Unassigned');
     document.getElementById('bpLocation').textContent = text(card.dataset.location, '-');

@@ -370,13 +370,6 @@ rsort($yearsList);
           </div>
         </div>
 
-        <!-- Row 4: Manufacture Date -->
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Manufacture Date</label>
-            <input type="date" id="form_manufacture_date" class="form-input">
-          </div>
-        </div>
 
         <!-- Bus Class Selector -->
         <div class="form-group">

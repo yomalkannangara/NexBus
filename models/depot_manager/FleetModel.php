@@ -131,13 +131,13 @@ class FleetModel extends BaseModel
         // Year range filter
         if (!empty($filters['year_range'])) {
             if ($filters['year_range'] === 'before-2010') {
-                $clauses[] = "sb.year_of_manufacture < 2010";
+                $clauses[] = "sb.year_manufacture < 2010";
             } elseif ($filters['year_range'] === '2010-2015') {
-                $clauses[] = "sb.year_of_manufacture BETWEEN 2010 AND 2015";
+                $clauses[] = "sb.year_manufacture BETWEEN 2010 AND 2015";
             } elseif ($filters['year_range'] === '2015-2020') {
-                $clauses[] = "sb.year_of_manufacture BETWEEN 2015 AND 2020";
+                $clauses[] = "sb.year_manufacture BETWEEN 2015 AND 2020";
             } elseif ($filters['year_range'] === 'after-2020') {
-                $clauses[] = "sb.year_of_manufacture > 2020";
+                $clauses[] = "sb.year_manufacture > 2020";
             }
         }
 
@@ -254,7 +254,7 @@ class FleetModel extends BaseModel
             $sql = "
                 SELECT
                     sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
-                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    sb.bus_model, sb.year_manufacture AS year_of_manufacture, sb.manufacture_date, sb.bus_class,
                     r.route_no, r.stops_json,
                     tm.lat AS current_lat,
                     tm.lng AS current_lng,
@@ -347,7 +347,7 @@ class FleetModel extends BaseModel
             $sql = "
                 SELECT
                     sb.reg_no, sb.status, sb.capacity, sb.chassis_no,
-                    sb.bus_model, sb.year_of_manufacture, sb.manufacture_date, sb.bus_class,
+                    sb.bus_model, sb.year_manufacture AS year_of_manufacture, sb.manufacture_date, sb.bus_class,
                     r.route_no, r.stops_json,
                     tm.lat AS current_lat,
                     tm.lng AS current_lng
@@ -398,19 +398,19 @@ class FleetModel extends BaseModel
     {
         if (!$this->hasDepot()) return false;
         try {
-            $sql = "INSERT INTO sltb_buses (reg_no, sltb_depot_id, chassis_no, capacity, status, bus_model, year_of_manufacture, manufacture_date, bus_class)
-                    VALUES (:reg_no, :depot, :chassis_no, :capacity, :status, :bus_model, :year_of_manufacture, :manufacture_date, :bus_class)";
+            $sql = "INSERT INTO sltb_buses (reg_no, sltb_depot_id, chassis_no, capacity, status, bus_model, year_manufacture, manufacture_date, bus_class)
+                    VALUES (:reg_no, :depot, :chassis_no, :capacity, :status, :bus_model, :year_manufacture, :manufacture_date, :bus_class)";
             $st  = $this->pdo->prepare($sql);
             return $st->execute([
-                ':reg_no'                => trim((string)($d['reg_no'] ?? '')),
-                ':depot'                 => $this->depotId(),
-                ':chassis_no'            => $d['chassis_no'] ?? null,
-                ':capacity'              => isset($d['capacity']) ? (int)$d['capacity'] : null,
-                ':status'                => $this->statusOrDefault($d['status'] ?? null),
-                ':bus_model'             => $d['bus_model'] ?? null,
-                ':year_of_manufacture'   => !empty($d['year_manufacture']) ? (int)$d['year_manufacture'] : null,
-                ':manufacture_date'      => $d['manufacture_date'] ?? null,
-                ':bus_class'             => in_array($d['bus_class'] ?? '', ['Normal', 'Semi Luxury', 'Luxury'], true) ? $d['bus_class'] : 'Normal',
+                ':reg_no'              => trim((string)($d['reg_no'] ?? '')),
+                ':depot'               => $this->depotId(),
+                ':chassis_no'          => $d['chassis_no'] ?? null,
+                ':capacity'            => isset($d['capacity']) ? (int)$d['capacity'] : null,
+                ':status'              => $this->statusOrDefault($d['status'] ?? null),
+                ':bus_model'           => $d['bus_model'] ?? null,
+                ':year_manufacture'    => !empty($d['year_manufacture']) ? (int)$d['year_manufacture'] : null,
+                ':manufacture_date'    => $d['manufacture_date'] ?? null,
+                ':bus_class'           => in_array($d['bus_class'] ?? '', ['Normal', 'Semi Luxury', 'Luxury'], true) ? $d['bus_class'] : 'Normal',
             ]);
         } catch (PDOException $e) { return false; }
     }
@@ -423,7 +423,7 @@ class FleetModel extends BaseModel
             if ($reg === '') return false;
             $sql = "UPDATE sltb_buses
                        SET chassis_no=:chassis_no, capacity=:capacity, status=:status,
-                           bus_model=:bus_model, year_of_manufacture=:year_of_manufacture,
+                           bus_model=:bus_model, year_manufacture=:year_manufacture,
                            manufacture_date=:manufacture_date, bus_class=:bus_class
                      WHERE reg_no=:reg_no AND sltb_depot_id=:depot";
             $st = $this->pdo->prepare($sql);
@@ -433,7 +433,7 @@ class FleetModel extends BaseModel
             $st->bindValue(':capacity', isset($d['capacity']) ? (int)$d['capacity'] : null, PDO::PARAM_INT);
             $st->bindValue(':status', $this->statusOrDefault($d['status'] ?? null));
             $st->bindValue(':bus_model', $d['bus_model'] ?? null);
-            $st->bindValue(':year_of_manufacture', !empty($d['year_manufacture']) ? (int)$d['year_manufacture'] : null, PDO::PARAM_INT);
+            $st->bindValue(':year_manufacture', !empty($d['year_manufacture']) ? (int)$d['year_manufacture'] : null, PDO::PARAM_INT);
             $st->bindValue(':manufacture_date', $d['manufacture_date'] ?? null);
             $st->bindValue(':bus_class', in_array($d['bus_class'] ?? '', ['Normal', 'Semi Luxury', 'Luxury'], true) ? $d['bus_class'] : 'Normal');
             return $st->execute();
