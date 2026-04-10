@@ -223,67 +223,90 @@
 .perf-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 22px;
 }
 @media (max-width: 1100px) { .perf-kpi-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 600px)  { .perf-kpi-grid { grid-template-columns: 1fr; } }
 
 .perf-kpi {
-  background: var(--card);
+  background:
+    radial-gradient(circle at 100% -25%, color-mix(in srgb, var(--kpi-color, var(--pm)) 10%, #fff 90%) 0%, transparent 44%),
+    linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 18px 18px 16px;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--kpi-color, var(--pm)) 12%, #d7dce3 88%);
   position: relative;
   overflow: hidden;
-  transition: transform .2s, box-shadow .2s;
+  isolation: isolate;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
   cursor: default;
 }
-.perf-kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.perf-kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(17,24,39,.12);
+  border-color: color-mix(in srgb, var(--kpi-color, var(--pm)) 28%, #d7dce3 72%);
+}
 .perf-kpi::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
+  height: 4px;
   border-radius: 3px 3px 0 0;
-  background: var(--kpi-color, var(--pm));
+  background: linear-gradient(90deg, var(--kpi-color, var(--pm)) 0%, color-mix(in srgb, var(--kpi-color, var(--pm)) 65%, #ffffff 35%) 100%);
+}
+.perf-kpi::after {
+  content: '';
+  position: absolute;
+  inset: auto -26px -34px auto;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--kpi-color, var(--pm)) 14%, #ffffff 86%) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: -1;
 }
 .perf-kpi-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .perf-kpi-icon {
-  width: 42px; height: 42px;
-  border-radius: 12px;
+  width: 44px; height: 44px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
   background: var(--kpi-bg, var(--pm-soft));
+  border: 1px solid color-mix(in srgb, var(--kpi-color, var(--pm)) 14%, #fff 86%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
 }
 .perf-kpi-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  color: #5b6474;
   text-transform: uppercase;
-  letter-spacing: .4px;
+  letter-spacing: .7px;
+  line-height: 1.3;
 }
 .perf-kpi-value {
-  font-size: 32px;
+  font-size: clamp(34px, 3vw, 40px);
   font-weight: 800;
   color: var(--kpi-color, var(--pm));
-  line-height: 1;
-  letter-spacing: -1px;
-  margin-bottom: 4px;
+  line-height: .95;
+  letter-spacing: -1.2px;
+  margin-bottom: 8px;
   transition: color .3s;
 }
 .perf-kpi-hint {
-  font-size: 11.5px;
-  color: var(--muted);
+  font-size: 12px;
+  color: #667085;
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  line-height: 1.3;
 }
 .perf-kpi-hint .dot {
   width: 6px; height: 6px;
@@ -291,6 +314,40 @@
   background: var(--kpi-color, var(--pm));
   display: inline-block;
   flex-shrink: 0;
+  margin-top: 5px;
+}
+.perf-kpi-hint .kpi-click-hint {
+  margin-left: auto;
+  color: var(--kpi-color, var(--pm));
+  font-weight: 700;
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: .1px;
+}
+.perf-kpi--clickable {
+  cursor: pointer;
+}
+.perf-kpi--clickable:hover .kpi-click-hint {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.perf-kpi--clickable:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--kpi-color, var(--pm)) 35%, #ffffff 65%);
+  outline-offset: 2px;
+}
+@media (max-width: 760px) {
+  .perf-kpi {
+    padding: 16px;
+  }
+  .perf-kpi-value {
+    font-size: 34px;
+  }
+  .perf-kpi-hint {
+    flex-wrap: wrap;
+  }
+  .perf-kpi-hint .kpi-click-hint {
+    margin-left: 12px;
+  }
 }
 
 /* Live KPI Pair */
@@ -677,7 +734,7 @@
       <?= $kpi['avgRating'] > 0 ? number_format((float)$kpi['avgRating'],1) : '&ndash;' ?>
     </div>
     <div class="perf-kpi-hint"><span class="dot"></span>Reliability index out of 10
-      <span class="kpi-click-hint" style="color:var(--green)">&nbsp;&middot; tap for details &rarr;</span>
+      <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span>
     </div>
   </div>
 
@@ -699,7 +756,7 @@
       <?= (int)($kpi['speedViol'] ?? 0) ?: '&ndash;' ?>
     </div>
     <div class="perf-kpi-hint"><span class="dot"></span>Buses over speed limit
-      <span class="kpi-click-hint" style="color:var(--orange)">&nbsp;&middot; tap for details &rarr;</span>
+      <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span>
     </div>
   </div>
 
@@ -719,7 +776,7 @@
     </div>
     <div class="perf-kpi-value" id="kpi-wait"><?= (int)($kpi['longWaitPct'] ?? 0) ?>%</div>
     <div class="perf-kpi-hint"><span class="dot"></span>Snapshots with delay &gt;10 min
-      <span class="kpi-click-hint" style="color:var(--blue)">&nbsp;&middot; tap for details &rarr;</span>
+      <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span>
     </div>
   </div>
 
@@ -880,14 +937,10 @@
 <style>
 /* ── Clickable KPI card ─────────────────────────────────────── */
 .perf-page .perf-kpi--clickable { cursor: pointer; }
-.perf-page .perf-kpi--clickable:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 24px rgba(0,0,0,.14);
-  border-color: var(--kpi-color);
-}
 .perf-page .kpi-click-hint {
   font-size: 11px;
-  font-weight: 600; opacity: .8;
+  font-weight: 700;
+  opacity: 1;
 }
 
 /* ── Overlay ────────────────────────────────────────────────── */
