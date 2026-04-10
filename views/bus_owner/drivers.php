@@ -49,7 +49,194 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
   </div>
 </header>
 
+<?php
+// ── Staff KPI computation ─────────────────────────────────────────
+$_skpi = [
+    'total_drivers'      => 0,
+    'active_drivers'     => 0,
+    'suspended_drivers'  => 0,
+    'total_conductors'   => 0,
+    'active_conductors'  => 0,
+    'suspended_conductors' => 0,
+];
+foreach ($drivers ?? [] as $_d) {
+    $_skpi['total_drivers']++;
+    if (strtolower($_d['status'] ?? 'active') === 'active') $_skpi['active_drivers']++;
+    else $_skpi['suspended_drivers']++;
+}
+foreach ($conductors ?? [] as $_c) {
+    $_skpi['total_conductors']++;
+    if (strtolower($_c['status'] ?? 'active') === 'active') $_skpi['active_conductors']++;
+    else $_skpi['suspended_conductors']++;
+}
+$_skpi['total_staff'] = $_skpi['total_drivers'] + $_skpi['total_conductors'];
+?>
+
+<!-- ── Staff KPI Summary ──────────────────────────────────────────── -->
+<div class="staff-kpi-grid">
+
+  <!-- Total Staff -->
+  <div class="staff-kpi-card staff-kpi-card--total">
+    <div class="staff-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="staff-kpi-body">
+      <span class="staff-kpi-value"><?= $_skpi['total_staff']; ?></span>
+      <span class="staff-kpi-label">Total Staff</span>
+    </div>
+    <div class="staff-kpi-bar staff-kpi-bar--total"></div>
+  </div>
+
+
+  <!-- Active Drivers -->
+  <div class="staff-kpi-card staff-kpi-card--active-drv">
+    <div class="staff-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="staff-kpi-body">
+      <span class="staff-kpi-value"><?= $_skpi['active_drivers']; ?></span>
+      <span class="staff-kpi-label">Active Drivers</span>
+    </div>
+    <div class="staff-kpi-bar staff-kpi-bar--active"></div>
+  </div>
+
+  <!-- Suspended Drivers -->
+  <div class="staff-kpi-card staff-kpi-card--suspended-drv">
+    <div class="staff-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+        <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="staff-kpi-body">
+      <span class="staff-kpi-value"><?= $_skpi['suspended_drivers']; ?></span>
+      <span class="staff-kpi-label">Suspended Drivers</span>
+    </div>
+    <div class="staff-kpi-bar staff-kpi-bar--suspended"></div>
+  </div>
+
+  <!-- Active Conductors -->
+  <div class="staff-kpi-card staff-kpi-card--active-cnd">
+    <div class="staff-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M17 13l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="staff-kpi-body">
+      <span class="staff-kpi-value"><?= $_skpi['active_conductors']; ?></span>
+      <span class="staff-kpi-label">Active Conductors</span>
+    </div>
+    <div class="staff-kpi-bar staff-kpi-bar--active"></div>
+  </div>
+
+  <!-- Suspended Conductors -->
+  <div class="staff-kpi-card staff-kpi-card--suspended-cnd">
+    <div class="staff-kpi-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M17 13l5 5M22 13l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="staff-kpi-body">
+      <span class="staff-kpi-value"><?= $_skpi['suspended_conductors']; ?></span>
+      <span class="staff-kpi-label">Suspended Conductors</span>
+    </div>
+    <div class="staff-kpi-bar staff-kpi-bar--suspended"></div>
+  </div>
+
+</div>
+
+<style>
+/* ── Staff KPI Summary Grid ─────────────────────────────────────── */
+.staff-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.staff-kpi-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 16px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  overflow: hidden;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.staff-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,.09);
+}
+.staff-kpi-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.staff-kpi-body { display: flex; flex-direction: column; gap: 2px; }
+.staff-kpi-value {
+  font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -.5px;
+}
+.staff-kpi-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px; color: #6B7280;
+}
+.staff-kpi-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; border-radius: 0 0 14px 14px;
+}
+.staff-kpi-progress-wrap {
+  height: 4px; background: #E5E7EB;
+  border-radius: 99px; overflow: hidden;
+}
+.staff-kpi-progress-bar { height: 100%; border-radius: 99px; transition: width .6s ease; }
+
+/* ── Colour themes ──────────────────────────────────────────────── */
+.staff-kpi-card--total        .staff-kpi-icon  { background: #EFF6FF; color: #3B82F6; }
+.staff-kpi-card--total        .staff-kpi-value { color: #1D4ED8; }
+.staff-kpi-card--total        .staff-kpi-bar   { background: #3B82F6; }
+
+.staff-kpi-card--drivers      .staff-kpi-icon  { background: #F5F3FF; color: #8B5CF6; }
+.staff-kpi-card--drivers      .staff-kpi-value { color: #7C3AED; }
+.staff-kpi-card--drivers      .staff-kpi-bar   { background: #8B5CF6; }
+.staff-kpi-progress-bar--drivers { background: #8B5CF6; }
+
+.staff-kpi-card--active-drv   .staff-kpi-icon  { background: #ECFDF5; color: #10B981; }
+.staff-kpi-card--active-drv   .staff-kpi-value { color: #059669; }
+.staff-kpi-card--active-cnd   .staff-kpi-icon  { background: #ECFDF5; color: #10B981; }
+.staff-kpi-card--active-cnd   .staff-kpi-value { color: #059669; }
+.staff-kpi-bar--active { background: #10B981; }
+
+.staff-kpi-card--suspended-drv .staff-kpi-icon  { background: #FFF7ED; color: #F97316; }
+.staff-kpi-card--suspended-drv .staff-kpi-value { color: #EA580C; }
+.staff-kpi-card--suspended-cnd .staff-kpi-icon  { background: #FFF7ED; color: #F97316; }
+.staff-kpi-card--suspended-cnd .staff-kpi-value { color: #EA580C; }
+.staff-kpi-bar--suspended { background: #F97316; }
+
+@media (max-width: 1024px) {
+  .staff-kpi-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .staff-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
 <!-- Driver Filter Bar -->
+
 <div class="filter-bar">
   <div class="filter-group">
     <label for="drv-filter-status">Status:</label>
