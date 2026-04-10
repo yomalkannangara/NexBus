@@ -798,20 +798,12 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Live Bus Status</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=live_status<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="liveStatusChart"></canvas>
     </div>
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Live Fleet Speed</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=live_speed<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="liveSpeedChart"></canvas>
     </div>
@@ -825,10 +817,6 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Bus Status Distribution</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=bus_status<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="busStatusChart" data-drill-key="bus_status" data-drill-base="/B/reports/details"></canvas>
     </div>
@@ -836,10 +824,6 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Delayed Buses by Route</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=delayed_by_route<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="delayedByRouteChart" data-drill-key="delayed_by_route" data-drill-base="/B/reports/details"></canvas>
     </div>
@@ -847,10 +831,6 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Speed Violations by Bus</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=speed_by_bus<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="speedByBusChart" data-drill-key="speed_by_bus" data-drill-base="/B/reports/details"></canvas>
     </div>
@@ -858,10 +838,6 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Revenue Overview</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=revenue<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="revenueChart" data-drill-key="revenue" data-drill-base="/B/reports/details"></canvas>
     </div>
@@ -869,10 +845,6 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Bus Wait Time Distribution</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=wait_time<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="waitTimeChart" data-drill-key="wait_time" data-drill-base="/B/reports/details"></canvas>
     </div>
@@ -880,10 +852,6 @@
     <div class="perf-chart-card">
       <div class="perf-chart-header">
         <h3 class="perf-chart-title">Complaints by Route</h3>
-        <a class="perf-chart-detail-link" href="/B/reports/details?chart=complaints_by_route<?= $dq ?>">
-          Details
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
       </div>
       <canvas id="complaintsRouteChart" data-drill-key="complaints_by_route" data-drill-base="/B/reports/details"></canvas>
     </div>
