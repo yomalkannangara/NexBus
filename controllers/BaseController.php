@@ -110,4 +110,37 @@ class BaseController
         header("Location: {$url}");
         exit;
     }
+
+    /* ================================================================
+     * Session-based flash helpers
+     * ============================================================== */
+
+    /** Store field-level validation errors in session for the next request */
+    protected function flashErrors(array $errors): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $_SESSION['_flash_errors'] = $errors;
+    }
+
+    /** Store old POST input so forms can be repopulated after a failed submit */
+    protected function flashOldInput(array $input): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        // Strip sensitive fields before storing
+        unset($input['password'], $input['password_confirm']);
+        $_SESSION['_flash_old'] = $input;
+    }
+
+    /**
+     * Retrieve & clear flash errors from session.
+     * Returns ['errors' => [...], 'old' => [...]] both defaulting to [].
+     */
+    protected function getFlash(): array
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $errors = $_SESSION['_flash_errors'] ?? [];
+        $old    = $_SESSION['_flash_old']    ?? [];
+        unset($_SESSION['_flash_errors'], $_SESSION['_flash_old']);
+        return compact('errors', 'old');
+    }
 }

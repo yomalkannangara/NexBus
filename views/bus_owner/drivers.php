@@ -1,6 +1,9 @@
 <?php
 // app/views/bus_owner/drivers.php
-// Expects: $drivers, $conductors, and $opId (passed by controller).
+// Expects: $drivers, $conductors, $opId, $fieldErrors, $oldInput (from controller).
+
+$fieldErrors = $fieldErrors ?? [];
+$oldInput    = $oldInput    ?? [];
 
 $_flashMsgs = [
     'created'           => ['Driver added successfully.',        true],
@@ -9,6 +12,7 @@ $_flashMsgs = [
     'conductor_created' => ['Conductor added successfully.',     true],
     'conductor_updated' => ['Conductor updated successfully.',   true],
     'conductor_deleted' => ['Conductor deleted successfully.',   true],
+    'validation_error'  => ['Please fix the errors below and try again.', false],
     'error'             => ['An error occurred. Please try again.', false],
 ];
 $_flashKey  = $_GET['msg'] ?? '';
@@ -26,6 +30,35 @@ $_flashData = $_flashMsgs[$_flashKey] ?? null;
 <style>@keyframes flashIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}</style>
 <script>setTimeout(function(){var e=document.getElementById('page-flash');if(e){e.style.transition='opacity .4s';e.style.opacity='0';setTimeout(function(){e.remove();},400);}},2800);</script>
 <?php endif; ?>
+
+<?php if (!empty($fieldErrors)): ?>
+<div class="val-error-banner" role="alert">
+  <div class="val-error-banner__icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+  </div>
+  <div class="val-error-banner__body">
+    <p class="val-error-banner__title">Please correct the following errors:</p>
+    <ul class="val-error-banner__list">
+      <?php foreach ($fieldErrors as $field => $msg): ?>
+        <li><strong><?= htmlspecialchars(ucwords(str_replace('_', ' ', $field))); ?>:</strong> <?= htmlspecialchars($msg); ?></li>
+      <?php endforeach; ?>
+    </ul>
+  </div>
+</div>
+<?php endif; ?>
+
+<style>
+/* ── Shared validation error banner ─────────────────────────────── */
+.val-error-banner {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: #FEF2F2; border: 1.5px solid #FCA5A5;
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
+}
+.val-error-banner__icon { color: #DC2626; flex-shrink: 0; margin-top: 1px; }
+.val-error-banner__title { font-size: 14px; font-weight: 700; color: #991B1B; margin: 0 0 6px; }
+.val-error-banner__list { margin: 0; padding-left: 18px; }
+.val-error-banner__list li { font-size: 13px; color: #7F1D1D; margin-bottom: 3px; }
+</style>
 
 <header class="page-header">
   <div>
