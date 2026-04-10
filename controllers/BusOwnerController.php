@@ -610,6 +610,7 @@ public function reports()
     $filters = [
         'route_no' => $routeNo,
         'bus_reg'  => $busReg,
+        'date'     => trim($_GET['date'] ?? ''),
     ];
 
     // Fetch filter-aware metrics
@@ -648,6 +649,55 @@ public function reports()
         'buses'         => $m->getOperatorBuses(),
         'msg'           => $_GET['msg'] ?? null,
     ]);
+}
+
+private function reportFiltersFromQuery(): array
+{
+    return [
+        'route_no' => trim($_GET['route_no'] ?? ''),
+        'bus_reg'  => trim($_GET['bus_reg'] ?? ''),
+        'date'     => trim($_GET['date'] ?? ''),
+    ];
+}
+
+/** /B/reports/delayed-modal  — JSON endpoint for the KPI popup */
+public function delayedModal()
+{
+    $m    = new ReportModel();
+    $data = $m->getDelayedTodayDetail($this->reportFiltersFromQuery());
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    exit;
+}
+
+/** /B/reports/rating-modal  — JSON endpoint for Avg Driver Rating popup */
+public function ratingModal()
+{
+    $m    = new ReportModel();
+    $data = $m->getRatingDetail($this->reportFiltersFromQuery());
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    exit;
+}
+
+/** /B/reports/speed-modal  — JSON endpoint for Speed Violations popup */
+public function speedModal()
+{
+    $m    = new ReportModel();
+    $data = $m->getSpeedViolationsDetail($this->reportFiltersFromQuery());
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    exit;
+}
+
+/** /B/reports/wait-modal  — JSON endpoint for Long Wait Times popup */
+public function waitModal()
+{
+    $m    = new ReportModel();
+    $data = $m->getLongWaitDetail($this->reportFiltersFromQuery());
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+    exit;
 }
 
 public function reportsDetails()
@@ -1109,7 +1159,7 @@ public function exportReports()
         $pdo = $GLOBALS['db'];
 
         try {
-            // Latest snapshot per bus in the last 30 minutes,
+            // Latest snapshot per owner bus (no hard recency cutoff),
             // restricted to buses owned by this private_operator_id.
             $stmt = $pdo->prepare(
                 "SELECT
@@ -1128,7 +1178,6 @@ public function exportReports()
                  INNER JOIN (
                      SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
                      FROM   tracking_monitoring
-                     WHERE  snapshot_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE)
                      GROUP  BY bus_reg_no
                  ) latest
                      ON  latest.bus_reg_no = tm.bus_reg_no

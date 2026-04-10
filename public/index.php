@@ -75,28 +75,23 @@ $routes = [
     '/O/dashboard'     => ['DepotOfficerController','dashboard'],
     '/O/reports'       => ['DepotOfficerController','reports'],
     '/O/reports/details' => ['DepotOfficerController','reportDetails'],
-    '/O/assignments'            => ['DepotOfficerController','assignments'],
-    '/O/assignments/shifts'     => ['DepotOfficerController','assignmentShifts'],
+    '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
-    '/O/messages/stream' => ['DepotOfficerController','sseStream'],
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
     '/O/attendance'    => ['DepotOfficerController','attendance'],    // 
   '/O/profile'       => ['DepotOfficerController','profile'],
-    '/O/bus_profile'   => ['DepotOfficerController','bus_profile'],
     
     '/M'               => ['DepotManagerController','dashboard'],
     '/M/dashboard'     => ['DepotManagerController','dashboard'],
     '/M/timetables'    => ['DepotManagerController','timetables'],
-    '/M/fleet'        => ['DepotManagerController','fleet'],
-    '/M/bus_profile'  => ['DepotManagerController','busProfile'],
-    '/M/feedback'     => ['DepotManagerController','feedback'],
-    '/M/drivers'      => ['DepotManagerController','drivers'],    // NEW
+    '/M/fleet'    => ['DepotManagerController','fleet'],
+    '/M/feedback'       => ['DepotManagerController','feedback'],
+    '/M/drivers'    => ['DepotManagerController','drivers'],    // NEW
     '/M/performance'      => ['DepotManagerController','performance'],      // NEW
     '/M/performance/details' => ['DepotManagerController','performanceDetails'],
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
     '/M/profile'      => ['DepotManagerController','profile'],      // NEW
-    '/M/bus_profile'  => ['DepotManagerController','bus_profile'],
 
 
 
@@ -124,6 +119,10 @@ $routes = [
     '/B/fleet'  => ['BusOwnerController','fleet'],
     '/B/fleet/assign' => ['BusOwnerController','fleetAssign'],
     '/B/reports'    => ['BusOwnerController','reports'],
+    '/B/reports/delayed-modal' => ['BusOwnerController','delayedModal'],
+    '/B/reports/rating-modal'  => ['BusOwnerController','ratingModal'],
+    '/B/reports/speed-modal'   => ['BusOwnerController','speedModal'],
+    '/B/reports/wait-modal'    => ['BusOwnerController','waitModal'],
     '/B/reports/details' => ['BusOwnerController','reportsDetails'],
     '/B/reports/export' => ['BusOwnerController','exportReports'],
     '/B/feedback' => ['BusOwnerController','feedback'],
@@ -132,7 +131,7 @@ $routes = [
     '/B/performance'   => ['BusOwnerController','reports'],
     '/B/attendance'    => ['BusOwnerController','attendance'],
     '/B/profile'    => ['BusOwnerController','profile'],
-    '/B/live'       => ['BusOwnerController','ownerLive'], // owner-scoped live tracking endpoint
+    '/B/live'       => ['BusOwnerController','ownerLive'],
 
     // Live buses (no auth)
     // Writes from external API to tracking_monitoring (call via scheduler/cron)

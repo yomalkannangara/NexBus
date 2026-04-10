@@ -104,3 +104,6 @@
                 WHERE sb.sltb_depot_id=:d
                 ORDER BY sb.reg_no DESC
                 LIMIT 200
+[10-Apr-2026 20:47:24 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 820
+[10-Apr-2026 20:47:25 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 820
+[10-Apr-2026 20:47:28 Asia/Colombo] PHP Parse error:  Unmatched '}' in C:\xampp\htdocs\NexBus-1\models\bus_owner\ReportModel.php on line 820

@@ -627,43 +627,6 @@
       <p>Real-time fleet metrics and operational intelligence for your buses</p>
     </div>
 
-    <!-- Inline filters -->
-    <form method="get" action="/B/performance" class="perf-hero-filters" id="perf-filter-form">
-      <div class="perf-filter-group">
-        <span class="perf-filter-label">Route</span>
-        <div class="perf-select">
-          <select name="route_no" onchange="this.form.submit()" id="ft-route">
-            <option value="">All Routes</option>
-            <?php foreach(($routes ?? []) as $r):
-              $rno = htmlspecialchars($r['route_no']);
-              $sel = ($curRno === $r['route_no']) ? 'selected' : '';
-            ?>
-              <option value="<?= $rno ?>" <?= $sel ?>><?= $rno ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-      </div>
-      <div class="perf-filter-group">
-        <span class="perf-filter-label">Bus</span>
-        <div class="perf-select">
-          <select name="bus_reg" onchange="this.form.submit()" id="ft-bus">
-            <option value="">All Buses</option>
-            <?php foreach(($buses ?? []) as $b): ?>
-              <option value="<?= htmlspecialchars($b['reg_no']) ?>"
-                <?= ($curBus === $b['reg_no']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($b['reg_no']) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-      </div>
-      <?php if ($hasFilter): ?>
-        <a href="/B/performance" class="perf-clear-btn">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Clear
-        </a>
-      <?php endif; ?>
-    </form>
   </div>
 </div>
 
@@ -676,8 +639,10 @@
 
 <div class="perf-kpi-grid">
 
-  <!-- Delayed -->
-  <div class="perf-kpi" style="--kpi-color:var(--red);--kpi-bg:var(--red-soft)">
+  <!-- Delayed Buses Today — clickable card -->
+  <div class="perf-kpi perf-kpi--clickable" id="kpi-delayed-card"
+       style="--kpi-color:var(--red);--kpi-bg:var(--red-soft)"
+       onclick="openDelayedModal()" title="Click to view delayed bus details">
     <div class="perf-kpi-top">
       <div>
         <div class="perf-kpi-label">Delayed Buses Today</div>
@@ -689,11 +654,15 @@
       </div>
     </div>
     <div class="perf-kpi-value" id="kpi-delayed"><?= (int)($kpi['delayedToday'] ?? 0) ?></div>
-    <div class="perf-kpi-hint"><span class="dot"></span>Live snapshot from database</div>
+    <div class="perf-kpi-hint"><span class="dot"></span>Live snapshot from database
+      <span class="kpi-click-hint">&nbsp;· tap for details →</span>
+    </div>
   </div>
 
   <!-- Rating -->
-  <div class="perf-kpi" style="--kpi-color:var(--green);--kpi-bg:var(--green-soft)">
+  <div class="perf-kpi perf-kpi--clickable" id="kpi-rating-card"
+       style="--kpi-color:var(--green);--kpi-bg:var(--green-soft)"
+       onclick="openRatingModal()" title="Click to view driver rating details">
     <div class="perf-kpi-top">
       <div>
         <div class="perf-kpi-label">Avg Driver Rating</div>
@@ -707,11 +676,15 @@
     <div class="perf-kpi-value" id="kpi-rating">
       <?= $kpi['avgRating'] > 0 ? number_format((float)$kpi['avgRating'],1) : '&ndash;' ?>
     </div>
-    <div class="perf-kpi-hint"><span class="dot"></span>Reliability index out of 10</div>
+    <div class="perf-kpi-hint"><span class="dot"></span>Reliability index out of 10
+      <span class="kpi-click-hint" style="color:var(--green)">&nbsp;&middot; tap for details &rarr;</span>
+    </div>
   </div>
 
   <!-- Speed Violations -->
-  <div class="perf-kpi" style="--kpi-color:var(--orange);--kpi-bg:var(--orange-soft)">
+  <div class="perf-kpi perf-kpi--clickable" id="kpi-speed-card"
+       style="--kpi-color:var(--orange);--kpi-bg:var(--orange-soft)"
+       onclick="openSpeedModal()" title="Click to view speed violation details">
     <div class="perf-kpi-top">
       <div>
         <div class="perf-kpi-label">Speed Violations</div>
@@ -725,11 +698,15 @@
     <div class="perf-kpi-value" id="kpi-speed">
       <?= (int)($kpi['speedViol'] ?? 0) ?: '&ndash;' ?>
     </div>
-    <div class="perf-kpi-hint"><span class="dot"></span>Buses over speed limit</div>
+    <div class="perf-kpi-hint"><span class="dot"></span>Buses over speed limit
+      <span class="kpi-click-hint" style="color:var(--orange)">&nbsp;&middot; tap for details &rarr;</span>
+    </div>
   </div>
 
   <!-- Long Wait -->
-  <div class="perf-kpi" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-soft)">
+  <div class="perf-kpi perf-kpi--clickable" id="kpi-wait-card"
+       style="--kpi-color:var(--blue);--kpi-bg:var(--blue-soft)"
+       onclick="openWaitModal()" title="Click to view long wait time details">
     <div class="perf-kpi-top">
       <div>
         <div class="perf-kpi-label">Long Wait Times</div>
@@ -741,7 +718,9 @@
       </div>
     </div>
     <div class="perf-kpi-value" id="kpi-wait"><?= (int)($kpi['longWaitPct'] ?? 0) ?>%</div>
-    <div class="perf-kpi-hint"><span class="dot"></span>Snapshots with delay &gt;10 min</div>
+    <div class="perf-kpi-hint"><span class="dot"></span>Snapshots with delay &gt;10 min
+      <span class="kpi-click-hint" style="color:var(--blue)">&nbsp;&middot; tap for details &rarr;</span>
+    </div>
   </div>
 
 </div>
@@ -894,6 +873,687 @@
 </div>
 
 </div><!-- /.perf-page -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     DELAYED BUSES TODAY — POPUP MODAL
+══════════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Clickable KPI card ─────────────────────────────────────── */
+.perf-page .perf-kpi--clickable { cursor: pointer; }
+.perf-page .perf-kpi--clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,.14);
+  border-color: var(--kpi-color);
+}
+.perf-page .kpi-click-hint {
+  font-size: 11px;
+  font-weight: 600; opacity: .8;
+}
+
+/* ── Overlay ────────────────────────────────────────────────── */
+.dm-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+.dm-overlay.open { display: flex; }
+
+/* ── Box ────────────────────────────────────────────────────── */
+.dm-modal {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  width: 100%; max-width: 920px;
+  overflow: hidden;
+  animation: dm-slide-in .25s cubic-bezier(.34,1.56,.64,1);
+  margin: auto;
+}
+@keyframes dm-slide-in {
+  from { opacity:0; transform:translateY(-22px) scale(.97); }
+  to   { opacity:1; transform:translateY(0)     scale(1); }
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.dm-header {
+  background: linear-gradient(130deg,#5b0e2a 0%,#80143c 55%,#b01e4e 100%);
+  padding: 22px 26px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+}
+.dm-header-left { display:flex; align-items:center; gap:14px; }
+.dm-header-icon {
+  width:44px; height:44px; border-radius:13px;
+  background:rgba(255,255,255,.15);
+  display:grid; place-items:center; flex-shrink:0;
+}
+.dm-header-title {
+  color:#fff; font-size:17px; font-weight:800;
+  letter-spacing:-.3px; margin:0 0 2px;
+  font-family:'Inter',ui-sans-serif,sans-serif;
+}
+.dm-header-sub {
+  color:rgba(255,255,255,.65); font-size:12px;
+  font-weight:500; margin:0;
+  font-family:'Inter',ui-sans-serif,sans-serif;
+}
+.dm-close {
+  width:34px; height:34px; border-radius:9px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.9); font-size:18px; line-height:1;
+  cursor:pointer; display:grid; place-items:center;
+  transition:background .2s; flex-shrink:0;
+}
+.dm-close:hover { background:rgba(255,255,255,.25); }
+
+/* ── Body ───────────────────────────────────────────────────── */
+.dm-body { padding:24px 26px; display:flex; flex-direction:column; gap:28px; }
+
+/* ── Section label ──────────────────────────────────────────── */
+.dm-section-label { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.dm-section-label .dm-line {
+  width:4px; height:18px; border-radius:4px; flex-shrink:0;
+  background:linear-gradient(to bottom,#80143c,#f3b944);
+}
+.dm-section-label h3 {
+  margin:0; font-size:13.5px; font-weight:700; color:#111827;
+  letter-spacing:-.15px; font-family:'Inter',ui-sans-serif,sans-serif;
+}
+.dm-section-label .dm-lbl-badge {
+  margin-left:auto; font-size:11px; font-weight:600;
+  color:#6b7280; background:#f3f4f6;
+  border-radius:999px; padding:2px 10px;
+}
+
+/* ── Tables ─────────────────────────────────────────────────── */
+.dm-table-wrap { overflow-x:auto; border-radius:12px; border:1px solid #f0f1f4; }
+.dm-table {
+  width:100%; border-collapse:collapse;
+  font-size:13px; font-family:'Inter',ui-sans-serif,sans-serif;
+}
+.dm-table th {
+  padding:10px 14px; background:#fafafa;
+  font-size:11px; font-weight:700; color:#6b7280;
+  text-transform:uppercase; letter-spacing:.4px;
+  text-align:left; border-bottom:1px solid #f0f0f0;
+  white-space:nowrap;
+}
+.dm-table td {
+  padding:11px 14px; border-bottom:1px solid #f7f8fa;
+  color:#111827; font-weight:500; white-space:nowrap;
+}
+.dm-table tbody tr:hover { background:#fafbff; }
+.dm-table tbody tr:last-child td { border-bottom:none; }
+
+/* ── Badges ─────────────────────────────────────────────────── */
+.dm-bd { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600; }
+.dm-bd-red   { background:#fee2e2; color:#b91c1c; }
+.dm-bd-gold  { background:#fef3c7; color:#d97706; }
+.dm-bd-green { background:#dcfce7; color:#15803d; }
+.dm-bd-gray  { background:#f3f4f6; color:#6b7280; }
+
+/* ── Empty / spinner ────────────────────────────────────────── */
+.dm-empty {
+  text-align:center; padding:40px 20px;
+  color:#9ca3af; font-size:13px;
+  font-family:'Inter',ui-sans-serif,sans-serif;
+}
+.dm-empty svg { display:block; margin:0 auto 10px; }
+.dm-spinner {
+  display:flex; align-items:center; justify-content:center;
+  padding:48px 0; gap:10px;
+  color:#6b7280; font-size:13px;
+  font-family:'Inter',ui-sans-serif,sans-serif;
+}
+.dm-spin-ring {
+  width:26px; height:26px;
+  border:3px solid #f3f4f6;
+  border-top-color:#80143c;
+  border-radius:50%;
+  animation:dm-spin .7s linear infinite;
+}
+@keyframes dm-spin { to { transform:rotate(360deg); } }
+
+@media(max-width:640px){
+  .dm-body { padding:14px; }
+  .dm-header { padding:16px 14px; }
+}
+</style>
+
+<!-- Modal markup -->
+<div class="dm-overlay" id="delayedModal" role="dialog" aria-modal="true" aria-labelledby="dm-title">
+  <div class="dm-modal">
+
+    <!-- Header -->
+    <div class="dm-header">
+      <div class="dm-header-left">
+        <div class="dm-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff">
+            <path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1m1 12h-5V7h2v4h3z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="dm-header-title" id="dm-title">Delayed Buses Today</p>
+          <p class="dm-header-sub" id="dm-header-date">Loading&hellip;</p>
+        </div>
+      </div>
+      <button class="dm-close" onclick="closeDelayedModal()" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- Body -->
+    <div class="dm-body" id="dm-body">
+      <div class="dm-spinner"><span class="dm-spin-ring"></span> Fetching data&hellip;</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── Open / Close ───────────────────────────────────────────── */
+window.openDelayedModal = function() {
+  document.getElementById('delayedModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadDelayedData();
+};
+window.closeDelayedModal = function() {
+  document.getElementById('delayedModal').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.getElementById('delayedModal').addEventListener('click', function(e){
+  if (e.target === this) closeDelayedModal();
+});
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') closeDelayedModal();
+});
+
+/* ── Helpers ────────────────────────────────────────────────── */
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function buildReportQuery() {
+  var p = new URLSearchParams(window.location.search || '');
+  p.set('_', Date.now());
+  return p.toString();
+}
+function formatReportDate(reportDate) {
+  if (!reportDate) {
+    return new Date().toLocaleDateString(undefined, {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+  var dt = new Date(reportDate + 'T00:00:00');
+  if (isNaN(dt.getTime())) return reportDate;
+  return dt.toLocaleDateString(undefined, {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function statusBadge(s) {
+  s = String(s||'Unknown');
+  if (s === 'Delayed')  return '<span class="dm-bd dm-bd-gold">\u23f3 Delayed</span>';
+  if (s === 'On Time')  return '<span class="dm-bd dm-bd-green">\u2713 On Time</span>';
+  if (s === 'Speeding') return '<span class="dm-bd dm-bd-red">\u26a1 Speeding</span>';
+  return '<span class="dm-bd dm-bd-gray">'+esc(s)+'</span>';
+}
+
+/* ── Render ─────────────────────────────────────────────────── */
+function render(data) {
+  var summary = data.routeSummary  || [];
+  var buses   = data.delayedBuses  || [];
+  var dayLabel = formatReportDate(data.reportDate || '');
+
+  document.getElementById('dm-header-date').textContent =
+    dayLabel + ' \u00b7 ' + buses.length + ' delayed bus' + (buses.length !== 1 ? 'es' : '') + ' found';
+
+  var html = '';
+
+  /* Section 1 — Route Performance Summary */
+  html += '<div>';
+  html += '<div class="dm-section-label">';
+  html += '<span class="dm-line"></span>';
+  html += '<h3>Route Performance Summary</h3>';
+  html += '<span class="dm-lbl-badge">'+summary.length+' route'+(summary.length!==1?'s':'')+'</span>';
+  html += '</div>';
+
+  if (!summary.length) {
+    html += '<div class="dm-empty">'
+      + '<svg width="32" height="32" viewBox="0 0 24 24" fill="#d1d5db"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+      + 'No tracking data available for today.</div>';
+  } else {
+    html += '<div class="dm-table-wrap"><table class="dm-table"><thead><tr>'
+      + '<th>Route</th><th>Total Buses</th><th>Delayed Buses</th><th>Avg Speed (km/h)</th>'
+      + '</tr></thead><tbody>';
+    summary.forEach(function(r){
+      var d = parseInt(r.delayed_buses,10)||0;
+      var dc = d > 0
+        ? '<span class="dm-bd dm-bd-red">'+d+'</span>'
+        : '<span class="dm-bd dm-bd-green">0</span>';
+      html += '<tr>'
+        + '<td><strong>'+esc(r.route_no)+'</strong></td>'
+        + '<td>'+esc(r.total_buses)+'</td>'
+        + '<td>'+dc+'</td>'
+        + '<td>'+parseFloat(r.avg_speed||0).toFixed(1)+'</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  /* Section 2 — Detailed Delayed Buses */
+  html += '<div>';
+  html += '<div class="dm-section-label">'
+    + '<span class="dm-line"></span>'
+    + '<h3>Detailed Delayed Buses</h3>'
+    + '<span class="dm-lbl-badge">'+buses.length+' record'+(buses.length!==1?'s':'')+'</span>'
+    + '</div>';
+
+  if (!buses.length) {
+    html += '<div class="dm-empty">'
+      + '<svg width="32" height="32" viewBox="0 0 24 24" fill="#bbf7d0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-4H8l4-7 4 7h-2v4h-4z"/></svg>'
+      + '<p style="margin:6px 0 0">No delayed buses for today \u2014 great news! \ud83c\udf89</p></div>';
+  } else {
+    html += '<div class="dm-table-wrap"><table class="dm-table"><thead><tr>'
+      + '<th>Bus ID</th><th>Owner</th><th>Route</th><th>Status</th>'
+      + '<th>Speed (km/h)</th><th>Avg Delay (min)</th><th>Last Snapshot</th>'
+      + '</tr></thead><tbody>';
+    buses.forEach(function(b){
+      html += '<tr>'
+        + '<td><strong>'+esc(b.bus_reg_no)+'</strong></td>'
+        + '<td>'+esc(b.owner_name)+'</td>'
+        + '<td>'+esc(b.route_no)+'</td>'
+        + '<td>'+statusBadge(b.operational_status)+'</td>'
+        + '<td>'+parseFloat(b.speed||0).toFixed(1)+'</td>'
+        + '<td><span class="dm-bd dm-bd-red">'+parseFloat(b.avg_delay_min||0).toFixed(1)+' min</span></td>'
+        + '<td style="color:#6b7280;font-size:12px">'+esc(b.snapshot_at)+'</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  document.getElementById('dm-body').innerHTML = html;
+}
+
+/* ── Fetch ──────────────────────────────────────────────────── */
+function loadDelayedData() {
+  var body = document.getElementById('dm-body');
+  document.getElementById('dm-header-date').textContent = 'Loading\u2026';
+  body.innerHTML = '<div class="dm-spinner"><span class="dm-spin-ring"></span> Fetching data&hellip;</div>';
+
+  fetch('/B/reports/delayed-modal?' + buildReportQuery())
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(data){ render(data); })
+    .catch(function(err){
+      body.innerHTML = '<div class="dm-empty">'
+        +'<svg width="32" height="32" viewBox="0 0 24 24" fill="#fca5a5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+        +'<p>Could not load data: '+err.message+'</p></div>';
+    });
+}
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     AVG DRIVER RATING — POPUP MODAL
+══════════════════════════════════════════════════════════════════ -->
+<div class="dm-overlay" id="ratingModal" role="dialog" aria-modal="true" aria-labelledby="rm-title">
+  <div class="dm-modal">
+    <div class="dm-header" style="background:linear-gradient(130deg,#14532d 0%,#16a34a 55%,#22c55e 100%)">
+      <div class="dm-header-left">
+        <div class="dm-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87l1.18 6.88L12 17.77l-6.18 3.25L7 14.14L2 9.27l6.91-1.01z"/></svg>
+        </div>
+        <div>
+          <p class="dm-header-title" id="rm-title">Avg Driver Rating</p>
+          <p class="dm-header-sub" id="rm-header-sub">Loading&hellip;</p>
+        </div>
+      </div>
+      <button class="dm-close" onclick="closeRatingModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="dm-body" id="rm-body">
+      <div class="dm-spinner"><span class="dm-spin-ring"></span> Fetching data&hellip;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SPEED VIOLATIONS — POPUP MODAL
+══════════════════════════════════════════════════════════════════ -->
+<div class="dm-overlay" id="speedModal" role="dialog" aria-modal="true" aria-labelledby="sm-title">
+  <div class="dm-modal">
+    <div class="dm-header" style="background:linear-gradient(130deg,#7c2d12 0%,#ea580c 55%,#f97316 100%)">
+      <div class="dm-header-left">
+        <div class="dm-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M14 3L3 14h7v7l11-11h-7z"/></svg>
+        </div>
+        <div>
+          <p class="dm-header-title" id="sm-title">Speed Violations</p>
+          <p class="dm-header-sub" id="sm-header-sub">Loading&hellip;</p>
+        </div>
+      </div>
+      <button class="dm-close" onclick="closeSpeedModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="dm-body" id="sm-body">
+      <div class="dm-spinner"><span class="dm-spin-ring" style="border-top-color:#ea580c"></span> Fetching data&hellip;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     LONG WAIT TIMES — POPUP MODAL
+══════════════════════════════════════════════════════════════════ -->
+<div class="dm-overlay" id="waitModal" role="dialog" aria-modal="true" aria-labelledby="wm-title">
+  <div class="dm-modal">
+    <div class="dm-header" style="background:linear-gradient(130deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%)">
+      <div class="dm-header-left">
+        <div class="dm-header-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M16 6h5v5h-2V9.41l-6.29 6.3l-4-4L2 18.41L.59 17L8.71 8.88l4 4L19.59 6z"/></svg>
+        </div>
+        <div>
+          <p class="dm-header-title" id="wm-title">Long Wait Times</p>
+          <p class="dm-header-sub" id="wm-header-sub">Loading&hellip;</p>
+        </div>
+      </div>
+      <button class="dm-close" onclick="closeWaitModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="dm-body" id="wm-body">
+      <div class="dm-spinner"><span class="dm-spin-ring" style="border-top-color:#2563eb"></span> Fetching data&hellip;</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var _spinner = '<div class="dm-spinner"><span class="dm-spin-ring"></span> Fetching data&hellip;</div>';
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function buildReportQuery() {
+  var p = new URLSearchParams(window.location.search || '');
+  p.set('_', Date.now());
+  return p.toString();
+}
+function formatReportDate(reportDate) {
+  if (!reportDate) {
+    return new Date().toLocaleDateString(undefined, {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+  var dt = new Date(reportDate + 'T00:00:00');
+  if (isNaN(dt.getTime())) return reportDate;
+  return dt.toLocaleDateString(undefined, {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+function ratingBar(v) {
+  v = parseFloat(v)||0;
+  var pct = Math.min(100, (v/10)*100);
+  var col = v >= 7 ? '#16a34a' : v >= 4 ? '#f3b944' : '#dc2626';
+  return '<div style="display:flex;align-items:center;gap:8px">'
+    +'<div style="flex:1;height:6px;background:#f3f4f6;border-radius:4px;overflow:hidden">'
+    +'<div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:4px"></div></div>'
+    +'<span style="font-weight:700;color:'+col+';min-width:28px">'+v.toFixed(1)+'</span></div>';
+}
+function statusBadge(s) {
+  s = String(s||'On Time');
+  if (s === 'Delayed')  return '<span class="dm-bd dm-bd-gold">&#9203; '+esc(s)+'</span>';
+  if (s === 'Speeding') return '<span class="dm-bd dm-bd-red">&#9889; '+esc(s)+'</span>';
+  if (s === 'On Time')  return '<span class="dm-bd dm-bd-green">&#10003; On Time</span>';
+  return '<span class="dm-bd dm-bd-gray">'+esc(s)+'</span>';
+}
+function sectionLabel(title, badge, color) {
+  color = color || 'linear-gradient(to bottom,#80143c,#f3b944)';
+  return '<div class="dm-section-label">'
+    +'<span class="dm-line" style="background:'+color+'"></span>'
+    +'<h3>'+title+'</h3>'
+    +(badge ? '<span class="dm-lbl-badge">'+badge+'</span>' : '')
+    +'</div>';
+}
+
+/* ─── RATING MODAL ─────────────────────────────────── */
+window.openRatingModal = function() {
+  document.getElementById('ratingModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadRatingData();
+};
+window.closeRatingModal = function() {
+  document.getElementById('ratingModal').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.getElementById('ratingModal').addEventListener('click', function(e){ if(e.target===this) closeRatingModal(); });
+
+function loadRatingData() {
+  var body = document.getElementById('rm-body');
+  document.getElementById('rm-header-sub').textContent = 'Loading\u2026';
+  body.innerHTML = _spinner.replace('dm-spin-ring','dm-spin-ring" style="border-top-color:#16a34a');
+  fetch('/B/reports/rating-modal?' + buildReportQuery())
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(renderRatingData)
+    .catch(function(err){ body.innerHTML = '<div class="dm-empty"><p>Could not load: '+esc(err.message)+'</p></div>'; });
+}
+
+function renderRatingData(data) {
+  var summary = data.summary || {};
+  var buses   = data.buses   || [];
+  var dayLabel = formatReportDate(data.reportDate || '');
+  document.getElementById('rm-header-sub').textContent = dayLabel + ' \u00b7 ' + buses.length + ' bus' + (buses.length!==1?'es':'') + ' tracked';
+
+  var html = '';
+
+  /* Summary stats row */
+  if (summary.bus_count > 0) {
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:4px">';
+    var stats = [
+      {label:'Fleet Avg Rating', value: parseFloat(summary.fleet_avg||0).toFixed(1)+' / 10'},
+      {label:'Best Rating',      value: parseFloat(summary.best||0).toFixed(1)+' / 10'},
+      {label:'Worst Rating',     value: parseFloat(summary.worst||0).toFixed(1)+' / 10'},
+      {label:'Buses Tracked',    value: summary.bus_count},
+    ];
+    stats.forEach(function(s){
+      html += '<div style="background:#f9fafb;border-radius:12px;padding:14px 16px;text-align:center">'
+        +'<div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">'+esc(s.label)+'</div>'
+        +'<div style="font-size:20px;font-weight:800;color:#111827">'+esc(String(s.value))+'</div>'
+        +'</div>';
+    });
+    html += '</div>';
+  }
+
+  /* Per-bus ratings table */
+  html += sectionLabel('Rating Per Bus', buses.length+' bus'+(buses.length!==1?'es':''), 'linear-gradient(to bottom,#16a34a,#84cc16)');
+  if (!buses.length) {
+    html += '<div class="dm-empty"><p>No tracking data for today.</p></div>';
+  } else {
+    html += '<div class="dm-table-wrap"><table class="dm-table"><thead><tr>'
+      +'<th>Bus ID</th><th>Route</th><th>Driver</th><th>Avg Rating (0-10)</th><th>Avg Speed (km/h)</th><th>Snapshots</th><th>Last Snapshot</th>'
+      +'</tr></thead><tbody>';
+    buses.forEach(function(b){
+      html += '<tr>'
+        +'<td><strong>'+esc(b.bus_reg_no)+'</strong></td>'
+        +'<td>'+esc(b.route_no)+'</td>'
+        +'<td>'+esc(b.driver_name)+'</td>'
+        +'<td>'+ratingBar(b.avg_rating)+'</td>'
+        +'<td>'+parseFloat(b.avg_speed||0).toFixed(1)+'</td>'
+        +'<td>'+esc(b.snapshots)+'</td>'
+        +'<td style="color:#6b7280;font-size:12px">'+esc(b.last_snapshot)+'</td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('rm-body').innerHTML = html;
+}
+
+/* ─── SPEED VIOLATIONS MODAL ────────────────────────── */
+window.openSpeedModal = function() {
+  document.getElementById('speedModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadSpeedData();
+};
+window.closeSpeedModal = function() {
+  document.getElementById('speedModal').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.getElementById('speedModal').addEventListener('click', function(e){ if(e.target===this) closeSpeedModal(); });
+
+function loadSpeedData() {
+  var body = document.getElementById('sm-body');
+  document.getElementById('sm-header-sub').textContent = 'Loading\u2026';
+  body.innerHTML = _spinner.replace('dm-spin-ring','dm-spin-ring" style="border-top-color:#ea580c');
+  fetch('/B/reports/speed-modal?' + buildReportQuery())
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(renderSpeedData)
+    .catch(function(err){ body.innerHTML = '<div class="dm-empty"><p>Could not load: '+esc(err.message)+'</p></div>'; });
+}
+
+function renderSpeedData(data) {
+  var summary = data.summary || {};
+  var buses   = data.buses   || [];
+  var dayLabel = formatReportDate(data.reportDate || '');
+  document.getElementById('sm-header-sub').textContent = dayLabel + ' \u00b7 ' + buses.length + ' offending bus'+(buses.length!==1?'es':'');
+
+  var html = '';
+
+  /* Summary stats */
+  if (summary.bus_count > 0) {
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:4px">';
+    var stats = [
+      {label:'Total Violations',  value: parseInt(summary.total_violations||0)},
+      {label:'Fleet Max Speed',   value: parseFloat(summary.fleet_max_speed||0).toFixed(1)+' km/h'},
+      {label:'Buses Tracked',     value: parseInt(summary.bus_count||0)},
+    ];
+    stats.forEach(function(s){
+      html += '<div style="background:#fff7ed;border-radius:12px;padding:14px 16px;text-align:center;border:1px solid rgba(234,88,12,.12)">'
+        +'<div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">'+esc(s.label)+'</div>'
+        +'<div style="font-size:20px;font-weight:800;color:#ea580c">'+esc(String(s.value))+'</div>'
+        +'</div>';
+    });
+    html += '</div>';
+  }
+
+  /* Per-bus violations table */
+  html += sectionLabel('Speed Violations Per Bus', buses.length+' bus'+(buses.length!==1?'es':'')+' with violations', 'linear-gradient(to bottom,#ea580c,#f3b944)');
+  if (!buses.length) {
+    html += '<div class="dm-empty">'
+      +'<svg width="32" height="32" viewBox="0 0 24 24" fill="#bbf7d0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-4H8l4-7 4 7h-2v4h-4z"/></svg>'
+      +'<p style="margin:6px 0 0">No speed violations recorded today \u2014 great news! &#127881;</p></div>';
+  } else {
+    html += '<div class="dm-table-wrap"><table class="dm-table"><thead><tr>'
+      +'<th>Bus ID</th><th>Route</th><th>Driver</th><th>Violations</th><th>Max Speed</th><th>Avg Speed</th><th>Snapshots</th><th>Last Snapshot</th>'
+      +'</tr></thead><tbody>';
+    buses.forEach(function(b){
+      var viol   = parseInt(b.total_violations||0);
+      var violBd = '<span class="dm-bd dm-bd-red">&#9889; '+viol+'</span>';
+      html += '<tr>'
+        +'<td><strong>'+esc(b.bus_reg_no)+'</strong></td>'
+        +'<td>'+esc(b.route_no)+'</td>'
+        +'<td>'+esc(b.driver_name)+'</td>'
+        +'<td>'+violBd+'</td>'
+        +'<td><span style="font-weight:700;color:#ea580c">'+parseFloat(b.max_speed||0).toFixed(1)+' km/h</span></td>'
+        +'<td>'+parseFloat(b.avg_speed||0).toFixed(1)+' km/h</td>'
+        +'<td>'+esc(b.snapshots)+'</td>'
+        +'<td style="color:#6b7280;font-size:12px">'+esc(b.last_snapshot)+'</td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('sm-body').innerHTML = html;
+}
+
+/* ─── LONG WAIT TIMES MODAL ─────────────────────────── */
+window.openWaitModal = function() {
+  document.getElementById('waitModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadWaitData();
+};
+window.closeWaitModal = function() {
+  document.getElementById('waitModal').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.getElementById('waitModal').addEventListener('click', function(e){ if(e.target===this) closeWaitModal(); });
+
+function loadWaitData() {
+  var body = document.getElementById('wm-body');
+  document.getElementById('wm-header-sub').textContent = 'Loading\u2026';
+  body.innerHTML = _spinner.replace('dm-spin-ring','dm-spin-ring" style="border-top-color:#2563eb');
+  fetch('/B/reports/wait-modal?' + buildReportQuery())
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(renderWaitData)
+    .catch(function(err){ body.innerHTML = '<div class="dm-empty"><p>Could not load: '+esc(err.message)+'</p></div>'; });
+}
+
+function renderWaitData(data) {
+  var buckets = data.buckets || {};
+  var buses   = data.buses   || [];
+  var dayLabel = formatReportDate(data.reportDate || '');
+  document.getElementById('wm-header-sub').textContent = dayLabel + ' \u00b7 ' + buses.length + ' bus'+(buses.length!==1?'es':'')+' with delay \u226510 min';
+
+  var html = '';
+
+  /* Delay distribution summary */
+  if (Object.keys(buckets).length) {
+    var total = parseInt(buckets.total||0) || 1;
+    var bucketDefs = [
+      {label:'Under 5 min', key:'under_5', color:'#16a34a'},
+      {label:'5–10 min',    key:'b5_10',   color:'#84cc16'},
+      {label:'10–15 min',   key:'b10_15',  color:'#f3b944'},
+      {label:'Over 15 min', key:'over_15', color:'#b91c1c'},
+    ];
+    html += sectionLabel('Delay Distribution Today', total+' total snapshot'+(total!==1?'s':''), 'linear-gradient(to bottom,#2563eb,#60a5fa)');
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:4px">';
+    bucketDefs.forEach(function(bd){
+      var cnt = parseInt(buckets[bd.key]||0);
+      var pct = Math.round((cnt/total)*100);
+      html += '<div style="background:#f0f9ff;border-radius:12px;padding:14px 16px;text-align:center;border:1px solid rgba(37,99,235,.1)">'
+        +'<div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">'+esc(bd.label)+'</div>'
+        +'<div style="font-size:22px;font-weight:800;color:'+bd.color+'">'+cnt+'</div>'
+        +'<div style="font-size:11px;color:#9ca3af;margin-top:2px">'+pct+'% of snapshots</div>'
+        +'</div>';
+    });
+    html += '</div>';
+    if (buckets.avg_delay > 0) {
+      html += '<p style="font-size:12px;color:#6b7280;margin:8px 0 0;text-align:right">Fleet avg delay today: <strong style="color:#2563eb">'+parseFloat(buckets.avg_delay).toFixed(1)+' min</strong></p>';
+    }
+  }
+
+  /* Buses with delay >= 10 min */
+  html += sectionLabel('Buses With Long Wait (&ge;10 min)', buses.length+' bus'+(buses.length!==1?'es':''), 'linear-gradient(to bottom,#2563eb,#60a5fa)');
+  if (!buses.length) {
+    html += '<div class="dm-empty">'
+      +'<svg width="32" height="32" viewBox="0 0 24 24" fill="#bfdbfe"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-4H8l4-7 4 7h-2v4h-4z"/></svg>'
+      +'<p style="margin:6px 0 0">No buses with long waits today \u2014 excellent! &#127881;</p></div>';
+  } else {
+    html += '<div class="dm-table-wrap"><table class="dm-table"><thead><tr>'
+      +'<th>Bus ID</th><th>Route</th><th>Driver</th><th>Avg Delay</th><th>Status</th><th>Speed (km/h)</th><th>Last Snapshot</th>'
+      +'</tr></thead><tbody>';
+    buses.forEach(function(b){
+      var delay = parseFloat(b.avg_delay_min||0);
+      var delayColor = delay >= 15 ? '#b91c1c' : delay >= 10 ? '#f3b944' : '#16a34a';
+      var delayBd = '<span class="dm-bd" style="background:rgba('+
+        (delay>=15?'185,28,28':'delay>=10?"243,185,68":"22,163,74"')+', .12);color:'+delayColor+'">'+delay.toFixed(1)+' min</span>';
+      html += '<tr>'
+        +'<td><strong>'+esc(b.bus_reg_no)+'</strong></td>'
+        +'<td>'+esc(b.route_no)+'</td>'
+        +'<td>'+esc(b.driver_name)+'</td>'
+        +'<td><span class="dm-bd dm-bd-gold">'+delay.toFixed(1)+' min</span></td>'
+        +'<td>'+statusBadge(b.operational_status)+'</td>'
+        +'<td>'+parseFloat(b.speed||0).toFixed(1)+'</td>'
+        +'<td style="color:#6b7280;font-size:12px">'+esc(b.snapshot_at)+'</td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('wm-body').innerHTML = html;
+}
+
+/* ─── Global ESC key to close any open modal ─────── */
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape') return;
+  closeRatingModal(); closeSpeedModal(); closeWaitModal();
+});
+
+})();
+</script>
 
 <!-- Server data for charts -->
 <script id="analytics-data" type="application/json">
