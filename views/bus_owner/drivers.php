@@ -1335,6 +1335,137 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
+/* ── Name auto-capitalise + field validation ──────────────────────
+   Applies to ALL name inputs on this page (driver & conductor forms).
+   Rules:
+     • Full Name   : letters, spaces, hyphens, apostrophes only;
+                     each word auto-capitalised as you type
+     • Phone       : digits, spaces, +, hyphens only; 7-15 digits
+     • License No  : required; alphanumeric / hyphens
+─────────────────────────────────────────────────────────────────── */
+(function () {
+  'use strict';
+
+  /* ── Utility: Title-case a string ──────────────────────────────
+     "JOHN o'NEIL-smith" → "John O'Neil-Smith"                      */
+  function toTitleCase(str) {
+    return str.replace(/([^\s\-']+)/g, function (word) {
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+  }
+
+  /* ── Show / hide inline error below an input ───────────────── */
+  function setError(input, msg) {
+    let err = input.parentElement.querySelector('.val-error');
+    if (!err) {
+      err = document.createElement('p');
+      err.className = 'val-error';
+      err.style.cssText = 'color:#DC2626;font-size:11px;margin:3px 0 0;';
+      input.parentElement.appendChild(err);
+    }
+    if (msg) {
+      err.textContent = msg;
+      err.style.display = 'block';
+      input.style.borderColor = '#DC2626';
+    } else {
+      err.style.display = 'none';
+      input.style.borderColor = '';
+    }
+  }
+
+  /* ── Validators ─────────────────────────────────────────────── */
+  function validateName(input) {
+    const v = input.value.trim();
+    if (v === '') { setError(input, 'Full name is required.'); return false; }
+    if (!/^[A-Za-z\s\-'\.]+$/.test(v)) {
+      setError(input, 'Name may only contain letters, spaces, hyphens, or apostrophes.');
+      return false;
+    }
+    if (v.split(/\s+/).filter(Boolean).length < 1) {
+      setError(input, 'Please enter at least a first name.'); return false;
+    }
+    setError(input, ''); return true;
+  }
+
+  function validatePhone(input) {
+    const v = input.value.trim();
+    if (v === '') { setError(input, ''); return true; } // optional
+    if (!/^[\d\s\+\-]{7,15}$/.test(v)) {
+      setError(input, 'Enter a valid phone number (7–15 digits).'); return false;
+    }
+    setError(input, ''); return true;
+  }
+
+  function validateLicense(input) {
+    if (!input || input.closest('[hidden]') !== null) { return true; }
+    const v = input.value.trim();
+    if (v === '') { setError(input, 'License number is required.'); return false; }
+    if (!/^[A-Za-z0-9\-\/]+$/.test(v)) {
+      setError(input, 'License may only contain letters, numbers, and hyphens.'); return false;
+    }
+    setError(input, ''); return true;
+  }
+
+  /* ── Wire up a single form ──────────────────────────────────── */
+  function wireForm(formEl, nameId, phoneId, licenseId) {
+    if (!formEl) return;
+
+    const nameInput    = formEl.querySelector('#' + nameId);
+    const phoneInput   = phoneId  ? formEl.querySelector('#' + phoneId)  : null;
+    const licenseInput = licenseId ? formEl.querySelector('#' + licenseId) : null;
+
+    /* Auto-capitalise name while typing */
+    if (nameInput) {
+      nameInput.addEventListener('input', function () {
+        const pos   = this.selectionStart;
+        this.value  = toTitleCase(this.value);
+        this.setSelectionRange(pos, pos);
+        validateName(this);
+      });
+      nameInput.addEventListener('blur', function () { validateName(this); });
+    }
+
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function () { validatePhone(this); });
+      phoneInput.addEventListener('blur',  function () { validatePhone(this); });
+    }
+
+    if (licenseInput) {
+      licenseInput.addEventListener('input', function () {
+        // Auto-uppercase license
+        const pos  = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+        validateLicense(this);
+      });
+      licenseInput.addEventListener('blur', function () { validateLicense(this); });
+    }
+
+    /* Block submit if invalid */
+    formEl.addEventListener('submit', function (e) {
+      let ok = true;
+      if (nameInput   && !validateName(nameInput))       ok = false;
+      if (phoneInput  && !validatePhone(phoneInput))     ok = false;
+      if (licenseInput && !validateLicense(licenseInput)) ok = false;
+      if (!ok) e.preventDefault();
+    });
+  }
+
+  /* ── Wire driver form (id="driverFormLocal") ────────────────── */
+  wireForm(
+    document.getElementById('driverFormLocal'),
+    'f_name', 'f_phone', 'f_license_no'
+  );
+
+  /* ── Wire conductor form (id="conductorFormLocal") ──────────── */
+  wireForm(
+    document.getElementById('conductorFormLocal'),
+    'fc_name', 'fc_phone', null
+  );
+
+})();
+</script>
+<script>
 /* ================================================================
    PROFILE DETAIL MODAL — Row-click handler
    ================================================================ */

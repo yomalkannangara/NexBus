@@ -82,6 +82,8 @@ class DriverModel extends BaseModel
 
         $name = trim((string)($d['full_name'] ?? ''));
         if ($name === '') return false;
+        // Normalise: "john doe" → "John Doe"
+        $name = ucwords(mb_strtolower($name, 'UTF-8'), " \t\r\n\f\v'-");
 
         $st = $this->pdo->prepare(
             "INSERT INTO private_drivers (private_operator_id, full_name, license_no, phone, status, suspend_reason)
@@ -111,6 +113,8 @@ class DriverModel extends BaseModel
 
         $name = trim((string)($d['full_name'] ?? ''));
         if ($name === '') return false;
+        // Normalise: "john doe" → "John Doe"
+        $name = ucwords(mb_strtolower($name, 'UTF-8'), " \t\r\n\f\v'-");
 
         $newStatus = $d['status'] ?? 'Active';
         $newReason = ($newStatus === 'Suspended') ? ($d['suspend_reason'] ?? null) : null;
@@ -206,6 +210,8 @@ class DriverModel extends BaseModel
 
         $name = trim((string)($d['full_name'] ?? ''));
         if ($name === '') return false;
+        // Normalise: "john doe" → "John Doe"
+        $name = ucwords(mb_strtolower($name, 'UTF-8'), " \t\r\n\f\v'-");
 
         $st = $this->pdo->prepare(
             "INSERT INTO private_conductors (private_operator_id, full_name, phone, status, suspend_reason)
@@ -220,12 +226,15 @@ class DriverModel extends BaseModel
         ]);
     }
 
+
     public function updateConductor(int $id, array $d): bool
     {
         if ($id <= 0) return false;
 
         $name = trim((string)($d['full_name'] ?? ''));
         if ($name === '') return false;
+        // Normalise: "john doe" → "John Doe"
+        $name = ucwords(mb_strtolower($name, 'UTF-8'), " \t\r\n\f\v'-");
 
         $newStatus = $d['status'] ?? 'Active';
         $newReason = ($newStatus === 'Suspended') ? ($d['suspend_reason'] ?? null) : null;
