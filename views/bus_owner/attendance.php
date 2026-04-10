@@ -588,7 +588,7 @@ $pct = $summary['total'] > 0
 <section class="history-section">
     <div class="history-head">
         <h3>&#128200; Attendance History</h3>
-        <form method="get" action="/B/attendance" class="hist-filter">
+        <form method="get" action="/B/attendance" class="hist-filter" id="hist-date-form">
             <input type="hidden" name="date" value="<?= htmlspecialchars($date) ?>">
             <label>From</label>
             <input type="date" name="from" value="<?= htmlspecialchars($histFrom) ?>" max="<?= $today ?>">
@@ -604,8 +604,150 @@ $pct = $summary['total'] > 0
         <p>No attendance records found for the selected period.</p>
     </div>
     <?php else: ?>
+
+    <!-- ── Search & Filter bar ───────────────────────────────────── -->
+    <div class="hist-search-bar">
+        <!-- Name search -->
+        <div class="hist-search-input-wrap">
+            <svg class="hist-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" id="hist-name-search" class="hist-search-input"
+                   placeholder="Search by name…" autocomplete="off">
+            <button type="button" id="hist-search-clear" class="hist-clear-btn" hidden aria-label="Clear search">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Staff type filter -->
+        <div class="hist-filter-group">
+            <label class="hist-filter-label" for="hist-type-filter">Type</label>
+            <select id="hist-type-filter" class="hist-filter-select">
+                <option value="all">All Staff</option>
+                <option value="driver">Driver</option>
+                <option value="conductor">Conductor</option>
+            </select>
+        </div>
+
+        <!-- Status filter -->
+        <div class="hist-filter-group">
+            <label class="hist-filter-label" for="hist-status-filter">Status</label>
+            <select id="hist-status-filter" class="hist-filter-select">
+                <option value="all">All Statuses</option>
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+                <option value="late">Late</option>
+                <option value="half_day">Half Day</option>
+            </select>
+        </div>
+
+        <!-- Result count badge -->
+        <span class="hist-result-count" id="hist-result-count"></span>
+    </div>
+
+    <style>
+    /* ── History search/filter bar ─────────────────────────────────── */
+    .hist-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 22px;
+        background: #FFFDF6;
+        border-bottom: 1px solid #e8d39a;
+        flex-wrap: wrap;
+    }
+    .hist-search-input-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 180px;
+    }
+    .hist-search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+        pointer-events: none;
+    }
+    .hist-search-input {
+        width: 100%;
+        padding: 8px 32px 8px 34px;
+        border: 1.5px solid #e8d39a;
+        border-radius: 8px;
+        font-size: .85rem;
+        background: #fff;
+        color: #2b2b2b;
+        box-sizing: border-box;
+        transition: border-color .18s, box-shadow .18s;
+    }
+    .hist-search-input:focus {
+        outline: none;
+        border-color: #f3b944;
+        box-shadow: 0 0 0 3px rgba(243,185,68,.18);
+    }
+    .hist-clear-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #9CA3AF;
+        padding: 2px;
+        display: flex;
+        align-items: center;
+    }
+    .hist-clear-btn:hover { color: #80143c; }
+    .hist-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .hist-filter-label {
+        font-size: .78rem;
+        font-weight: 700;
+        color: #80143c;
+        white-space: nowrap;
+    }
+    .hist-filter-select {
+        border: 1.5px solid #e8d39a;
+        border-radius: 8px;
+        padding: 7px 10px;
+        font-size: .82rem;
+        background: #fff;
+        color: #2b2b2b;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    .hist-filter-select:focus {
+        outline: none;
+        border-color: #f3b944;
+        box-shadow: 0 0 0 3px rgba(243,185,68,.18);
+    }
+    .hist-result-count {
+        margin-left: auto;
+        font-size: .75rem;
+        font-weight: 700;
+        color: #80143c;
+        background: #fce8ef;
+        border: 1px solid #f9a8c0;
+        border-radius: 999px;
+        padding: 3px 10px;
+        white-space: nowrap;
+    }
+    /* No-results row */
+    .hist-no-results td {
+        text-align: center;
+        padding: 28px;
+        color: #9ca3af;
+        font-size: .88rem;
+        font-style: italic;
+    }
+    </style>
+
     <div style="overflow-x:auto;">
-    <table class="history-table">
+    <table class="history-table" id="hist-table">
         <thead>
             <tr>
                 <th>Date</th>
@@ -615,12 +757,14 @@ $pct = $summary['total'] > 0
                 <th>Notes</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="hist-tbody">
         <?php foreach ($history as $h):
             $pillClass = 'pill-' . strtolower($h['status']);
             $typeClass = 'type-' . strtolower($h['staff_type']);
         ?>
-        <tr>
+        <tr data-name="<?= strtolower(htmlspecialchars($h['full_name'] ?? '')) ?>"
+            data-type="<?= strtolower($h['staff_type']) ?>"
+            data-status="<?= strtolower(str_replace(' ','_',$h['status'])) ?>">
             <td><?= date('d M Y', strtotime($h['work_date'])) ?></td>
             <td><span class="type-badge <?= $typeClass ?>"><?= $h['staff_type'] ?></span></td>
             <td style="font-weight:600;"><?= htmlspecialchars($h['full_name'] ?? '—') ?></td>
@@ -631,6 +775,68 @@ $pct = $summary['total'] > 0
         </tbody>
     </table>
     </div>
+
+    <script>
+    (function () {
+        var searchInput  = document.getElementById('hist-name-search');
+        var clearBtn     = document.getElementById('hist-search-clear');
+        var typeFilter   = document.getElementById('hist-type-filter');
+        var statusFilter = document.getElementById('hist-status-filter');
+        var countBadge   = document.getElementById('hist-result-count');
+        var tbody        = document.getElementById('hist-tbody');
+
+        if (!tbody) return;
+
+        var allRows = Array.from(tbody.querySelectorAll('tr[data-name]'));
+        var noResRow = null; // injected when needed
+
+        function filterRows() {
+            var term   = searchInput.value.toLowerCase().trim();
+            var type   = typeFilter.value;
+            var status = statusFilter.value;
+            var visible = 0;
+
+            allRows.forEach(function (row) {
+                var nameMatch   = !term   || row.dataset.name.includes(term);
+                var typeMatch   = type   === 'all' || row.dataset.type   === type;
+                var statusMatch = status === 'all' || row.dataset.status === status;
+                var show = nameMatch && typeMatch && statusMatch;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            // Update count badge
+            countBadge.textContent = visible + ' record' + (visible !== 1 ? 's' : '');
+
+            // Show/hide no-results row
+            if (noResRow) noResRow.remove();
+            if (visible === 0) {
+                noResRow = document.createElement('tr');
+                noResRow.className = 'hist-no-results';
+                noResRow.innerHTML = '<td colspan="5">No records match your search.</td>';
+                tbody.appendChild(noResRow);
+            }
+
+            // Clear button visibility
+            clearBtn.hidden = !searchInput.value;
+        }
+
+        // Wire events
+        searchInput.addEventListener('input', filterRows);
+        typeFilter.addEventListener('change', filterRows);
+        statusFilter.addEventListener('change', filterRows);
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            clearBtn.hidden = true;
+            filterRows();
+            searchInput.focus();
+        });
+
+        // Run on load to set initial count
+        filterRows();
+    })();
+    </script>
+
     <?php endif; ?>
 </section>
 
