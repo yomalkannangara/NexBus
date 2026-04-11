@@ -596,3 +596,184 @@ dialog{ border:0; border-radius:12px; padding:16px 20px; box-shadow: var(--thick
 .modal .modal-content form label{ display:flex; flex-direction:column; gap:6px; font-weight:600; font-size:13px; color:#374151; }
 .modal .modal-actions{ grid-column:1 / -1; display:flex; gap:10px; justify-content:flex-end; margin-top:4px; }
 .btn-primary{ background: var(--primary); color:#fff; border:none; padding:10px 14px}
+
+/* =======================================================
+   Attendance History (Depot Officer / Staff pages)
+   ======================================================= */
+.history-section {
+  display: block;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(17, 24, 39, .08);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.history-head {
+  padding: 16px 22px;
+  border-bottom: 1px solid #e8d39a;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.history-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #80143c;
+}
+.hist-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hist-filter label {
+  font-size: .82rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+.hist-filter input[type=date] {
+  width: auto;
+  border: 1.5px solid #e8d39a;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: .82rem;
+  background: #fffdf6;
+  color: #2b2b2b;
+}
+.hist-filter input[type=date]:focus {
+  outline: none;
+  border-color: #f3b944;
+  box-shadow: 0 0 0 3px rgba(243,185,68,.18);
+}
+.hist-filter .go-sm {
+  width: auto;
+  background: #80143c;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hist-filter .go-sm:hover {
+  background: #a8274e;
+}
+
+.hist-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: #fffdf6;
+  border-bottom: 1px solid #e8d39a;
+  flex-wrap: nowrap;
+}
+.hist-search-input-wrap {
+  position: relative;
+  width: 250px;
+  flex-shrink: 0;
+}
+.hist-search-icon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+.hist-search-input {
+  width: 100%;
+  padding: 7px 28px 7px 30px;
+  border: 1.5px solid #e8d39a;
+  border-radius: 8px;
+  font-size: .82rem;
+  background: #fff;
+  color: #2b2b2b;
+  box-sizing: border-box;
+  transition: border-color .18s, box-shadow .18s;
+}
+.hist-search-input:focus {
+  outline: none;
+  border-color: #f3b944;
+  box-shadow: 0 0 0 3px rgba(243,185,68,.18);
+}
+.hist-clear-btn {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+.hist-clear-btn:hover { color: #80143c; }
+.hist-bar-divider {
+  width: 1px;
+  height: 22px;
+  background: #e8d39a;
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+.hist-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.hist-filter-label {
+  font-size: .76rem;
+  font-weight: 700;
+  color: #80143c;
+  white-space: nowrap;
+}
+.hist-filter-select {
+  width: auto;
+  border: 1.5px solid #e8d39a;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: .80rem;
+  background: #fff;
+  color: #2b2b2b;
+  cursor: pointer;
+  font-weight: 500;
+}
+.hist-filter-select:focus {
+  outline: none;
+  border-color: #f3b944;
+  box-shadow: 0 0 0 3px rgba(243,185,68,.18);
+}
+.hist-result-count {
+  margin-left: auto;
+  font-size: .73rem;
+  font-weight: 700;
+  color: #80143c;
+  background: #fce8ef;
+  border: 1px solid #f9a8c0;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hist-no-results td {
+  text-align: center;
+  padding: 28px;
+  color: #9ca3af;
+  font-size: .88rem;
+  font-style: italic;
+}
+
+/* Hard visibility guard for Depot Officer attendance history */
+body.module-o .history-section {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 0;
+}
