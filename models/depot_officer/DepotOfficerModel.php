@@ -134,6 +134,8 @@ public function depot(int $depotId): ?array {
 
     // Attendance
     public function attendanceForDate(int $depotId, string $date): array { return $this->att->forDate($depotId,$date); }
+    public function attendanceSummary(int $depotId, int $days = 30): array { return $this->att->summary($depotId, $days); }
+    public function attendanceHistory(int $depotId, string $from, string $to): array { return $this->att->history($depotId, $from, $to); }
     public function markAttendanceBulk(int $depotId, string $date, array $mark): void {
         // Only allow marking attendance for drivers and conductors (by attendance_key)
         $rows = $this->lookup->depotDriversAndConductors($depotId);
