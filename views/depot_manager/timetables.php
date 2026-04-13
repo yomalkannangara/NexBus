@@ -1,6 +1,4 @@
 <?php /** @var array $routes,$buses,$special_tt,$filters */ ?>
-<!-- Load staff styles/scripts so this depot manager page matches Depot Officer UI -->
-<link rel="stylesheet" href="/assets/css/staff.css">
 <link rel="stylesheet" href="/assets/css/alert.css">
 <script defer src="/assets/js/app.js"></script>
 <script src="/assets/js/alert.js"></script>
