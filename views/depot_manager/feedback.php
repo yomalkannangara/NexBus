@@ -632,7 +632,7 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
     if (mPassenger) mPassenger.textContent = row.passenger || '';
     if (mBus)       mBus.textContent       = row.bus_or_route || '';
     if (mDate)      mDate.textContent      = row.date || '';
-    if (mType)      mType.textContent      = [row.type, row.category].filter(Boolean).join('  ') || '';
+    if (mType)      mType.textContent      = row.type || '';
     if (mRating)    mRating.innerHTML      = starsHTML(parseInt(row.rating)||0);
     if (mMessage)   mMessage.textContent   = row.message || '';
     if (mId)        mId.value              = row.id;
