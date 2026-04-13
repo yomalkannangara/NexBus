@@ -1,0 +1,1045 @@
+[14-Apr-2026 00:00:05 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:07 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:10 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:23 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:26 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:38 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:00:56 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:01:08 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:01:11 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:01:26 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:01:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:01:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:02:09 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:02:10 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:02:11 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:02:22 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:02:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:02:58 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:03:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:03:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:03:28 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:03:41 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:03:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:03:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:06 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:06 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:07 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:19 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:34 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:49 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:04:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:05:04 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:05:24 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:05:39 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:05:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:05:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:18 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:31 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:46 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:57 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:58 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:58 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:06:58 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:04 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:13 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:29 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:39 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:48 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:07:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:03 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:12 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:14 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:29 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:40 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:57 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:08:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:00 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:14 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:29 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:35 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:37 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:44 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:45 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:09:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:00 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:07 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:23 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:38 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:53 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:10:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:11:08 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:11:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:11:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:11:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:12:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:12:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:12:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:13:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:13:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:13:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:14:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:14:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:14:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:48 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:49 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:52 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:15:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:16:00 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:16:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:16:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:16:45 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:16:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:16:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:17:00 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:17:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:17:31 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:17:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:18:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:18:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:18:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:19:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:19:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:19:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:49 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:51 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:57 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:20:59 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:32 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:46 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:47 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:21:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:00 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:02 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:15 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:17 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:30 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:32 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:22:45 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php(330): App\controllers\LiveBusesController->persistLiveBuses(Array, Array)
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\LiveBusesController->proxy()
+#2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
+#3 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+[14-Apr-2026 00:44:58 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4010, driver_id=5108, conductor_id=7001
+[14-Apr-2026 00:44:58 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-4010
+[14-Apr-2026 00:44:59 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4010, driver_id=5108, conductor_id=7001
+[14-Apr-2026 00:44:59 Asia/Colombo] [BusModel] assignDriverConductor: 0 rows affected. reg_no=PB-4010, operatorId=1, driverId=5108, conductorId=7001
+[14-Apr-2026 00:44:59 Asia/Colombo] [fleetAssign] assign result: failed for reg_no=PB-4010
+[14-Apr-2026 00:45:09 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4006, driver_id=6006, conductor_id=6104
+[14-Apr-2026 00:45:09 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-4006
+[14-Apr-2026 00:45:18 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4001, driver_id=2, conductor_id=9
+[14-Apr-2026 00:45:18 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-4001
