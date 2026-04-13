@@ -1430,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function validateLicense(input) {
-    if (!input || input.closest('[hidden]') !== null) { return true; }
+    if (!input || input.disabled || input.closest('[hidden]') !== null || input.offsetParent === null) { return true; }
     const v = input.value.trim();
     if (v === '') { setError(input, 'License number is required.'); return false; }
     if (!/^[A-Za-z0-9\-\/]+$/.test(v)) {
@@ -1555,6 +1555,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function buildTimeline(logs, data, type) {
     var html   = '';
     var events = [];  // [{evType:'suspend'|'active', label, date, reason}]
+    var currentStatus = (data.status || 'Active').toLowerCase();
+    var currentReason = (data.suspend_reason || '').trim();
 
     if (logs && logs.length > 0) {
       // ── Real log data ──────────────────────────────────────────
@@ -1567,6 +1569,17 @@ document.addEventListener('DOMContentLoaded', () => {
           reason : row.reason || ''
         });
       });
+
+      // If staff is currently suspended, prefer the latest saved reason from main row
+      // so profile timeline stays consistent after editing reason without status change.
+      if (currentStatus === 'suspended' && currentReason) {
+        var firstSuspendIdx = events.findIndex(function (ev) { return ev.evType === 'suspend'; });
+        if (firstSuspendIdx >= 0) {
+          events[firstSuspendIdx].reason = currentReason;
+        } else {
+          events.unshift({ evType: 'suspend', label: 'Suspended', date: null, reason: currentReason });
+        }
+      }
     } else {
       // ── Fallback: infer from current status/reason ─────────────
       var status      = (data.status || 'Active');
