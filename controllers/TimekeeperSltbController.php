@@ -103,11 +103,11 @@ class TimekeeperSltbController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
             if (($_POST['action'] ?? '') === 'complete') {
-                $id = (int)($_POST['sltb_trip_id'] ?? 0);
+                $id = (int)($_POST['sltb_trip_id'] ?? $_POST['private_trip_id'] ?? 0);
                 echo json_encode(['ok' => $m->complete($id)]); return;
             }
             if (($_POST['action'] ?? '') === 'cancel') {
-                $id = (int)($_POST['sltb_trip_id'] ?? 0);
+                $id = (int)($_POST['sltb_trip_id'] ?? $_POST['private_trip_id'] ?? 0);
                 $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
                 $result = $m->cancel($id, $reason);
                 echo json_encode($result); return;
@@ -116,6 +116,7 @@ class TimekeeperSltbController extends BaseController
         }
 
         $this->view('timekeeper_sltb', 'turn_management', [
+            'S' => $m->info(),
             'rows' => $m->running()
         ]);
     }

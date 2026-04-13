@@ -1,12 +1,22 @@
 <?php
 
+$user     = $_SESSION['user'] ?? [];
+
 // derive current module/page from the path like /O/dashboard or /TP/timetables
 $uri      = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $segments = array_values(array_filter(explode('/', $uri)));
 $module   = $segments[0] ?? '';              // 'O' (Depot Officer), 'TP' (Private Timekeeper), 'TS' (SLTB TK)...
 $page     = $segments[1] ?? 'dashboard';
 
-$user     = $_SESSION['user'] ?? [];
+// If URL segment is ambiguous, fall back to logged-in role so sidebar never switches to wrong module.
+if (!in_array($module, ['O', 'TP', 'TS'], true)) {
+  $module = match ($user['role'] ?? '') {
+    'DepotOfficer' => 'O',
+    'PrivateTimekeeper' => 'TP',
+    'SLTBTimekeeper' => 'TS',
+    default => $module,
+  };
+}
 $displayName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
 $displayName = $displayName !== '' ? $displayName : ($user['name'] ?? ($user['full_name'] ?? ''));
 $initial  = $user ? strtoupper(substr($displayName !== '' ? $displayName : 'U', 0, 1)) : '?';
@@ -168,6 +178,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </body>
+  <?php if (in_array($module, ['TP', 'TS'], true)): ?>
   <script src="/assets/js/timekeeper.js"></script>
+  <?php endif; ?>
 
 </html>
