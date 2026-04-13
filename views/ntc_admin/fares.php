@@ -9,7 +9,6 @@
       </select>
     </label>
     <label>Stage Number <input type="number" min="1" name="stage_number" required></label>
-    <label>Super Luxury Price <input type="number" step="0.01" name="super_luxury"></label>
     <label>Luxury Price <input type="number" step="0.01" name="luxury"></label>
     <label>Semi Luxury Price <input type="number" step="0.01" name="semi_luxury"></label>
     <label>Normal Service Price <input type="number" step="0.01" name="normal_service"></label>
@@ -34,7 +33,6 @@
       </select>
     </label>
     <label>Stage Number <input type="number" min="1" name="stage_number" id="edit_stage_number" required></label>
-    <label>Super Luxury Price <input type="number" step="0.01" name="super_luxury" id="edit_super_luxury"></label>
     <label>Luxury Price <input type="number" step="0.01" name="luxury" id="edit_luxury"></label>
     <label>Semi Luxury Price <input type="number" step="0.01" name="semi_luxury" id="edit_semi_luxury"></label>
     <label>Normal Service Price <input type="number" step="0.01" name="normal_service" id="edit_normal_service"></label>
@@ -58,7 +56,6 @@
     <div class="fare-accordion">
       <?php
         $labels = [
-          'super_luxury'   => 'Super Luxury',
           'luxury'         => 'Luxury',
           'semi_luxury'    => 'Semi Luxury',
           'normal_service' => 'Normal Service',
@@ -102,7 +99,6 @@
                          data-fare-id="<?=htmlspecialchars($f['fare_id'])?>"
                          data-route-id="<?=htmlspecialchars($f['route_id'])?>"
                          data-stage-number="<?=htmlspecialchars($f['stage_number'])?>"
-                         data-super-luxury="<?=htmlspecialchars($f['super_luxury'])?>"
                          data-luxury="<?=htmlspecialchars($f['luxury'])?>"
                          data-semi-luxury="<?=htmlspecialchars($f['semi_luxury'])?>"
                          data-normal-service="<?=htmlspecialchars($f['normal_service'])?>"

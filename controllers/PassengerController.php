@@ -88,13 +88,16 @@ class PassengerController extends BaseController
         $selectedRoute = isset($_POST['route_id']) ? (int)$_POST['route_id'] : null;
         $stops = $selectedRoute ? $m->stops($selectedRoute) : [];
         $fare = null;
+        $formAction = $_POST['form_action'] ?? ($_POST['action'] ?? '');
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'calc') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $formAction === 'calc') {
             $routeId = (int)($_POST['route_id'] ?? 0);
             $startIdx = (int)($_POST['start_idx'] ?? 1);
-            $endIdx = (int)($_POST['end_idx'] ?? 1);
+            $endIdx = (int)($_POST['end_idx'] ?? $startIdx);
 
-            $fare = $m->fares($routeId, $startIdx, $endIdx);
+            if ($routeId > 0) {
+                $fare = $m->fares($routeId, $startIdx, $endIdx);
+            }
         }
 
 

@@ -676,16 +676,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function totalPages() { return Math.max(1, Math.ceil(filtered.length / ROWS_PER)); }
 
+  function getVisiblePages(current, total) {
+    var compactCount = window.innerWidth < 992 ? 5 : 7;
+    if (total <= compactCount) {
+      return Array.from({ length: total }, function (_, i) { return i + 1; });
+    }
+
+    var pages = [1];
+    var innerSlots = compactCount - 2;
+    var half = Math.floor(innerSlots / 2);
+    var start = Math.max(2, current - half);
+    var end = Math.min(total - 1, start + innerSlots - 1);
+
+    start = Math.max(2, end - innerSlots + 1);
+
+    if (start > 2) pages.push('...');
+    for (var p = start; p <= end; p++) pages.push(p);
+    if (end < total - 1) pages.push('...');
+    pages.push(total);
+    return pages;
+  }
+
   function renderPageNumbers() {
     if (!pagesEl) return;
     pagesEl.innerHTML = '';
-    for (let i = 1; i <= totalPages(); i++) {
-      const b = document.createElement('button');
-      b.className = 'page-number' + (i === currentPage ? ' active' : '');
-      b.textContent = i;
-      b.addEventListener('click', () => { currentPage = i; renderPage(); });
+    getVisiblePages(currentPage, totalPages()).forEach(function (item) {
+      var b = document.createElement('button');
+      if (item === '...') {
+        b.className = 'page-number ellipsis';
+        b.textContent = '...';
+        b.type = 'button';
+        b.disabled = true;
+      } else {
+        b.className = 'page-number' + (item === currentPage ? ' active' : '');
+        b.textContent = item;
+        b.type = 'button';
+        b.addEventListener('click', function () {
+          currentPage = item;
+          renderPage();
+        });
+      }
       pagesEl.appendChild(b);
-    }
+    });
   }
 
   function renderPage() {
@@ -729,6 +761,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   if (prevBtn) prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderPage(); } });
   if (nextBtn) nextBtn.addEventListener('click', () => { if (currentPage < totalPages()) { currentPage++; renderPage(); } });
+
+  window.addEventListener('resize', renderPageNumbers);
 
   renderPage(); // initial
 

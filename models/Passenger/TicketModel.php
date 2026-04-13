@@ -23,7 +23,13 @@ class TicketModel extends BaseModel {
 
   /* ------------- ROUTES ------------- */
   public function routes(): array {
-    $rows = $this->pdo->query("SELECT route_id, route_no, stops_json FROM routes WHERE is_active=1 ORDER BY route_no")->fetchAll();
+    $sql = "SELECT DISTINCT r.route_id, r.route_no, r.stops_json
+              FROM routes r
+              INNER JOIN fares f ON f.route_id = r.route_id
+             WHERE r.is_active=1
+               AND (f.is_normal_service_active=1 OR f.is_semi_luxury_active=1 OR f.is_luxury_active=1)
+          ORDER BY r.route_no+0, r.route_no";
+    $rows = $this->pdo->query($sql)->fetchAll();
     foreach ($rows as &$r) $r['name'] = $this->getRouteDisplayName($r['stops_json']);
     return $rows;
   }
@@ -51,7 +57,7 @@ class TicketModel extends BaseModel {
     $stops = $this->stops($routeId);
     if (empty($stops)) {
       return [
-        'normal'=>0,'semi_luxury'=>0,'luxury'=>0,'super_luxury'=>0,
+        'normal'=>0,'semi_luxury'=>0,'luxury'=>0,
         'start_name'=>'Start','end_name'=>'End','stages'=>1,'distance_km'=>0
       ];
     }
@@ -64,34 +70,53 @@ class TicketModel extends BaseModel {
     $startName = $stops[$startIdx-1]['name'];
     $endName   = $stops[$endIdx-1]['name'];
 
-    // 2) Stages = absolute difference in positions (min 1)
-    $stages = max(0, abs($endIdx - $startIdx));
+    // 2) Stages = absolute difference in positions (minimum fare stage is 1)
+    $stages = max(1, abs($endIdx - $startIdx));
 
     // 3) Pick fare row for route + stage_number (latest effective)
     $sql = "SELECT
               normal_service,
               semi_luxury,
               luxury,
-              super_luxury,
               is_normal_service_active,
               is_semi_luxury_active,
-              is_luxury_active,
-              is_super_luxury_active
+            is_luxury_active
             FROM fares
-           WHERE route_id=? AND stage_number=?
+          WHERE route_id=? AND stage_number=?
+           AND (is_normal_service_active=1 OR is_semi_luxury_active=1 OR is_luxury_active=1)
         ORDER BY COALESCE(effective_to, '9999-12-31') DESC, effective_from DESC
            LIMIT 1";
     $st = $this->pdo->prepare($sql);
     $st->execute([$routeId, $stages]);
     $f = $st->fetch();
 
+    // If an exact stage fare is not configured, use the closest stage for this route.
+    if (!$f) {
+      $fallbackSql = "SELECT
+                        normal_service,
+                        semi_luxury,
+                        luxury,
+                        is_normal_service_active,
+                        is_semi_luxury_active,
+                        is_luxury_active
+                      FROM fares
+                     WHERE route_id=?
+                       AND (is_normal_service_active=1 OR is_semi_luxury_active=1 OR is_luxury_active=1)
+                  ORDER BY ABS(stage_number - ?) ASC,
+                           COALESCE(effective_to, '9999-12-31') DESC,
+                           effective_from DESC
+                     LIMIT 1";
+      $fst = $this->pdo->prepare($fallbackSql);
+      $fst->execute([$routeId, $stages]);
+      $f = $fst->fetch();
+    }
+
     if ($f) {
       $normal = (int)$f['is_normal_service_active']   ? (float)$f['normal_service'] : 0.0;
       $semi   = (int)$f['is_semi_luxury_active']      ? (float)$f['semi_luxury']    : 0.0;
       $lux    = (int)$f['is_luxury_active']           ? (float)$f['luxury']         : 0.0;
-      $super  = (int)$f['is_super_luxury_active']     ? (float)$f['super_luxury']   : 0.0;
     } else {
-      $normal = $semi = $lux = $super = 0.0; // no row for that stage
+      $normal = $semi = $lux = 0.0; // no row for that stage
     }
 
     // 4) Distance (simple approx â€“ adjust if you have real km per stage)
@@ -101,7 +126,6 @@ class TicketModel extends BaseModel {
       'normal'       => $normal,
       'semi_luxury'  => $semi,
       'luxury'       => $lux,
-      'super_luxury' => $super,
       'start_name'   => $startName,
       'end_name'     => $endName,
       'stages'       => $stages,

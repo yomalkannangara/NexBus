@@ -887,7 +887,7 @@
 
     <div class="perf-chart-card">
       <div class="perf-chart-header">
-        <h3 class="perf-chart-title">Complaints by Route</h3>
+        <h3 class="perf-chart-title">Complaints by Bus</h3>
       </div>
       <canvas id="complaintsRouteChart" data-drill-key="complaints_by_route" data-drill-base="/B/reports/details"></canvas>
     </div>
@@ -952,7 +952,8 @@
   z-index: 9000;
   align-items: flex-start;
   justify-content: center;
-  padding: 24px 16px;
+  /* top padding = fixed topbar height (64px) + 16px gap so the modal never hides behind the nav */
+  padding: 80px 16px 24px;
   overflow-y: auto;
 }
 .dm-overlay.open { display: flex; }

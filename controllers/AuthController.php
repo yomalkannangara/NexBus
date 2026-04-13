@@ -39,6 +39,11 @@ class AuthController extends BaseController
             exit;
         }
 
+        $redirect = $_SESSION['intended'] ?? $this->defaultHomeForRole($user['role']);
+
+        session_regenerate_id(true);
+        unset($_SESSION['intended']);
+
         $_SESSION['user'] = [
             // Keep both keys for compatibility across the codebase.
             'user_id' => (int)$user['user_id'],
@@ -52,8 +57,6 @@ class AuthController extends BaseController
             'phone' => $user['phone'] ?? null,
         ];
 
-        $redirect = $_SESSION['intended'] ?? $this->defaultHomeForRole($user['role']);
-        unset($_SESSION['intended']);
         header("Location: $redirect");
         exit;
     }
@@ -123,7 +126,21 @@ class AuthController extends BaseController
     /** Logout */
     public function logout(): void
     {
-        unset($_SESSION['user']);
+        $_SESSION = [];
+
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'] ?? '/',
+                $params['domain'] ?? '',
+                (bool)($params['secure'] ?? false),
+                (bool)($params['httponly'] ?? true)
+            );
+        }
+
         session_destroy();
         header("Location: /login");
         exit;

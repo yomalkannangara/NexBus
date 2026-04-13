@@ -1191,7 +1191,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
       document.getElementById('bus_chassis_no').value = busData.chassis_no || '';
       document.getElementById('bus_capacity').value   = busData.capacity   || '';
-      document.getElementById('bus_manufactured_date').value = busData.manufactured_date || '';
       document.getElementById('bus_manufactured_year').value = busData.manufactured_year || '';
       document.getElementById('bus_model').value = busData.model || '';
       document.getElementById('bus_class').value = busData.bus_class || 'Normal';

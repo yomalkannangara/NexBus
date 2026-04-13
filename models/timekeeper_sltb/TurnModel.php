@@ -6,6 +6,23 @@ use PDO;
 
 class TurnModel extends BaseModel
 {
+    public function info(): array
+    {
+        $id = $this->depotId();
+        if ($id <= 0) {
+            return ['depot_name' => 'My Depot'];
+        }
+
+        try {
+            $st = $this->pdo->prepare("SELECT name FROM sltb_depots WHERE sltb_depot_id=:d LIMIT 1");
+            $st->execute([':d' => $id]);
+            $name = (string)($st->fetchColumn() ?: 'My Depot');
+            return ['depot_name' => $name];
+        } catch (\Throwable $e) {
+            return ['depot_name' => 'My Depot'];
+        }
+    }
+
     private function depotId(): int {
         $u = $_SESSION['user'] ?? [];
         return (int)($u['sltb_depot_id'] ?? 0);

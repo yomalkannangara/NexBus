@@ -23,6 +23,20 @@ require_once __DIR__ . '/autoload.php';
 // === 4) Session =======================================================
 if (session_status() === PHP_SESSION_NONE) {
     session_name($config['session']['name'] ?? 'NEXBUSSESSID');
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? null) == 443);
+    $cookieParams = session_get_cookie_params();
+    session_set_cookie_params([
+        'lifetime' => (int)($config['session']['lifetime'] ?? 120) * 60,
+        'path' => $cookieParams['path'] ?? '/',
+        'domain' => $cookieParams['domain'] ?? '',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
 }
 

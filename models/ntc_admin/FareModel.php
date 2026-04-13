@@ -36,18 +36,16 @@ class FareModel extends BaseModel {
         return ($value !== null && $value !== '' && floatval($value) != 0.0) ? 1 : 0;
     }
     public function create(array $d): void {
-        $super = $d['super_luxury'] ?? null;
         $lux   = $d['luxury'] ?? null;
         $semi  = $d['semi_luxury'] ?? null;
         $norm  = $d['normal_service'] ?? null;
-        $sql = "INSERT INTO fares (route_id, stage_number, super_luxury, luxury, semi_luxury, normal_service,
-                is_super_luxury_active, is_luxury_active, is_semi_luxury_active, is_normal_service_active,
+        $sql = "INSERT INTO fares (route_id, stage_number, luxury, semi_luxury, normal_service,
+            is_luxury_active, is_semi_luxury_active, is_normal_service_active,
                 effective_from, effective_to)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $st = $this->pdo->prepare($sql);
         $st->execute([
-            $d['route_id'], $d['stage_number'], $super, $lux, $semi, $norm,
-            $this->isActivePrice($super),
+            $d['route_id'], $d['stage_number'], $lux, $semi, $norm,
             $this->isActivePrice($lux),
             $this->isActivePrice($semi),
             $this->isActivePrice($norm),
@@ -55,7 +53,6 @@ class FareModel extends BaseModel {
         ]);
     }
     public function update(array $d): void {
-        $super = $d['super_luxury'] ?? null;
         $lux   = $d['luxury'] ?? null;
         $semi  = $d['semi_luxury'] ?? null;
         $norm  = $d['normal_service'] ?? null;
@@ -63,14 +60,13 @@ class FareModel extends BaseModel {
         $sql = "UPDATE fares SET
                     route_id=?,
                     stage_number=?,
-                    super_luxury=?, luxury=?, semi_luxury=?, normal_service=?,
-                    is_super_luxury_active=?, is_luxury_active=?, is_semi_luxury_active=?, is_normal_service_active=?,
+                    luxury=?, semi_luxury=?, normal_service=?,
+                    is_luxury_active=?, is_semi_luxury_active=?, is_normal_service_active=?,
                     effective_from=?, effective_to=?
                 WHERE fare_id=?";
         $st = $this->pdo->prepare($sql);
         $st->execute([
-            $d['route_id'], $d['stage_number'], $super, $lux, $semi, $norm,
-            $this->isActivePrice($super),
+            $d['route_id'], $d['stage_number'], $lux, $semi, $norm,
             $this->isActivePrice($lux),
             $this->isActivePrice($semi),
             $this->isActivePrice($norm),

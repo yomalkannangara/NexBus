@@ -1,3 +1,15 @@
+-- NexBus full database install (from scratch)
+-- This file bundles:
+--   1) database creation
+--   2) the base dump: database/migrations/finalDB.sql
+--   3) the additive realistic seed: database/migrations/seed_nexbus_realistic_dummy_data.sql
+--
+-- WARNING: This will DROP and recreate database `nexbus`.
+-- If you want to preserve an existing DB, remove the DROP/CREATE/USE block below.
+
+DROP DATABASE IF EXISTS `nexbus`;
+CREATE DATABASE `nexbus` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `nexbus`;
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
@@ -16,11 +28,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-
-CREATE DATABASE IF NOT EXISTS `nexbus`
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_general_ci;
-USE `nexbus`;
 
 --
 -- Database: `nexbus`
@@ -16694,3 +16701,1364 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- NexBus (Sri Lanka) — Realistic Dummy Data Seed
+-- Generated: 2026-04-11
+-- Target: MariaDB 10.4+
+--
+-- Core rules respected:
+--   - DOES NOT delete/modify/overwrite any existing rows in `users`.
+--   - DOES NOT insert new dummy users into `users`.
+--   - Adds password separation via `user_credentials` and COPIES existing `users.password_hash` into it.
+--
+-- What this seed adds:
+--   - 25 realistic SLTB depots/terminals (Makumbura, Bastian Mawatha, etc.)
+--   - 40 real Sri Lankan bus routes with stops_json in [{seq, stop}] format
+--   - Normalizes existing `routes.stops_json` into the same app-friendly format
+--   - Private operator associations (ensures >=10 realistic operators)
+--   - 50 realistic private buses with drivers/conductors (distributed across 10 operators)
+--   - 10 SLTB buses + SLTB drivers/conductors for 5 depots
+--   - A busy operational week (2026-04-06 .. 2026-04-12):
+--       timetables, assignments, trips, earnings, staff attendance
+
+SET NAMES utf8mb4;
+SET time_zone = '+00:00';
+SET SQL_MODE = CONCAT(@@SQL_MODE, ',NO_AUTO_VALUE_ON_ZERO');
+
+START TRANSACTION;
+
+USE `nexbus`;
+
+-- -----------------------------------------------------------------------------
+-- 1) Password separation (copy-only; keeps `users.password_hash` intact)
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `user_credentials` (
+  `user_id` int(11) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `migrated_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `fk_user_credentials_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `user_credentials` (`user_id`, `password_hash`)
+SELECT `user_id`, `password_hash`
+FROM `users`
+WHERE `password_hash` IS NOT NULL AND `password_hash` <> ''
+ON DUPLICATE KEY UPDATE `password_hash` = VALUES(`password_hash`);
+
+-- Optional (NOT executed to respect the “don’t modify users” rule):
+-- ALTER TABLE `users` DROP COLUMN `password_hash`;
+
+-- -----------------------------------------------------------------------------
+-- 2) SLTB depots/terminals (>=20)
+-- -----------------------------------------------------------------------------
+
+INSERT IGNORE INTO `sltb_depots` (`sltb_depot_id`, `name`, `address`, `phone`, `code`) VALUES
+(101, 'Bastian Mawatha Bus Terminal', 'Bastian Mawatha, Colombo Fort', '0112345678', 'FORT'),
+(102, 'Makumbura Multimodal Center', 'Makumbura, Kottawa', '0112233445', 'MMC'),
+(103, 'Maharagama Depot', 'High Level Road, Maharagama', '0112856789', 'MHM'),
+(104, 'Kadawatha Depot', 'Kadawatha', '0112923456', 'KDW'),
+(105, 'Kottawa Depot', 'Kottawa', '0112098765', 'KTW'),
+(106, 'Negombo Depot', 'Negombo', '0312223344', 'NEG'),
+(107, 'Gampaha Depot', 'Gampaha', '0332224455', 'GMP'),
+(108, 'Kalutara Depot', 'Kalutara', '0342225566', 'KLT'),
+(109, 'Panadura Depot', 'Panadura', '0382226677', 'PND'),
+(110, 'Horana Depot', 'Horana', '0342267788', 'HRN'),
+(111, 'Avissawella Depot', 'Avissawella', '0362228899', 'AVS'),
+(112, 'Chilaw Depot', 'Chilaw', '0322229900', 'CHL'),
+(113, 'Puttalam Depot', 'Puttalam', '0322266011', 'PTM'),
+(114, 'Jaffna Depot', 'Jaffna', '0212223344', 'JFN'),
+(115, 'Vavuniya Depot', 'Vavuniya', '0242223344', 'VVN'),
+(116, 'Anuradhapura Depot', 'Anuradhapura', '0252223344', 'ANP'),
+(117, 'Polonnaruwa Depot', 'Polonnaruwa', '0272223344', 'PLN'),
+(118, 'Trincomalee Depot', 'Trincomalee', '0262223344', 'TRC'),
+(119, 'Batticaloa Depot', 'Batticaloa', '0652223344', 'BTC'),
+(120, 'Ampara Depot', 'Ampara', '0632223344', 'AMP'),
+(121, 'Badulla Depot', 'Badulla', '0552223344', 'BDL'),
+(122, 'Bandarawela Depot', 'Bandarawela', '0572223344', 'BDW'),
+(123, 'Nuwara Eliya Depot', 'Nuwara Eliya', '0522223344', 'NUE'),
+(124, 'Matara Depot', 'Matara', '0412223344', 'MTR'),
+(125, 'Hambantota Depot', 'Hambantota', '0472223344', 'HBT');
+
+-- -----------------------------------------------------------------------------
+-- 3) Routes — real Sri Lankan route numbers + realistic stop lists
+-- -----------------------------------------------------------------------------
+
+INSERT IGNORE INTO `routes` (`route_id`, `route_no`, `is_active`, `stops_json`) VALUES
+(13001, '138', 1, '[{"seq":1,"stop":"maharagama"},{"seq":2,"stop":"nugegoda"},{"seq":3,"stop":"borella"},{"seq":4,"stop":"pettah"},{"seq":5,"stop":"colombo fort"}]'),
+(13002, '120', 1, '[{"seq":1,"stop":"horana"},{"seq":2,"stop":"bandaragama"},{"seq":3,"stop":"piliyandala"},{"seq":4,"stop":"maharagama"},{"seq":5,"stop":"nugegoda"},{"seq":6,"stop":"colombo fort"}]'),
+(13003, '17',  1, '[{"seq":1,"stop":"panadura"},{"seq":2,"stop":"horana"},{"seq":3,"stop":"ingiriya"},{"seq":4,"stop":"avissawella"},{"seq":5,"stop":"kegalle"},{"seq":6,"stop":"peradeniya"},{"seq":7,"stop":"kandy"}]'),
+(13004, '02',  1, '[{"seq":1,"stop":"ambalangoda"},{"seq":2,"stop":"hikkaduwa"},{"seq":3,"stop":"galle"},{"seq":4,"stop":"bentota"},{"seq":5,"stop":"kalutara"},{"seq":6,"stop":"panadura"},{"seq":7,"stop":"moratuwa"},{"seq":8,"stop":"dehiwala"},{"seq":9,"stop":"colombo fort"}]'),
+(13005, '177', 1, '[{"seq":1,"stop":"kottawa"},{"seq":2,"stop":"maharagama"},{"seq":3,"stop":"nugegoda"},{"seq":4,"stop":"borella"},{"seq":5,"stop":"pettah"}]'),
+(13006, '100', 1, '[{"seq":1,"stop":"moratuwa"},{"seq":2,"stop":"dehiwala"},{"seq":3,"stop":"bambalapitiya"},{"seq":4,"stop":"colombo fort"}]'),
+(13007, '87',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"chilaw"},{"seq":3,"stop":"puttalam"},{"seq":4,"stop":"anuradhapura"},{"seq":5,"stop":"vavuniya"},{"seq":6,"stop":"kilinochchi"},{"seq":7,"stop":"jaffna"}]'),
+(13008, '255', 1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kegalle"},{"seq":3,"stop":"kandy"},{"seq":4,"stop":"hatton"},{"seq":5,"stop":"nuwara eliya"},{"seq":6,"stop":"welimada"},{"seq":7,"stop":"badulla"}]'),
+(13009, '99',  1, '[{"seq":1,"stop":"kandy"},{"seq":2,"stop":"peradeniya"},{"seq":3,"stop":"gampola"},{"seq":4,"stop":"nawalapitiya"},{"seq":5,"stop":"nuwara eliya"}]'),
+(13010, '01',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"moratuwa"},{"seq":3,"stop":"panadura"},{"seq":4,"stop":"kalutara"},{"seq":5,"stop":"bentota"},{"seq":6,"stop":"aluthgama"},{"seq":7,"stop":"galle"}]'),
+(13011, '43',  1, '[{"seq":1,"stop":"kurunegala"},{"seq":2,"stop":"mirigama"},{"seq":3,"stop":"nittambuwa"},{"seq":4,"stop":"kadawatha"},{"seq":5,"stop":"colombo fort"}]'),
+(13012, '57',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kadawatha"},{"seq":3,"stop":"kurunegala"},{"seq":4,"stop":"anuradhapura"}]'),
+(13013, '401', 1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"ja-ela"},{"seq":3,"stop":"negombo"}]'),
+(13014, '400', 1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"wattala"},{"seq":3,"stop":"gampaha"}]'),
+(13015, '48',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kadawatha"},{"seq":3,"stop":"kurunegala"},{"seq":4,"stop":"dambulla"},{"seq":5,"stop":"habarana"},{"seq":6,"stop":"polonnaruwa"},{"seq":7,"stop":"batticaloa"}]'),
+(13016, '122', 1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kaduwela"},{"seq":3,"stop":"hanwella"},{"seq":4,"stop":"avissawella"}]'),
+
+-- Additional routes (more coverage)
+(13017, '154', 1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"borella"},{"seq":3,"stop":"rajagiriya"},{"seq":4,"stop":"battaramulla"},{"seq":5,"stop":"malabe"}]'),
+(13018, '125', 1, '[{"seq":1,"stop":"bandaragama"},{"seq":2,"stop":"piliyandala"},{"seq":3,"stop":"maharagama"},{"seq":4,"stop":"colombo fort"}]'),
+(13019, '176', 1, '[{"seq":1,"stop":"kottawa"},{"seq":2,"stop":"maharagama"},{"seq":3,"stop":"nugegoda"},{"seq":4,"stop":"borella"},{"seq":5,"stop":"colombo fort"}]'),
+(13020, '187', 1, '[{"seq":1,"stop":"negombo"},{"seq":2,"stop":"ja-ela"},{"seq":3,"stop":"wattala"},{"seq":4,"stop":"colombo fort"}]'),
+(13021, '199', 1, '[{"seq":1,"stop":"kesbewa"},{"seq":2,"stop":"piliyandala"},{"seq":3,"stop":"nugegoda"},{"seq":4,"stop":"bambalapitiya"},{"seq":5,"stop":"colombo fort"}]'),
+(13022, '240', 1, '[{"seq":1,"stop":"avissawella"},{"seq":2,"stop":"hanwella"},{"seq":3,"stop":"homagama"},{"seq":4,"stop":"kottawa"},{"seq":5,"stop":"maharagama"},{"seq":6,"stop":"colombo fort"}]'),
+(13023, '98',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"avanthipura"},{"seq":3,"stop":"ratnapura"},{"seq":4,"stop":"balangoda"},{"seq":5,"stop":"bandarawela"},{"seq":6,"stop":"badulla"}]'),
+(13024, '03',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kurunegala"},{"seq":3,"stop":"dambulla"},{"seq":4,"stop":"habarana"},{"seq":5,"stop":"trincomalee"}]'),
+(13025, '06',  1, '[{"seq":1,"stop":"galle"},{"seq":2,"stop":"weligama"},{"seq":3,"stop":"matara"},{"seq":4,"stop":"hambantota"}]'),
+(13026, '79',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"negombo"},{"seq":3,"stop":"chilaw"},{"seq":4,"stop":"puttalam"}]'),
+(13027, '44',  1, '[{"seq":1,"stop":"jaffna"},{"seq":2,"stop":"kilinochchi"},{"seq":3,"stop":"vavuniya"},{"seq":4,"stop":"anuradhapura"}]'),
+(13028, '23',  1, '[{"seq":1,"stop":"anuradhapura"},{"seq":2,"stop":"polonnaruwa"},{"seq":3,"stop":"valachchenai"},{"seq":4,"stop":"batticaloa"}]'),
+(13029, '37',  1, '[{"seq":1,"stop":"batticaloa"},{"seq":2,"stop":"kattankudy"},{"seq":3,"stop":"kalmunai"},{"seq":4,"stop":"ampara"},{"seq":5,"stop":"akkaraipattu"}]'),
+(13030, '49',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kadawatha"},{"seq":3,"stop":"kurunegala"},{"seq":4,"stop":"dambulla"},{"seq":5,"stop":"anuradhapura"}]'),
+(13031, '22',  1, '[{"seq":1,"stop":"kandy"},{"seq":2,"stop":"digana"},{"seq":3,"stop":"mahiyanganaya"},{"seq":4,"stop":"passara"},{"seq":5,"stop":"badulla"}]'),
+(13032, '11',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"gampaha"},{"seq":3,"stop":"mirigama"},{"seq":4,"stop":"kurunegala"}]'),
+(13033, '141', 1, '[{"seq":1,"stop":"pettah"},{"seq":2,"stop":"maradana"},{"seq":3,"stop":"borella"},{"seq":4,"stop":"rajagiriya"},{"seq":5,"stop":"battaramulla"}]'),
+(13034, '140', 1, '[{"seq":1,"stop":"fort"},{"seq":2,"stop":"borella"},{"seq":3,"stop":"nugegoda"},{"seq":4,"stop":"maharagama"}]'),
+(13035, '2',   1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"panadura"},{"seq":3,"stop":"kalutara"},{"seq":4,"stop":"bentota"},{"seq":5,"stop":"galle"},{"seq":6,"stop":"matara"}]'),
+(13036, '7',   1, '[{"seq":1,"stop":"kandy"},{"seq":2,"stop":"matale"},{"seq":3,"stop":"dambulla"}]'),
+(13037, '15',  1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"warakapola"},{"seq":3,"stop":"kegalle"},{"seq":4,"stop":"peradeniya"},{"seq":5,"stop":"kandy"}]'),
+(13038, '5',   1, '[{"seq":1,"stop":"colombo fort"},{"seq":2,"stop":"kiribathgoda"},{"seq":3,"stop":"kelaniya"},{"seq":4,"stop":"wattala"}]'),
+(13039, '196', 1, '[{"seq":1,"stop":"kottawa"},{"seq":2,"stop":"homagama"},{"seq":3,"stop":"hanwella"},{"seq":4,"stop":"avissawella"}]'),
+(13040, '195', 1, '[{"seq":1,"stop":"maharagama"},{"seq":2,"stop":"pannipitiya"},{"seq":3,"stop":"kottawa"},{"seq":4,"stop":"homagama"}]');
+
+-- -----------------------------------------------------------------------------
+-- 3.1) Normalize all existing route JSON to the app format: [{seq, stop}, ...]
+--      This converts older formats like:
+--        - ["CMB","KAL",...]
+--        - [{"stop":"Colombo"}, ...]
+--        - [{"seq":1,"code":"CMB","name":"Colombo Fort","km":0}, ...]
+-- -----------------------------------------------------------------------------
+
+SET SESSION group_concat_max_len = 1000000;
+
+DROP TEMPORARY TABLE IF EXISTS `tmp_stop_idx`;
+CREATE TEMPORARY TABLE `tmp_stop_idx` (
+  `i` int(11) NOT NULL,
+  PRIMARY KEY (`i`)
+) ENGINE=MEMORY;
+
+INSERT INTO `tmp_stop_idx` (`i`) VALUES
+(0),(1),(2),(3),(4),(5),(6),(7),(8),(9),
+(10),(11),(12),(13),(14),(15),(16),(17),(18),(19),
+(20),(21),(22),(23),(24),(25),(26),(27),(28),(29),
+(30);
+
+UPDATE `routes` r
+JOIN (
+  SELECT
+    r2.route_id,
+    CONCAT(
+      '[',
+      GROUP_CONCAT(
+        JSON_OBJECT(
+          'seq', idx.i + 1,
+          'stop', LOWER(TRIM(
+            CASE
+              WHEN JSON_TYPE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, ']'))) = 'STRING' THEN
+                CASE LOWER(JSON_UNQUOTE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, ']'))))
+                  WHEN 'cmb' THEN 'colombo fort'
+                  WHEN 'pet' THEN 'pettah'
+                  WHEN 'wat' THEN 'wattala'
+                  WHEN 'ngb' THEN 'negombo'
+                  WHEN 'kal' THEN 'kalutara'
+                  WHEN 'hik' THEN 'hikkaduwa'
+                  WHEN 'gal' THEN 'galle'
+                  WHEN 'avs' THEN 'avissawella'
+                  WHEN 'kel' THEN 'kegalle'
+                  WHEN 'kdy' THEN 'kandy'
+                  WHEN 'mtl' THEN 'matale'
+                  WHEN 'mor' THEN 'moratuwa'
+                  WHEN 'pnd' THEN 'panadura'
+                  ELSE LOWER(JSON_UNQUOTE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, ']'))))
+                END
+              WHEN JSON_TYPE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, ']'))) = 'OBJECT' THEN
+                COALESCE(
+                  JSON_UNQUOTE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, '].stop'))),
+                  JSON_UNQUOTE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, '].name'))),
+                  JSON_UNQUOTE(JSON_EXTRACT(r2.stops_json, CONCAT('$[', idx.i, '].code'))),
+                  ''
+                )
+              ELSE ''
+            END
+          ))
+        )
+        ORDER BY idx.i SEPARATOR ','
+      ),
+      ']'
+    ) AS normalized_stops_json
+  FROM `routes` r2
+  JOIN `tmp_stop_idx` idx ON idx.i < JSON_LENGTH(r2.stops_json)
+  WHERE JSON_TYPE(r2.stops_json) = 'ARRAY'
+    AND JSON_LENGTH(r2.stops_json) > 0
+  GROUP BY r2.route_id
+) n ON n.route_id = r.route_id
+SET r.stops_json = n.normalized_stops_json;
+
+-- -----------------------------------------------------------------------------
+-- 4) Private operators (ensure >=10 realistic operators; also fixes operator_id=10)
+-- -----------------------------------------------------------------------------
+
+INSERT IGNORE INTO `private_bus_owners`
+(`private_operator_id`, `name`, `reg_no`, `contact_phone`, `contact_email`, `city`, `owner_user_id`) VALUES
+(10, 'Western Province Superline Association', 'PV 20010', '0777000010', 'info@wpsuperline.lk', 'Colombo', NULL),
+(14, 'Southern Highway Express (Pvt) Ltd', 'PV 20014', '0777000014', 'ops@southernhighway.lk', 'Matara', NULL);
+
+-- -----------------------------------------------------------------------------
+-- 5) Private drivers & conductors (50 each; Sinhala/Tamil/Muslim names)
+-- -----------------------------------------------------------------------------
+
+INSERT IGNORE INTO `private_drivers`
+(`private_driver_id`, `private_operator_id`, `full_name`, `license_no`, `phone`, `status`, `suspend_reason`) VALUES
+(6001, 1,  'Kasun Perera',            'DL-PRV-6001',  '0776006001', 'Active', NULL),
+(6002, 1,  'Mohamed Tariq',           'DL-PRV-6002',  '0776006002', 'Active', NULL),
+(6003, 1,  'S. Dinesh',               'DL-PRV-6003',  '0776006003', 'Active', NULL),
+(6004, 1,  'Nuwan Jayasinghe',        'DL-PRV-6004',  '0776006004', 'Active', NULL),
+(6005, 1,  'Chathura Fernando',       'DL-PRV-6005',  '0776006005', 'Active', NULL),
+(6006, 1,  'Ramesh Selvaraj',         'DL-PRV-6006',  '0776006006', 'Active', NULL),
+(6007, 1,  'Imran Ahamed',            'DL-PRV-6007',  '0776006007', 'Active', NULL),
+(6008, 1,  'Tharindu Jayawardena',    'DL-PRV-6008',  '0776006008', 'Active', NULL),
+(6009, 1,  'Dulanjana Wickramasinghe','DL-PRV-6009',  '0776006009', 'Active', NULL),
+(6010, 1,  'Buddhika Samarasinghe',   'DL-PRV-6010',  '0776006010', 'Active', NULL),
+
+(6011, 2,  'Kanishka Dilshan',        'DL-PRV-6011',  '0776006011', 'Active', NULL),
+(6012, 2,  'Isuru Madushan',          'DL-PRV-6012',  '0776006012', 'Active', NULL),
+(6013, 2,  'Gayan Priyankara',        'DL-PRV-6013',  '0776006013', 'Active', NULL),
+(6014, 2,  'Sujeewa Bandara',         'DL-PRV-6014',  '0776006014', 'Active', NULL),
+(6015, 2,  'M. Arumugam',             'DL-PRV-6015',  '0776006015', 'Active', NULL),
+(6016, 2,  'Nazreen Fathima',         'DL-PRV-6016',  '0776006016', 'Active', NULL),
+
+(6017, 3,  'Lahiru Wijesinghe',       'DL-PRV-6017',  '0776006017', 'Active', NULL),
+(6018, 3,  'Chamara Senanayake',      'DL-PRV-6018',  '0776006018', 'Active', NULL),
+(6019, 3,  'Thushara Silva',          'DL-PRV-6019',  '0776006019', 'Active', NULL),
+(6020, 3,  'M. Faizal',               'DL-PRV-6020',  '0776006020', 'Active', NULL),
+(6021, 3,  'Sivakumar Rajendran',     'DL-PRV-6021',  '0776006021', 'Active', NULL),
+(6022, 3,  'Sachithra Gunathilaka',   'DL-PRV-6022',  '0776006022', 'Active', NULL),
+
+(6023, 4,  'Nalin Rajapaksa',         'DL-PRV-6023',  '0776006023', 'Active', NULL),
+(6024, 4,  'Pramod Lakshan',          'DL-PRV-6024',  '0776006024', 'Active', NULL),
+(6025, 4,  'Sahan Maduranga',         'DL-PRV-6025',  '0776006025', 'Active', NULL),
+(6026, 4,  'Mohamed Rizwan',          'DL-PRV-6026',  '0776006026', 'Active', NULL),
+
+(6027, 5,  'Hiruna De Silva',         'DL-PRV-6027',  '0776006027', 'Active', NULL),
+(6028, 5,  'Roshan Kumara',           'DL-PRV-6028',  '0776006028', 'Active', NULL),
+(6029, 5,  'A. Jeganathan',           'DL-PRV-6029',  '0776006029', 'Active', NULL),
+(6030, 5,  'Rukshan Perera',          'DL-PRV-6030',  '0776006030', 'Active', NULL),
+
+(6031, 6,  'S. Thivakaran',           'DL-PRV-6031',  '0776006031', 'Active', NULL),
+(6032, 6,  'Niroshan Sanjeewa',       'DL-PRV-6032',  '0776006032', 'Active', NULL),
+(6033, 6,  'Abdul Raheem',            'DL-PRV-6033',  '0776006033', 'Active', NULL),
+(6034, 6,  'G. Pradeepan',            'DL-PRV-6034',  '0776006034', 'Active', NULL),
+
+(6035, 7,  'Dinesh Bandara',          'DL-PRV-6035',  '0776006035', 'Active', NULL),
+(6036, 7,  'Lakshan Weerasinghe',     'DL-PRV-6036',  '0776006036', 'Active', NULL),
+(6037, 7,  'Tharanga Abeysekara',     'DL-PRV-6037',  '0776006037', 'Active', NULL),
+(6038, 7,  'Mubarak Niyas',           'DL-PRV-6038',  '0776006038', 'Active', NULL),
+
+(6039, 8,  'Gamini Rodrigo',          'DL-PRV-6039',  '0776006039', 'Active', NULL),
+(6040, 8,  'Sahan Jayawardena',       'DL-PRV-6040',  '0776006040', 'Active', NULL),
+(6041, 8,  'S. Kabilan',              'DL-PRV-6041',  '0776006041', 'Active', NULL),
+(6042, 8,  'Nishantha Perera',        'DL-PRV-6042',  '0776006042', 'Active', NULL),
+
+(6043, 10, 'Chamika Herath',          'DL-PRV-6043',  '0776006043', 'Active', NULL),
+(6044, 10, 'Dilrukshi Perera',        'DL-PRV-6044',  '0776006044', 'Active', NULL),
+(6045, 10, 'M. Zakeer',               'DL-PRV-6045',  '0776006045', 'Active', NULL),
+(6046, 10, 'S. Suthakaran',           'DL-PRV-6046',  '0776006046', 'Active', NULL),
+
+(6047, 14, 'Thilina Abeywickrama',    'DL-PRV-6047',  '0776006047', 'Active', NULL),
+(6048, 14, 'Harshani De Alwis',       'DL-PRV-6048',  '0776006048', 'Active', NULL),
+(6049, 14, 'Rifky Mohamed',           'DL-PRV-6049',  '0776006049', 'Active', NULL),
+(6050, 14, 'S. Prabakar',             'DL-PRV-6050',  '0776006050', 'Active', NULL);
+
+INSERT IGNORE INTO `private_conductors`
+(`private_conductor_id`, `private_operator_id`, `full_name`, `phone`, `status`, `suspend_reason`) VALUES
+(7001, 1,  'Nuwan Perera',            '0717007001', 'Active', NULL),
+(7002, 1,  'Fathima Nazeem',          '0717007002', 'Active', NULL),
+(7003, 1,  'S. Tharshan',             '0717007003', 'Active', NULL),
+(7004, 1,  'Kasun Kalhara',           '0717007004', 'Active', NULL),
+(7005, 1,  'Mohamed Riyaz',           '0717007005', 'Active', NULL),
+(7006, 1,  'Nimesha Jayasundara',     '0717007006', 'Active', NULL),
+(7007, 1,  'R. Prakash',              '0717007007', 'Active', NULL),
+(7008, 1,  'Isuru Jayathilake',       '0717007008', 'Active', NULL),
+(7009, 1,  'Shafraz Ameen',           '0717007009', 'Active', NULL),
+(7010, 1,  'Lahiru Sandaruwan',       '0717007010', 'Active', NULL),
+
+(7011, 2,  'Chandima Kumara',         '0717007011', 'Active', NULL),
+(7012, 2,  'S. Jeevan',               '0717007012', 'Active', NULL),
+(7013, 2,  'Roshini Perera',          '0717007013', 'Active', NULL),
+(7014, 2,  'M. Iqbal',                '0717007014', 'Active', NULL),
+(7015, 2,  'Tharindu Ekanayake',      '0717007015', 'Active', NULL),
+(7016, 2,  'D. Niroshan',             '0717007016', 'Active', NULL),
+
+(7017, 3,  'Kavindu Madusanka',       '0717007017', 'Active', NULL),
+(7018, 3,  'S. Thirumal',             '0717007018', 'Active', NULL),
+(7019, 3,  'Ameesha Fernando',        '0717007019', 'Active', NULL),
+(7020, 3,  'M. Saheeth',              '0717007020', 'Active', NULL),
+(7021, 3,  'K. Janaki',               '0717007021', 'Active', NULL),
+(7022, 3,  'Dilini Perera',           '0717007022', 'Active', NULL),
+
+(7023, 4,  'Rashmika Senarathne',     '0717007023', 'Active', NULL),
+(7024, 4,  'N. Thileepan',            '0717007024', 'Active', NULL),
+(7025, 4,  'Mubashir Nizam',          '0717007025', 'Active', NULL),
+(7026, 4,  'Sampath Priyankara',      '0717007026', 'Active', NULL),
+
+(7027, 5,  'Chathuranga Abeysinghe',  '0717007027', 'Active', NULL),
+(7028, 5,  'S. Jeyaseelan',           '0717007028', 'Active', NULL),
+(7029, 5,  'Fazeen Ahamed',           '0717007029', 'Active', NULL),
+(7030, 5,  'Nadeesha Sewwandi',       '0717007030', 'Active', NULL),
+
+(7031, 6,  'S. Sivananthan',          '0717007031', 'Active', NULL),
+(7032, 6,  'M. Farook',               '0717007032', 'Active', NULL),
+(7033, 6,  'Ravindu Perera',          '0717007033', 'Active', NULL),
+(7034, 6,  'Thiyagarajah Konesh',     '0717007034', 'Active', NULL),
+
+(7035, 7,  'D. Udayanga',             '0717007035', 'Active', NULL),
+(7036, 7,  'S. Kannan',               '0717007036', 'Active', NULL),
+(7037, 7,  'Ishara Lakmali',          '0717007037', 'Active', NULL),
+(7038, 7,  'M. Aasif',                '0717007038', 'Active', NULL),
+
+(7039, 8,  'G. Janith',               '0717007039', 'Active', NULL),
+(7040, 8,  'S. Vimal',                '0717007040', 'Active', NULL),
+(7041, 8,  'Nipun Weerasinghe',       '0717007041', 'Active', NULL),
+(7042, 8,  'M. Thowfeek',             '0717007042', 'Active', NULL),
+
+(7043, 10, 'Shanaka Herath',          '0717007043', 'Active', NULL),
+(7044, 10, 'S. Suresh',               '0717007044', 'Active', NULL),
+(7045, 10, 'Ayesha Dissanayake',      '0717007045', 'Active', NULL),
+(7046, 10, 'M. Nisal',                '0717007046', 'Active', NULL),
+
+(7047, 14, 'Sahan Wickramasinghe',    '0717007047', 'Active', NULL),
+(7048, 14, 'S. Tharika',              '0717007048', 'Active', NULL),
+(7049, 14, 'Imalka Perera',           '0717007049', 'Active', NULL),
+(7050, 14, 'M. Arshad',               '0717007050', 'Active', NULL);
+
+-- -----------------------------------------------------------------------------
+-- 6) Private buses — 50 buses using existing NexBus-style registration numbers
+-- -----------------------------------------------------------------------------
+
+INSERT IGNORE INTO `private_buses`
+(`reg_no`, `private_operator_id`, `chassis_no`, `manufactured_date`, `manufactured_year`, `model`, `bus_class`, `capacity`, `status`, `driver_id`, `conductor_id`) VALUES
+-- Operator 1 (10 buses)
+('PB-4001', 1,  'CHS-PB4001', '2017-06-12', '2017', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6001, 7001),
+('PB-4002', 1,  'CHS-PB4002', '2018-03-21', '2018', 'Tata LPO 1613',        'Normal', 50, 'Active', 6002, 7002),
+('PB-4003', 1,  'CHS-PB4003', '2016-11-08', '2016', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6003, 7003),
+('PB-4004', 1,  'CHS-PB4004', '2019-02-15', '2019', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6004, 7004),
+('PB-4005', 1,  'CHS-PB4005', '2020-07-05', '2020', 'Tata LPO 1623',        'Semi-Luxury', 50, 'Active', 6005, 7005),
+('PB-4006', 1,  'CHS-PB4006', '2021-01-20', '2021', 'Isuzu Journey J',      'AC', 45, 'Active', 6006, 7006),
+('PB-4007', 1,  'CHS-PB4007', '2015-05-11', '2015', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6007, 7007),
+('PB-4008', 1,  'CHS-PB4008', '2017-10-03', '2017', 'Tata LPO 1613',        'Normal', 50, 'Active', 6008, 7008),
+('PB-4009', 1,  'CHS-PB4009', '2018-09-18', '2018', 'Ashok Leyland Viking', 'Semi-Luxury', 49, 'Maintenance', 6009, 7009),
+('PB-4010', 1,  'CHS-PB4010', '2022-04-09', '2022', 'Isuzu Journey J',      'AC', 45, 'Active', 6010, 7010),
+
+-- Operator 2 (6 buses)
+('PB-4011', 2,  'CHS-PB4011', '2016-08-14', '2016', 'Tata LPO 1613',        'Normal', 49, 'Active', 6011, 7011),
+('PB-4012', 2,  'CHS-PB4012', '2017-12-22', '2017', 'Ashok Leyland Viking', 'Semi-Luxury', 50, 'Active', 6012, 7012),
+('PB-4013', 2,  'CHS-PB4013', '2018-06-02', '2018', 'Isuzu Journey J',      'Normal', 49, 'Active', 6013, 7013),
+('PB-4014', 2,  'CHS-PB4014', '2019-09-19', '2019', 'Tata LPO 1623',        'AC', 45, 'Active', 6014, 7014),
+('PB-4015', 2,  'CHS-PB4015', '2020-02-10', '2020', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6015, 7015),
+('PB-4016', 2,  'CHS-PB4016', '2021-07-27', '2021', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6016, 7016),
+
+-- Operator 3 (6 buses)
+('PB-4017', 3,  'CHS-PB4017', '2015-03-01', '2015', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6017, 7017),
+('PB-4018', 3,  'CHS-PB4018', '2016-10-11', '2016', 'Tata LPO 1613',        'Normal', 50, 'Active', 6018, 7018),
+('PB-4019', 3,  'CHS-PB4019', '2018-01-25', '2018', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6019, 7019),
+('PB-4020', 3,  'CHS-PB4020', '2019-05-30', '2019', 'Ashok Leyland Viking', 'AC', 45, 'Active', 6020, 7020),
+('PB-4021', 3,  'CHS-PB4021', '2020-12-06', '2020', 'Tata LPO 1623',        'Normal', 52, 'Maintenance', 6021, 7021),
+('PB-4022', 3,  'CHS-PB4022', '2022-02-12', '2022', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6022, 7022),
+
+-- Operator 4 (4 buses)
+('PB-4023', 4,  'CHS-PB4023', '2017-04-17', '2017', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6023, 7023),
+('PB-4024', 4,  'CHS-PB4024', '2018-08-08', '2018', 'Tata LPO 1613',        'Normal', 50, 'Active', 6024, 7024),
+('PB-4025', 4,  'CHS-PB4025', '2020-03-23', '2020', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6025, 7025),
+('PB-4026', 4,  'CHS-PB4026', '2021-09-01', '2021', 'Ashok Leyland Viking', 'AC', 45, 'Active', 6026, 7026),
+
+-- Operator 5 (4 buses)
+('PB-4027', 5,  'CHS-PB4027', '2016-02-05', '2016', 'Tata LPO 1613',        'Normal', 49, 'Active', 6027, 7027),
+('PB-4028', 5,  'CHS-PB4028', '2017-07-29', '2017', 'Ashok Leyland Viking', 'Semi-Luxury', 50, 'Active', 6028, 7028),
+('PB-4029', 5,  'CHS-PB4029', '2019-11-12', '2019', 'Isuzu Journey J',      'Normal', 49, 'Active', 6029, 7029),
+('PB-4030', 5,  'CHS-PB4030', '2021-01-09', '2021', 'Tata LPO 1623',        'AC', 45, 'Active', 6030, 7030),
+
+-- Operator 6 (4 buses)
+('PB-4031', 6,  'CHS-PB4031', '2016-09-14', '2016', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6031, 7031),
+('PB-4032', 6,  'CHS-PB4032', '2018-02-20', '2018', 'Tata LPO 1613',        'Semi-Luxury', 50, 'Active', 6032, 7032),
+('PB-4033', 6,  'CHS-PB4033', '2019-06-28', '2019', 'Isuzu Journey J',      'Normal', 49, 'Active', 6033, 7033),
+('PB-4034', 6,  'CHS-PB4034', '2020-10-16', '2020', 'Ashok Leyland Viking', 'AC', 45, 'Active', 6034, 7034),
+
+-- Operator 7 (4 buses)
+('PB-4035', 7,  'CHS-PB4035', '2015-08-24', '2015', 'Tata LPO 1613',        'Normal', 49, 'Active', 6035, 7035),
+('PB-4036', 7,  'CHS-PB4036', '2017-03-07', '2017', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6036, 7036),
+('PB-4037', 7,  'CHS-PB4037', '2018-12-01', '2018', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6037, 7037),
+('PB-4038', 7,  'CHS-PB4038', '2021-06-19', '2021', 'Tata LPO 1623',        'AC', 45, 'Active', 6038, 7038),
+
+-- Operator 8 (4 buses)
+('PB-4039', 8,  'CHS-PB4039', '2016-05-12', '2016', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6039, 7039),
+('PB-4040', 8,  'CHS-PB4040', '2017-10-10', '2017', 'Tata LPO 1613',        'Normal', 50, 'Active', 6040, 7040),
+('PB-4041', 8,  'CHS-PB4041', '2019-04-02', '2019', 'Isuzu Journey J',      'Semi-Luxury', 49, 'Active', 6041, 7041),
+('PB-4042', 8,  'CHS-PB4042', '2022-01-15', '2022', 'Ashok Leyland Viking', 'AC', 45, 'Active', 6042, 7042),
+
+-- Operator 10 (4 buses)
+('PB-4043', 10, 'CHS-PB4043', '2017-01-06', '2017', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6043, 7043),
+('PB-4044', 10, 'CHS-PB4044', '2018-06-26', '2018', 'Tata LPO 1613',        'Semi-Luxury', 50, 'Active', 6044, 7044),
+('PB-4045', 10, 'CHS-PB4045', '2020-09-02', '2020', 'Isuzu Journey J',      'Normal', 49, 'Active', 6045, 7045),
+('PB-4046', 10, 'CHS-PB4046', '2021-12-18', '2021', 'Tata LPO 1623',        'AC', 45, 'Active', 6046, 7046),
+
+-- Operator 14 (4 buses)
+('PB-4047', 14, 'CHS-PB4047', '2018-04-04', '2018', 'Ashok Leyland Viking', 'Normal', 52, 'Active', 6047, 7047),
+('PB-4048', 14, 'CHS-PB4048', '2019-07-09', '2019', 'Tata LPO 1613',        'Semi-Luxury', 50, 'Active', 6048, 7048),
+('PB-4049', 14, 'CHS-PB4049', '2021-02-27', '2021', 'Isuzu Journey J',      'Normal', 49, 'Active', 6049, 7049),
+('PB-4050', 14, 'CHS-PB4050', '2022-11-20', '2022', 'Tata LPO 1623',        'AC', 45, 'Active', 6050, 7050);
+
+-- Keep a reusable list of the 50 newly seeded private buses
+DROP TEMPORARY TABLE IF EXISTS `tmp_seed_private_buses`;
+CREATE TEMPORARY TABLE `tmp_seed_private_buses` (
+  `reg_no` varchar(20) NOT NULL,
+  PRIMARY KEY (`reg_no`)
+) ENGINE=MEMORY;
+
+INSERT IGNORE INTO `tmp_seed_private_buses` (`reg_no`)
+SELECT `reg_no`
+FROM `private_buses`
+WHERE `driver_id` BETWEEN 6001 AND 6050
+  AND `conductor_id` BETWEEN 7001 AND 7050;
+
+-- -----------------------------------------------------------------------------
+-- 7) SLTB fleet slice (10 buses + staff) to attach depots -> routes -> trips
+-- -----------------------------------------------------------------------------
+
+INSERT IGNORE INTO `sltb_drivers`
+(`sltb_driver_id`, `sltb_depot_id`, `full_name`, `employee_no`, `phone`, `status`, `suspend_reason`) VALUES
+(2001, 101, 'Kumara Jayawardena', 'D-FORT-2001', '0718002001', 'Active', NULL),
+(2002, 101, 'S. Pathmanathan',   'D-FORT-2002', '0718002002', 'Active', NULL),
+(2003, 102, 'Nimal Perera',      'D-MMC-2003',  '0718002003', 'Active', NULL),
+(2004, 102, 'R. Thilakaratne',   'D-MMC-2004',  '0718002004', 'Active', NULL),
+(2005, 2,   'Sunil Wickramasinghe','D-KDY-2005','0718002005', 'Active', NULL),
+(2006, 2,   'M. Ilyas',          'D-KDY-2006',  '0718002006', 'Active', NULL),
+(2007, 3,   'Chamara De Silva',  'D-GAL-2007',  '0718002007', 'Active', NULL),
+(2008, 3,   'S. Jeyakumar',      'D-GAL-2008',  '0718002008', 'Active', NULL),
+(2009, 114, 'Sivapalan Ravikumar','D-JFN-2009', '0718002009', 'Active', NULL),
+(2010, 114, 'Ahamed Niyas',      'D-JFN-2010',  '0718002010', 'Active', NULL);
+
+INSERT IGNORE INTO `sltb_conductors`
+(`sltb_conductor_id`, `sltb_depot_id`, `full_name`, `employee_no`, `phone`, `status`, `suspend_reason`) VALUES
+(3001, 101, 'Nadeesha Fernando', 'C-FORT-3001', '0718103001', 'Active', NULL),
+(3002, 101, 'M. Rifaath',        'C-FORT-3002', '0718103002', 'Active', NULL),
+(3003, 102, 'Ruwan Gamage',      'C-MMC-3003',  '0718103003', 'Active', NULL),
+(3004, 102, 'S. Tharshini',      'C-MMC-3004',  '0718103004', 'Active', NULL),
+(3005, 2,   'Pradeep Kumara',    'C-KDY-3005',  '0718103005', 'Active', NULL),
+(3006, 2,   'Fathima Shamin',    'C-KDY-3006',  '0718103006', 'Active', NULL),
+(3007, 3,   'Buddhika Perera',   'C-GAL-3007',  '0718103007', 'Active', NULL),
+(3008, 3,   'S. Logeswaran',     'C-GAL-3008',  '0718103008', 'Active', NULL),
+(3009, 114, 'K. Thiviyan',       'C-JFN-3009',  '0718103009', 'Active', NULL),
+(3010, 114, 'Mohamed Shafi',     'C-JFN-3010',  '0718103010', 'Active', NULL);
+
+INSERT IGNORE INTO `sltb_buses`
+(`reg_no`, `sltb_depot_id`, `chassis_no`, `bus_model`, `year_manufacture`, `manufacture_date`, `bus_class`, `capacity`, `status`) VALUES
+('NB-4501', 101, 'SLTB-CHS-NB4501', 'Ashok Leyland Viking', '2016', '2016-05-20', 'Normal', 54, 'Active'),
+('NB-4502', 101, 'SLTB-CHS-NB4502', 'Tata LPO 1613',        '2017', '2017-02-14', 'Semi Luxury', 54, 'Active'),
+('NB-4503', 102, 'SLTB-CHS-NB4503', 'Ashok Leyland Viking', '2018', '2018-08-09', 'Normal', 54, 'Active'),
+('NB-4504', 102, 'SLTB-CHS-NB4504', 'Tata LPO 1623',        '2019', '2019-11-28', 'Luxury', 54, 'Active'),
+('NB-4505', 2,   'SLTB-CHS-NB4505', 'Ashok Leyland Viking', '2016', '2016-09-07', 'Normal', 54, 'Active'),
+('NB-4506', 2,   'SLTB-CHS-NB4506', 'Tata LPO 1613',        '2017', '2017-06-25', 'Semi Luxury', 54, 'Active'),
+('NB-4507', 3,   'SLTB-CHS-NB4507', 'Ashok Leyland Viking', '2015', '2015-03-15', 'Normal', 54, 'Active'),
+('NB-4508', 3,   'SLTB-CHS-NB4508', 'Isuzu Journey J',      '2018', '2018-04-04', 'Semi Luxury', 54, 'Active'),
+('NB-4509', 114, 'SLTB-CHS-NB4509', 'Ashok Leyland Viking', '2016', '2016-12-22', 'Normal', 54, 'Active'),
+('NB-4510', 114, 'SLTB-CHS-NB4510', 'Tata LPO 1623',        '2019', '2019-01-30', 'Luxury', 54, 'Active');
+
+-- Mapping table for SLTB operations (bus -> depot/route/driver/conductor)
+DROP TEMPORARY TABLE IF EXISTS `tmp_sltb_fleet`;
+CREATE TEMPORARY TABLE `tmp_sltb_fleet` (
+  `bus_reg_no` varchar(20) NOT NULL,
+  `sltb_depot_id` int(11) NOT NULL,
+  `route_id` int(11) NOT NULL,
+  `sltb_driver_id` int(11) NOT NULL,
+  `sltb_conductor_id` int(11) NOT NULL,
+  PRIMARY KEY (`bus_reg_no`)
+) ENGINE=MEMORY;
+
+INSERT INTO `tmp_sltb_fleet` (`bus_reg_no`, `sltb_depot_id`, `route_id`, `sltb_driver_id`, `sltb_conductor_id`) VALUES
+('NB-4501', 101, 13001, 2001, 3001),
+('NB-4502', 101, 13002, 2002, 3002),
+('NB-4503', 102, 13005, 2003, 3003),
+('NB-4504', 102, 13016, 2004, 3004),
+('NB-4505', 2,   13009, 2005, 3005),
+('NB-4506', 2,   13003, 2006, 3006),
+('NB-4507', 3,   13010, 2007, 3007),
+('NB-4508', 3,   13004, 2008, 3008),
+('NB-4509', 114, 13007, 2009, 3009),
+('NB-4510', 114, 13007, 2010, 3010);
+
+-- -----------------------------------------------------------------------------
+-- 8) Busy-week generators (timetables, assignments, trips, earnings, attendance)
+-- -----------------------------------------------------------------------------
+
+-- Week: Monday 2026-04-06 .. Sunday 2026-04-12
+DROP TEMPORARY TABLE IF EXISTS `tmp_week_dates`;
+CREATE TEMPORARY TABLE `tmp_week_dates` (
+  `trip_date` date NOT NULL,
+  `dow` tinyint(4) NOT NULL,
+  PRIMARY KEY (`trip_date`)
+) ENGINE=MEMORY;
+
+INSERT INTO `tmp_week_dates` (`trip_date`, `dow`) VALUES
+('2026-04-06', 1),
+('2026-04-07', 2),
+('2026-04-08', 3),
+('2026-04-09', 4),
+('2026-04-10', 5),
+('2026-04-11', 6),
+('2026-04-12', 0);
+
+-- Runtime minutes per route_id (approx.)
+DROP TEMPORARY TABLE IF EXISTS `tmp_route_runtime`;
+CREATE TEMPORARY TABLE `tmp_route_runtime` (
+  `route_id` int(11) NOT NULL,
+  `runtime_min` int(11) NOT NULL,
+  PRIMARY KEY (`route_id`)
+) ENGINE=MEMORY;
+
+INSERT INTO `tmp_route_runtime` (`route_id`, `runtime_min`) VALUES
+(13001, 60),
+(13002, 90),
+(13003, 240),
+(13004, 180),
+(13005, 50),
+(13006, 45),
+(13007, 480),
+(13008, 420),
+(13009, 120),
+(13010, 150),
+(13011, 120),
+(13012, 240),
+(13013, 75),
+(13014, 60),
+(13015, 420),
+(13016, 75);
+
+-- Terminal mapping (arrival depot/terminal id)
+DROP TEMPORARY TABLE IF EXISTS `tmp_route_terminal`;
+CREATE TEMPORARY TABLE `tmp_route_terminal` (
+  `route_id` int(11) NOT NULL,
+  `arrival_depot_id` int(11) NOT NULL,
+  PRIMARY KEY (`route_id`)
+) ENGINE=MEMORY;
+
+INSERT INTO `tmp_route_terminal` (`route_id`, `arrival_depot_id`) VALUES
+(13001, 101),
+(13002, 101),
+(13003, 2),
+(13004, 101),
+(13005, 101),
+(13006, 101),
+(13007, 114),
+(13008, 121),
+(13009, 123),
+(13010, 3),
+(13011, 101),
+(13012, 116),
+(13013, 106),
+(13014, 107),
+(13015, 119),
+(13016, 111);
+
+-- Operator -> primary route mapping (for seeded private buses)
+DROP TEMPORARY TABLE IF EXISTS `tmp_private_operator_routes`;
+CREATE TEMPORARY TABLE `tmp_private_operator_routes` (
+  `private_operator_id` int(11) NOT NULL,
+  `route_id` int(11) NOT NULL,
+  PRIMARY KEY (`private_operator_id`)
+) ENGINE=MEMORY;
+
+INSERT INTO `tmp_private_operator_routes` (`private_operator_id`, `route_id`) VALUES
+(1,  13001),
+(2,  13003),
+(3,  13004),
+(4,  13010),
+(5,  13013),
+(6,  13007),
+(7,  13011),
+(8,  13012),
+(10, 13002),
+(14, 13010);
+
+-- -----------------------------------------------------------------------------
+-- 8.1) Timetables (deterministic IDs; safe to re-run via INSERT IGNORE)
+-- -----------------------------------------------------------------------------
+
+-- Private timetables: 50 buses x 7 days x 2 daily turns = 700 rows
+INSERT IGNORE INTO `timetables`
+(`timetable_id`, `operator_type`, `route_id`, `bus_reg_no`, `day_of_week`, `departure_time`, `arrival_time`, `start_seq`, `end_seq`, `effective_from`, `effective_to`)
+SELECT
+  200000 + ROW_NUMBER() OVER (
+    ORDER BY pb.reg_no, dow.dow, slot.slot_no
+  ) AS timetable_id,
+  'Private' AS operator_type,
+  pr.route_id,
+  pb.reg_no,
+  dow.dow,
+  CASE
+    WHEN slot.slot_no = 1 AND rr.runtime_min >= 240 THEN '04:30:00'
+    WHEN slot.slot_no = 1 AND rr.runtime_min >= 120 THEN '05:30:00'
+    WHEN slot.slot_no = 1 THEN '06:00:00'
+    WHEN rr.runtime_min >= 240 THEN '13:30:00'
+    WHEN rr.runtime_min >= 120 THEN '15:00:00'
+    ELSE '16:30:00'
+  END AS departure_time,
+  ADDTIME(
+    CASE
+      WHEN slot.slot_no = 1 AND rr.runtime_min >= 240 THEN '04:30:00'
+      WHEN slot.slot_no = 1 AND rr.runtime_min >= 120 THEN '05:30:00'
+      WHEN slot.slot_no = 1 THEN '06:00:00'
+      WHEN rr.runtime_min >= 240 THEN '13:30:00'
+      WHEN rr.runtime_min >= 120 THEN '15:00:00'
+      ELSE '16:30:00'
+    END,
+    SEC_TO_TIME(rr.runtime_min * 60)
+  ) AS arrival_time,
+  1 AS start_seq,
+  JSON_LENGTH(r.stops_json) AS end_seq,
+  '2026-04-01' AS effective_from,
+  NULL AS effective_to
+FROM `tmp_seed_private_buses` sp
+JOIN `private_buses` pb ON pb.reg_no = sp.reg_no
+JOIN `tmp_private_operator_routes` pr ON pr.private_operator_id = pb.private_operator_id
+JOIN `tmp_route_runtime` rr ON rr.route_id = pr.route_id
+JOIN `routes` r ON r.route_id = pr.route_id
+CROSS JOIN (
+  SELECT 0 AS dow UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6
+) dow
+CROSS JOIN (
+  SELECT 1 AS slot_no
+  UNION ALL
+  SELECT 2 AS slot_no
+) slot;
+
+-- SLTB timetables: 10 buses x 7 days x 2 turns = 140 rows
+INSERT IGNORE INTO `timetables`
+(`timetable_id`, `operator_type`, `route_id`, `bus_reg_no`, `day_of_week`, `departure_time`, `arrival_time`, `start_seq`, `end_seq`, `effective_from`, `effective_to`)
+SELECT
+  210000 + ROW_NUMBER() OVER (
+    ORDER BY sf.bus_reg_no, dow.dow, slot.slot_no
+  ) AS timetable_id,
+  'SLTB' AS operator_type,
+  sf.route_id,
+  sf.bus_reg_no,
+  dow.dow,
+  CASE
+    WHEN slot.slot_no = 1 AND rr.runtime_min >= 240 THEN '04:45:00'
+    WHEN slot.slot_no = 1 AND rr.runtime_min >= 120 THEN '06:00:00'
+    WHEN slot.slot_no = 1 THEN '06:30:00'
+    WHEN rr.runtime_min >= 240 THEN '14:00:00'
+    WHEN rr.runtime_min >= 120 THEN '15:30:00'
+    ELSE '17:00:00'
+  END AS departure_time,
+  ADDTIME(
+    CASE
+      WHEN slot.slot_no = 1 AND rr.runtime_min >= 240 THEN '04:45:00'
+      WHEN slot.slot_no = 1 AND rr.runtime_min >= 120 THEN '06:00:00'
+      WHEN slot.slot_no = 1 THEN '06:30:00'
+      WHEN rr.runtime_min >= 240 THEN '14:00:00'
+      WHEN rr.runtime_min >= 120 THEN '15:30:00'
+      ELSE '17:00:00'
+    END,
+    SEC_TO_TIME(rr.runtime_min * 60)
+  ) AS arrival_time,
+  1 AS start_seq,
+  JSON_LENGTH(r.stops_json) AS end_seq,
+  '2026-04-01' AS effective_from,
+  NULL AS effective_to
+FROM `tmp_sltb_fleet` sf
+JOIN `tmp_route_runtime` rr ON rr.route_id = sf.route_id
+JOIN `routes` r ON r.route_id = sf.route_id
+CROSS JOIN (
+  SELECT 0 AS dow UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6
+) dow
+CROSS JOIN (
+  SELECT 1 AS slot_no
+  UNION ALL
+  SELECT 2 AS slot_no
+) slot;
+
+-- -----------------------------------------------------------------------------
+-- 8.2) Assignments (FK-safe; unique per bus/day/shift)
+-- -----------------------------------------------------------------------------
+
+-- Private assignments for seeded buses (Morning + Evening each day)
+INSERT IGNORE INTO `private_assignments`
+(`assigned_date`, `shift`, `bus_reg_no`, `private_driver_id`, `private_conductor_id`, `private_operator_id`)
+SELECT
+  d.trip_date AS assigned_date,
+  s.shift,
+  pb.reg_no,
+  pb.driver_id,
+  pb.conductor_id,
+  pb.private_operator_id
+FROM `tmp_seed_private_buses` sp
+JOIN `private_buses` pb ON pb.reg_no = sp.reg_no
+CROSS JOIN `tmp_week_dates` d
+CROSS JOIN (SELECT 'Morning' AS shift UNION ALL SELECT 'Evening') s;
+
+-- SLTB assignments for sltb fleet (Morning + Evening each day)
+INSERT IGNORE INTO `sltb_assignments`
+(`assigned_date`, `shift`, `bus_reg_no`, `sltb_driver_id`, `sltb_conductor_id`, `sltb_depot_id`, `override_remark`, `overridden_by`, `override_at`)
+SELECT
+  d.trip_date AS assigned_date,
+  s.shift,
+  sf.bus_reg_no,
+  sf.sltb_driver_id,
+  sf.sltb_conductor_id,
+  sf.sltb_depot_id,
+  NULL, NULL, NULL
+FROM `tmp_sltb_fleet` sf
+CROSS JOIN `tmp_week_dates` d
+CROSS JOIN (SELECT 'Morning' AS shift UNION ALL SELECT 'Evening') s;
+
+-- -----------------------------------------------------------------------------
+-- 8.3) Trips (FK-safe to timetables/routes/buses/staff)
+-- -----------------------------------------------------------------------------
+
+-- Private trips (one per timetable per matching date)
+INSERT IGNORE INTO `private_trips`
+(`timetable_id`, `bus_reg_no`, `trip_date`,
+ `scheduled_departure_time`, `scheduled_arrival_time`, `route_id`,
+ `private_driver_id`, `private_conductor_id`, `private_operator_id`,
+ `turn_no`, `departure_time`, `arrival_time`, `arrival_depot_id`,
+ `completed_by`, `cancelled_by`, `cancel_reason`, `cancelled_at`, `status`)
+SELECT
+  tt.timetable_id,
+  tt.bus_reg_no,
+  wd.trip_date,
+  tt.departure_time,
+  tt.arrival_time,
+  tt.route_id,
+  pb.driver_id,
+  pb.conductor_id,
+  pb.private_operator_id,
+  CASE WHEN tt.departure_time < '12:00:00' THEN 1 ELSE 2 END AS turn_no,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN NULL
+    ELSE ADDTIME(tt.departure_time, SEC_TO_TIME(MOD(CRC32(CONCAT('D', tt.bus_reg_no, wd.trip_date)), 12) * 60))
+  END AS departure_time,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN NULL
+    ELSE ADDTIME(tt.arrival_time, SEC_TO_TIME(MOD(CRC32(CONCAT('A', tt.bus_reg_no, wd.trip_date)), 15) * 60))
+  END AS arrival_time,
+  rt.arrival_depot_id,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN NULL
+    ELSE 38
+  END AS completed_by,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN 38
+    ELSE NULL
+  END AS cancelled_by,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN 'Breakdown reported at start terminal; trip cancelled by timekeeper.'
+    ELSE NULL
+  END AS cancel_reason,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN TIMESTAMP(wd.trip_date, tt.departure_time)
+    ELSE NULL
+  END AS cancelled_at,
+  CASE
+    WHEN MOD(CRC32(CONCAT(tt.bus_reg_no, wd.trip_date, tt.departure_time)), 97) = 0 THEN 'Cancelled'
+    ELSE 'Completed'
+  END AS status
+FROM `timetables` tt
+JOIN `tmp_week_dates` wd ON wd.dow = tt.day_of_week
+JOIN `private_buses` pb ON pb.reg_no = tt.bus_reg_no
+JOIN `tmp_seed_private_buses` sp ON sp.reg_no = pb.reg_no
+LEFT JOIN `tmp_route_terminal` rt ON rt.route_id = tt.route_id
+WHERE tt.operator_type = 'Private'
+  AND tt.timetable_id BETWEEN 200001 AND 209999;
+
+-- SLTB trips (one per timetable per matching date)
+INSERT IGNORE INTO `sltb_trips`
+(`timetable_id`, `bus_reg_no`, `trip_date`,
+ `scheduled_departure_time`, `scheduled_arrival_time`, `route_id`,
+ `sltb_driver_id`, `sltb_conductor_id`, `sltb_depot_id`,
+ `turn_no`, `departure_time`, `arrival_time`, `arrival_depot_id`,
+ `completed_by`, `cancelled_by`, `cancel_reason`, `cancelled_at`, `status`)
+SELECT
+  tt.timetable_id,
+  tt.bus_reg_no,
+  wd.trip_date,
+  tt.departure_time,
+  tt.arrival_time,
+  tt.route_id,
+  sf.sltb_driver_id,
+  sf.sltb_conductor_id,
+  sf.sltb_depot_id,
+  CASE WHEN tt.departure_time < '12:00:00' THEN 1 ELSE 2 END AS turn_no,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN NULL
+    ELSE ADDTIME(tt.departure_time, SEC_TO_TIME(MOD(CRC32(CONCAT('SD', tt.bus_reg_no, wd.trip_date)), 10) * 60))
+  END AS departure_time,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN NULL
+    ELSE ADDTIME(tt.arrival_time, SEC_TO_TIME(MOD(CRC32(CONCAT('SA', tt.bus_reg_no, wd.trip_date)), 12) * 60))
+  END AS arrival_time,
+  rt.arrival_depot_id,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN NULL
+    ELSE 54
+  END AS completed_by,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN 54
+    ELSE NULL
+  END AS cancelled_by,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN 'Scheduled maintenance; trip cancelled by SLTB timekeeper.'
+    ELSE NULL
+  END AS cancel_reason,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN TIMESTAMP(wd.trip_date, tt.departure_time)
+    ELSE NULL
+  END AS cancelled_at,
+  CASE
+    WHEN MOD(CRC32(CONCAT('S', tt.bus_reg_no, wd.trip_date, tt.departure_time)), 101) = 0 THEN 'Cancelled'
+    ELSE 'Completed'
+  END AS status
+FROM `timetables` tt
+JOIN `tmp_week_dates` wd ON wd.dow = tt.day_of_week
+JOIN `tmp_sltb_fleet` sf ON sf.bus_reg_no = tt.bus_reg_no
+LEFT JOIN `tmp_route_terminal` rt ON rt.route_id = tt.route_id
+WHERE tt.operator_type = 'SLTB'
+  AND tt.timetable_id BETWEEN 210001 AND 219999;
+
+-- -----------------------------------------------------------------------------
+-- 8.4) Earnings (deterministic IDs; one per bus per day)
+-- -----------------------------------------------------------------------------
+
+-- Private earnings: 50 buses x 7 days = 350 rows
+INSERT IGNORE INTO `earnings`
+(`earning_id`, `operator_type`, `bus_reg_no`, `date`, `amount`, `source`)
+SELECT
+  500000 + ROW_NUMBER() OVER (ORDER BY pb.reg_no, wd.trip_date) AS earning_id,
+  'Private' AS operator_type,
+  pb.reg_no,
+  wd.trip_date,
+  ROUND(
+    (
+      CASE
+        WHEN rr.runtime_min >= 240 THEN 90000
+        WHEN rr.runtime_min >= 150 THEN 70000
+        ELSE 45000
+      END
+      + MOD(CRC32(CONCAT(pb.reg_no, wd.trip_date)), 20000)
+    )
+    * (CASE pb.bus_class WHEN 'AC' THEN 1.25 WHEN 'Semi-Luxury' THEN 1.10 ELSE 1.00 END),
+  2) AS amount,
+  'cash' AS source
+FROM `tmp_seed_private_buses` sp
+JOIN `private_buses` pb ON pb.reg_no = sp.reg_no
+JOIN `tmp_private_operator_routes` pr ON pr.private_operator_id = pb.private_operator_id
+JOIN `tmp_route_runtime` rr ON rr.route_id = pr.route_id
+CROSS JOIN `tmp_week_dates` wd;
+
+-- SLTB earnings: 10 buses x 7 days = 70 rows
+INSERT IGNORE INTO `earnings`
+(`earning_id`, `operator_type`, `bus_reg_no`, `date`, `amount`, `source`)
+SELECT
+  510000 + ROW_NUMBER() OVER (ORDER BY sf.bus_reg_no, wd.trip_date) AS earning_id,
+  'SLTB' AS operator_type,
+  sf.bus_reg_no,
+  wd.trip_date,
+  ROUND(
+    (
+      CASE
+        WHEN rr.runtime_min >= 240 THEN 85000
+        WHEN rr.runtime_min >= 150 THEN 65000
+        ELSE 42000
+      END
+      + MOD(CRC32(CONCAT(sf.bus_reg_no, wd.trip_date)), 18000)
+    )
+    * (CASE sb.bus_class WHEN 'Luxury' THEN 1.20 WHEN 'Semi Luxury' THEN 1.10 ELSE 1.00 END),
+  2) AS amount,
+  'cash' AS source
+FROM `tmp_sltb_fleet` sf
+JOIN `sltb_buses` sb ON sb.reg_no = sf.bus_reg_no
+JOIN `tmp_route_runtime` rr ON rr.route_id = sf.route_id
+CROSS JOIN `tmp_week_dates` wd;
+
+-- -----------------------------------------------------------------------------
+-- 8.5) Attendance
+-- -----------------------------------------------------------------------------
+
+-- Private staff attendance for seeded drivers/conductors (present/late/absent mix)
+INSERT IGNORE INTO `private_staff_attendance`
+(`operator_id`, `staff_type`, `staff_id`, `work_date`, `status`, `notes`, `marked_by`)
+SELECT
+  x.operator_id,
+  x.staff_type,
+  x.staff_id,
+  wd.trip_date AS work_date,
+  CASE
+    WHEN MOD(CRC32(CONCAT('ATT', x.staff_type, x.staff_id, wd.trip_date)), 25) = 0 THEN 'Absent'
+    WHEN MOD(CRC32(CONCAT('ATT', x.staff_type, x.staff_id, wd.trip_date)), 25) = 1 THEN 'Late'
+    WHEN MOD(CRC32(CONCAT('ATT', x.staff_type, x.staff_id, wd.trip_date)), 25) = 2 THEN 'Half_Day'
+    ELSE 'Present'
+  END AS status,
+  CASE
+    WHEN MOD(CRC32(CONCAT('ATT', x.staff_type, x.staff_id, wd.trip_date)), 25) = 0 THEN 'Medical leave (seeded)'
+    WHEN MOD(CRC32(CONCAT('ATT', x.staff_type, x.staff_id, wd.trip_date)), 25) = 1 THEN 'Reported late due to traffic (seeded)'
+    WHEN MOD(CRC32(CONCAT('ATT', x.staff_type, x.staff_id, wd.trip_date)), 25) = 2 THEN 'Half day (seeded)'
+    ELSE NULL
+  END AS notes,
+  38 AS marked_by
+FROM (
+  SELECT d.private_operator_id AS operator_id, 'Driver' AS staff_type, d.private_driver_id AS staff_id
+  FROM `private_drivers` d
+  WHERE d.private_driver_id BETWEEN 6001 AND 6050
+
+  UNION ALL
+
+  SELECT c.private_operator_id AS operator_id, 'Conductor' AS staff_type, c.private_conductor_id AS staff_id
+  FROM `private_conductors` c
+  WHERE c.private_conductor_id BETWEEN 7001 AND 7050
+) x
+CROSS JOIN `tmp_week_dates` wd;
+
+-- -----------------------------------------------------------------------------
+-- 9) Bus table completion (fill NULL/empty fields only)
+--    - Does NOT change reg_no
+--    - Does NOT overwrite existing non-NULL/non-empty values
+-- -----------------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------------
+-- 9.0) Coverage guarantee: every private operator + every SLTB depot has
+--      at least one ACTIVE bus (prevents empty owner/depot dashboards)
+-- -----------------------------------------------------------------------------
+
+-- Ensure every private operator has at least 1 active bus
+INSERT IGNORE INTO `private_buses`
+(`reg_no`, `private_operator_id`, `bus_class`, `capacity`, `status`)
+SELECT
+  CONCAT('PB-AUTO-', LPAD(po.private_operator_id, 5, '0')) AS reg_no,
+  po.private_operator_id,
+  'Normal' AS bus_class,
+  52 AS capacity,
+  'Active' AS status
+FROM `private_bus_owners` po
+LEFT JOIN `private_buses` pb
+  ON pb.private_operator_id = po.private_operator_id
+ AND pb.status = 'Active'
+WHERE pb.reg_no IS NULL;
+
+-- Ensure every SLTB depot has at least 1 active bus
+INSERT IGNORE INTO `sltb_buses`
+(`reg_no`, `sltb_depot_id`, `bus_class`, `capacity`, `status`)
+SELECT
+  CONCAT('NB-AUTO-', LPAD(sd.sltb_depot_id, 5, '0')) AS reg_no,
+  sd.sltb_depot_id,
+  'Normal' AS bus_class,
+  54 AS capacity,
+  'Active' AS status
+FROM `sltb_depots` sd
+LEFT JOIN `sltb_buses` sb
+  ON sb.sltb_depot_id = sd.sltb_depot_id
+ AND sb.status = 'Active'
+WHERE sb.reg_no IS NULL;
+
+-- Private buses: chassis/model/year/date/capacity/status
+UPDATE `private_buses`
+SET
+  `chassis_no` = CASE
+    WHEN `chassis_no` IS NULL OR `chassis_no` = '' THEN CONCAT('PCHS-AUTO-', LPAD(MOD(CRC32(CONCAT('PCHS', `reg_no`)), 999999), 6, '0'))
+    ELSE `chassis_no`
+  END,
+  `manufactured_year` = CASE
+    WHEN `manufactured_year` IS NULL OR `manufactured_year` = 0 THEN
+      CASE
+        WHEN `manufactured_date` IS NOT NULL AND `manufactured_date` <> '0000-00-00' THEN YEAR(`manufactured_date`)
+        ELSE 2006 + MOD(CRC32(CONCAT('PY', `reg_no`)), 18)
+      END
+    ELSE `manufactured_year`
+  END,
+  `manufactured_date` = CASE
+    WHEN `manufactured_date` IS NULL OR `manufactured_date` = '0000-00-00' THEN
+      STR_TO_DATE(
+        CONCAT(
+          (CASE
+            WHEN `manufactured_year` IS NULL OR `manufactured_year` = 0 THEN 2006 + MOD(CRC32(CONCAT('PY', `reg_no`)), 18)
+            ELSE `manufactured_year`
+          END),
+          '-', LPAD(1 + MOD(CRC32(CONCAT('PM', `reg_no`)), 12), 2, '0'),
+          '-', LPAD(1 + MOD(CRC32(CONCAT('PD', `reg_no`)), 28), 2, '0')
+        ),
+        '%Y-%m-%d'
+      )
+    ELSE `manufactured_date`
+  END,
+  `model` = CASE
+    WHEN `model` IS NULL OR `model` = '' THEN
+      ELT(
+        1 + MOD(CRC32(CONCAT('PMOD', `reg_no`)), 6),
+        'Ashok Leyland Viking',
+        'Tata LPO 1623',
+        'Ashok Leyland Falcon',
+        'Tata LP 912',
+        'Eicher Skyline',
+        'Isuzu LT 134P'
+      )
+    ELSE `model`
+  END,
+  `capacity` = CASE
+    WHEN `capacity` IS NULL THEN
+      CASE `bus_class`
+        WHEN 'AC' THEN 45
+        WHEN 'Semi-Luxury' THEN 50
+        ELSE 54
+      END
+    ELSE `capacity`
+  END,
+  `status` = CASE
+    WHEN `status` IS NULL THEN 'Active'
+    ELSE `status`
+  END
+WHERE
+  `chassis_no` IS NULL OR `chassis_no` = '' OR
+  `manufactured_year` IS NULL OR `manufactured_year` = 0 OR
+  `manufactured_date` IS NULL OR `manufactured_date` = '0000-00-00' OR
+  `model` IS NULL OR `model` = '' OR
+  `capacity` IS NULL OR
+  `status` IS NULL;
+
+-- SLTB buses: chassis/model/year/date/capacity/status
+UPDATE `sltb_buses`
+SET
+  `chassis_no` = CASE
+    WHEN `chassis_no` IS NULL OR `chassis_no` = '' THEN CONCAT('CHS-AUTO-', LPAD(MOD(CRC32(CONCAT('SCHS', `reg_no`)), 999999), 6, '0'))
+    ELSE `chassis_no`
+  END,
+  `year_manufacture` = CASE
+    WHEN `year_manufacture` IS NULL OR `year_manufacture` = 0 THEN
+      CASE
+        WHEN `manufacture_date` IS NOT NULL AND `manufacture_date` <> '0000-00-00' THEN YEAR(`manufacture_date`)
+        ELSE 2008 + MOD(CRC32(CONCAT('SY', `reg_no`)), 15)
+      END
+    ELSE `year_manufacture`
+  END,
+  `manufacture_date` = CASE
+    WHEN `manufacture_date` IS NULL OR `manufacture_date` = '0000-00-00' THEN
+      STR_TO_DATE(
+        CONCAT(
+          (CASE
+            WHEN `year_manufacture` IS NULL OR `year_manufacture` = 0 THEN 2008 + MOD(CRC32(CONCAT('SY', `reg_no`)), 15)
+            ELSE `year_manufacture`
+          END),
+          '-', LPAD(1 + MOD(CRC32(CONCAT('SM', `reg_no`)), 12), 2, '0'),
+          '-', LPAD(1 + MOD(CRC32(CONCAT('SD', `reg_no`)), 28), 2, '0')
+        ),
+        '%Y-%m-%d'
+      )
+    ELSE `manufacture_date`
+  END,
+  `bus_model` = CASE
+    WHEN `bus_model` IS NULL OR `bus_model` = '' THEN
+      ELT(
+        1 + MOD(CRC32(CONCAT('SMOD', `reg_no`)), 6),
+        'Ashok Leyland Viking',
+        'Tata LPO 1623',
+        'Ashok Leyland Falcon',
+        'Tata LPO 1613',
+        'Tata LP 909',
+        'Ashok Leyland Lynx'
+      )
+    ELSE `bus_model`
+  END,
+  `capacity` = CASE
+    WHEN `capacity` IS NULL THEN
+      CASE `bus_class`
+        WHEN 'Luxury' THEN 50
+        WHEN 'Semi Luxury' THEN 54
+        ELSE 54
+      END
+    ELSE `capacity`
+  END,
+  `status` = CASE
+    WHEN `status` IS NULL THEN 'Active'
+    ELSE `status`
+  END
+WHERE
+  `chassis_no` IS NULL OR `chassis_no` = '' OR
+  `year_manufacture` IS NULL OR `year_manufacture` = 0 OR
+  `manufacture_date` IS NULL OR `manufacture_date` = '0000-00-00' OR
+  `bus_model` IS NULL OR `bus_model` = '' OR
+  `capacity` IS NULL OR
+  `status` IS NULL;
+
+-- -----------------------------------------------------------------------------
+-- 9.1) Revenue backfill for EVERY bus owner + depot
+--      - Inserts earnings for the last 30 days (CURDATE()-0..29)
+--      - Only inserts missing (operator_type,bus_reg_no,date) rows
+-- -----------------------------------------------------------------------------
+
+-- Private (bus owner) earnings — all active/maintenance private buses
+INSERT INTO `earnings` (`operator_type`, `bus_reg_no`, `date`, `amount`, `source`)
+SELECT
+  'Private' AS operator_type,
+  pb.reg_no AS bus_reg_no,
+  dd.work_date AS `date`,
+  ROUND(
+    (45000 + MOD(CRC32(CONCAT('PE', pb.reg_no, dd.work_date)), 20000))
+    * (CASE pb.bus_class WHEN 'AC' THEN 1.25 WHEN 'Semi-Luxury' THEN 1.10 ELSE 1.00 END),
+    2
+  ) AS amount,
+  'cash' AS source
+FROM `private_buses` pb
+JOIN (
+  SELECT DATE_SUB(CURDATE(), INTERVAL (tens.d*10 + ones.d) DAY) AS work_date
+  FROM (
+    SELECT 0 AS d UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+    UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+  ) ones
+  CROSS JOIN (
+    SELECT 0 AS d UNION ALL SELECT 1 UNION ALL SELECT 2
+  ) tens
+  WHERE (tens.d*10 + ones.d) BETWEEN 0 AND 29
+) dd
+WHERE pb.status IN ('Active','Maintenance')
+  AND NOT EXISTS (
+    SELECT 1
+    FROM `earnings` e
+    WHERE e.operator_type='Private'
+      AND e.bus_reg_no = pb.reg_no
+      AND e.`date` = dd.work_date
+  );
+
+-- SLTB (depot) earnings — all active/maintenance SLTB buses
+INSERT INTO `earnings` (`operator_type`, `bus_reg_no`, `date`, `amount`, `source`)
+SELECT
+  'SLTB' AS operator_type,
+  sb.reg_no AS bus_reg_no,
+  dd.work_date AS `date`,
+  ROUND(
+    (42000 + MOD(CRC32(CONCAT('SE', sb.reg_no, dd.work_date)), 18000))
+    * (CASE sb.bus_class WHEN 'Luxury' THEN 1.20 WHEN 'Semi Luxury' THEN 1.10 ELSE 1.00 END),
+    2
+  ) AS amount,
+  'cash' AS source
+FROM `sltb_buses` sb
+JOIN (
+  SELECT DATE_SUB(CURDATE(), INTERVAL (tens.d*10 + ones.d) DAY) AS work_date
+  FROM (
+    SELECT 0 AS d UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+    UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+  ) ones
+  CROSS JOIN (
+    SELECT 0 AS d UNION ALL SELECT 1 UNION ALL SELECT 2
+  ) tens
+  WHERE (tens.d*10 + ones.d) BETWEEN 0 AND 29
+) dd
+WHERE sb.status IN ('Active','Maintenance')
+  AND NOT EXISTS (
+    SELECT 1
+    FROM `earnings` e
+    WHERE e.operator_type='SLTB'
+      AND e.bus_reg_no = sb.reg_no
+      AND e.`date` = dd.work_date
+  );
+
+-- -----------------------------------------------------------------------------
+-- 9.2) Complaint + feedback backfill for EVERY depot + bus owner
+--      - Ensures at least 1 complaint + 1 feedback TODAY per operator/depot
+--      - Bus/reg/route/passenger are FK-safe
+-- -----------------------------------------------------------------------------
+
+SET @seed_passenger_id := (SELECT passenger_id FROM passengers ORDER BY passenger_id LIMIT 1);
+SET @seed_route_id     := (SELECT route_id FROM routes WHERE is_active=1 ORDER BY route_id LIMIT 1);
+
+-- Private: one complaint today per operator
+INSERT INTO `complaints`
+(`passenger_id`, `operator_type`, `bus_reg_no`, `route_id`, `trip_pointer`, `category`, `description`, `status`, `assigned_to_user_id`, `created_at`, `resolved_at`, `reply_text`)
+SELECT
+  @seed_passenger_id AS passenger_id,
+  'Private' AS operator_type,
+  ob.bus_reg_no,
+  COALESCE(br.route_id, @seed_route_id) AS route_id,
+  NULL AS trip_pointer,
+  'complaint' AS category,
+  CONCAT('Service complaint (seeded) — operator ', ob.private_operator_id, ', bus ', ob.bus_reg_no) AS description,
+  'Open' AS status,
+  NULL AS assigned_to_user_id,
+  NOW() AS created_at,
+  NULL AS resolved_at,
+  NULL AS reply_text
+FROM (
+  SELECT private_operator_id, MIN(reg_no) AS bus_reg_no
+  FROM private_buses
+  WHERE status IN ('Active','Maintenance')
+  GROUP BY private_operator_id
+) ob
+LEFT JOIN (
+  SELECT bus_reg_no, MIN(route_id) AS route_id
+  FROM timetables
+  WHERE operator_type='Private'
+  GROUP BY bus_reg_no
+) br ON br.bus_reg_no = ob.bus_reg_no
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM complaints c
+  JOIN private_buses pb ON pb.reg_no = c.bus_reg_no
+  WHERE c.operator_type='Private'
+    AND pb.private_operator_id = ob.private_operator_id
+    AND LOWER(COALESCE(c.category,''))='complaint'
+    AND DATE(c.created_at)=CURDATE()
+);
+
+-- Private: one feedback today per operator
+INSERT INTO `complaints`
+(`passenger_id`, `operator_type`, `bus_reg_no`, `route_id`, `trip_pointer`, `category`, `description`, `status`, `assigned_to_user_id`, `created_at`, `resolved_at`, `reply_text`)
+SELECT
+  @seed_passenger_id AS passenger_id,
+  'Private' AS operator_type,
+  ob.bus_reg_no,
+  COALESCE(br.route_id, @seed_route_id) AS route_id,
+  NULL AS trip_pointer,
+  'feedback' AS category,
+  CONCAT('Passenger feedback (seeded) — operator ', ob.private_operator_id, ', bus ', ob.bus_reg_no) AS description,
+  'Resolved' AS status,
+  NULL AS assigned_to_user_id,
+  DATE_SUB(NOW(), INTERVAL 30 MINUTE) AS created_at,
+  NOW() AS resolved_at,
+  'Thank you — feedback recorded (seeded).' AS reply_text
+FROM (
+  SELECT private_operator_id, MIN(reg_no) AS bus_reg_no
+  FROM private_buses
+  WHERE status IN ('Active','Maintenance')
+  GROUP BY private_operator_id
+) ob
+LEFT JOIN (
+  SELECT bus_reg_no, MIN(route_id) AS route_id
+  FROM timetables
+  WHERE operator_type='Private'
+  GROUP BY bus_reg_no
+) br ON br.bus_reg_no = ob.bus_reg_no
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM complaints c
+  JOIN private_buses pb ON pb.reg_no = c.bus_reg_no
+  WHERE c.operator_type='Private'
+    AND pb.private_operator_id = ob.private_operator_id
+    AND LOWER(COALESCE(c.category,''))='feedback'
+    AND DATE(c.created_at)=CURDATE()
+);
+
+-- SLTB: one complaint today per depot
+INSERT INTO `complaints`
+(`passenger_id`, `operator_type`, `bus_reg_no`, `route_id`, `trip_pointer`, `category`, `description`, `status`, `assigned_to_user_id`, `created_at`, `resolved_at`, `reply_text`)
+SELECT
+  @seed_passenger_id AS passenger_id,
+  'SLTB' AS operator_type,
+  db.bus_reg_no,
+  COALESCE(br.route_id, @seed_route_id) AS route_id,
+  NULL AS trip_pointer,
+  'complaint' AS category,
+  CONCAT('Depot complaint (seeded) — depot ', db.sltb_depot_id, ', bus ', db.bus_reg_no) AS description,
+  'In Progress' AS status,
+  NULL AS assigned_to_user_id,
+  NOW() AS created_at,
+  NULL AS resolved_at,
+  NULL AS reply_text
+FROM (
+  SELECT sltb_depot_id, MIN(reg_no) AS bus_reg_no
+  FROM sltb_buses
+  WHERE status IN ('Active','Maintenance')
+  GROUP BY sltb_depot_id
+) db
+LEFT JOIN (
+  SELECT bus_reg_no, MIN(route_id) AS route_id
+  FROM timetables
+  WHERE operator_type='SLTB'
+  GROUP BY bus_reg_no
+) br ON br.bus_reg_no = db.bus_reg_no
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM complaints c
+  JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no
+  WHERE c.operator_type='SLTB'
+    AND sb.sltb_depot_id = db.sltb_depot_id
+    AND LOWER(COALESCE(c.category,''))='complaint'
+    AND DATE(c.created_at)=CURDATE()
+);
+
+-- SLTB: one feedback today per depot
+INSERT INTO `complaints`
+(`passenger_id`, `operator_type`, `bus_reg_no`, `route_id`, `trip_pointer`, `category`, `description`, `status`, `assigned_to_user_id`, `created_at`, `resolved_at`, `reply_text`)
+SELECT
+  @seed_passenger_id AS passenger_id,
+  'SLTB' AS operator_type,
+  db.bus_reg_no,
+  COALESCE(br.route_id, @seed_route_id) AS route_id,
+  NULL AS trip_pointer,
+  'feedback' AS category,
+  CONCAT('Depot feedback (seeded) — depot ', db.sltb_depot_id, ', bus ', db.bus_reg_no) AS description,
+  'Resolved' AS status,
+  NULL AS assigned_to_user_id,
+  DATE_SUB(NOW(), INTERVAL 45 MINUTE) AS created_at,
+  NOW() AS resolved_at,
+  'Thanks — noted by depot staff (seeded).' AS reply_text
+FROM (
+  SELECT sltb_depot_id, MIN(reg_no) AS bus_reg_no
+  FROM sltb_buses
+  WHERE status IN ('Active','Maintenance')
+  GROUP BY sltb_depot_id
+) db
+LEFT JOIN (
+  SELECT bus_reg_no, MIN(route_id) AS route_id
+  FROM timetables
+  WHERE operator_type='SLTB'
+  GROUP BY bus_reg_no
+) br ON br.bus_reg_no = db.bus_reg_no
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM complaints c
+  JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no
+  WHERE c.operator_type='SLTB'
+    AND sb.sltb_depot_id = db.sltb_depot_id
+    AND LOWER(COALESCE(c.category,''))='feedback'
+    AND DATE(c.created_at)=CURDATE()
+);
+
+-- SLTB depot attendance for seeded SLTB drivers/conductors
+INSERT IGNORE INTO `depot_attendance`
+(`sltb_depot_id`, `attendance_key`, `work_date`, `mark_absent`, `notes`)
+SELECT
+  x.sltb_depot_id,
+  x.attendance_key,
+  wd.trip_date AS work_date,
+  CASE WHEN MOD(CRC32(CONCAT('DATT', x.attendance_key, wd.trip_date)), 30) = 0 THEN 1 ELSE 0 END AS mark_absent,
+  CASE WHEN MOD(CRC32(CONCAT('DATT', x.attendance_key, wd.trip_date)), 30) = 0 THEN 'Absent (seeded)' ELSE 'Present (seeded)' END AS notes
+FROM (
+  SELECT d.sltb_depot_id, CONCAT('driver:', d.sltb_driver_id) AS attendance_key
+  FROM `sltb_drivers` d
+  WHERE d.sltb_driver_id BETWEEN 2001 AND 2010
+
+  UNION ALL
+
+  SELECT c.sltb_depot_id, CONCAT('conductor:', c.sltb_conductor_id) AS attendance_key
+  FROM `sltb_conductors` c
+  WHERE c.sltb_conductor_id BETWEEN 3001 AND 3010
+) x
+CROSS JOIN `tmp_week_dates` wd;
+
+COMMIT;
+
+-- -----------------------------------------------------------------------------
+-- Post-install cleanup: keep tracking_monitoring EMPTY on fresh installs
+-- The app writes live snapshots into this table at runtime.
+-- -----------------------------------------------------------------------------
+
+DELETE FROM `tracking_monitoring`;
+

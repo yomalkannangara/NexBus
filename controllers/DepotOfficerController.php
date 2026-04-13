@@ -51,20 +51,20 @@ public function assignments()
                     ],
                     [(int)($_POST['sltb_driver_id'] ?? 0), (int)($_POST['sltb_conductor_id'] ?? 0)]
                 );
-                $this->redirect('?module=depot_officer&page=assignments&msg=created');
+                $this->redirect('/O/assignments?msg=created');
                 return;
             }
             if (is_string($res) && strpos($res, 'conflict_driver::') === 0) {
                 $existing = explode('::', $res, 2)[1] ?? '';
-                $this->redirect('?module=depot_officer&page=assignments&msg=conflict_driver&exists=' . urlencode($existing));
+                $this->redirect('/O/assignments?msg=conflict_driver&exists=' . urlencode($existing));
                 return;
             }
             if (is_string($res) && strpos($res, 'conflict_conductor::') === 0) {
                 $existing = explode('::', $res, 2)[1] ?? '';
-                $this->redirect('?module=depot_officer&page=assignments&msg=conflict_conductor&exists=' . urlencode($existing));
+                $this->redirect('/O/assignments?msg=conflict_conductor&exists=' . urlencode($existing));
                 return;
             }
-            $this->redirect('?module=depot_officer&page=assignments&msg=error');
+            $this->redirect('/O/assignments?msg=error');
             return;
         }
         if ($act === 'update_assignment') {
@@ -73,12 +73,12 @@ public function assignments()
             $ok = $m->update($depotId, $_POST);
             if (is_string($ok) && strpos($ok, 'conflict_driver::') === 0) {
                 $existing = explode('::', $ok, 2)[1] ?? '';
-                $this->redirect('?module=depot_officer&page=assignments&msg=conflict_driver&exists=' . urlencode($existing));
+                $this->redirect('/O/assignments?msg=conflict_driver&exists=' . urlencode($existing));
                 return;
             }
             if (is_string($ok) && strpos($ok, 'conflict_conductor::') === 0) {
                 $existing = explode('::', $ok, 2)[1] ?? '';
-                $this->redirect('?module=depot_officer&page=assignments&msg=conflict_conductor&exists=' . urlencode($existing));
+                $this->redirect('/O/assignments?msg=conflict_conductor&exists=' . urlencode($existing));
                 return;
             }
             if ($ok) {
@@ -96,7 +96,7 @@ public function assignments()
                 ];
                 $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'updated', $ctx, $recipients);
             }
-            $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'updated' : 'error'));
+            $this->redirect('/O/assignments?msg=' . ($ok ? 'updated' : 'error'));
             return;
         }
         if ($act === 'reassign_staff') {
@@ -124,7 +124,7 @@ public function assignments()
                 ];
                 $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'reassigned', $ctx, $recipients);
             }
-            $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'updated' : 'error'));
+            $this->redirect('/O/assignments?msg=' . ($ok ? 'updated' : 'error'));
             return;
         }
         if ($act === 'delete_assignment') {
@@ -143,7 +143,7 @@ public function assignments()
                 ];
                 $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'deleted', $ctx, $recipients, 'urgent');
             }
-            $this->redirect('?module=depot_officer&page=assignments&msg=' . ($ok ? 'deleted' : 'error'));
+            $this->redirect('/O/assignments?msg=' . ($ok ? 'deleted' : 'error'));
             return;
         }
     }
@@ -515,7 +515,7 @@ public function trip_logs(): void{
                 'route_no' => 'Route',
                 'operational_status' => 'Status',
                 'speed' => 'Speed (km/h)',
-                'avg_delay_min' => 'Avg Delay (min)',
+                'avg_delay_min' => 'Wait Time (min)',
                 'snapshot_at' => 'Last Snapshot',
             ];
             $rows = $pack['busStatusRows'];
@@ -936,20 +936,76 @@ public function trip_logs(): void{
     public function attendance() {
         $u = $this->m->me(); $dep = $this->m->myDepotId($u);
         $date = $_GET['date'] ?? date('Y-m-d');
+        if ($date > date('Y-m-d')) {
+            $date = date('Y-m-d');
+        }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark') {
-            $mark = $_POST['mark'] ?? [];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $date = $_POST['work_date'] ?? $date;
+            if ($date > date('Y-m-d')) {
+                $date = date('Y-m-d');
+            }
+
+            $attendancePost = (array)($_POST['attendance'] ?? []);
+            $notesPost = (array)($_POST['notes'] ?? []);
+
+            $mark = [];
+            foreach ($attendancePost as $akey => $status) {
+                $status = (string)$status;
+                if (!in_array($status, ['Present','Absent','Late','Half_Day'], true)) {
+                    $status = 'Present';
+                }
+                $mark[(string)$akey] = [
+                    'status' => $status,
+                    'absent' => $status === 'Absent' ? 1 : 0,
+                    'notes' => trim((string)($notesPost[$akey] ?? '')),
+                ];
+            }
+
             $this->m->markAttendanceBulk($dep, $date, $mark);
             $this->redirect('/O/attendance?date=' . urlencode($date) . '&msg=saved');
             return;
         }
 
+        $histFrom = $_GET['from'] ?? date('Y-m-d', strtotime('-13 days'));
+        $histTo   = $_GET['to']   ?? date('Y-m-d');
+
+        $staffRows = $this->m->driversAndConductors($dep);
+        $drivers = [];
+        $conductors = [];
+        foreach ($staffRows as $s) {
+            $t = strtolower((string)($s['type'] ?? ''));
+            if (!in_array($t, ['driver', 'conductor'], true)) {
+                continue;
+            }
+            $s['status'] = $s['status'] ?? 'Active';
+            if ($t === 'driver') {
+                $drivers[] = $s;
+            } else {
+                $conductors[] = $s;
+            }
+        }
+
+        $history = [];
+        $historyError = null;
+        try {
+            $history = $this->m->attendanceHistory($dep, $histFrom, $histTo);
+        } catch (\Throwable $e) {
+            $historyError = $e->getMessage();
+            $history = [];
+        }
+
         $this->view('depot_officer','attendance',[
             'me'=>$u,
             'date'=>$date,
-            // show drivers & conductors for attendance marking
-            'staff'=>$this->m->driversAndConductors($dep),
+            'drivers'=>$drivers,
+            'conductors'=>$conductors,
             'records'=>$this->m->attendanceForDate($dep, $date),
+            'summary'=>$this->m->attendanceSummary($dep, 30),
+            'history'=>$history,
+            'history_error'=>$historyError,
+            'histFrom'=>$histFrom,
+            'histTo'=>$histTo,
             'msg'=>$_GET['msg'] ?? null,
         ]);
     }
