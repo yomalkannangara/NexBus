@@ -80,6 +80,29 @@ class ReportModel extends BaseModel
     }
 
     /**
+     * Reliability score expression on a 0-10 scale.
+     *
+     * Prefer stored reliability_index when present (>0). For live snapshots
+     * written by proxy ingestion where reliability_index is often null/0,
+     * derive a consistent fallback score from on-time status, delay, and
+     * speed-violation signals.
+     */
+    private function ratingScoreExpr(string $alias = 'tm'): string
+    {
+        return "CASE
+            WHEN {$alias}.reliability_index IS NOT NULL AND {$alias}.reliability_index > 0
+                THEN {$alias}.reliability_index
+            ELSE GREATEST(0, LEAST(10,
+                ((COALESCE({$alias}.on_time_score,
+                    CASE WHEN {$alias}.operational_status = 'Delayed' THEN 55 ELSE 85 END
+                )) / 10) * 0.45
+                + ((100 - LEAST(100, GREATEST(0, COALESCE({$alias}.avg_delay_min, 0) * 6))) / 10) * 0.35
+                + ((100 - LEAST(100, COALESCE({$alias}.speed_violations, 0) * 100)) / 10) * 0.20
+            ))
+        END";
+    }
+
+    /**
      * Compute key performance metrics using tracking_monitoring
      */
     public function getPerformanceMetrics(array $filters = []): array
@@ -141,12 +164,17 @@ class ReportModel extends BaseModel
         $st->execute($params);
         $metrics['speed_violations'] = (int)$st->fetchColumn();
 
-        // 3. Average reliability index
-        $sql = "SELECT AVG(tm.reliability_index)
+        // 3. Average driver reliability (per-bus average, then fleet average)
+        $ratingExpr = $this->ratingScoreExpr('tm');
+        $sql = "SELECT AVG(s.bus_rating)
+            FROM (
+                SELECT ROUND(AVG($ratingExpr), 1) AS bus_rating
                 FROM tracking_monitoring tm
                 JOIN private_buses b ON b.reg_no = tm.bus_reg_no AND b.status = 'Active'
                 WHERE tm.operator_type='Private'
-                                    AND DATE(tm.snapshot_at)=:report_date $opClause $routeClause $busClause";
+                        AND DATE(tm.snapshot_at)=:report_date $opClause $routeClause $busClause
+                GROUP BY tm.bus_reg_no
+            ) s";
         $st = $this->pdo->prepare($sql);
         $st->execute($params);
         $avg = $st->fetchColumn();
@@ -648,7 +676,7 @@ class ReportModel extends BaseModel
 
     /**
      * Detail data for the Avg Driver Rating KPI popup.
-     * Returns per-bus reliability index and driver info for today's snapshots.
+    * Returns per-bus reliability score and driver info for today's snapshots.
      */
     public function getRatingDetail(array $filters = []): array
     {
@@ -671,22 +699,27 @@ class ReportModel extends BaseModel
             $params[':bus_reg'] = $filters['bus_reg'];
         }
         $params[':report_date'] = $reportDate;
+        $ratingExpr = $this->ratingScoreExpr('x');
 
         // --- Query 1: fleet-wide summary (unique buses) ---
         $sqlSummary = "SELECT
-                ROUND(AVG(COALESCE(x.reliability_index,0)),1) AS fleet_avg,
-                MAX(COALESCE(x.reliability_index,0))           AS best,
-                MIN(COALESCE(x.reliability_index,0))           AS worst,
-                COUNT(DISTINCT x.bus_reg_no)                   AS bus_count
-            FROM tracking_monitoring x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
-            WHERE x.operator_type = 'Private'
-                AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause";
+                ROUND(AVG(z.bus_avg),1) AS fleet_avg,
+                ROUND(MAX(z.bus_avg),1) AS best,
+                ROUND(MIN(z.bus_avg),1) AS worst,
+                COUNT(*)                AS bus_count
+            FROM (
+                SELECT x.bus_reg_no, AVG($ratingExpr) AS bus_avg
+                FROM tracking_monitoring x
+                JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
+                WHERE x.operator_type = 'Private'
+                    AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause
+                GROUP BY x.bus_reg_no
+            ) z";
 
         // --- Query 2: per-bus day aggregates (one row per unique bus) ---
         $sqlAgg = "SELECT
                 x.bus_reg_no,
-                ROUND(AVG(COALESCE(x.reliability_index,0)),1)    AS avg_rating,
+                ROUND(AVG($ratingExpr),1)                         AS avg_rating,
                 ROUND(AVG(COALESCE(x.speed,0)),1)                AS avg_speed,
                 COUNT(*)                                          AS snapshots,
                 DATE_FORMAT(MAX(x.snapshot_at),'%Y-%m-%d %H:%i') AS last_snapshot

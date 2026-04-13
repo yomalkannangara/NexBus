@@ -733,7 +733,7 @@
     <div class="perf-kpi-value" id="kpi-rating">
       <?= $kpi['avgRating'] > 0 ? number_format((float)$kpi['avgRating'],1) : '&ndash;' ?>
     </div>
-    <div class="perf-kpi-hint"><span class="dot"></span>Reliability index out of 10
+    <div class="perf-kpi-hint"><span class="dot"></span>Composite reliability score out of 10
       <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span>
     </div>
   </div>
