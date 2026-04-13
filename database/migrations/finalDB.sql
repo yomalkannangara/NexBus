@@ -673,7 +673,7 @@ CREATE TABLE `private_trips` (
   `cancelled_by` int(11) DEFAULT NULL,
   `cancel_reason` text DEFAULT NULL,
   `cancelled_at` timestamp NULL DEFAULT NULL,
-  `status` enum('Planned','InProgress','Completed','Cancelled') DEFAULT 'Planned'
+  `status` enum('Planned','InProgress','Completed','Cancelled','Delayed') DEFAULT 'Planned'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1023,7 +1023,7 @@ CREATE TABLE `sltb_trips` (
   `cancelled_by` int(11) DEFAULT NULL,
   `cancel_reason` text DEFAULT NULL,
   `cancelled_at` timestamp NULL DEFAULT NULL,
-  `status` enum('Planned','InProgress','Completed','Cancelled') DEFAULT 'Planned'
+  `status` enum('Planned','InProgress','Completed','Cancelled','Delayed') DEFAULT 'Planned'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -57,7 +57,6 @@ class NtcAdminController extends BaseController {
                 ];
             }
             $typeFlags = [
-                'super_luxury'    => (int)$f['is_super_luxury_active'] === 1,
                 'luxury'          => (int)$f['is_luxury_active'] === 1,
                 'semi_luxury'     => (int)$f['is_semi_luxury_active'] === 1,
                 'normal_service'  => (int)$f['is_normal_service_active'] === 1,
@@ -391,7 +390,7 @@ public function analyticsDetails() {
             'route_no' => 'Route',
             'operational_status' => 'Status',
             'speed' => 'Speed (km/h)',
-            'avg_delay_min' => 'Avg Delay (min)',
+            'avg_delay_min' => 'Wait Time (min)',
             'snapshot_at' => 'Last Snapshot',
         ];
 

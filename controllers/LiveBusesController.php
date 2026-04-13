@@ -13,6 +13,7 @@ class LiveBusesController
     private const EXTERNAL_URL = 'http://140.245.9.34:4000/api/buses/lives';
     private const CACHE_TTL    = 10;
     private const CACHE_FILE   = __DIR__ . '/../logs/live_buses_cache.json';
+    private const ZERO_SPEED_THRESHOLD = 0.1;
 
     /* ─── fetch raw live data (with file cache) ─────────────────── */
     private function fetchRaw(): array
@@ -148,6 +149,62 @@ class LiveBusesController
         return $map;
     }
 
+    /* ─── latest snapshot per bus (for continuous wait-time calculation) ── */
+    private function loadLatestSnapshots(array $regNos): array
+    {
+        if (empty($regNos) || !isset($GLOBALS['db'])) return [];
+
+        $pdo = $GLOBALS['db'];
+        $ph = implode(',', array_fill(0, count($regNos), '?'));
+
+        $stmt = $pdo->prepare(
+            "SELECT
+                 tm.bus_reg_no,
+                 tm.snapshot_at,
+                 tm.speed,
+                 COALESCE(tm.avg_delay_min, 0) AS wait_minutes
+             FROM tracking_monitoring tm
+             INNER JOIN (
+                 SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                 FROM tracking_monitoring
+                 WHERE bus_reg_no IN ($ph)
+                 GROUP BY bus_reg_no
+             ) latest
+                 ON latest.bus_reg_no = tm.bus_reg_no
+                AND latest.max_snap = tm.snapshot_at"
+        );
+        $stmt->execute($regNos);
+
+        $map = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $map[$row['bus_reg_no']] = $row;
+        }
+        return $map;
+    }
+
+    /* ─── delayed buses are sourced from trip status, not tracker speed ── */
+    private function loadDelayedTripBusSet(): array
+    {
+        if (!isset($GLOBALS['db'])) return [];
+
+        try {
+            $stmt = $GLOBALS['db']->query(
+                "SELECT DISTINCT x.bus_reg_no
+                 FROM (
+                     SELECT bus_reg_no, trip_date, status FROM sltb_trips
+                     UNION
+                     SELECT bus_reg_no, trip_date, status FROM private_trips
+                 ) x
+                 WHERE LOWER(COALESCE(x.status, '')) = 'delayed'
+                   AND (x.trip_date = CURDATE() OR x.trip_date IS NULL)"
+            );
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            return array_flip(array_column($rows, 'bus_reg_no'));
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
     /* ─── auto-register unknown buses + write tracking snapshots ── */
     private function persistLiveBuses(array $buses, array $lookup): array
     {
@@ -174,6 +231,8 @@ class LiveBusesController
 
         // 4. Find buses that already have a snapshot within the last minute (throttle)
         $regNos = array_values(array_unique(array_column($buses, 'busId')));
+        if (empty($regNos)) return $lookup;
+
         $ph     = implode(',', array_fill(0, count($regNos), '?'));
         $stmt   = $pdo->prepare(
             "SELECT bus_reg_no FROM tracking_monitoring
@@ -184,28 +243,54 @@ class LiveBusesController
         $stmt->execute($regNos);
         $recentlyInserted = array_flip(array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'bus_reg_no'));
 
-        // 5. Insert one snapshot per bus not seen in the last minute
+        // 5. Preload data needed for metric derivation.
+        $latestSnapshots = $this->loadLatestSnapshots($regNos);
+        $delayedBusSet = $this->loadDelayedTripBusSet();
+
+        // 6. Insert one snapshot per bus not seen in the last minute
         $ins = $pdo->prepare(
             "INSERT INTO tracking_monitoring
                (operator_type, bus_reg_no, snapshot_at,
                 lat, lng, speed, heading,
                 route_id, operational_status, speed_violations, avg_delay_min)
              VALUES
-               (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)"
+               (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        foreach ($buses as $b) {
-            if (isset($recentlyInserted[$b['busId']])) continue;
 
-            $info    = $lookup[$b['busId']] ?? [];
+        $snapshotAt = date('Y-m-d H:i:s');
+        $snapshotTs = strtotime($snapshotAt) ?: time();
+
+        foreach ($buses as $b) {
+            $busId = (string)($b['busId'] ?? '');
+            if ($busId === '' || isset($recentlyInserted[$busId])) continue;
+
+            $info    = $lookup[$busId] ?? [];
             $opType  = ($info['operatorType'] ?? '') === 'Private' ? 'Private' : 'SLTB';
             $speed   = (float)($b['speedKmh'] ?? 0);
             $routeId = $routeMap[(int)($b['routeNo'] ?? 0)] ?? null;
-            $status  = $speed > 60 ? 'Delayed' : 'OnTime';
+
+            $waitMinutes = 0.0;
+            if ($speed <= self::ZERO_SPEED_THRESHOLD) {
+                $prev = $latestSnapshots[$busId] ?? null;
+                if ($prev) {
+                    $prevTs = strtotime((string)($prev['snapshot_at'] ?? ''));
+                    $elapsedMinutes = $prevTs ? max(0, ($snapshotTs - $prevTs) / 60) : 0.0;
+                    $prevSpeed = (float)($prev['speed'] ?? 0);
+                    $prevWait = (float)($prev['wait_minutes'] ?? 0);
+                    $waitMinutes = $prevSpeed <= self::ZERO_SPEED_THRESHOLD
+                        ? ($prevWait + $elapsedMinutes)
+                        : $elapsedMinutes;
+                }
+            }
+            $waitMinutes = round($waitMinutes, 2);
+
+            $status  = isset($delayedBusSet[$busId]) ? 'Delayed' : 'OnTime';
             $viols   = $speed > 60 ? 1 : 0;
 
             $ins->execute([
                 $opType,
-                $b['busId'],
+                $busId,
+                $snapshotAt,
                 isset($b['lat'])  ? (float)$b['lat']  : null,
                 isset($b['lng'])  ? (float)$b['lng']  : null,
                 $speed,
@@ -213,7 +298,7 @@ class LiveBusesController
                 $routeId,
                 $status,
                 $viols,
-                0, // avg_delay_min starts at 0 for live
+                $waitMinutes,
             ]);
         }
 
