@@ -25,11 +25,185 @@ $name    = $displayName !== '' ? $displayName : 'Depot Manager';
   <!-- Depot layout CSS -->
   <link rel="stylesheet" href="/assets/css/depot.css">
   <script src="/assets/js/fleet.js"></script>
+  <?php if ($page === 'timetables'): ?>
+    <link rel="stylesheet" href="/assets/css/staff.css">
+  <?php endif; ?>
   <?php if ($page === 'drivers'): ?>
-    <!-- apply owner theme on drivers page so colors match owner screenshot -->
     <link rel="stylesheet" href="/assets/css/owner.css">
     <script defer src="/assets/js/bus_owner.js"></script>
   <?php endif; ?>
+
+  <style>
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      z-index: 1000;
+      background: #7a0f2e !important;
+      color: #fff;
+      border-bottom: 4px solid var(--gold);
+    }
+    .topbar .brand { display: flex; gap: 12px; align-items: center }
+    .topbar .logo {
+      font-size: 28px; width: 42px; height: 42px; border-radius: 50%;
+      background: #fff; box-shadow: inset 0 0 0 3px var(--gold);
+    }
+    .topbar .logo img { width: 42px; height: 42px }
+    .topbar .app { font-weight: 700 }
+    .topbar .sub { font-size: 12px; opacity: .9 }
+    .topbar .right { display: flex; gap: 12px; align-items: center }
+    .topbar .user { font-weight: 600 }
+    .topbar .date { font-size: 12px; opacity: .9 }
+
+    .app-shell{
+      position: fixed;
+      inset: 64px 0 0 0;
+      z-index: 1000;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    .sidebar{
+      width: 250px;
+      background: #7a0f2e;
+      color: #fff;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      padding:18px 14px;
+      position:relative;
+    }
+    .sidebar-head{
+      display:flex;align-items:center;gap:12px;
+      padding:8px 8px 16px 8px;
+      border-bottom:1px solid #ffffff1f;
+      margin-bottom:10px;
+    }
+    .mini-logo{width:36px;height:36px;border-radius:1rem;background:#fff1a0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid #ffffff30}
+    .sb-title{font-weight:700;letter-spacing:.3px}
+    .sb-sub{font-size:12px;opacity:.85}
+
+    .menu { display:flex; flex-direction:column; gap:6px; margin-top:6px }
+    .menu .menu-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px; color: #fff; text-decoration: none; font-size: 14px;
+      border-radius: 6px; transition: background .2s ease;
+    }
+    .menu .menu-item .icon { flex: 0 0 18px; display: grid; place-items: center }
+    .menu .menu-item:hover { background: rgba(255, 255, 255, .15) }
+    .menu .menu-item.active {
+      color: var(--gold);
+      background: rgba(255, 255, 255, .15);
+      border-right: 3px solid var(--gold)
+    }
+
+    .sidebar-profile{
+      margin-top:auto;
+      padding-top:16px;
+      border-top:1px solid #ffffff1f;
+    }
+    .sidebar-profile .profile-card{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      text-decoration:none;
+      color:#fff;
+      padding:10px;
+      border-radius:12px;
+      background:#ffffff10;
+      border:1px solid #ffffff20;
+    }
+    .sidebar-profile .profile-card:hover{ background:#ffffff18; }
+    .sidebar-profile .profile-avatar{
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:#fff2;
+      color:#fff;
+      font-weight:700;
+      border:1px solid #ffffff30;
+    }
+    .sidebar-profile .profile-meta{ display:flex; flex-direction:column; }
+    .sidebar-profile .profile-name{ font-weight:700; line-height:1.2; }
+    .sidebar-profile .profile-email{
+      color:#8fc5ff;
+      font-size:12px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .sidebar-profile .profile-logout {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px auto 0;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #aa1b23, #b61c29);
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all .22s ease;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .18);
+      border: none;
+      cursor: pointer;
+      width: calc(100% - 36px);
+      max-width: 260px;
+    }
+    .sidebar-profile .profile-logout:hover {
+      background: linear-gradient(135deg, #b61c29, #c72a35);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, .22);
+    }
+    .sidebar-profile .logout-icon{ font-size:16px; }
+    .sidebar-foot{
+      color:#ffffffcc;
+      font-size:12px;
+      margin-top:14px;
+      padding:10px 6px 0 6px;
+      border-top:1px dashed #ffffff2a;
+    }
+    .sidebar-foot .version{opacity:.9;margin-top:4px}
+
+    @media (max-width: 768px) {
+      .topbar{padding:12px 12px}
+      .app-shell{
+        position:relative;
+        inset:auto;
+        grid-template-columns:1fr;
+        min-height:auto;
+      }
+      .sidebar{
+        position:fixed;
+        left:-260px;
+        top:64px;
+        width:260px;
+        height:calc(100vh - 64px);
+        z-index:999;
+        transition:left .3s ease;
+        overflow-y:auto;
+        box-shadow:4px 0 12px rgba(0,0,0,.1);
+      }
+      .sidebar.open{ left:0; }
+      .brand{ flex:1; min-width:0; }
+      .topbar .logo{ width:36px; height:36px; font-size:20px; }
+      .topbar .logo img{ width:36px; height:36px; }
+      .topbar .app{ font-size:14px; }
+      .topbar .sub{ display:none; }
+      .topbar .right{ gap:8px; flex-wrap:nowrap; }
+      .topbar .user{ display:none; }
+      .topbar .date{ display:none; }
+    }
+  </style>
 
   <!-- Optional alerts (if you already use these in project) -->
   <link rel="stylesheet" href="/assets/css/alert.css">
