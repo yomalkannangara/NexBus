@@ -746,7 +746,7 @@ class BusOwnerController extends BaseController
                 'route_no' => 'Route',
                 'operational_status' => 'Status',
                 'speed' => 'Speed (km/h)',
-                'avg_delay_min' => 'Avg Delay (min)',
+                'avg_delay_min' => 'Wait Time (min)',
                 'snapshot_at' => 'Last Snapshot',
             ];
 

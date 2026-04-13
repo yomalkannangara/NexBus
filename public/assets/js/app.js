@@ -534,7 +534,6 @@ document.addEventListener('click', e => {
   setVal('edit_fare_id', d.fareId);
   setVal('edit_route_id', d.routeId);
   setVal('edit_stage_number', d.stageNumber);
-  setVal('edit_super_luxury', d.superLuxury);
   setVal('edit_luxury', d.luxury);
   setVal('edit_semi_luxury', d.semiLuxury);
   setVal('edit_normal_service', d.normalService);

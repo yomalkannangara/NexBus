@@ -921,9 +921,10 @@ textarea:focus {
    ========================================================================== */
 .ticket-form {
     padding: 1rem;
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+    border: 1px solid var(--divider);
+    box-shadow: var(--shadow);
     width: 100%;
     max-width: 100%;
 }
@@ -964,6 +965,7 @@ textarea:focus {
     border: none;
     cursor: pointer;
     font-weight: 600; /* was 700 */
+    width: 100%;
 }
 
 .ticket-form .btn:hover {
@@ -973,28 +975,52 @@ textarea:focus {
 /* Optional: fare results layout */
 .fare-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
-    margin-top: 12px;
+    margin-top: 14px;
+    align-items: stretch;
 }
 
-@media (min-width:560px) {
-    .fare-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
+.card.fare {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--divider);
+    background: linear-gradient(180deg, #ffffff 0%, #f6fbff 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .card.fare .badge {
-    margin-bottom: 6px;
+    margin-bottom: 0;
+    align-self: flex-start;
 }
 
 .card.fare .amount {
-    font: 600 16px/1.2 ui-sans-serif, system-ui; /* was 700 18px */
+    font: 700 1.12rem/1.25 ui-sans-serif, system-ui;
     color: var(--blue-1);
 }
 
+.card.journey {
+    margin-top: 12px;
+    border: 1px solid var(--divider);
+    background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+}
+
 .card.journey small {
+    display: block;
+    margin-top: 4px;
     color: var(--muted);
+}
+
+@media (max-width: 420px) {
+    .ticket-form {
+        padding: 0.9rem;
+    }
+
+    .card.fare .amount {
+        font-size: 1.02rem;
+    }
 }
 /* Scoped to feedback page only (optional) */
 .pill[role="note"], .reply-box {
