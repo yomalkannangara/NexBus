@@ -334,34 +334,46 @@ class ReportModel extends BaseModel
             $params    = [];
             $opClause  = '';
             $busClause = '';
+            $routeClause = '';
             $reportDate = $this->resolveTrackingDate($filters);
             if ($this->hasOperator()) {
                 $opClause = ' AND b.private_operator_id = :op';
                 $params[':op'] = $this->operatorId();
             }
+            if (!empty($filters['route_no'])) {
+                $routeClause = ' AND r.route_no = :route_no';
+                $params[':route_no'] = $filters['route_no'];
+            }
             if (!empty($filters['bus_reg'])) {
-                $busClause = ' AND tm.bus_reg_no = :bus_reg';
+                $busClause = ' AND x.bus_reg_no = :bus_reg';
                 $params[':bus_reg'] = $filters['bus_reg'];
             }
             $params[':report_date'] = $reportDate;
             $sql = "SELECT r.route_no,
-                           SUM(CASE WHEN tm.operational_status='Delayed' THEN 1 ELSE 0 END) AS delayed,
-                           COUNT(*) AS total
-                    FROM tracking_monitoring tm
-                    JOIN private_buses b ON b.reg_no = tm.bus_reg_no
-                    LEFT JOIN routes r ON r.route_id = tm.route_id
-                    WHERE tm.operator_type='Private'
-                      AND DATE(tm.snapshot_at)=:report_date $opClause $busClause
+                           SUM(CASE WHEN x.operational_status='Delayed' THEN 1 ELSE 0 END) AS delayed_count,
+                           COUNT(*) AS total_count
+                    FROM (
+                        SELECT tm.bus_reg_no,
+                               tm.route_id,
+                               tm.operational_status,
+                               ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                        FROM tracking_monitoring tm
+                        WHERE tm.operator_type='Private'
+                          AND DATE(tm.snapshot_at)=:report_date
+                    ) x
+                    JOIN private_buses b ON b.reg_no = x.bus_reg_no
+                    LEFT JOIN routes r ON r.route_id = x.route_id
+                    WHERE x.rn = 1 $opClause $routeClause $busClause
                     GROUP BY r.route_id, r.route_no
-                    ORDER BY total DESC LIMIT 8";
+                                        ORDER BY total_count DESC LIMIT 8";
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             $labels = $delayed = $total = [];
             foreach ($rows as $r) {
                 $labels[]  = $r['route_no'] ?? 'Unknown';
-                $delayed[] = (int)$r['delayed'];
-                $total[]   = (int)$r['total'];
+                $delayed[] = (int)($r['delayed_count'] ?? 0);
+                $total[]   = (int)($r['total_count'] ?? 0);
             }
             return ['labels' => $labels, 'delayed' => $delayed, 'total' => $total];
         } catch (\Throwable $e) { return ['labels' => [], 'delayed' => [], 'total' => []]; }
@@ -394,7 +406,7 @@ class ReportModel extends BaseModel
                     WHERE tm.operator_type='Private'
                       AND DATE(tm.snapshot_at)=:report_date $opClause
                     GROUP BY tm.bus_reg_no
-                    ORDER BY violations DESC LIMIT 9";
+                                        ORDER BY violations DESC, tm.bus_reg_no ASC";
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows   = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
@@ -498,7 +510,7 @@ class ReportModel extends BaseModel
         } catch (\Throwable $e) { return []; }
     }
 
-    /** Complaints grouped by route. */
+    /** Complaints grouped by bus (last 30 days). */
     public function getComplaintsByRouteData(array $filters = []): array
     {
         try {
@@ -518,7 +530,7 @@ class ReportModel extends BaseModel
                 $routeClause = ' AND r.route_no = :route_no';
                 $params[':route_no'] = $filters['route_no'];
             }
-            $sql = "SELECT r.route_no, COUNT(*) AS cnt
+            $sql = "SELECT c.bus_reg_no, COUNT(*) AS cnt
                     FROM complaints c
                     JOIN private_buses pb ON pb.reg_no = c.bus_reg_no
                     LEFT JOIN routes r ON r.route_id = c.route_id
@@ -526,14 +538,15 @@ class ReportModel extends BaseModel
                       AND LOWER(COALESCE(c.category, ''))='complaint'
                       AND c.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                       $opClause $busClause $routeClause
-                    GROUP BY r.route_id, r.route_no
-                    ORDER BY cnt DESC LIMIT 8";
+                    GROUP BY c.bus_reg_no
+                    ORDER BY cnt DESC, c.bus_reg_no ASC
+                    LIMIT 12";
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows   = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             $labels = $values = [];
             foreach ($rows as $r) {
-                $labels[] = $r['route_no'] ?? 'Unknown';
+                $labels[] = $r['bus_reg_no'] ?? 'Unknown';
                 $values[] = (int)$r['cnt'];
             }
             return ['labels' => $labels, 'values' => $values];

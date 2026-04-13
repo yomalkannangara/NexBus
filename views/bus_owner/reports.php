@@ -887,7 +887,7 @@
 
     <div class="perf-chart-card">
       <div class="perf-chart-header">
-        <h3 class="perf-chart-title">Complaints by Route</h3>
+        <h3 class="perf-chart-title">Complaints by Bus</h3>
       </div>
       <canvas id="complaintsRouteChart" data-drill-key="complaints_by_route" data-drill-base="/B/reports/details"></canvas>
     </div>
