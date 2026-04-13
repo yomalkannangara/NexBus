@@ -377,7 +377,7 @@ if (!empty($buses)) {
       <option value="all">All</option>
       <option value="Normal">Normal</option>
       <option value="Semi-Luxury">Semi-Luxury</option>
-      <option value="AC">AC</option>
+      <option value="Luxury">Luxury</option>
     </select>
   </div>
 
@@ -423,10 +423,13 @@ if (!empty($buses)) {
           $routeTagText = $routeNo !== '' ? ('Route ' . $routeNo) : 'Route Unassigned';
           $destinationText = trim((string)($b['route'] ?? '')) !== '' ? (string)$b['route'] : 'Unassigned Destination';
           $busClass = trim((string)($b['bus_class'] ?? '')) !== '' ? (string)$b['bus_class'] : 'Normal';
+          if ($busClass === 'AC') {
+            $busClass = 'Luxury';
+          }
             $busIconClass = 'fleet-card-bus-icon--normal';
             if ($busClass === 'Semi-Luxury') {
               $busIconClass = 'fleet-card-bus-icon--semi-luxury';
-            } elseif ($busClass === 'AC') {
+            } elseif ($busClass === 'Luxury') {
               $busIconClass = 'fleet-card-bus-icon--ac';
             }
         ?>
@@ -1100,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <select name="bus_class" id="bus_class" class="bus-modal__input" required>
             <option value="Normal">Normal</option>
             <option value="Semi-Luxury">Semi-Luxury</option>
-            <option value="AC">AC</option>
+            <option value="Luxury">Luxury</option>
           </select>
         </div>
         <div class="bus-modal__field">
@@ -1193,7 +1196,11 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('bus_capacity').value   = busData.capacity   || '';
       document.getElementById('bus_manufactured_year').value = busData.manufactured_year || '';
       document.getElementById('bus_model').value = busData.model || '';
-      document.getElementById('bus_class').value = busData.bus_class || 'Normal';
+      var busClassValue = busData.bus_class || 'Normal';
+      if (busClassValue === 'AC') {
+        busClassValue = 'Luxury';
+      }
+      document.getElementById('bus_class').value = busClassValue;
       document.getElementById('bus_status').value     = busData.status     || 'Active';
 
       actionInput.value      = 'update';

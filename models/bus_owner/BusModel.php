@@ -7,8 +7,11 @@ class BusModel extends BaseModel
 {
     private function normalizeBusClass(?string $busClass): string
     {
-        $allowed = ['AC', 'Semi-Luxury', 'Normal'];
+        $allowed = ['Luxury', 'Semi-Luxury', 'Normal'];
         $value = trim((string)$busClass);
+        if ($value === 'AC') {
+            $value = 'Luxury';
+        }
         return in_array($value, $allowed, true) ? $value : 'Normal';
     }
 
