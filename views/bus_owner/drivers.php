@@ -1746,19 +1746,45 @@ document.addEventListener('DOMContentLoaded', function () {
       return Math.max(1, Math.ceil(filteredRows.length / ROWS_PER_PAGE));
     }
 
+    function getVisiblePages(current, total) {
+      var compactCount = window.innerWidth < 992 ? 5 : 7;
+      if (total <= compactCount) {
+        return Array.from({ length: total }, function (_, i) { return i + 1; });
+      }
+
+      var pages = [1];
+      var innerSlots = compactCount - 2;
+      var half = Math.floor(innerSlots / 2);
+      var start = Math.max(2, current - half);
+      var end = Math.min(total - 1, start + innerSlots - 1);
+
+      start = Math.max(2, end - innerSlots + 1);
+
+      if (start > 2) pages.push('...');
+      for (var p = start; p <= end; p++) pages.push(p);
+      if (end < total - 1) pages.push('...');
+      pages.push(total);
+      return pages;
+    }
+
     function renderPageNumbers() {
       if (!pagesEl) return;
       pagesEl.innerHTML = '';
-      var tp = totalPages();
-      for (var i = 1; i <= tp; i++) {
-        (function(page) {
-          var b = document.createElement('button');
-          b.className = 'page-number' + (page === currentPage ? ' active' : '');
-          b.textContent = page;
-          b.addEventListener('click', function () { goToPage(page); });
-          pagesEl.appendChild(b);
-        })(i);
-      }
+      getVisiblePages(currentPage, totalPages()).forEach(function (item) {
+        var b = document.createElement('button');
+        if (item === '...') {
+          b.className = 'page-number ellipsis';
+          b.textContent = '...';
+          b.type = 'button';
+          b.disabled = true;
+        } else {
+          b.className = 'page-number' + (item === currentPage ? ' active' : '');
+          b.textContent = item;
+          b.type = 'button';
+          b.addEventListener('click', function () { goToPage(item); });
+        }
+        pagesEl.appendChild(b);
+      });
     }
 
     function showPage() {
@@ -1821,6 +1847,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (status) status.addEventListener('change', applyFilter);
     if (prevBtn) prevBtn.addEventListener('click', function() { if (currentPage > 1) goToPage(currentPage - 1); });
     if (nextBtn) nextBtn.addEventListener('click', function() { if (currentPage < totalPages()) goToPage(currentPage + 1); });
+    window.addEventListener('resize', renderPageNumbers);
 
     // Initial render — always show pagination
     if (allRows.length > 0) {
