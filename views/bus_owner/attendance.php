@@ -18,9 +18,11 @@ function attNote(array $records, string $type, int $id): string {
     return htmlspecialchars($records[$type.'__'.$id]['notes'] ?? '');
 }
 
-$pct = $summary['total'] > 0
-    ? round(($summary['present'] / $summary['total']) * 100)
-    : 0;
+$total       = $summary['total'];
+$pctPresent  = $total > 0 ? round(($summary['present'] / $total) * 100) : 0;
+$pctAbsent   = $total > 0 ? round(($summary['absent']  / $total) * 100) : 0;
+$pctLate     = $total > 0 ? round(($summary['late']    / $total) * 100) : 0;
+$pctHalf     = $total > 0 ? round(($summary['half']    / $total) * 100) : 0;
 ?>
 <style>
 /* ── Attendance Page — NexBus maroon/gold theme ── */
@@ -77,7 +79,7 @@ $pct = $summary['total'] > 0
 .att-stat-card:nth-child(2) { animation-delay:.12s; }
 .att-stat-card:nth-child(3) { animation-delay:.19s; }
 .att-stat-card:nth-child(4) { animation-delay:.26s; }
-.att-stat-card:nth-child(5) { animation-delay:.33s; }
+
 
 .att-stat-card:hover {
     transform:translateY(-3px);
@@ -405,31 +407,28 @@ $pct = $summary['total'] > 0
 <!-- Summary Stats (last 30 days) -->
 <div class="att-stats">
     <div class="att-stat-card" style="--color:#16a34a">
-        <div class="val"><?= $summary['present'] ?></div>
-        <div class="lbl">Present</div>
-        <div class="sub">Last 30 days</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pct ?>%"></div></div>
+        <div class="val"><?= $pctPresent ?>%</div>
+        <div class="lbl">Present Rate</div>
+        <div class="sub"><?= $summary['present'] ?> records · Last 30 days</div>
+        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pctPresent ?>%"></div></div>
     </div>
     <div class="att-stat-card" style="--color:#dc2626">
-        <div class="val"><?= $summary['absent'] ?></div>
-        <div class="lbl">Absent</div>
-        <div class="sub">Last 30 days</div>
+        <div class="val"><?= $pctAbsent ?>%</div>
+        <div class="lbl">Absent Rate</div>
+        <div class="sub"><?= $summary['absent'] ?> records · Last 30 days</div>
+        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pctAbsent ?>%"></div></div>
     </div>
     <div class="att-stat-card" style="--color:#d97706">
-        <div class="val"><?= $summary['late'] ?></div>
-        <div class="lbl">Late</div>
-        <div class="sub">Last 30 days</div>
+        <div class="val"><?= $pctLate ?>%</div>
+        <div class="lbl">Late Rate</div>
+        <div class="sub"><?= $summary['late'] ?> records · Last 30 days</div>
+        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pctLate ?>%"></div></div>
     </div>
     <div class="att-stat-card" style="--color:#7c3aed">
-        <div class="val"><?= $summary['half'] ?></div>
-        <div class="lbl">Half Day</div>
-        <div class="sub">Last 30 days</div>
-    </div>
-    <div class="att-stat-card" style="--color:#80143c">
-        <div class="val"><?= $pct ?>%</div>
-        <div class="lbl">Attendance Rate</div>
-        <div class="sub"><?= $summary['total'] ?> total records</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pct ?>%"></div></div>
+        <div class="val"><?= $pctHalf ?>%</div>
+        <div class="lbl">Half Day Rate</div>
+        <div class="sub"><?= $summary['half'] ?> records · Last 30 days</div>
+        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pctHalf ?>%"></div></div>
     </div>
 </div>
 

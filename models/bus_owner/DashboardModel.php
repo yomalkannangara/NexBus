@@ -42,11 +42,15 @@ class DashboardModel extends BaseModel
     private function getDriverCount(): int
     {
         if ($this->hasOperator()) {
-            $st = $this->pdo->prepare("SELECT COUNT(*) FROM private_drivers WHERE private_operator_id = :op");
-            $st->execute([':op' => $this->operatorId]);
-            return (int) $st->fetchColumn();
+            $stD = $this->pdo->prepare("SELECT COUNT(*) FROM private_drivers WHERE private_operator_id = :op");
+            $stD->execute([':op' => $this->operatorId]);
+            $stC = $this->pdo->prepare("SELECT COUNT(*) FROM private_conductors WHERE private_operator_id = :op");
+            $stC->execute([':op' => $this->operatorId]);
+            return (int) $stD->fetchColumn() + (int) $stC->fetchColumn();
         }
-        return (int) $this->pdo->query("SELECT COUNT(*) FROM private_drivers")->fetchColumn();
+        $drivers    = (int) $this->pdo->query("SELECT COUNT(*) FROM private_drivers")->fetchColumn();
+        $conductors = (int) $this->pdo->query("SELECT COUNT(*) FROM private_conductors")->fetchColumn();
+        return $drivers + $conductors;
     }
 
     private function getTotalRevenue(): float

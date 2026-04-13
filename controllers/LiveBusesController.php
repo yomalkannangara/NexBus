@@ -229,6 +229,12 @@ class LiveBusesController
         // 3. Build routeNo→route_id map (auto-creates missing routes in DB)
         $routeMap = $this->buildRouteMap($buses);
 
+        // 3b. Build a private-bus → correct route_id override from today's private_trips.
+        //     Private buses must be recorded on their operator-assigned routes only —
+        //     not whatever route the external GPS API reports (which can be wrong).
+        $regNosAll = array_values(array_unique(array_column($buses, 'busId')));
+        $privateRouteOverride = $this->buildPrivateRouteOverride($regNosAll);
+
         // 4. Find buses that already have a snapshot within the last minute (throttle)
         $regNos = array_values(array_unique(array_column($buses, 'busId')));
         if (empty($regNos)) return $lookup;
@@ -294,7 +300,7 @@ class LiveBusesController
                 isset($b['lat'])  ? (float)$b['lat']  : null,
                 isset($b['lng'])  ? (float)$b['lng']  : null,
                 $speed,
-                isset($b['heading']) ? (int)$b['heading'] : null,
+                isset($b['heading']) ? (int)$b['heading']   : null,
                 $routeId,
                 $status,
                 $viols,

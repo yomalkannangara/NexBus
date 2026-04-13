@@ -1,0 +1,15 @@
+[13-Apr-2026 14:29:50 Asia/Colombo] [ownerLive] query error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nexbus.tracking_monitoring' doesn't exist
+[13-Apr-2026 20:11:37 Asia/Colombo] [fleetAssign] POST received: reg_no=PA-1012, driver_id=5108, conductor_id=7001
+[13-Apr-2026 20:11:37 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PA-1012
+[13-Apr-2026 20:15:50 Asia/Colombo] [fleetAssign] POST received: reg_no=PA-1002, driver_id=1, conductor_id=1
+[13-Apr-2026 20:15:50 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PA-1002
+[13-Apr-2026 20:16:54 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4010, driver_id=0, conductor_id=0
+[13-Apr-2026 20:16:54 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-4010
+[13-Apr-2026 20:17:16 Asia/Colombo] [fleetAssign] POST received: reg_no=PA-1012, driver_id=0, conductor_id=0
+[13-Apr-2026 20:17:16 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PA-1012
+[13-Apr-2026 20:17:51 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-1001, driver_id=3, conductor_id=7010
+[13-Apr-2026 20:17:51 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-1001
+[13-Apr-2026 20:17:57 Asia/Colombo] [fleetAssign] POST received: reg_no=PA-1012, driver_id=6001, conductor_id=7006
+[13-Apr-2026 20:17:57 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PA-1012
+[13-Apr-2026 20:18:07 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4010, driver_id=6006, conductor_id=9
+[13-Apr-2026 20:18:07 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-4010

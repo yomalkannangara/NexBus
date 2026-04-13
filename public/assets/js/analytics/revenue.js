@@ -10,13 +10,15 @@
 
     NB.observe(cvs, 7/4, ({ctx,W,H})=>{
       ctx.clearRect(0,0,W,H);
-      const pad={l:56,r:16,t:16,b:36}, iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
+      const pad={l:68,r:16,t:16,b:36}, iw=W-pad.l-pad.r, ih=H-pad.t-pad.b;
       if(!labels.length){
         ctx.fillStyle='#9ca3af'; ctx.font='14px ui-sans-serif';
         ctx.textAlign='center'; ctx.textBaseline='middle';
         ctx.fillText('No revenue data for selected filters', W/2, H/2); return;
       }
-      const max=Math.max(1, Math.ceil(Math.max(...vals)));
+      const maxRaw=Math.max(...vals, 0);
+      const yTickCount=5;
+      const max=Math.max(yTickCount, Math.ceil(maxRaw / yTickCount) * yTickCount);
       const barW=iw/labels.length*0.62;
 
       // grid
@@ -42,8 +44,14 @@
       });
 
       // y labels
-      for(let yv=0; yv<=max; yv+=1){
-        const y=pad.t+ih-(yv/max)*ih; ctx.fillText(yv+"M", pad.l-34, y+4);
+      ctx.fillStyle="#6b7280";
+      ctx.font="12px ui-sans-serif";
+      ctx.textAlign='left';
+      for(let i=0; i<=yTickCount; i++){
+        const yv=(max/yTickCount)*i;
+        const y=pad.t+ih-(yv/max)*ih;
+        const text=(yv % 1 === 0 ? yv.toFixed(0) : yv.toFixed(1)) + "M";
+        ctx.fillText(text, pad.l-44, y+4);
       }
     });
   });

@@ -23,9 +23,7 @@
 	</div>
 
 	<div class="filters-grid-3">
-		<form method="get" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:nowrap;overflow-x:auto;padding:6px 4px;">
-			<input type="hidden" name="module" value="depot_officer">
-			<input type="hidden" name="page" value="reports">
+		<form method="get" action="/O/reports" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:nowrap;overflow-x:auto;padding:6px 4px;">
 
 			<div class="filter-item" style="min-width:160px;">
 				<label style="display:block;font-size:12px;margin-bottom:6px;">From</label>
@@ -80,7 +78,7 @@
 
 			<div style="flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;">
 				<button class="button" type="submit">View</button>
-				<a class="button outline" href="?module=depot_officer&page=reports&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>&export=csv">Export CSV</a>
+				<a class="button outline" href="/O/reports?from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>&export=csv">Export CSV</a>
 			</div>
 		</form>
 	</div>
