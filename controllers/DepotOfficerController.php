@@ -150,14 +150,28 @@ public function assignments()
     }
 
     $this->view('depot_officer', 'assignments', [
-        'rows'       => $m->allToday($depotId),
-        'buses'      => $m->buses($depotId),
-        'drivers'    => $m->drivers($depotId),
-        'conductors' => $m->conductors($depotId),
-        'routes'     => $m->routes(),
-        'today'      => date('Y-m-d'),
-        'msg'        => $_GET['msg'] ?? null,
+        'rows'        => $m->allToday($depotId),
+        'buses'       => $m->buses($depotId),
+        'drivers'     => $m->drivers($depotId),
+        'conductors'  => $m->conductors($depotId),
+        'routes'      => $m->routes(),
+        'today'       => date('Y-m-d'),
+        'msg'         => $_GET['msg'] ?? null,
+        'availability'=> $m->availability($depotId),
     ]);
+}
+
+public function assignmentStaffConflicts()
+{
+    $m = new AssignmentModel();
+    $depotId = $_SESSION['user']['sltb_depot_id'] ?? null;
+    header('Content-Type: application/json');
+    if (!$depotId) { http_response_code(401); echo json_encode(['ok'=>false]); return; }
+    $departure = trim((string)($_GET['departure'] ?? ''));
+    if (!preg_match('/^\d{2}:\d{2}$/', $departure)) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'bad_departure']); return;
+    }
+    echo json_encode(['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure));
 }
 
 public function assignmentShifts()
