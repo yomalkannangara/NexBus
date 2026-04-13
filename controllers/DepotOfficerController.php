@@ -19,10 +19,11 @@ class DepotOfficerController extends \App\controllers\BaseController {
         $u   = $this->m->me();
         $dep = $this->m->myDepotId($u);
         $this->view('depot_officer','dashboard',[
-            'me'=>$u,
-            'depot'=>$this->m->depot($dep),
-            'counts'=>$this->m->dashboardCounts($dep),
-            'todayDelayed'=>$this->m->delayedToday($dep),
+            'me'           => $u,
+            'depot'        => $this->m->depot($dep),
+            'counts'       => $this->m->dashboardCounts($dep),
+            'todayDelayed' => $this->m->delayedToday($dep),
+            'stats'        => $this->m->dashboardStats($dep),
         ]);
     }
 

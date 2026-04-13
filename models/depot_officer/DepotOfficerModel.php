@@ -101,6 +101,7 @@ public function depot(int $depotId): ?array {
     // Dashboard
     public function dashboardCounts(int $depotId): array { return $this->dash->counts($depotId); }
     public function delayedToday(int $depotId): array { return $this->dash->delayedToday($depotId); }
+    public function dashboardStats(int $depotId): array { return $this->dash->stats($depotId); }
 
     // Assignments
     public function todayAssignments(int $depotId): array { return $this->assign->allToday($depotId); }
