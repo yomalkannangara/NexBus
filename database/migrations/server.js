@@ -29,7 +29,7 @@ app.use(express.json());
 
 const PORT = Number(process.env.PORT || 4000);
 const TICK_MS = parseInt(process.env.TICK_MS || "1000", 10); // 1 second updates
-const WAIT_STOP_MINUTES = Number(process.env.WAIT_STOP_MINUTES || 10);
+const WAIT_STOP_MINUTES = Math.max(10, Number(process.env.WAIT_STOP_MINUTES || 10));
 const TIMETABLE_REFRESH_MS = parseInt(process.env.TIMETABLE_REFRESH_MS || `${5 * 60 * 1000}`, 10);
 
 const DB_CONFIG = {
@@ -41,6 +41,14 @@ const DB_CONFIG = {
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
+};
+
+let dbPool = null;
+let timetableLoadInProgress = false;
+const timetableState = {
+  schedulesByBus: new Map(),
+  primaryRouteByBus: new Map(),
+  loadedAt: 0,
 };
 
 function makeRegRange(prefix, from, to, width = 0) {
@@ -306,12 +314,10 @@ const ROUTES = {
 };
 
 // -----------------------------------------------------------------------------
-// Helpers (movement + timetable)
+// Helpers (movement)
 // -----------------------------------------------------------------------------
 const toRad = (deg) => (deg * Math.PI) / 180;
 const toDeg = (rad) => (rad * 180) / Math.PI;
-const DAY_SECONDS = 24 * 60 * 60;
-const ROUTE_KEYS = Object.keys(ROUTES);
 
 function haversineMeters(a, b) {
   const R = 6371000;
@@ -352,175 +358,13 @@ function bearingDeg(a, b) {
 function jitter(p) {
   const meters = Math.random() * 6;
   const angle = Math.random() * Math.PI * 2;
+  // rough conversion meters->degrees
   const dLat = (meters * Math.cos(angle)) / 111320;
   const dLng = (meters * Math.sin(angle)) / (111320 * Math.cos(toRad(p.lat)));
   return { lat: p.lat + dLat, lng: p.lng + dLng };
 }
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function hashString(input) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash * 31 + input.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-function parseTimeToSec(value) {
-  if (!value || typeof value !== "string") return null;
-  const parts = value.split(":").map((n) => Number(n));
-  if (parts.length < 2 || parts.some((n) => Number.isNaN(n))) return null;
-  const hh = parts[0] % 24;
-  const mm = parts[1] % 60;
-  const ss = (parts[2] || 0) % 60;
-  return hh * 3600 + mm * 60 + ss;
-}
-
-function normalizeTripDurationSec(depSec, arrSec) {
-  if (arrSec >= depSec) return arrSec - depSec;
-  return DAY_SECONDS - depSec + arrSec;
-}
-
-function resolveShapeRouteKey(routeNo, busId) {
-  if (ROUTES[routeNo]) return routeNo;
-  if (ROUTE_KEYS.length === 0) return "120";
-  const idx = hashString(`${routeNo}:${busId}`) % ROUTE_KEYS.length;
-  return ROUTE_KEYS[idx];
-}
-
-function buildRouteGeometry(polyline) {
-  const segmentLengths = [];
-  const cumulative = [0];
-  let total = 0;
-
-  for (let i = 0; i < polyline.length - 1; i += 1) {
-    const len = Math.max(1, haversineMeters(polyline[i], polyline[i + 1]));
-    segmentLengths.push(len);
-    total += len;
-    cumulative.push(total);
-  }
-
-  return { segmentLengths, cumulative, total: Math.max(1, total) };
-}
-
-const ROUTE_GEOMETRY = Object.fromEntries(
-  Object.entries(ROUTES).map(([key, route]) => [key, buildRouteGeometry(route.polyline)])
-);
-
-function pointOnRoute(routeNo, busId, progress01) {
-  const shapeKey = resolveShapeRouteKey(routeNo, busId);
-  const route = ROUTES[shapeKey] || ROUTES["120"];
-  const geo = ROUTE_GEOMETRY[shapeKey] || ROUTE_GEOMETRY["120"];
-  const poly = route.polyline;
-
-  if (!poly || poly.length < 2) {
-    return { lat: 6.9378, lng: 79.8437, heading: 0, totalMeters: 1 };
-  }
-
-  const progress = clamp(progress01, 0, 1);
-  const targetDist = progress * geo.total;
-  let segIdx = geo.segmentLengths.length - 1;
-
-  for (let i = 0; i < geo.segmentLengths.length; i += 1) {
-    if (targetDist <= geo.cumulative[i + 1]) {
-      segIdx = i;
-      break;
-    }
-  }
-
-  const segStartDist = geo.cumulative[segIdx];
-  const segLen = geo.segmentLengths[segIdx] || 1;
-  const t = clamp((targetDist - segStartDist) / segLen, 0, 1);
-
-  const a = poly[segIdx];
-  const b = poly[segIdx + 1] || poly[segIdx];
-  const p = interpPoint(a, b, t);
-
-  return {
-    lat: p.lat,
-    lng: p.lng,
-    heading: bearingDeg(a, b),
-    totalMeters: geo.total,
-  };
-}
-
-function secOfDay(date) {
-  return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
-}
-
-function isActiveTripNow(nowSec, depSec, arrSec, carryFromPreviousDay) {
-  if (arrSec >= depSec) {
-    return nowSec >= depSec && nowSec <= arrSec;
-  }
-  if (carryFromPreviousDay) {
-    return nowSec <= arrSec;
-  }
-  return nowSec >= depSec;
-}
-
-function elapsedTripSec(nowSec, depSec, arrSec, carryFromPreviousDay) {
-  if (arrSec >= depSec) {
-    return clamp(nowSec - depSec, 0, normalizeTripDurationSec(depSec, arrSec));
-  }
-  if (carryFromPreviousDay) {
-    return (DAY_SECONDS - depSec) + nowSec;
-  }
-  return clamp(nowSec - depSec, 0, normalizeTripDurationSec(depSec, arrSec));
-}
-
-function cloneCache(cache) {
-  const out = new Map();
-  for (const [busId, trips] of cache.entries()) {
-    out.set(busId, trips.map((t) => ({ ...t })));
-  }
-  return out;
-}
-
-function sortTrips(trips) {
-  trips.sort((a, b) => {
-    if (a.day !== b.day) return a.day - b.day;
-    if (a.depSec !== b.depSec) return a.depSec - b.depSec;
-    return a.arrSec - b.arrSec;
-  });
-  return trips;
-}
-
-function buildFallbackTimetableCache() {
-  const templates = [
-    ["05:30:00", "06:30:00"],
-    ["07:30:00", "08:30:00"],
-    ["10:00:00", "11:00:00"],
-    ["13:00:00", "14:00:00"],
-    ["16:00:00", "17:00:00"],
-    ["19:00:00", "20:00:00"],
-  ];
-
-  const map = new Map();
-  for (const busId of BUS_IDS) {
-    const routeNo = BUS_ROUTE[busId] || "120";
-    const trips = [];
-    for (let day = 0; day <= 6; day += 1) {
-      for (const [dep, arr] of templates) {
-        const depSec = parseTimeToSec(dep);
-        const arrSec = parseTimeToSec(arr);
-        if (depSec === null || arrSec === null) continue;
-        trips.push({ day, depSec, arrSec, routeNo });
-      }
-    }
-    map.set(busId, sortTrips(trips));
-  }
-  return map;
-}
-
-let dbPool = null;
-let timetableSource = "fallback";
-const fallbackTimetableCache = buildFallbackTimetableCache();
-let timetableCache = cloneCache(fallbackTimetableCache);
-
-async function ensureDbPool() {
+function getDbPool() {
   if (!mysql) return null;
   if (!dbPool) {
     dbPool = mysql.createPool(DB_CONFIG);
@@ -528,141 +372,303 @@ async function ensureDbPool() {
   return dbPool;
 }
 
-function normalizeDbRows(rows) {
-  const grouped = new Map();
+function parseClockToMinutes(value) {
+  if (value == null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
 
-  for (const row of rows) {
-    const busId = String(row.bus_reg_no || "").trim();
-    if (!busId) continue;
+  const parts = raw.split(":");
+  if (parts.length < 2) return null;
 
-    const day = Number(row.day_of_week);
-    if (!Number.isInteger(day) || day < 0 || day > 6) continue;
+  const hh = Number(parts[0]);
+  const mm = Number(parts[1]);
+  const ss = Number(parts[2] || 0);
+  if (![hh, mm, ss].every((n) => Number.isFinite(n))) return null;
 
-    const depSec = parseTimeToSec(String(row.departure_time || ""));
-    const arrSec = parseTimeToSec(String(row.arrival_time || ""));
-    if (depSec === null || arrSec === null) continue;
-
-    const routeNo = String(row.route_no || BUS_ROUTE[busId] || "120").trim() || "120";
-    if (!grouped.has(busId)) grouped.set(busId, []);
-    grouped.get(busId).push({ day, depSec, arrSec, routeNo });
-  }
-
-  const merged = cloneCache(fallbackTimetableCache);
-  for (const [busId, trips] of grouped.entries()) {
-    merged.set(busId, sortTrips(trips));
-  }
-
-  return merged;
+  return hh * 60 + mm + ss / 60;
 }
 
-async function refreshTimetableCache() {
-  if (!mysql) {
-    timetableSource = "fallback-no-mysql2";
-    timetableCache = cloneCache(fallbackTimetableCache);
-    return;
+const routeMetricsCache = new Map();
+
+function getRouteMetrics(routeNo) {
+  if (routeMetricsCache.has(routeNo)) {
+    return routeMetricsCache.get(routeNo);
   }
 
+  const route = ROUTES[routeNo] || ROUTES["120"];
+  const poly = route && route.polyline ? route.polyline : [];
+  const segments = [];
+  let totalMeters = 0;
+
+  for (let i = 0; i < poly.length - 1; i += 1) {
+    const len = Math.max(1, haversineMeters(poly[i], poly[i + 1]));
+    segments.push(len);
+    totalMeters += len;
+  }
+
+  const out = {
+    segments,
+    totalMeters: Math.max(1, totalMeters),
+  };
+  routeMetricsCache.set(routeNo, out);
+  return out;
+}
+
+function pointAlongRoute(routeNo, progress) {
+  const route = ROUTES[routeNo] || ROUTES["120"];
+  const poly = route && route.polyline ? route.polyline : [];
+
+  if (poly.length < 2) {
+    const p = poly[0] || { lat: 0, lng: 0 };
+    return {
+      point: p,
+      heading: 0,
+      totalMeters: 1,
+    };
+  }
+
+  const metrics = getRouteMetrics(routeNo);
+  let remaining = metrics.totalMeters * Math.max(0, Math.min(1, progress));
+
+  for (let i = 0; i < metrics.segments.length; i += 1) {
+    const segLen = metrics.segments[i];
+    if (remaining <= segLen || i === metrics.segments.length - 1) {
+      const t = segLen <= 0 ? 0 : Math.max(0, Math.min(1, remaining / segLen));
+      return {
+        point: interpPoint(poly[i], poly[i + 1], t),
+        heading: bearingDeg(poly[i], poly[i + 1]),
+        totalMeters: metrics.totalMeters,
+      };
+    }
+    remaining -= segLen;
+  }
+
+  const last = poly[poly.length - 1];
+  return {
+    point: last,
+    heading: bearingDeg(poly[poly.length - 2], last),
+    totalMeters: metrics.totalMeters,
+  };
+}
+
+function normalizeScheduleRow(row) {
+  const busRegNo = String(row.bus_reg_no || "").trim();
+  if (!busRegNo) return null;
+
+  const dbRouteNo = String(row.route_no || "").trim();
+  const fallbackRoute = BUS_ROUTE[busRegNo];
+  const routeNo = ROUTES[dbRouteNo] ? dbRouteNo : fallbackRoute;
+  if (!routeNo || !ROUTES[routeNo]) return null;
+
+  const dayOfWeek = Number(row.day_of_week);
+  if (!Number.isFinite(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) return null;
+
+  const departureMin = parseClockToMinutes(row.departure_time);
+  const arrivalMin = parseClockToMinutes(row.arrival_time);
+  if (departureMin == null || arrivalMin == null) return null;
+
+  return {
+    busRegNo,
+    routeNo: String(routeNo),
+    dayOfWeek,
+    departureMin,
+    arrivalMin,
+  };
+}
+
+async function refreshTimetablesFromDb() {
+  if (timetableLoadInProgress) return;
+  const pool = getDbPool();
+  if (!pool) return;
+
+  timetableLoadInProgress = true;
   try {
-    const pool = await ensureDbPool();
-    if (!pool) {
-      timetableSource = "fallback-no-db-pool";
-      timetableCache = cloneCache(fallbackTimetableCache);
-      return;
+    const [rows] = await pool.query(`
+      SELECT
+        t.bus_reg_no,
+        t.day_of_week,
+        CAST(t.departure_time AS CHAR) AS departure_time,
+        CAST(t.arrival_time AS CHAR) AS arrival_time,
+        COALESCE(r.route_no, '') AS route_no
+      FROM timetables t
+      LEFT JOIN routes r ON r.route_id = t.route_id
+      WHERE t.bus_reg_no IS NOT NULL
+        AND t.departure_time IS NOT NULL
+        AND t.arrival_time IS NOT NULL
+    `);
+
+    const schedulesByBus = new Map();
+    const primaryRouteByBus = new Map();
+
+    for (const row of rows) {
+      const schedule = normalizeScheduleRow(row);
+      if (!schedule) continue;
+
+      if (!schedulesByBus.has(schedule.busRegNo)) {
+        schedulesByBus.set(schedule.busRegNo, []);
+      }
+      schedulesByBus.get(schedule.busRegNo).push(schedule);
+
+      if (!primaryRouteByBus.has(schedule.busRegNo)) {
+        primaryRouteByBus.set(schedule.busRegNo, schedule.routeNo);
+      }
     }
 
-    const [rows] = await pool.query(
-      `SELECT
-         t.bus_reg_no,
-         t.day_of_week,
-         TIME_FORMAT(t.departure_time, '%H:%i:%s') AS departure_time,
-         TIME_FORMAT(t.arrival_time, '%H:%i:%s') AS arrival_time,
-         CAST(r.route_no AS CHAR) AS route_no
-       FROM timetables t
-       LEFT JOIN routes r ON r.route_id = t.route_id
-       WHERE t.bus_reg_no IS NOT NULL
-         AND t.departure_time IS NOT NULL
-         AND t.arrival_time IS NOT NULL
-         AND (t.effective_from IS NULL OR t.effective_from <= CURDATE())
-         AND (t.effective_to   IS NULL OR t.effective_to   >= CURDATE())`
-    );
-
-    if (!Array.isArray(rows) || rows.length === 0) {
-      timetableSource = "fallback-empty-db";
-      timetableCache = cloneCache(fallbackTimetableCache);
-      return;
+    for (const schedules of schedulesByBus.values()) {
+      schedules.sort((a, b) => {
+        if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+        return a.departureMin - b.departureMin;
+      });
     }
 
-    timetableCache = normalizeDbRows(rows);
-    timetableSource = "database";
+    timetableState.schedulesByBus = schedulesByBus;
+    timetableState.primaryRouteByBus = primaryRouteByBus;
+    timetableState.loadedAt = Date.now();
   } catch (err) {
-    timetableSource = "fallback-db-error";
-    timetableCache = cloneCache(fallbackTimetableCache);
-    console.warn("[busdemoapi] Timetable DB load failed, using fallback:", err.message);
+    console.warn("Timetable sync failed:", err && err.message ? err.message : err);
+  } finally {
+    timetableLoadInProgress = false;
   }
 }
 
-function tripsForBusOnDay(busId, day) {
-  const trips = timetableCache.get(busId) || [];
-  const today = [];
-  const prevDayOvernight = [];
-  const prevDay = (day + 6) % 7;
+function getActiveTimetableState(busRegNo, now) {
+  const schedules = timetableState.schedulesByBus.get(busRegNo);
+  if (!schedules || schedules.length === 0) return null;
 
-  for (const trip of trips) {
-    if (trip.day === day) {
-      today.push(trip);
-    } else if (trip.day === prevDay && trip.depSec > trip.arrSec) {
-      prevDayOvernight.push(trip);
-    }
-  }
+  const nowDay = now.getDay();
+  const nowMin = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  let best = null;
 
-  return { today, prevDayOvernight };
-}
+  for (const s of schedules) {
+    const dep = s.departureMin;
+    const arr = s.arrivalMin;
 
-function findActiveTrip(nowSec, todayTrips, prevDayOvernightTrips) {
-  for (const trip of todayTrips) {
-    if (isActiveTripNow(nowSec, trip.depSec, trip.arrSec, false)) {
-      return { trip, carryFromPreviousDay: false };
-    }
-  }
+    if (arr > dep) {
+      if (s.dayOfWeek !== nowDay) continue;
+      if (nowMin < dep || nowMin > arr) continue;
 
-  for (const trip of prevDayOvernightTrips) {
-    if (isActiveTripNow(nowSec, trip.depSec, trip.arrSec, true)) {
-      return { trip, carryFromPreviousDay: true };
-    }
-  }
-
-  return null;
-}
-
-function findNextTrip(nowSec, todayTrips) {
-  for (const trip of todayTrips) {
-    if (trip.depSec >= nowSec) {
-      return trip;
-    }
-  }
-  return todayTrips.length > 0 ? todayTrips[0] : null;
-}
-
-function findLastCompletedTrip(nowSec, todayTrips) {
-  let latest = null;
-  for (const trip of todayTrips) {
-    const duration = normalizeTripDurationSec(trip.depSec, trip.arrSec);
-    if (trip.depSec > trip.arrSec) {
+      const elapsedMin = nowMin - dep;
+      const durationMin = arr - dep;
+      if (!best || dep > best.depRank) {
+        best = {
+          ...s,
+          elapsedMin,
+          durationMin,
+          depRank: dep,
+        };
+      }
       continue;
     }
-    if (nowSec >= trip.arrSec && duration > 0) {
-      latest = trip;
+
+    const overnightArr = arr + 1440;
+    const nextDay = (s.dayOfWeek + 1) % 7;
+
+    if (s.dayOfWeek === nowDay && nowMin >= dep) {
+      const elapsedMin = nowMin - dep;
+      const durationMin = overnightArr - dep;
+      if (!best || dep > best.depRank) {
+        best = {
+          ...s,
+          elapsedMin,
+          durationMin,
+          depRank: dep,
+        };
+      }
+      continue;
+    }
+
+    if (nextDay === nowDay && nowMin <= arr) {
+      const elapsedMin = nowMin + 1440 - dep;
+      const durationMin = overnightArr - dep;
+      const depRank = dep - 1440;
+      if (!best || depRank > best.depRank) {
+        best = {
+          ...s,
+          elapsedMin,
+          durationMin,
+          depRank,
+        };
+      }
     }
   }
-  return latest;
+
+  if (!best) return null;
+
+  const durationMin = Math.max(1, best.durationMin);
+  const initialWaitMin = Math.min(WAIT_STOP_MINUTES, Math.max(0, durationMin - 1));
+  const remainingAfterInitial = Math.max(0, durationMin - initialWaitMin);
+  const finalWaitMin = Math.min(WAIT_STOP_MINUTES, Math.max(0, remainingAfterInitial - 1));
+  const driveMinutes = Math.max(1, durationMin - initialWaitMin - finalWaitMin);
+  const elapsedMin = Math.max(0, Math.min(durationMin, best.elapsedMin));
+
+  if (elapsedMin <= initialWaitMin) {
+    return {
+      routeNo: best.routeNo,
+      waiting: true,
+      waitAtEnd: false,
+      progress: 0,
+      driveMinutes,
+    };
+  }
+
+  if (elapsedMin >= initialWaitMin + driveMinutes) {
+    return {
+      routeNo: best.routeNo,
+      waiting: true,
+      waitAtEnd: true,
+      progress: 1,
+      driveMinutes,
+    };
+  }
+
+  const progress = (elapsedMin - initialWaitMin) / driveMinutes;
+  return {
+    routeNo: best.routeNo,
+    waiting: false,
+    waitAtEnd: false,
+    progress: Math.max(0, Math.min(1, progress)),
+    driveMinutes,
+  };
+}
+
+function parkBusOnPrimaryRoute(bus, nowIso) {
+  const routeNo =
+    timetableState.primaryRouteByBus.get(bus.busRegNo) ||
+    BUS_ROUTE[bus.busRegNo] ||
+    bus.routeNo;
+  const route = ROUTES[routeNo];
+  if (!route || !route.polyline || route.polyline.length < 2) return false;
+
+  bus.routeNo = routeNo;
+  const parked = jitter(route.polyline[0]);
+  bus.lat = parked.lat;
+  bus.lng = parked.lng;
+  bus.speedKmh = 0;
+  bus.heading = bearingDeg(route.polyline[0], route.polyline[1]);
+  bus.updatedAt = nowIso;
+  return true;
 }
 
 // -----------------------------------------------------------------------------
 // Bus state
 // -----------------------------------------------------------------------------
 function makeBus(busId, idx) {
-  const routeNo = BUS_ROUTE[busId] || ROUTE_KEYS[idx % ROUTE_KEYS.length] || "120";
-  const seedPoint = pointOnRoute(routeNo, busId, (idx % 10) / 10);
+  const routeKeys = Object.keys(ROUTES);
+  const routeNo =
+    timetableState.primaryRouteByBus.get(busId) ||
+    BUS_ROUTE[busId] ||
+    routeKeys[idx % routeKeys.length] ||
+    "120";
+  const route = ROUTES[routeNo];
+  const poly = route.polyline;
+
+  // Spread buses across the route
+  const segCount = Math.max(1, poly.length - 1);
+  const segIndex = idx % segCount;
+  const t = (idx % 10) / 10;
+
+  const p = interpPoint(poly[segIndex], poly[segIndex + 1], t);
+  const heading = bearingDeg(poly[segIndex], poly[segIndex + 1]);
 
   return {
     busId,
@@ -670,103 +676,133 @@ function makeBus(busId, idx) {
     regNo: busId,
     operatorType: PRIVATE_BUS_IDS.has(busId) ? "Private" : "SLTB",
     routeNo,
-    lat: seedPoint.lat,
-    lng: seedPoint.lng,
-    speedKmh: 0,
-    heading: seedPoint.heading,
+    // internal movement state
+    _segIndex: segIndex,
+    _t: t,
+    // live fields
+    lat: p.lat,
+    lng: p.lng,
+    speedKmh: 25 + Math.random() * 25, // 25–50
+    heading,
     updatedAt: new Date().toISOString(),
   };
 }
 
 const buses = BUS_IDS.map((id, i) => makeBus(id, i));
 
-function updateBusFromTimetable(bus, now) {
-  const nowSec = secOfDay(now);
-  const day = now.getDay();
-  const { today, prevDayOvernight } = tripsForBusOnDay(bus.busId, day);
+function applyPrimaryRoutesToBuses() {
+  const nowIso = new Date().toISOString();
+  for (const bus of buses) {
+    if (!timetableState.primaryRouteByBus.has(bus.busRegNo)) continue;
+    parkBusOnPrimaryRoute(bus, nowIso);
+  }
+}
 
-  const active = findActiveTrip(nowSec, today, prevDayOvernight);
+async function syncTimetableState() {
+  await refreshTimetablesFromDb();
+  applyPrimaryRoutesToBuses();
+}
 
-  if (active) {
-    const trip = active.trip;
-    bus.routeNo = trip.routeNo;
+syncTimetableState().catch(() => {});
+setInterval(() => {
+  syncTimetableState().catch(() => {});
+}, TIMETABLE_REFRESH_MS);
 
-    const durationSec = Math.max(60, normalizeTripDurationSec(trip.depSec, trip.arrSec));
-    const elapsedSec = elapsedTripSec(nowSec, trip.depSec, trip.arrSec, active.carryFromPreviousDay);
+// Move each bus along its route every tick
+function tick() {
+  const dt = TICK_MS / 1000;
+  const now = new Date();
+  const nowIso = now.toISOString();
 
-    const minDwellSec = WAIT_STOP_MINUTES * 60;
-    const dwellSec = durationSec >= minDwellSec ? minDwellSec : Math.floor(durationSec * 0.5);
+  for (const b of buses) {
+    const liveFromTimetable = getActiveTimetableState(b.busRegNo, now);
+    if (liveFromTimetable && ROUTES[liveFromTimetable.routeNo]) {
+      b.routeNo = liveFromTimetable.routeNo;
+      const poly = ROUTES[b.routeNo].polyline;
 
-    if (elapsedSec <= dwellSec) {
-      const p = pointOnRoute(bus.routeNo, bus.busId, 0);
-      const pj = jitter({ lat: p.lat, lng: p.lng });
-      bus.lat = pj.lat;
-      bus.lng = pj.lng;
-      bus.heading = p.heading;
-      bus.speedKmh = 0;
-      bus.updatedAt = now.toISOString();
-      return;
+      if (liveFromTimetable.waiting) {
+        const waitPoint = liveFromTimetable.waitAtEnd ? poly[poly.length - 1] : poly[0];
+        const headingFrom = liveFromTimetable.waitAtEnd ? poly[Math.max(0, poly.length - 2)] : poly[0];
+        const headingTo = liveFromTimetable.waitAtEnd ? poly[poly.length - 1] : poly[1];
+        const parked = jitter(waitPoint);
+
+        b.lat = parked.lat;
+        b.lng = parked.lng;
+        b.speedKmh = 0;
+        b.heading = bearingDeg(headingFrom, headingTo);
+        b.updatedAt = nowIso;
+        continue;
+      }
+
+      const routePoint = pointAlongRoute(b.routeNo, liveFromTimetable.progress);
+      const moved = jitter(routePoint.point);
+      const routeKm = routePoint.totalMeters / 1000;
+      const baseSpeedKmh = routeKm / Math.max(0.1, liveFromTimetable.driveMinutes / 60);
+
+      b.lat = moved.lat;
+      b.lng = moved.lng;
+      b.speedKmh = Math.max(8, Math.min(65, baseSpeedKmh + (Math.random() - 0.5) * 4));
+      b.heading = routePoint.heading;
+      b.updatedAt = nowIso;
+      continue;
     }
 
-    const movingSec = Math.max(1, durationSec - dwellSec);
-    const movingElapsedSec = clamp(elapsedSec - dwellSec, 0, movingSec);
-    const progress = movingElapsedSec / movingSec;
-    const p = pointOnRoute(bus.routeNo, bus.busId, progress);
-    const pj = jitter({ lat: p.lat, lng: p.lng });
+    if (timetableState.primaryRouteByBus.has(b.busRegNo)) {
+      parkBusOnPrimaryRoute(b, nowIso);
+      continue;
+    }
 
-    const plannedSpeed = ((p.totalMeters / 1000) / (movingSec / 3600));
-    const randomizedSpeed = plannedSpeed * (0.88 + Math.random() * 0.24);
+    const route = ROUTES[b.routeNo] || ROUTES["120"];
+    const poly = route.polyline;
 
-    bus.lat = pj.lat;
-    bus.lng = pj.lng;
-    bus.heading = p.heading;
-    bus.speedKmh = clamp(randomizedSpeed, 8, 65);
-    bus.updatedAt = now.toISOString();
-    return;
-  }
+    if (!poly || poly.length < 2) continue;
 
-  const nextTrip = findNextTrip(nowSec, today);
-  if (nextTrip) {
-    bus.routeNo = nextTrip.routeNo;
-    const p = pointOnRoute(bus.routeNo, bus.busId, 0);
-    const pj = jitter({ lat: p.lat, lng: p.lng });
-    bus.lat = pj.lat;
-    bus.lng = pj.lng;
-    bus.heading = p.heading;
-    bus.speedKmh = 0;
-    bus.updatedAt = now.toISOString();
-    return;
-  }
+    // random speed variation
+    b.speedKmh = Math.max(
+      8,
+      Math.min(65, b.speedKmh + (Math.random() - 0.5) * 4)
+    );
 
-  const lastTrip = findLastCompletedTrip(nowSec, today);
-  if (lastTrip) {
-    bus.routeNo = lastTrip.routeNo;
-    const p = pointOnRoute(bus.routeNo, bus.busId, 1);
-    const pj = jitter({ lat: p.lat, lng: p.lng });
-    bus.lat = pj.lat;
-    bus.lng = pj.lng;
-    bus.heading = p.heading;
-    bus.speedKmh = 0;
-    bus.updatedAt = now.toISOString();
-    return;
-  }
+    let remaining = (b.speedKmh * 1000) / 3600 * dt; // meters to move this tick
 
-  bus.routeNo = BUS_ROUTE[bus.busId] || bus.routeNo || "120";
-  const p = pointOnRoute(bus.routeNo, bus.busId, 0);
-  const pj = jitter({ lat: p.lat, lng: p.lng });
-  bus.lat = pj.lat;
-  bus.lng = pj.lng;
-  bus.heading = p.heading;
-  bus.speedKmh = 0;
-  bus.updatedAt = now.toISOString();
-}
+    while (remaining > 0) {
+      const i = b._segIndex;
+      const a = poly[i];
+      const c = poly[i + 1] || poly[0];
 
-function tick() {
-  const now = new Date();
-  for (const bus of buses) {
-    updateBusFromTimetable(bus, now);
+      // if at end, loop back to start
+      if (!poly[i + 1]) {
+        b._segIndex = 0;
+        b._t = 0;
+        continue;
+      }
+
+      const segLen = Math.max(1, haversineMeters(a, c));
+      const segRemaining = segLen * (1 - b._t);
+
+      if (remaining < segRemaining) {
+        b._t += remaining / segLen;
+        remaining = 0;
+      } else {
+        remaining -= segRemaining;
+        b._segIndex = (b._segIndex + 1) % (poly.length - 1);
+        b._t = 0;
+      }
+    }
+
+    const a = poly[b._segIndex];
+    const c = poly[b._segIndex + 1] || poly[0];
+    const p = interpPoint(a, c, b._t);
+    const pj = jitter(p);
+
+    b.lat = pj.lat;
+    b.lng = pj.lng;
+    b.heading = bearingDeg(a, c);
+    b.updatedAt = nowIso;
   }
 }
+
+setInterval(tick, TICK_MS);
 
 // -----------------------------------------------------------------------------
 // API
@@ -776,8 +812,6 @@ app.get("/health", (req, res) => {
     ok: true,
     service: "busdemoapi",
     tickMs: TICK_MS,
-    waitStopMinutes: WAIT_STOP_MINUTES,
-    timetableSource,
     busCount: buses.length,
     time: new Date().toISOString(),
   });
@@ -814,28 +848,8 @@ app.get("/api/buses/lives", (req, res) => {
   res.send(JSON.stringify(out, null, 2));
 });
 
-async function start() {
-  await refreshTimetableCache();
-
-  setInterval(() => {
-    refreshTimetableCache().catch((err) => {
-      console.warn("[busdemoapi] Timetable refresh failed:", err.message);
-    });
-  }, TIMETABLE_REFRESH_MS);
-
-  tick();
-  setInterval(tick, TICK_MS);
-
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log("NexBus demo API running on port " + PORT);
-    console.log("   Health:  http://127.0.0.1:" + PORT + "/health");
-    console.log("   Live:    http://127.0.0.1:" + PORT + "/api/buses/lives");
-    console.log("   Timetable source: " + timetableSource);
-    console.log("   Planned zero-speed dwell: " + WAIT_STOP_MINUTES + " minutes");
-  });
-}
-
-start().catch((err) => {
-  console.error("[busdemoapi] Fatal startup error:", err);
-  process.exit(1);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("NexBus demo API running on port " + PORT);
+  console.log("   Health:  http://127.0.0.1:" + PORT + "/health");
+  console.log("   Live:    http://127.0.0.1:" + PORT + "/api/buses/lives");
 });

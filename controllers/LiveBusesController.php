@@ -24,13 +24,26 @@ class LiveBusesController
             if (is_array($cached)) return $cached;
         }
 
+        $urls = [];
+        $envUrl = trim((string)getenv('NEXBUS_LIVE_API_URL'));
+        if ($envUrl !== '') {
+            $urls[] = $envUrl;
+        }
+        $urls[] = self::EXTERNAL_URL;
+        $urls[] = 'http://127.0.0.1:4000/api/buses/lives';
+        $urls[] = 'http://localhost:4000/api/buses/lives';
+
         $ctx = stream_context_create([
             'http' => ['timeout' => 5, 'ignore_errors' => true, 'method' => 'GET'],
             'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
         ]);
-        $raw = @file_get_contents(self::EXTERNAL_URL, false, $ctx);
 
-        if ($raw !== false) {
+        foreach (array_values(array_unique($urls)) as $url) {
+            $raw = @file_get_contents($url, false, $ctx);
+            if ($raw === false) {
+                continue;
+            }
+
             $decoded = json_decode($raw, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 file_put_contents(self::CACHE_FILE, $raw);
@@ -205,6 +218,58 @@ class LiveBusesController
         }
     }
 
+    /* ─── map private buses to today's assigned/private trip route_id ── */
+    private function buildPrivateRouteOverride(array $regNos): array
+    {
+        if (empty($regNos) || !isset($GLOBALS['db'])) return [];
+
+        $pdo = $GLOBALS['db'];
+        $ph = implode(',', array_fill(0, count($regNos), '?'));
+
+        // Prefer today's active/in-progress trip first, then most recent planned/completed entry.
+        $sql = "SELECT z.bus_reg_no, z.route_id
+                FROM (
+                    SELECT
+                        pt.bus_reg_no,
+                        pt.route_id,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY pt.bus_reg_no
+                            ORDER BY
+                                CASE
+                                    WHEN LOWER(COALESCE(pt.status, '')) = 'inprogress' THEN 3
+                                    WHEN LOWER(COALESCE(pt.status, '')) = 'planned' THEN 2
+                                    WHEN LOWER(COALESCE(pt.status, '')) = 'completed' THEN 1
+                                    ELSE 0
+                                END DESC,
+                                COALESCE(pt.trip_date, CURDATE()) DESC,
+                                COALESCE(pt.scheduled_departure_time, pt.departure_time, '00:00:00') DESC
+                        ) AS rn
+                    FROM private_trips pt
+                    WHERE pt.bus_reg_no IN ($ph)
+                      AND pt.route_id IS NOT NULL
+                      AND (pt.trip_date = CURDATE() OR pt.trip_date IS NULL)
+                ) z
+                WHERE z.rn = 1";
+
+        try {
+            $st = $pdo->prepare($sql);
+            $st->execute($regNos);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            $map = [];
+            foreach ($rows as $row) {
+                $bus = (string)($row['bus_reg_no'] ?? '');
+                $rid = isset($row['route_id']) ? (int)$row['route_id'] : 0;
+                if ($bus !== '' && $rid > 0) {
+                    $map[$bus] = $rid;
+                }
+            }
+            return $map;
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
     /* ─── auto-register unknown buses + write tracking snapshots ── */
     private function persistLiveBuses(array $buses, array $lookup): array
     {
@@ -274,6 +339,9 @@ class LiveBusesController
             $opType  = ($info['operatorType'] ?? '') === 'Private' ? 'Private' : 'SLTB';
             $speed   = (float)($b['speedKmh'] ?? 0);
             $routeId = $routeMap[(int)($b['routeNo'] ?? 0)] ?? null;
+            if ($opType === 'Private' && isset($privateRouteOverride[$busId])) {
+                $routeId = (int)$privateRouteOverride[$busId];
+            }
 
             $waitMinutes = 0.0;
             if ($speed <= self::ZERO_SPEED_THRESHOLD) {
