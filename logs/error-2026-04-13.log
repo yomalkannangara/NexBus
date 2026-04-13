@@ -14,10 +14,14 @@
 [13-Apr-2026 20:18:07 Asia/Colombo] [fleetAssign] POST received: reg_no=PB-4010, driver_id=6006, conductor_id=9
 [13-Apr-2026 20:18:07 Asia/Colombo] [fleetAssign] assign result: success for reg_no=PB-4010
 <<<<<<< HEAD
+<<<<<<< HEAD
 [13-Apr-2026 23:19:12 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "<<", expecting "function" or "const" in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 152
 [13-Apr-2026 23:20:12 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "<<", expecting "function" or "const" in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 152
 [13-Apr-2026 23:21:12 Asia/Colombo] PHP Parse error:  syntax error, unexpected token "<<", expecting "function" or "const" in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 152
 [13-Apr-2026 23:21:49 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+=======
+[13-Apr-2026 23:39:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+>>>>>>> 4ab38c2e4fe834a595461705369b5a9974bdb868
 =======
 [13-Apr-2026 23:39:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
 >>>>>>> 4ab38c2e4fe834a595461705369b5a9974bdb868
@@ -28,7 +32,11 @@ Stack trace:
 #3 {main}
   thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
 <<<<<<< HEAD
+<<<<<<< HEAD
 [13-Apr-2026 23:21:51 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+=======
+[13-Apr-2026 23:40:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+>>>>>>> 4ab38c2e4fe834a595461705369b5a9974bdb868
 =======
 [13-Apr-2026 23:40:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
 >>>>>>> 4ab38c2e4fe834a595461705369b5a9974bdb868
@@ -38,6 +46,7 @@ Stack trace:
 #2 C:\xampp\htdocs\NexBus-1\public\index.php(206): run('LiveBusesContro...', 'proxy')
 #3 {main}
   thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
+<<<<<<< HEAD
 <<<<<<< HEAD
 [13-Apr-2026 23:21:55 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
 Stack trace:
@@ -495,6 +504,9 @@ Stack trace:
 #3 {main}
   thrown in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php on line 236
 [13-Apr-2026 23:31:49 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+=======
+[13-Apr-2026 23:41:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
+>>>>>>> 4ab38c2e4fe834a595461705369b5a9974bdb868
 =======
 [13-Apr-2026 23:41:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\controllers\LiveBusesController::buildPrivateRouteOverride() in C:\xampp\htdocs\NexBus-1\controllers\LiveBusesController.php:236
 >>>>>>> 4ab38c2e4fe834a595461705369b5a9974bdb868
