@@ -1177,6 +1177,7 @@ class BusOwnerController extends BaseController
                  INNER JOIN (
                      SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
                      FROM   tracking_monitoring
+                     WHERE  operator_type = 'Private'
                      GROUP  BY bus_reg_no
                  ) latest
                      ON  latest.bus_reg_no = tm.bus_reg_no

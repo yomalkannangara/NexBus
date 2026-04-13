@@ -148,6 +148,34 @@ class LiveBusesController
         return $map;
     }
 
+    /* ─── build private-bus → correct route_id map from today's trips ── */
+    private function buildPrivateRouteOverride(array $regNos): array
+    {
+        if (empty($regNos) || !isset($GLOBALS['db'])) return [];
+        $pdo = $GLOBALS['db'];
+        $ph  = implode(',', array_fill(0, count($regNos), '?'));
+        try {
+            $stmt = $pdo->prepare(
+                "SELECT pt.bus_reg_no, pt.route_id
+                 FROM private_trips pt
+                 WHERE pt.bus_reg_no IN ($ph)
+                   AND pt.trip_date = CURDATE()
+                 ORDER BY pt.scheduled_departure_time DESC"
+            );
+            $stmt->execute($regNos);
+            $override = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                // Keep only the first (latest-departure) route per bus
+                if (!isset($override[$row['bus_reg_no']])) {
+                    $override[$row['bus_reg_no']] = (int)$row['route_id'];
+                }
+            }
+            return $override;
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
     /* ─── auto-register unknown buses + write tracking snapshots ── */
     private function persistLiveBuses(array $buses, array $lookup): array
     {
@@ -172,8 +200,14 @@ class LiveBusesController
         // 3. Build routeNo→route_id map (auto-creates missing routes in DB)
         $routeMap = $this->buildRouteMap($buses);
 
+        // 3b. Build a private-bus → correct route_id override from today's private_trips.
+        //     Private buses must be recorded on their operator-assigned routes only —
+        //     not whatever route the external GPS API reports (which can be wrong).
+        $regNosAll = array_values(array_unique(array_column($buses, 'busId')));
+        $privateRouteOverride = $this->buildPrivateRouteOverride($regNosAll);
+
         // 4. Find buses that already have a snapshot within the last minute (throttle)
-        $regNos = array_values(array_unique(array_column($buses, 'busId')));
+        $regNos = $regNosAll;
         $ph     = implode(',', array_fill(0, count($regNos), '?'));
         $stmt   = $pdo->prepare(
             "SELECT bus_reg_no FROM tracking_monitoring
@@ -196,20 +230,27 @@ class LiveBusesController
         foreach ($buses as $b) {
             if (isset($recentlyInserted[$b['busId']])) continue;
 
-            $info    = $lookup[$b['busId']] ?? [];
-            $opType  = ($info['operatorType'] ?? '') === 'Private' ? 'Private' : 'SLTB';
-            $speed   = (float)($b['speedKmh'] ?? 0);
-            $routeId = $routeMap[(int)($b['routeNo'] ?? 0)] ?? null;
-            $status  = $speed > 60 ? 'Delayed' : 'OnTime';
-            $viols   = $speed > 60 ? 1 : 0;
+            $info   = $lookup[$b['busId']] ?? [];
+            $opType = ($info['operatorType'] ?? '') === 'Private' ? 'Private' : 'SLTB';
+            $speed  = (float)($b['speedKmh'] ?? 0);
+            $status = $speed > 60 ? 'Delayed' : 'OnTime';
+            $viols  = $speed > 60 ? 1 : 0;
+
+            // For private buses: use today's scheduled route (authoritative),
+            // falling back to the API-reported route only if no trip exists today.
+            if ($opType === 'Private' && isset($privateRouteOverride[$b['busId']])) {
+                $routeId = $privateRouteOverride[$b['busId']];
+            } else {
+                $routeId = $routeMap[(int)($b['routeNo'] ?? 0)] ?? null;
+            }
 
             $ins->execute([
                 $opType,
                 $b['busId'],
-                isset($b['lat'])  ? (float)$b['lat']  : null,
-                isset($b['lng'])  ? (float)$b['lng']  : null,
+                isset($b['lat'])     ? (float)$b['lat']     : null,
+                isset($b['lng'])     ? (float)$b['lng']     : null,
                 $speed,
-                isset($b['heading']) ? (int)$b['heading'] : null,
+                isset($b['heading']) ? (int)$b['heading']   : null,
                 $routeId,
                 $status,
                 $viols,

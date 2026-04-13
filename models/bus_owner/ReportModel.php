@@ -121,7 +121,7 @@ class ReportModel extends BaseModel
                       tm.operational_status,
                       ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
                   FROM tracking_monitoring tm
-                  JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                  JOIN private_buses b ON b.reg_no = tm.bus_reg_no AND b.status = 'Active'
                   WHERE tm.operator_type='Private'
                               AND DATE(tm.snapshot_at)=:report_date
                  $opClause $routeClause $busClause
@@ -134,7 +134,7 @@ class ReportModel extends BaseModel
         // 2. Speed violations
         $sql = "SELECT COALESCE(SUM(tm.speed_violations),0)
                 FROM tracking_monitoring tm
-                JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                JOIN private_buses b ON b.reg_no = tm.bus_reg_no AND b.status = 'Active'
                 WHERE tm.operator_type='Private'
                                     AND DATE(tm.snapshot_at)=:report_date $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
@@ -144,7 +144,7 @@ class ReportModel extends BaseModel
         // 3. Average reliability index
         $sql = "SELECT AVG(tm.reliability_index)
                 FROM tracking_monitoring tm
-                JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                JOIN private_buses b ON b.reg_no = tm.bus_reg_no AND b.status = 'Active'
                 WHERE tm.operator_type='Private'
                                     AND DATE(tm.snapshot_at)=:report_date $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
@@ -157,7 +157,7 @@ class ReportModel extends BaseModel
                     SUM(CASE WHEN tm.avg_delay_min>=10 THEN 1 ELSE 0 END) AS long_wait,
                     COUNT(*) AS total
                 FROM tracking_monitoring tm
-                JOIN private_buses b ON b.reg_no = tm.bus_reg_no
+                JOIN private_buses b ON b.reg_no = tm.bus_reg_no AND b.status = 'Active'
                 WHERE tm.operator_type='Private'
                                     AND DATE(tm.snapshot_at)=:report_date $opClause $routeClause $busClause";
         $st = $this->pdo->prepare($sql);
@@ -579,7 +579,7 @@ class ReportModel extends BaseModel
                                     $routeClause
                                     $busClause
             ) x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no
+            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
             LEFT JOIN routes r   ON r.route_id = x.route_id
             WHERE x.rn = 1 $opClause
             GROUP BY r.route_id, r.route_no
@@ -603,7 +603,7 @@ class ReportModel extends BaseModel
                                     $routeClause
                                     $busClause
             ) x
-            JOIN private_buses b   ON b.reg_no = x.bus_reg_no
+            JOIN private_buses b   ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
             LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = b.private_operator_id
             LEFT JOIN routes r     ON r.route_id = x.route_id
                  WHERE x.rn = 1 AND x.operational_status = 'Delayed' $opClause
@@ -635,11 +635,12 @@ class ReportModel extends BaseModel
      */
     public function getRatingDetail(array $filters = []): array
     {
-        $params   = [];
-        $opClause = '';
+        $params      = [];
+        $opClause    = '';
         $routeClause = '';
-        $busClause = '';
-        $reportDate = $this->resolveTrackingDate($filters);
+        $busClause   = '';
+        $reportDate  = $this->resolveTrackingDate($filters);
+
         if ($this->hasOperator()) {
             $opClause = ' AND b.private_operator_id = :op';
             $params[':op'] = $this->operatorId();
@@ -654,44 +655,91 @@ class ReportModel extends BaseModel
         }
         $params[':report_date'] = $reportDate;
 
-        // Per-bus average reliability index today
-        $sqlBuses = "SELECT
-                x.bus_reg_no,
-                COALESCE(r.route_no, '-')                       AS route_no,
-                COALESCE(d.full_name, '-')                      AS driver_name,
-                ROUND(AVG(COALESCE(x.reliability_index,0)),1)   AS avg_rating,
-                ROUND(AVG(COALESCE(x.speed,0)),1)               AS avg_speed,
-                COUNT(*)                                         AS snapshots,
-                DATE_FORMAT(MAX(x.snapshot_at),'%Y-%m-%d %H:%i') AS last_snapshot
-            FROM tracking_monitoring x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no
-            LEFT JOIN routes r   ON r.route_id = x.route_id
-            LEFT JOIN private_drivers d ON d.private_driver_id = b.driver_id
-            WHERE x.operator_type = 'Private'
-                            AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause
-            GROUP BY x.bus_reg_no, r.route_no, d.full_name
-            ORDER BY avg_rating DESC
-            LIMIT 100";
-
-        // Fleet overall summary today
+        // --- Query 1: fleet-wide summary (unique buses) ---
         $sqlSummary = "SELECT
                 ROUND(AVG(COALESCE(x.reliability_index,0)),1) AS fleet_avg,
                 MAX(COALESCE(x.reliability_index,0))           AS best,
                 MIN(COALESCE(x.reliability_index,0))           AS worst,
                 COUNT(DISTINCT x.bus_reg_no)                   AS bus_count
             FROM tracking_monitoring x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no
+            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
             WHERE x.operator_type = 'Private'
-                            AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause";
+                AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause";
+
+        // --- Query 2: per-bus day aggregates (one row per unique bus) ---
+        $sqlAgg = "SELECT
+                x.bus_reg_no,
+                ROUND(AVG(COALESCE(x.reliability_index,0)),1)    AS avg_rating,
+                ROUND(AVG(COALESCE(x.speed,0)),1)                AS avg_speed,
+                COUNT(*)                                          AS snapshots,
+                DATE_FORMAT(MAX(x.snapshot_at),'%Y-%m-%d %H:%i') AS last_snapshot
+            FROM tracking_monitoring x
+            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
+            WHERE x.operator_type = 'Private'
+                AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause
+            GROUP BY x.bus_reg_no
+            ORDER BY avg_rating DESC
+            LIMIT 100";
+
+        // --- Query 3: route + driver from each bus's latest snapshot ---
+        // Build clauses using 'tm' alias (the inner tracking_monitoring table)
+        $opClauseLx    = $this->hasOperator()         ? ' AND pb.private_operator_id = :op' : '';
+        $routeClauseLx = !empty($filters['route_no']) ? " AND EXISTS (SELECT 1 FROM routes rr WHERE rr.route_id = tm.route_id AND rr.route_no = :route_no)" : '';
+        $busClauseLx   = !empty($filters['bus_reg'])  ? ' AND tm.bus_reg_no = :bus_reg'     : '';
+        $paramsLx = [];
+        if ($this->hasOperator())         $paramsLx[':op']          = $this->operatorId();
+        $paramsLx[':report_date'] = $reportDate;
+        if (!empty($filters['route_no'])) $paramsLx[':route_no']    = $filters['route_no'];
+        if (!empty($filters['bus_reg']))  $paramsLx[':bus_reg']     = $filters['bus_reg'];
+
+        $sqlLatest = "SELECT x.bus_reg_no,
+                COALESCE(r.route_no,'-')    AS route_no,
+                COALESCE(d.full_name,'-')   AS driver_name
+            FROM (
+                SELECT tm.*,
+                       ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                FROM tracking_monitoring tm
+                JOIN private_buses pb ON pb.reg_no = tm.bus_reg_no AND pb.status = 'Active'
+                WHERE tm.operator_type = 'Private'
+                    AND DATE(tm.snapshot_at) = :report_date $opClauseLx $routeClauseLx $busClauseLx
+            ) x
+            JOIN private_buses pb2 ON pb2.reg_no = x.bus_reg_no AND pb2.status = 'Active'
+            LEFT JOIN routes r     ON r.route_id  = x.route_id
+            LEFT JOIN private_drivers d ON d.private_driver_id = pb2.driver_id
+            WHERE x.rn = 1";
 
         try {
             $st = $this->pdo->prepare($sqlSummary);
             $st->execute($params);
             $summary = $st->fetch(PDO::FETCH_ASSOC) ?: [];
 
-            $st = $this->pdo->prepare($sqlBuses);
+            $st = $this->pdo->prepare($sqlAgg);
             $st->execute($params);
-            $buses = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $aggRows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            $st = $this->pdo->prepare($sqlLatest);
+            $st->execute($paramsLx);
+            $latestRows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            // Index latest by bus_reg_no for O(1) lookup
+            $latestMap = [];
+            foreach ($latestRows as $lr) {
+                $latestMap[$lr['bus_reg_no']] = $lr;
+            }
+
+            // Merge aggregates with latest-snapshot context
+            $buses = array_map(function($row) use ($latestMap) {
+                $lx = $latestMap[$row['bus_reg_no']] ?? [];
+                return [
+                    'bus_reg_no'    => $row['bus_reg_no'],
+                    'route_no'      => $lx['route_no']    ?? '-',
+                    'driver_name'   => $lx['driver_name'] ?? '-',
+                    'avg_rating'    => $row['avg_rating'],
+                    'avg_speed'     => $row['avg_speed'],
+                    'snapshots'     => $row['snapshots'],
+                    'last_snapshot' => $row['last_snapshot'],
+                ];
+            }, $aggRows);
 
             return ['summary' => $summary, 'buses' => $buses, 'reportDate' => $reportDate];
         } catch (\Throwable $e) {
@@ -705,11 +753,12 @@ class ReportModel extends BaseModel
      */
     public function getSpeedViolationsDetail(array $filters = []): array
     {
-        $params   = [];
-        $opClause = '';
+        $params      = [];
+        $opClause    = '';
         $routeClause = '';
-        $busClause = '';
-        $reportDate = $this->resolveTrackingDate($filters);
+        $busClause   = '';
+        $reportDate  = $this->resolveTrackingDate($filters);
+
         if ($this->hasOperator()) {
             $opClause = ' AND b.private_operator_id = :op';
             $params[':op'] = $this->operatorId();
@@ -724,46 +773,94 @@ class ReportModel extends BaseModel
         }
         $params[':report_date'] = $reportDate;
 
-        // Per-bus violation totals today
-        $sqlByBus = "SELECT
-                x.bus_reg_no,
-                COALESCE(r.route_no, '-')                        AS route_no,
-                COALESCE(d.full_name, '-')                       AS driver_name,
-                SUM(COALESCE(x.speed_violations, 0))             AS total_violations,
-                ROUND(MAX(COALESCE(x.speed, 0)), 1)              AS max_speed,
-                ROUND(AVG(COALESCE(x.speed, 0)), 1)              AS avg_speed,
-                COUNT(*)                                          AS snapshots,
-                DATE_FORMAT(MAX(x.snapshot_at),'%Y-%m-%d %H:%i') AS last_snapshot
-            FROM tracking_monitoring x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no
-            LEFT JOIN routes r   ON r.route_id = x.route_id
-            LEFT JOIN private_drivers d ON d.private_driver_id = b.driver_id
-            WHERE x.operator_type = 'Private'
-                            AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause
-            GROUP BY x.bus_reg_no, r.route_no, d.full_name
-            HAVING total_violations > 0
-            ORDER BY total_violations DESC
-            LIMIT 100";
-
-        // Fleet summary
+        // --- Query 1: fleet summary ---
         $sqlSummary = "SELECT
                 SUM(COALESCE(x.speed_violations, 0))   AS total_violations,
                 COUNT(DISTINCT x.bus_reg_no)            AS bus_count,
                 SUM(CASE WHEN COALESCE(x.speed_violations,0) > 0 THEN 1 ELSE 0 END) AS snapshots_with_viol,
                 ROUND(MAX(COALESCE(x.speed,0)),1)       AS fleet_max_speed
             FROM tracking_monitoring x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no
+            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
             WHERE x.operator_type = 'Private'
-                            AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause";
+                AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause";
+
+        // --- Query 2: per-bus day aggregates (violations grouped by bus only) ---
+        $sqlAgg = "SELECT
+                x.bus_reg_no,
+                SUM(COALESCE(x.speed_violations, 0))              AS total_violations,
+                ROUND(MAX(COALESCE(x.speed, 0)), 1)               AS max_speed,
+                ROUND(AVG(COALESCE(x.speed, 0)), 1)               AS avg_speed,
+                COUNT(*)                                           AS snapshots,
+                DATE_FORMAT(MAX(x.snapshot_at),'%Y-%m-%d %H:%i')  AS last_snapshot
+            FROM tracking_monitoring x
+            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
+            WHERE x.operator_type = 'Private'
+                AND DATE(x.snapshot_at) = :report_date $opClause $routeClause $busClause
+            GROUP BY x.bus_reg_no
+            HAVING total_violations > 0
+            ORDER BY total_violations DESC
+            LIMIT 100";
+
+        // --- Query 3: route + driver from each bus's latest snapshot ---
+        // Build clauses using 'tm' alias (the inner tracking_monitoring table)
+        $opClauseLx    = $this->hasOperator()         ? ' AND pb.private_operator_id = :op' : '';
+        $routeClauseLx = !empty($filters['route_no']) ? " AND EXISTS (SELECT 1 FROM routes rr WHERE rr.route_id = tm.route_id AND rr.route_no = :route_no)" : '';
+        $busClauseLx   = !empty($filters['bus_reg'])  ? ' AND tm.bus_reg_no = :bus_reg'     : '';
+        $paramsLx = [];
+        if ($this->hasOperator())         $paramsLx[':op']       = $this->operatorId();
+        $paramsLx[':report_date'] = $reportDate;
+        if (!empty($filters['route_no'])) $paramsLx[':route_no'] = $filters['route_no'];
+        if (!empty($filters['bus_reg']))  $paramsLx[':bus_reg']  = $filters['bus_reg'];
+
+        $sqlLatest = "SELECT x.bus_reg_no,
+                COALESCE(r.route_no,'-')    AS route_no,
+                COALESCE(d.full_name,'-')   AS driver_name
+            FROM (
+                SELECT tm.*,
+                       ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                FROM tracking_monitoring tm
+                JOIN private_buses pb ON pb.reg_no = tm.bus_reg_no AND pb.status = 'Active'
+                WHERE tm.operator_type = 'Private'
+                    AND DATE(tm.snapshot_at) = :report_date $opClauseLx $routeClauseLx $busClauseLx
+            ) x
+            JOIN private_buses pb2 ON pb2.reg_no = x.bus_reg_no AND pb2.status = 'Active'
+            LEFT JOIN routes r     ON r.route_id  = x.route_id
+            LEFT JOIN private_drivers d ON d.private_driver_id = pb2.driver_id
+            WHERE x.rn = 1";
 
         try {
             $st = $this->pdo->prepare($sqlSummary);
             $st->execute($params);
             $summary = $st->fetch(PDO::FETCH_ASSOC) ?: [];
 
-            $st = $this->pdo->prepare($sqlByBus);
+            $st = $this->pdo->prepare($sqlAgg);
             $st->execute($params);
-            $buses = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $aggRows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            $st = $this->pdo->prepare($sqlLatest);
+            $st->execute($paramsLx);
+            $latestRows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            // Index latest by bus_reg_no for O(1) lookup
+            $latestMap = [];
+            foreach ($latestRows as $lr) {
+                $latestMap[$lr['bus_reg_no']] = $lr;
+            }
+
+            // Merge aggregates with latest-snapshot context
+            $buses = array_map(function($row) use ($latestMap) {
+                $lx = $latestMap[$row['bus_reg_no']] ?? [];
+                return [
+                    'bus_reg_no'       => $row['bus_reg_no'],
+                    'route_no'         => $lx['route_no']    ?? '-',
+                    'driver_name'      => $lx['driver_name'] ?? '-',
+                    'total_violations' => $row['total_violations'],
+                    'max_speed'        => $row['max_speed'],
+                    'avg_speed'        => $row['avg_speed'],
+                    'snapshots'        => $row['snapshots'],
+                    'last_snapshot'    => $row['last_snapshot'],
+                ];
+            }, $aggRows);
 
             return ['summary' => $summary, 'buses' => $buses, 'reportDate' => $reportDate];
         } catch (\Throwable $e) {
@@ -809,7 +906,7 @@ class ReportModel extends BaseModel
                 COUNT(*)                                                      AS total,
                 ROUND(AVG(COALESCE(x.avg_delay_min,0)),1)                    AS avg_delay
             FROM tracking_monitoring x
-            JOIN private_buses b ON b.reg_no = x.bus_reg_no
+            JOIN private_buses b ON b.reg_no = x.bus_reg_no AND b.status = 'Active'
             WHERE x.operator_type = 'Private'
                             AND DATE(x.snapshot_at) = :report_date $opClause $routeClauseX $busClauseX";
 
@@ -832,7 +929,7 @@ class ReportModel extends BaseModel
                     $routeClauseTm
                     $busClauseTm
             ) lx
-            JOIN private_buses b ON b.reg_no = lx.bus_reg_no
+            JOIN private_buses b ON b.reg_no = lx.bus_reg_no AND b.status = 'Active'
             LEFT JOIN routes r   ON r.route_id = lx.route_id
             LEFT JOIN private_drivers d ON d.private_driver_id = b.driver_id
                 WHERE lx.rn = 1 $opClause
