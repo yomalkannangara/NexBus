@@ -5,6 +5,8 @@ use PDO;
 
 class AnalyticsModel extends BaseModel
 {
+    private ?bool $complaintsHasRating = null;
+
     /* ────────────────────────────────────────────────────────────────
      * Filter helpers
      * Filters accepted: route_no (string), depot_id (int), owner_id (int)
@@ -78,6 +80,29 @@ class AnalyticsModel extends BaseModel
             $params[':ft_rno'] = $f['route_no'];
         }
         return [$joins, $wheres, $params];
+    }
+
+    private function complaintsHasRatingColumn(): bool
+    {
+        if ($this->complaintsHasRating !== null) {
+            return $this->complaintsHasRating;
+        }
+
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT COUNT(*) c
+                   FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'complaints'
+                    AND COLUMN_NAME = 'rating'"
+            );
+            $st->execute();
+            $this->complaintsHasRating = ((int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0)) > 0;
+        } catch (\Throwable $e) {
+            $this->complaintsHasRating = false;
+        }
+
+        return $this->complaintsHasRating;
     }
 
     /* ─── Bus Status ─────────────────────────────────────────────── */
@@ -260,25 +285,59 @@ class AnalyticsModel extends BaseModel
     public function avgRating(array $f = []): float
     {
         try {
-            $col = $this->pdo->prepare("SHOW COLUMNS FROM complaints LIKE 'rating'");
-            $col->execute();
-            if (!$col->fetch(PDO::FETCH_ASSOC)) {
+            [$joins, $wheres, $params] = $this->complaintFilters($f);
+            if (!empty($f['route_no'])) {
+                array_unshift($joins, "JOIN routes r ON r.route_id = c.route_id");
+            }
+
+            $joinSql = implode(' ', $joins);
+
+            // Primary source: explicit passenger ratings when the column exists.
+            if ($this->complaintsHasRatingColumn()) {
+                $ratingWheres = array_merge(
+                    $wheres,
+                    [
+                        "c.rating IS NOT NULL",
+                        "c.rating BETWEEN 1 AND 5",
+                        "LOWER(COALESCE(c.category,'')) IN ('feedback','complaint')",
+                    ]
+                );
+
+                $whereSql = $ratingWheres ? ('WHERE ' . implode(' AND ', $ratingWheres)) : '';
+                $st = $this->pdo->prepare(
+                    "SELECT ROUND(AVG(c.rating) * 2, 1) AS avg_r
+                     FROM complaints c $joinSql
+                     $whereSql"
+                );
+                $st->execute($params);
+                $r = $st->fetch(PDO::FETCH_ASSOC);
+                if ($r && $r['avg_r'] !== null) {
+                    return (float)$r['avg_r'];
+                }
+            }
+
+            // Fallback when explicit ratings are unavailable: sentiment mix from complaint/feedback entries.
+            $mixWheres = array_merge($wheres, ["LOWER(COALESCE(c.category,'')) IN ('feedback','complaint')"]);
+            $mixWhereSql = $mixWheres ? ('WHERE ' . implode(' AND ', $mixWheres)) : '';
+            $mixStmt = $this->pdo->prepare(
+                "SELECT
+                    SUM(CASE WHEN LOWER(COALESCE(c.category,''))='feedback' THEN 1 ELSE 0 END) AS feedback_count,
+                    SUM(CASE WHEN LOWER(COALESCE(c.category,''))='complaint' THEN 1 ELSE 0 END) AS complaint_count
+                 FROM complaints c $joinSql
+                 $mixWhereSql"
+            );
+            $mixStmt->execute($params);
+            $mix = $mixStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            $feedbackCount = (int)($mix['feedback_count'] ?? 0);
+            $complaintCount = (int)($mix['complaint_count'] ?? 0);
+            $total = $feedbackCount + $complaintCount;
+
+            if ($total <= 0) {
                 return 0.0;
             }
 
-            $wheres = ["rating IS NOT NULL"];
-            $params = [];
-            if (!empty($f['route_no'])) {
-                $wheres[]          = "route_id = (SELECT route_id FROM routes WHERE CAST(route_no AS UNSIGNED) = CAST(:ft_rno AS UNSIGNED) LIMIT 1)";
-                $params[':ft_rno'] = $f['route_no'];
-            }
-            $whereSql = 'WHERE ' . implode(' AND ', $wheres);
-            $stmt = $this->pdo->prepare(
-                "SELECT ROUND(AVG(rating) * 2, 1) AS avg_r FROM complaints $whereSql"
-            );
-            $stmt->execute($params);
-            $r = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $r && $r['avg_r'] !== null ? (float)$r['avg_r'] : 0.0;
+            return round(($feedbackCount / $total) * 10, 1);
         } catch (\PDOException $e) {
             return 0.0;
         }

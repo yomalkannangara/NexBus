@@ -87,7 +87,7 @@
       <svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87l1.18 6.88L12 17.77l-6.18 3.25L7 14.14L2 9.27l6.91-1.01z"/></svg>
     </span></header>
     <div class="value" id="kpi-rating"><?= $kpi['avgRating'] > 0 ? number_format($kpi['avgRating'],1) : '–' ?></div>
-    <div class="hint">Passenger feedback (/10)</div>
+    <div class="hint">Complaints + feedback (/10)</div>
   </article>
 
   <article class="kpi2 tone-orange">
@@ -95,7 +95,7 @@
       <!-- bolt -->
       <svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M14 3L3 14h7v7l11-11h-7z"/></svg>
     </span></header>
-    <div class="value" id="kpi-speed"><?= (int)($kpi['speedViol'] ?? 0) ?: '–' ?></div>
+    <div class="value" id="kpi-speed"><?= (int)($kpi['speedViol'] ?? 0) ?></div>
     <div class="hint">Live · buses over 60 km/h</div>
   </article>
 
