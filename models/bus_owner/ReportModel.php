@@ -421,7 +421,12 @@ class ReportModel extends BaseModel
             }
             if (!empty($filters['route_no'])) {
                 $routeClause = " AND EXISTS (
-                    SELECT 1 FROM routes r2 WHERE r2.route_id = t.route_id AND r2.route_no = :route_no
+                    SELECT 1
+                    FROM timetables t2
+                    JOIN routes r2 ON r2.route_id = t2.route_id
+                    WHERE t2.bus_reg_no = e.bus_reg_no
+                      AND t2.operator_type = 'Private'
+                      AND r2.route_no = :route_no
                 )";
                 $params[':route_no'] = $filters['route_no'];
             }
@@ -429,12 +434,11 @@ class ReportModel extends BaseModel
                 $busClause = ' AND e.bus_reg_no = :bus_reg';
                 $params[':bus_reg'] = $filters['bus_reg'];
             }
-            $sql = "SELECT DATE_FORMAT(tm.snapshot_at, '%b') AS month,
+                 $sql = "SELECT DATE_FORMAT(e.date, '%b') AS month,
                            SUM(COALESCE(e.amount, 0)) AS revenue,
                            MONTH(e.date) AS month_num
                     FROM earnings e
                     JOIN private_buses pb ON pb.reg_no = e.bus_reg_no
-                    LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no AND t.operator_type='Private'
                     WHERE e.operator_type='Private'
                       AND YEAR(e.date)=YEAR(CURDATE()) $opClause $routeClause $busClause
                     GROUP BY MONTH(e.date), DATE_FORMAT(e.date,'%b')
