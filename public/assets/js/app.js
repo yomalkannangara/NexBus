@@ -3,36 +3,37 @@ document.addEventListener('DOMContentLoaded', function () {
   // ===== Panels with delegation =====
   document.addEventListener('click', e => {
     const panels = document.querySelectorAll('.panel');
+    const hit = (id) => e.target && e.target.closest && e.target.closest('#' + id);
 
     // Add Fare
-    if (e.target.id === 'showAddFare') {
+    if (hit('showAddFare')) {
       panels.forEach(p => p.classList.remove('show'));
       document.getElementById('addFarePanel')?.classList.add('show');
     }
-    if (e.target.id === 'cancelAddFare') {
+    if (hit('cancelAddFare')) {
       document.getElementById('addFarePanel')?.classList.remove('show');
     }
 
     // Add User
-    if (e.target.id === 'showAddU') {
+    if (hit('showAddU')) {
       panels.forEach(p => p.classList.remove('show'));
       document.getElementById('addUPanel')?.classList.add('show');
     }
-    if (e.target.id === 'cancelAddU') {
+    if (hit('cancelAddU')) {
       document.getElementById('addUPanel')?.classList.remove('show');
     }
 
     // Add Timetable
-    if (e.target.id === 'showAddTT') {
+    if (hit('showAddTT')) {
       panels.forEach(p => p.classList.remove('show'));
       document.getElementById('addTTPanel')?.classList.add('show');
     }
-    if (e.target.id === 'cancelAddTT') {
+    if (hit('cancelAddTT')) {
       document.getElementById('addTTPanel')?.classList.remove('show');
     }
 
     // Add Route
-    if (e.target.id === 'showAddRoute') {
+    if (hit('showAddRoute')) {
       panels.forEach(p => p.classList.remove('show'));
       document.getElementById('addRoutePanel')?.classList.add('show');
       // switch to create mode + open panel
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const panel = document.getElementById('addRoutePanel');
       if (panel) panel.style.display = '';
     }
-    if (e.target.id === 'cancelAddRoute') {
+    if (hit('cancelAddRoute')) {
       document.getElementById('addRoutePanel')?.classList.remove('show');
       // reset to create mode and hide
       setRouteFormMode('create');
@@ -49,20 +50,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Add Depot
-    if (e.target.id === 'showAddDepot') {
+    if (hit('showAddDepot')) {
       panels.forEach(p => p.classList.remove('show'));
       document.getElementById('addDepotPanel')?.classList.add('show');
     }
-    if (e.target.id === 'cancelAddDepot') {
+    if (hit('cancelAddDepot')) {
       document.getElementById('addDepotPanel')?.classList.remove('show');
     }
 
     // Add Owner
-    if (e.target.id === 'showAddOwner') {
+    if (hit('showAddOwner')) {
       panels.forEach(p => p.classList.remove('show'));
       document.getElementById('addOwnerPanel')?.classList.add('show');
     }
-    if (e.target.id === 'cancelAddOwner') {
+    if (hit('cancelAddOwner')) {
       document.getElementById('addOwnerPanel')?.classList.remove('show');
     }
   });
@@ -393,6 +394,70 @@ function scrollToAdminTop() {
   }
 }
 
+function syncAdminUserRoleFields(mode) {
+  const isEdit = mode === 'edit';
+
+  const roleEl = document.getElementById(isEdit ? 'edit_role' : 'create_role');
+  if (!roleEl) return;
+
+  const ownerWrap = document.getElementById(isEdit ? 'edit_private_operator_wrap' : 'create_private_operator_wrap');
+  const depotWrap = document.getElementById(isEdit ? 'edit_sltb_depot_wrap' : 'create_sltb_depot_wrap');
+  const locationWrap = document.getElementById(isEdit ? 'edit_timekeeper_location_wrap' : 'create_timekeeper_location_wrap');
+
+  const ownerSelect = isEdit
+    ? document.getElementById('edit_private_operator_id')
+    : document.querySelector('#addUPanel select[name="private_operator_id"]');
+  const depotSelect = isEdit
+    ? document.getElementById('edit_sltb_depot_id')
+    : document.querySelector('#addUPanel select[name="sltb_depot_id"]');
+  const locationInput = document.getElementById(isEdit ? 'edit_timekeeper_location' : 'create_timekeeper_location');
+
+  const role = roleEl.value || '';
+  const isTimekeeper = role === 'SLTBTimekeeper' || role === 'PrivateTimekeeper';
+  const isOwner = role === 'PrivateBusOwner';
+  const isDepotRole = role === 'DepotManager' || role === 'DepotOfficer';
+
+  if (ownerWrap) ownerWrap.style.display = isOwner ? '' : 'none';
+  if (depotWrap) depotWrap.style.display = isDepotRole ? '' : 'none';
+  if (locationWrap) locationWrap.style.display = isTimekeeper ? '' : 'none';
+
+  if (ownerSelect) {
+    ownerSelect.required = isOwner;
+    if (!isOwner) ownerSelect.value = '';
+  }
+  if (depotSelect) {
+    depotSelect.required = isDepotRole;
+    if (!isDepotRole) depotSelect.value = '';
+  }
+  if (locationInput) {
+    locationInput.required = isTimekeeper;
+    if (!isTimekeeper) locationInput.value = '';
+    if (isTimekeeper && !locationInput.value.trim()) locationInput.value = 'Common';
+  }
+}
+
+function syncCreateUserRoleFields() {
+  syncAdminUserRoleFields('create');
+}
+
+function syncEditUserRoleFields() {
+  syncAdminUserRoleFields('edit');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const createRole = document.getElementById('create_role');
+  if (createRole) {
+    createRole.addEventListener('change', syncCreateUserRoleFields);
+    syncCreateUserRoleFields();
+  }
+
+  const editRole = document.getElementById('edit_role');
+  if (editRole) {
+    editRole.addEventListener('change', syncEditUserRoleFields);
+    syncEditUserRoleFields();
+  }
+});
+
 // ===== Edit User (open + prefill) =====
 document.addEventListener('click', e => {
   const editBtn = e.target.closest('.btn-edit');
@@ -417,8 +482,12 @@ document.addEventListener('click', e => {
 
   const poSel = document.getElementById('edit_private_operator_id');
   const dpSel = document.getElementById('edit_sltb_depot_id');
+  const tkLoc = document.getElementById('edit_timekeeper_location');
   if (poSel) poSel.value = d.privateOperatorId || '';
   if (dpSel) dpSel.value = d.sltbDepotId || '';
+  if (tkLoc) tkLoc.value = d.timekeeperLocation || '';
+
+  syncEditUserRoleFields();
 
   const pw = document.getElementById('edit_password');
   if (pw) pw.value = '';

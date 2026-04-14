@@ -201,6 +201,7 @@ public function timetables() {
             'users'=>$m->list($filters),
             'owners'=>$m->owners(),
             'depots'=>$m->depots(),
+            'timekeeperLocations'=>$m->timekeeperLocations(),
             'filters'=>$filters
         ]);
     }

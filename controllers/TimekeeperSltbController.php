@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\controllers;
 
 use App\controllers\BaseController;
+use App\models\common\TimekeeperMessageModel;
 
 use App\models\timekeeper_sltb\DashboardModel;
 use App\models\timekeeper_sltb\TripEntryModel;
@@ -30,7 +31,7 @@ class TimekeeperSltbController extends BaseController
         return (int)($u['user_id'] ?? $u['id'] ?? 0);
     }
 
-    /** Resolve depot id from session or DB (works if either sltb_depot_id or depot_id exists) */
+    /** Resolve depot id from session or DB */
     private function myDepotId(): int
     {
         $u = $this->me();
@@ -42,8 +43,8 @@ class TimekeeperSltbController extends BaseController
 
         try {
             $pdo = $GLOBALS['db'];
-            $st = $pdo->prepare("SELECT COALESCE(sltb_depot_id, depot_id, 0) FROM users WHERE (id=? OR user_id=?) LIMIT 1");
-            $st->execute([$uid, $uid]);
+            $st = $pdo->prepare("SELECT COALESCE(sltb_depot_id, 0) FROM users WHERE user_id=? LIMIT 1");
+            $st->execute([$uid]);
             return (int)$st->fetchColumn();
         } catch (\Throwable $e) {
             return 0;
@@ -67,7 +68,95 @@ class TimekeeperSltbController extends BaseController
     {
         $m = new DashboardModel();
         $stats = $m->stats();
-        $this->view('timekeeper_sltb', 'dashboard', [ 'stats' => $stats ]);
+        $this->view('timekeeper_sltb', 'dashboard', [
+            'stats' => $stats,
+            'S' => ['depot_name' => $stats['depot_name'] ?? 'My Depot'],
+        ]);
+    }
+
+    /** /TS/live — depot-scoped live tracking JSON endpoint for dashboard map */
+    public function live(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+        $depotId = $this->myDepotId();
+        if (!isset($GLOBALS['db'])) {
+            echo '[]';
+            return;
+        }
+
+        $pdo = $GLOBALS['db'];
+
+        try {
+            $scopeCond = $depotId > 0 ? " AND sb.sltb_depot_id = :depot_id" : "";
+            $stmt = $pdo->prepare(
+                "SELECT
+                     tm.bus_reg_no                   AS busId,
+                     tm.operator_type                AS operatorType,
+                     ROUND(tm.speed, 1)              AS speedKmh,
+                     tm.lat,
+                     tm.lng,
+                     tm.heading,
+                     tm.operational_status           AS operationalStatus,
+                     tm.snapshot_at                  AS snapshotAt,
+                     r.route_no                      AS routeNo,
+                     sd.name                         AS depot,
+                     sb.sltb_depot_id                AS depotId
+                 FROM tracking_monitoring tm
+                 INNER JOIN (
+                     SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                     FROM tracking_monitoring
+                     GROUP BY bus_reg_no
+                 ) latest
+                     ON latest.bus_reg_no = tm.bus_reg_no
+                    AND latest.max_snap   = tm.snapshot_at
+                 JOIN sltb_buses sb
+                     ON sb.reg_no = tm.bus_reg_no
+                    AND LOWER(COALESCE(sb.status, '')) <> 'inactive'{$scopeCond}
+                 LEFT JOIN sltb_depots sd ON sd.sltb_depot_id = sb.sltb_depot_id
+                 LEFT JOIN routes r      ON r.route_id = tm.route_id
+                 ORDER BY tm.snapshot_at DESC"
+            );
+            $params = [];
+            if ($depotId > 0) {
+                $params[':depot_id'] = $depotId;
+            }
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            error_log('[timekeeper-sltb live] query error: ' . $e->getMessage());
+            echo '[]';
+            return;
+        }
+
+        if (empty($rows)) {
+            echo '[]';
+            return;
+        }
+
+        $out = array_map(static function (array $r) use ($depotId): array {
+            $rowDepotId = (int)($r['depotId'] ?? 0);
+            return [
+                'busId'             => $r['busId'],
+                'routeNo'           => $r['routeNo'] ?? '',
+                'speedKmh'          => (float)($r['speedKmh'] ?? 0),
+                'operatorType'      => 'SLTB',
+                'depot'             => $r['depot'] ?: ('Depot #' . ($rowDepotId > 0 ? $rowDepotId : $depotId)),
+                'depotId'           => $rowDepotId > 0 ? $rowDepotId : ($depotId > 0 ? $depotId : null),
+                'owner'             => null,
+                'ownerId'           => null,
+                'lat'               => $r['lat'] !== null ? (float)$r['lat'] : null,
+                'lng'               => $r['lng'] !== null ? (float)$r['lng'] : null,
+                'heading'           => $r['heading'] !== null ? (int)$r['heading'] : null,
+                'operationalStatus' => $r['operationalStatus'] ?? 'OnTime',
+                'snapshotAt'        => $r['snapshotAt'],
+                'updatedAt'         => $r['snapshotAt'],
+                'inDb'              => true,
+            ];
+        }, $rows);
+
+        echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
     public function entry()
@@ -103,7 +192,7 @@ class TimekeeperSltbController extends BaseController
         // --- GET ---
         $this->view('timekeeper_sltb', 'trip_entry', [
             'rows'     => $m->todayList(),
-            'point'    => $m->myPoint(),
+            'location' => $m->myLocationLabel(),
             'upcoming' => $m->upcoming(60),
         ]);
     }
@@ -123,6 +212,43 @@ class TimekeeperSltbController extends BaseController
             'h_from'     => $hFrom,
             'h_to'       => $hTo,
             'h_bus'      => $hBus ?? '',
+        ]);
+    }
+
+    /** /TS/messages */
+    public function messages(): void
+    {
+        $uid = $this->myUserId();
+        if ($uid <= 0) {
+            $this->redirect('/login');
+            return;
+        }
+
+        $model = new TimekeeperMessageModel();
+        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'message', 'alert'], true)
+            ? (string)$_GET['filter']
+            : 'all';
+
+        $action = (string)($_GET['action'] ?? '');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'read' && isset($_GET['id'])) {
+            $ok = $model->markRead((int)$_GET['id'], $uid);
+            $this->redirect('/TS/messages?filter=' . rawurlencode($filter) . '&msg=' . ($ok ? 'read' : 'error'));
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'read_all') {
+            $ok = $model->markAllRead($uid);
+            $this->redirect('/TS/messages?filter=' . rawurlencode($filter) . '&msg=' . ($ok ? 'read_all' : 'error'));
+            return;
+        }
+
+        $tripModel = new TripEntryModel();
+        $this->view('timekeeper_sltb', 'messages', [
+            'S'            => $tripModel->info(),
+            'recent'       => $model->recentForUser($uid, 80, $filter),
+            'filter'       => $filter,
+            'unread_count' => $model->unreadCount($uid),
+            'msg'          => $_GET['msg'] ?? null,
         ]);
     }
 

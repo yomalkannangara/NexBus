@@ -1,12 +1,10 @@
 <?php
-/* vars: rows, point, upcoming */
-$point     = $point     ?? 'start';
-$rows      = $rows      ?? [];
-$upcoming  = $upcoming  ?? [];
-$me        = $_SESSION['user'] ?? [];
-$depotName = 'Depot';
+/* vars: rows, location, upcoming */
+$location = trim((string)($location ?? 'Common'));
+$rows = $rows ?? [];
+$upcoming = $upcoming ?? [];
 
-$roleLabel = ($point === 'end') ? 'End-Point Timekeeper' : 'Start-Point Timekeeper';
+$roleLabel = 'Stop: ' . ($location !== '' ? $location : 'Common');
 
 /* ── Cancel reasons ── */
 $cancelReasons = [
@@ -31,6 +29,24 @@ function tke_badge(string $status): string {
         'Absent'    => '<span class="tke-badge tke-badge--darkgrey">Absent</span>',
         default     => '<span class="tke-badge tke-badge--grey">'.htmlspecialchars($status).'</span>',
     };
+}
+
+function tke_delay_text(int $seconds): string {
+    if ($seconds <= 0) {
+        return 'On time';
+    }
+    $h = intdiv($seconds, 3600);
+    $m = intdiv($seconds % 3600, 60);
+    $s = $seconds % 60;
+    $parts = [];
+    if ($h > 0) {
+        $parts[] = $h . 'h';
+    }
+    if ($m > 0 || $h > 0) {
+        $parts[] = $m . 'm';
+    }
+    $parts[] = $s . 's';
+    return '+' . implode(' ', $parts);
 }
 ?>
 
@@ -107,7 +123,11 @@ function tke_badge(string $status): string {
 }
 .tke-table tbody tr:last-child td { border-bottom: none; }
 .tke-table tbody tr:hover td { background: #fffdf6; }
+.tke-table tbody tr.tke-row-current td { background: #fff4cc; }
+.tke-table tbody tr.tke-row-current:hover td { background: #ffeaa0; }
 .tke-table .mono { font-family: 'Courier New', monospace; font-weight: 700; }
+.tke-delay-note { font-size: .7rem; color: #9a3412; margin-top: 3px; font-weight: 700; }
+.tke-current-note { font-size: .7rem; color: #92400e; margin-top: 3px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
 .tke-table .bus-link {
     color: var(--maroon); font-weight: 700;
     text-decoration: underline; text-underline-offset: 2px;
@@ -217,7 +237,7 @@ function tke_badge(string $status): string {
 <div class="tke-notify-bar">
     <div class="tke-notify-bar__title">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        <?= $point === 'start' ? 'Upcoming Departures' : 'Expected Arrivals' ?> (next 60 min)
+        Upcoming Departures (next 60 min)
     </div>
     <div class="tke-notify-pills">
         <?php foreach ($upcoming as $u): ?>
@@ -258,16 +278,13 @@ function tke_badge(string $status): string {
             <th>Route</th>
             <th>Turn</th>
             <th>Scheduled Dep</th>
-            <?php if ($point === 'end'): ?>
-            <th>Expected Arr</th>
-            <th>From Depot</th>
-            <?php endif; ?>
+            <th>Start Delay</th>
             <th>Status</th>
             <th>Actions</th>
         </tr></thead>
         <tbody>
         <?php if (empty($rows)): ?>
-        <tr><td colspan="<?= $point === 'end' ? 8 : 6 ?>" class="tke-empty">
+        <tr><td colspan="7" class="tke-empty">
             <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
             <p>No trips scheduled for today.</p>
         </td></tr>
@@ -276,8 +293,11 @@ function tke_badge(string $status): string {
             $ttId     = (int)($r['timetable_id'] ?? 0);
             $status   = $r['ui_status'] ?? 'Scheduled';
             $turn     = (int)($r['turn_no'] ?? 0);
+            $startDelaySec = (int)($r['start_delay_seconds'] ?? 0);
+            $canManage = !empty($r['can_manage']);
+            $isCurrentSchedule = !empty($r['is_current_schedule']);
         ?>
-        <tr data-trip-id="<?= $tripId ?>" data-tt-id="<?= $ttId ?>">
+        <tr class="<?= $isCurrentSchedule ? 'tke-row-current' : '' ?>" data-trip-id="<?= $tripId ?>" data-tt-id="<?= $ttId ?>">
             <td><a class="bus-link tke-table" href="/TS/dashboard?focus_bus=<?= urlencode((string)($r['bus_reg_no'] ?? '')) ?>">
                 <?= htmlspecialchars((string)($r['bus_reg_no'] ?? '—')) ?>
             </a></td>
@@ -287,32 +307,29 @@ function tke_badge(string $status): string {
             </td>
             <td class="mono"><?= $turn > 0 ? "Turn $turn" : '—' ?></td>
             <td class="mono"><?= htmlspecialchars(substr($r['sched_dep'] ?? '—', 0, 5)) ?></td>
-            <?php if ($point === 'end'): ?>
-            <td class="mono"><?= htmlspecialchars(substr($r['sched_arr'] ?? '—', 0, 5)) ?></td>
-            <td style="font-size:.78rem;color:#6b7280;"><?= htmlspecialchars((string)($r['origin_depot'] ?? '—')) ?></td>
-            <?php endif; ?>
-            <td><?= tke_badge($status) ?></td>
+            <td class="mono"><?= $startDelaySec > 0 ? htmlspecialchars(tke_delay_text($startDelaySec)) : '—' ?></td>
+            <td>
+                <?= tke_badge($status) ?>
+                <?php if ($isCurrentSchedule): ?>
+                <div class="tke-current-note">Current Scheduled Window</div>
+                <?php endif; ?>
+                <?php if ($startDelaySec > 0): ?>
+                <div class="tke-delay-note">Started <?= htmlspecialchars(tke_delay_text($startDelaySec)) ?> late</div>
+                <?php endif; ?>
+            </td>
             <td>
                 <div class="tke-actions">
-                <?php if ($point === 'start'): ?>
-                    <?php if ($status === 'Scheduled'): ?>
-                        <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>)">
-                            &#9654; Start Journey
-                        </button>
-                    <?php elseif ($status === 'Running' || $status === 'Delayed'): ?>
-                        <button class="tke-btn tke-btn-cancel" onclick="tkeOpenCancel(<?= $tripId ?>)">
-                            &#215; Cancel Trip
-                        </button>
-                    <?php endif; ?>
-                <?php elseif ($point === 'end'): ?>
-                    <?php if ($status === 'Running' || $status === 'Delayed'): ?>
-                        <button class="tke-btn tke-btn-arrive" onclick="tkeArrive(<?= $tripId ?>, this)">
-                            &#10003; Mark Arrived
-                        </button>
-                        <button class="tke-btn tke-btn-cancel" onclick="tkeOpenCancel(<?= $tripId ?>)">
-                            &#215; Cancel Trip
-                        </button>
-                    <?php endif; ?>
+                <?php if ($status === 'Scheduled'): ?>
+                    <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>)">
+                        &#9654; Start Journey
+                    </button>
+                <?php elseif ($canManage): ?>
+                    <button class="tke-btn tke-btn-arrive" onclick="tkeArrive(<?= $tripId ?>, this)">
+                        &#10003; Mark Arrived
+                    </button>
+                    <button class="tke-btn tke-btn-cancel" onclick="tkeOpenCancel(<?= $tripId ?>)">
+                        &#215; Cancel Trip
+                    </button>
                 <?php endif; ?>
                 </div>
             </td>
@@ -371,7 +388,7 @@ function tke_badge(string $status): string {
         if (btn) btn.disabled = true;
         var fd = new FormData();
         Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
-        fetch('/TS/entry', { method: 'POST', body: fd })
+        fetch('/TS/trip_entry', { method: 'POST', body: fd })
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (btn) btn.disabled = false;
