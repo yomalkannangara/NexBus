@@ -46,6 +46,42 @@ class DashboardModel extends BaseModel
         return array_slice($rows, 0, 20);
     }
 
+    /**
+     * Six real-time KPI stats for the dashboard cards.
+     * Uses $GLOBALS['db'] directly because the constructor is overridden (dummy-data mode).
+     */
+    public function stats(int $depotId): array
+    {
+        $zero = [
+            'activeBuses'      => 0,
+            'maintBuses'       => 0,
+            'driversOnDuty'    => 0,
+            'conductorsOnDuty' => 0,
+            'tripsCompleted'   => 0,
+            'delayedTrips'     => 0,
+        ];
+        if (!isset($GLOBALS['db'])) return $zero;
+        try {
+            $pdo = $GLOBALS['db'];
+            $cnt = function (string $sql, array $p = []) use ($pdo): int {
+                $st = $pdo->prepare($sql);
+                $st->execute($p);
+                return (int) ($st->fetchColumn() ?? 0);
+            };
+            $d = $depotId;
+            return [
+                'activeBuses'      => $cnt("SELECT COUNT(DISTINCT bus_reg_no) FROM sltb_trips WHERE sltb_depot_id=? AND trip_date=CURDATE() AND status IN ('InProgress','Completed')", [$d]),
+                'maintBuses'       => $cnt("SELECT COUNT(*) FROM sltb_buses WHERE sltb_depot_id=? AND status='Maintenance'", [$d]),
+                'driversOnDuty'    => $cnt("SELECT COUNT(DISTINCT sltb_driver_id) FROM sltb_assignments WHERE sltb_depot_id=? AND assigned_date=CURDATE()", [$d]),
+                'conductorsOnDuty' => $cnt("SELECT COUNT(DISTINCT sltb_conductor_id) FROM sltb_assignments WHERE sltb_depot_id=? AND assigned_date=CURDATE()", [$d]),
+                'tripsCompleted'   => $cnt("SELECT COUNT(*) FROM sltb_trips WHERE sltb_depot_id=? AND trip_date=CURDATE() AND status='Completed'", [$d]),
+                'delayedTrips'     => $cnt("SELECT COUNT(DISTINCT tm.bus_reg_no) FROM tracking_monitoring tm JOIN sltb_buses b ON tm.bus_reg_no=b.reg_no WHERE b.sltb_depot_id=? AND tm.operational_status='Delayed' AND DATE(tm.snapshot_at)=CURDATE()", [$d]),
+            ];
+        } catch (\Throwable $e) {
+            return $zero;
+        }
+    }
+
     /** Fake live tracking feed (what tracking_monitoring JOIN routes would have returned) */
     private function seedTracking(): array
     {

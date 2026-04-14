@@ -22,23 +22,36 @@ class TrackingModel extends BaseModel
         // build base query and params
         $sql = "
         SELECT
-            t.sltb_trip_id,
-            COALESCE(t.trip_date, CURDATE())               AS trip_date,
-            r.route_no                                     AS route,
+            t.sltb_trip_id                                              AS timekeeper_id,
+            COALESCE(t.trip_date, CURDATE())                            AS trip_date,
+            r.route_no                                                  AS route,
             COALESCE(t.turn_no,
                      ROW_NUMBER() OVER (
                         PARTITION BY t.bus_reg_no, COALESCE(t.trip_date, CURDATE())
-                        ORDER BY t.departure_time
+                        ORDER BY COALESCE(t.scheduled_departure_time, t.departure_time)
                      )
-            )                                              AS turn_number,
-            t.bus_reg_no                                   AS bus_id,
+            )                                                           AS turn_number,
+            t.bus_reg_no                                                AS bus_id,
+            COALESCE(sd.full_name, '—')                                 AS driver,
+            t.scheduled_departure_time                                  AS scheduled_dep,
+            t.departure_time                                            AS actual_dep,
             t.departure_time,
             t.arrival_time,
-            t.status
+            t.status,
+            CASE
+                WHEN t.cancelled_at IS NOT NULL
+                    THEN t.cancelled_at
+                WHEN t.arrival_time IS NOT NULL
+                    THEN CONCAT(COALESCE(t.trip_date, CURDATE()), ' ', t.arrival_time)
+                WHEN t.departure_time IS NOT NULL
+                    THEN CONCAT(COALESCE(t.trip_date, CURDATE()), ' ', t.departure_time)
+                ELSE CONCAT(COALESCE(t.trip_date, CURDATE()), ' 00:00:00')
+            END                                                         AS last_updated
         FROM sltb_trips t
-        LEFT JOIN timetables tt ON tt.timetable_id = t.timetable_id
-        LEFT JOIN routes r       ON r.route_id = COALESCE(t.route_id, tt.route_id)
-        INNER JOIN sltb_buses b  ON b.reg_no = t.bus_reg_no
+        LEFT JOIN timetables tt   ON tt.timetable_id = t.timetable_id
+        LEFT JOIN routes r        ON r.route_id = COALESCE(t.route_id, tt.route_id)
+        LEFT JOIN sltb_drivers sd ON sd.sltb_driver_id = t.sltb_driver_id
+        INNER JOIN sltb_buses b   ON b.reg_no = t.bus_reg_no
         WHERE b.sltb_depot_id = :depot
           AND COALESCE(t.trip_date, CURDATE()) BETWEEN :from AND :to
         ";
