@@ -1,11 +1,8 @@
 <?php
-/* vars: rows, upcoming, hist_rows, hist_buses, h_from, h_to, h_bus, active_tab, S */
-$rows      = $rows      ?? [];
-$upcoming  = $upcoming  ?? [];
-$histRows  = $hist_rows ?? [];
-$histBuses = $hist_buses ?? [];
-$activeTab = $active_tab ?? 'schedule';
-$S         = $S ?? ['depot_name' => 'Operator'];
+/* vars: rows, upcoming, S */
+$rows     = $rows     ?? [];
+$upcoming = $upcoming ?? [];
+$S        = $S ?? ['depot_name' => 'Operator'];
 
 /* ── Cancel reasons ── */
 $cancelReasons = [
@@ -77,23 +74,6 @@ function tke_badge(string $status): string {
     color: #fff; padding: 6px 14px; border-radius: 99px;
     font-size: .78rem; font-weight: 700; letter-spacing: .04em;
 }
-
-/* Tabs */
-.tke-tabs {
-    display: flex; gap: 4px; background: #f3f4f6;
-    border-radius: 10px; padding: 4px; width: fit-content;
-}
-.tke-tab {
-    padding: 8px 20px; border-radius: 7px; border: none; cursor: pointer;
-    font-size: .85rem; font-weight: 700; color: #6b7280; background: transparent;
-    transition: background .2s, color .2s, box-shadow .2s;
-}
-.tke-tab.active {
-    background: #fff; color: var(--maroon);
-    box-shadow: 0 2px 8px rgba(0,0,0,.1);
-}
-.tke-tab-panel { display: none; }
-.tke-tab-panel.active { display: block; }
 
 /* Table card */
 .tke-card {
@@ -171,42 +151,6 @@ function tke_badge(string $status): string {
 .tke-empty svg { margin-bottom: 12px; }
 .tke-empty p { margin: 0; font-size: .9rem; }
 
-/* History filter */
-.tke-hist-filter {
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(17,24,39,.07);
-    border-left: 4px solid var(--gold);
-    padding: 12px 18px; margin-bottom: 14px;
-}
-.tke-hist-filter form {
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
-}
-.tke-hist-field { display: grid; gap: 3px; }
-.tke-hist-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--maroon); }
-.tke-hist-field input,
-.tke-hist-field select {
-    border: 1.5px solid #e8d39a; border-radius: 7px;
-    padding: 7px 10px; font-size: .83rem; background: #fffdf6; color: #2b2b2b;
-}
-.tke-hist-field input:focus,
-.tke-hist-field select:focus { outline: none; border-color: var(--gold); }
-.tke-hist-submit {
-    background: var(--maroon); color: #fff; border: none;
-    padding: 8px 16px; border-radius: 7px; font-size: .83rem; font-weight: 700;
-    cursor: pointer; align-self: flex-end;
-}
-.tke-hist-submit:hover { background: #a8274e; }
-
-/* Hist status badges */
-.hist-badge {
-    display: inline-block; padding: 3px 10px; border-radius: 99px;
-    font-size: .72rem; font-weight: 800;
-}
-.hist-completed { background: #dcfce7; color: #14532d; }
-.hist-delayed   { background: #ffedd5; color: #9a3412; }
-.hist-cancelled { background: #fee2e2; color: #991b1b; }
-.hist-absent    { background: #e5e7eb; color: #374151; }
-
 /* Cancel modal */
 .tke-modal-overlay {
     display: none; position: fixed; inset: 0;
@@ -259,9 +203,6 @@ function tke_badge(string $status): string {
 .tke-toast.error   { background: #dc2626; }
 @keyframes tkeSlideUp { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
 
-@media(max-width:700px){
-    .tke-hist-filter form { gap: 8px; }
-}
 </style>
 
 <!-- ══ NOTIFICATION BAR ═══════════════════════════════════════════════ -->
@@ -296,16 +237,8 @@ function tke_badge(string $status): string {
     </div>
 </div>
 
-<!-- ══ TABS ══════════════════════════════════════════════════════════ -->
-<div class="tke-tabs">
-    <button class="tke-tab <?= $activeTab === 'schedule' ? 'active' : '' ?>"
-            onclick="tkeSwitchTab('schedule')">Turn Schedule</button>
-    <button class="tke-tab <?= $activeTab === 'history' ? 'active' : '' ?>"
-            onclick="tkeSwitchTab('history')">History</button>
-</div>
-
-<!-- ══ SCHEDULE TAB ═══════════════════════════════════════════════════ -->
-<div id="tke-panel-schedule" class="tke-tab-panel <?= $activeTab === 'schedule' ? 'active' : '' ?>">
+<!-- ══ SCHEDULE ══════════════════════════════════════════════════════ -->
+<div>
 <div class="tke-card">
     <div class="tke-card-head">
         <h2>Today's Turn Schedule — <?= date('d M Y') ?></h2>
@@ -368,89 +301,6 @@ function tke_badge(string $status): string {
 </div>
 </div>
 
-<!-- ══ HISTORY TAB ════════════════════════════════════════════════════ -->
-<div id="tke-panel-history" class="tke-tab-panel <?= $activeTab === 'history' ? 'active' : '' ?>">
-
-<div class="tke-hist-filter">
-<form method="get" action="/TP/trip_entry">
-    <input type="hidden" name="tab" value="history">
-    <div class="tke-hist-field">
-        <span class="tke-hist-label">From</span>
-        <input type="date" name="h_from" value="<?= htmlspecialchars($h_from ?? date('Y-m-d')) ?>" max="<?= date('Y-m-d') ?>">
-    </div>
-    <div class="tke-hist-field">
-        <span class="tke-hist-label">To</span>
-        <input type="date" name="h_to" value="<?= htmlspecialchars($h_to ?? date('Y-m-d')) ?>" max="<?= date('Y-m-d') ?>">
-    </div>
-    <div class="tke-hist-field">
-        <span class="tke-hist-label">Bus No</span>
-        <select name="h_bus">
-            <option value="">All Buses</option>
-            <?php foreach ($histBuses as $b): ?>
-            <option value="<?= htmlspecialchars($b) ?>" <?= ($h_bus ?? '') === $b ? 'selected' : '' ?>>
-                <?= htmlspecialchars($b) ?>
-            </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <button type="submit" class="tke-hist-submit">Filter</button>
-</form>
-</div>
-
-<div class="tke-card">
-    <div class="tke-card-head">
-        <h2>Trip History</h2>
-        <span class="meta"><?= count($histRows) ?> record<?= count($histRows) !== 1 ? 's' : '' ?></span>
-    </div>
-    <div class="tke-wrap">
-    <table class="tke-table" style="min-width:680px">
-        <thead><tr>
-            <th>Date</th><th>Bus No</th><th>Route</th><th>Turn</th>
-            <th>Dep Time</th><th>Arr Time</th><th>Status</th>
-        </tr></thead>
-        <tbody>
-        <?php if (empty($histRows)): ?>
-        <tr><td colspan="7" class="tke-empty">
-            <p>No records found for the selected range.</p>
-        </td></tr>
-        <?php else: foreach ($histRows as $hr):
-            $hs = $hr['ui_status'] ?? '';
-            $hBadgeCls = match($hs) {
-                'Completed' => 'hist-completed',
-                'Delayed'   => 'hist-delayed',
-                'Cancelled' => 'hist-cancelled',
-                'Absent'    => 'hist-absent',
-                default     => 'hist-absent',
-            };
-        ?>
-        <tr>
-            <td style="white-space:nowrap;"><?= htmlspecialchars((string)($hr['date'] ?? '')) ?></td>
-            <td><a class="bus-link tke-table" href="/TP/dashboard?focus_bus=<?= urlencode((string)($hr['bus_reg_no'] ?? '')) ?>">
-                <?= htmlspecialchars((string)($hr['bus_reg_no'] ?? '—')) ?>
-            </a></td>
-            <td>
-                <div style="font-weight:700;"><?= htmlspecialchars($hr['route_no'] ?? '') ?></div>
-                <div style="font-size:.74rem;color:#6b7280;"><?= htmlspecialchars($hr['route_name'] ?? '') ?></div>
-            </td>
-            <td class="mono"><?= (int)($hr['turn_no'] ?? 0) > 0 ? (int)$hr['turn_no'] : '—' ?></td>
-            <td class="mono"><?= htmlspecialchars($hr['dep_time'] ?? '—') ?></td>
-            <td class="mono"><?= htmlspecialchars($hr['arr_time'] ?? '—') ?></td>
-            <td>
-                <span class="hist-badge <?= $hBadgeCls ?>"><?= htmlspecialchars($hs) ?></span>
-                <?php if (!empty($hr['cancel_reason']) && $hs === 'Cancelled'): ?>
-                <div style="font-size:.7rem;color:#6b7280;margin-top:3px;">
-                    <?= htmlspecialchars(mb_strimwidth($hr['cancel_reason'], 0, 40, '…')) ?>
-                </div>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endforeach; endif; ?>
-        </tbody>
-    </table>
-    </div>
-</div>
-</div>
-
 <!-- ══ CANCEL MODAL ═══════════════════════════════════════════════════ -->
 <div class="tke-modal-overlay" id="tke-cancel-modal">
     <div class="tke-modal">
@@ -481,13 +331,6 @@ function tke_badge(string $status): string {
 <script>
 (function () {
     var _cancelTripId = 0;
-
-    window.tkeSwitchTab = function (tab) {
-        document.querySelectorAll('.tke-tab').forEach(function (b) { b.classList.remove('active'); });
-        document.querySelectorAll('.tke-tab-panel').forEach(function (p) { p.classList.remove('active'); });
-        document.querySelector('button[onclick="tkeSwitchTab(\'' + tab + '\')"]').classList.add('active');
-        document.getElementById('tke-panel-' + tab).classList.add('active');
-    };
 
     function showToast(msg, type) {
         var t = document.createElement('div');

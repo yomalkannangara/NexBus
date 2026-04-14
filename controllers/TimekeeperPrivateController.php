@@ -44,19 +44,22 @@ class TimekeeperPrivateController extends BaseController
     public function history()
     {
         $op = $this->myOpId();
-        $m = new TripHistoryModel($op);
+        $m  = new TripEntryModel($op);
 
-        $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
-        $to = $_GET['to'] ?? date('Y-m-d');
+        $h_from = $_GET['h_from'] ?? date('Y-m-d');
+        $h_to   = $_GET['h_to']   ?? date('Y-m-d');
+        $h_bus  = $_GET['h_bus']  ?? '';
 
-        [$rows, $count] = $m->list($from, $to);
+        $hist_rows  = $m->historyList($h_from, $h_to, $h_bus ?: null);
+        $hist_buses = $m->busList();
 
         $this->view('timekeeper_private', 'history', [
-            'S' => $m->info(),
-            'from' => $from,
-            'to' => $to,
-            'rows' => $rows,
-            'count' => $count
+            'S'          => $m->info(),
+            'hist_rows'  => $hist_rows,
+            'hist_buses' => $hist_buses,
+            'h_from'     => $h_from,
+            'h_to'       => $h_to,
+            'h_bus'      => $h_bus,
         ]);
     }
 
@@ -94,25 +97,10 @@ class TimekeeperPrivateController extends BaseController
             return;
         }
 
-        // History filter params
-        $h_from = $_GET['h_from'] ?? date('Y-m-d');
-        $h_to   = $_GET['h_to']   ?? date('Y-m-d');
-        $h_bus  = $_GET['h_bus']  ?? '';
-
-        $hist_rows  = $m->historyList($h_from, $h_to, $h_bus ?: null);
-        $hist_buses = $m->busList();
-        $active_tab = (isset($_GET['tab']) && $_GET['tab'] === 'history') ? 'history' : 'schedule';
-
         $this->view('timekeeper_private', 'trip_entry', [
-            'S'          => $m->info(),
-            'rows'       => $m->todayList(),
-            'upcoming'   => $m->upcoming(60),
-            'hist_rows'  => $hist_rows,
-            'hist_buses' => $hist_buses,
-            'h_from'     => $h_from,
-            'h_to'       => $h_to,
-            'h_bus'      => $h_bus,
-            'active_tab' => $active_tab,
+            'S'        => $m->info(),
+            'rows'     => $m->todayList(),
+            'upcoming' => $m->upcoming(60),
         ]);
     }
 
