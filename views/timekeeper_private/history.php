@@ -2,6 +2,24 @@
 $S          = $S          ?? [];
 $histRows   = $hist_rows  ?? [];
 $histBuses  = $hist_buses ?? [];
+
+function tke_hist_delay_text(int $seconds): string {
+    if ($seconds <= 0) {
+        return '—';
+    }
+    $h = intdiv($seconds, 3600);
+    $m = intdiv($seconds % 3600, 60);
+    $s = $seconds % 60;
+    $parts = [];
+    if ($h > 0) {
+        $parts[] = $h . 'h';
+    }
+    if ($m > 0 || $h > 0) {
+        $parts[] = $m . 'm';
+    }
+    $parts[] = $s . 's';
+    return '+' . implode(' ', $parts);
+}
 ?>
 <style>
 :root { --maroon:#7B1C3E; --maroonDark:#5a1530; --gold:#f3b944; }
@@ -58,7 +76,7 @@ $histBuses  = $hist_buses ?? [];
 .tke-card-head h2 { margin: 0; font-size: .95rem; font-weight: 800; }
 .tke-card-head .meta { font-size: .76rem; opacity: .8; }
 .tke-wrap { overflow-x: auto; }
-.tke-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.tke-table { width: 100%; border-collapse: collapse; min-width: 860px; }
 .tke-table thead th {
     background: var(--maroon); color: #fff;
     padding: 10px 14px; font-size: .72rem; font-weight: 800;
@@ -132,14 +150,14 @@ $histBuses  = $hist_buses ?? [];
         <span class="meta"><?= count($histRows) ?> record<?= count($histRows) !== 1 ? 's' : '' ?></span>
     </div>
     <div class="tke-wrap">
-    <table class="tke-table" style="min-width:680px">
+    <table class="tke-table">
         <thead><tr>
             <th>Date</th><th>Bus No</th><th>Route</th><th>Turn</th>
-            <th>Dep Time</th><th>Arr Time</th><th>Status</th>
+            <th>Dep Time</th><th>Arr Time</th><th>Start Delay</th><th>End Delay</th><th>Status</th>
         </tr></thead>
         <tbody>
         <?php if (empty($histRows)): ?>
-        <tr><td colspan="7" class="tke-empty">
+        <tr><td colspan="9" class="tke-empty">
             <p>No records found for the selected range.</p>
         </td></tr>
         <?php else: foreach ($histRows as $hr):
@@ -163,6 +181,8 @@ $histBuses  = $hist_buses ?? [];
             <td class="mono"><?= (int)($hr['turn_no'] ?? 0) > 0 ? (int)$hr['turn_no'] : '—' ?></td>
             <td class="mono"><?= htmlspecialchars($hr['dep_time'] ?? '—') ?></td>
             <td class="mono"><?= htmlspecialchars($hr['arr_time'] ?? '—') ?></td>
+            <td class="mono"><?= htmlspecialchars(tke_hist_delay_text((int)($hr['start_delay_seconds'] ?? 0))) ?></td>
+            <td class="mono"><?= htmlspecialchars(tke_hist_delay_text((int)($hr['end_delay_seconds'] ?? 0))) ?></td>
             <td>
                 <span class="hist-badge <?= $hBadgeCls ?>"><?= htmlspecialchars($hs) ?></span>
                 <?php if (!empty($hr['cancel_reason']) && $hs === 'Cancelled'): ?>

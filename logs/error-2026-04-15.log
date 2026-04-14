@@ -4,3 +4,17 @@ Stack trace:
 #1 C:\xampp\htdocs\NexBus-1\public\index.php(205): run('TimekeeperSltbC...', 'history')
 #2 {main}
   thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 120
+[15-Apr-2026 02:31:54 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:31:54 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397
+[15-Apr-2026 02:31:56 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:31:56 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397
+[15-Apr-2026 02:31:57 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:31:57 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397
+[15-Apr-2026 02:32:50 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:32:50 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397
+[15-Apr-2026 02:32:52 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:32:52 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397
+[15-Apr-2026 02:32:52 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:32:52 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397
+[15-Apr-2026 02:32:52 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 32
+[15-Apr-2026 02:32:52 Asia/Colombo] PHP Warning:  Undefined variable $profileImage in C:\xampp\htdocs\NexBus-1\views\timekeeper_private\profile.php on line 397

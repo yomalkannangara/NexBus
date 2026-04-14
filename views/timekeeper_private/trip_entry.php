@@ -29,6 +29,24 @@ function tke_badge(string $status): string {
         default     => '<span class="tke-badge tke-badge--grey">'.htmlspecialchars($status).'</span>',
     };
 }
+
+function tke_delay_text(int $seconds): string {
+    if ($seconds <= 0) {
+        return 'On time';
+    }
+    $h = intdiv($seconds, 3600);
+    $m = intdiv($seconds % 3600, 60);
+    $s = $seconds % 60;
+    $parts = [];
+    if ($h > 0) {
+        $parts[] = $h . 'h';
+    }
+    if ($m > 0 || $h > 0) {
+        $parts[] = $m . 'm';
+    }
+    $parts[] = $s . 's';
+    return '+' . implode(' ', $parts);
+}
 ?>
 
 <style>
@@ -104,7 +122,11 @@ function tke_badge(string $status): string {
 }
 .tke-table tbody tr:last-child td { border-bottom: none; }
 .tke-table tbody tr:hover td { background: #fffdf6; }
+.tke-table tbody tr.tke-row-current td { background: #fff4cc; }
+.tke-table tbody tr.tke-row-current:hover td { background: #ffeaa0; }
 .tke-table .mono { font-family: 'Courier New', monospace; font-weight: 700; }
+.tke-delay-note { font-size: .7rem; color: #9a3412; margin-top: 3px; font-weight: 700; }
+.tke-current-note { font-size: .7rem; color: #92400e; margin-top: 3px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
 .tke-table .bus-link {
     color: var(--maroon); font-weight: 700;
     text-decoration: underline; text-underline-offset: 2px;
@@ -255,12 +277,13 @@ function tke_badge(string $status): string {
             <th>Route</th>
             <th>Turn</th>
             <th>Scheduled Dep</th>
+            <th>Start Delay</th>
             <th>Status</th>
             <th>Actions</th>
         </tr></thead>
         <tbody>
         <?php if (empty($rows)): ?>
-        <tr><td colspan="6" class="tke-empty">
+        <tr><td colspan="7" class="tke-empty">
             <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
             <p>No trips scheduled for today.</p>
         </td></tr>
@@ -269,8 +292,11 @@ function tke_badge(string $status): string {
             $ttId   = (int)($r['timetable_id'] ?? 0);
             $status = $r['ui_status'] ?? 'Scheduled';
             $turn   = (int)($r['turn_no']      ?? 0);
+            $startDelaySec = (int)($r['start_delay_seconds'] ?? 0);
+            $canManage = !empty($r['can_manage']);
+            $isCurrentSchedule = !empty($r['is_current_schedule']);
         ?>
-        <tr data-trip-id="<?= $tripId ?>" data-tt-id="<?= $ttId ?>">
+        <tr class="<?= $isCurrentSchedule ? 'tke-row-current' : '' ?>" data-trip-id="<?= $tripId ?>" data-tt-id="<?= $ttId ?>">
             <td><a class="bus-link tke-table" href="/TP/dashboard?focus_bus=<?= urlencode((string)($r['bus_reg_no'] ?? '')) ?>">
                 <?= htmlspecialchars((string)($r['bus_reg_no'] ?? '—')) ?>
             </a></td>
@@ -280,14 +306,23 @@ function tke_badge(string $status): string {
             </td>
             <td class="mono"><?= $turn > 0 ? "Turn $turn" : '—' ?></td>
             <td class="mono"><?= htmlspecialchars(substr($r['sched_dep'] ?? '—', 0, 5)) ?></td>
-            <td><?= tke_badge($status) ?></td>
+            <td class="mono"><?= $startDelaySec > 0 ? htmlspecialchars(tke_delay_text($startDelaySec)) : '—' ?></td>
+            <td>
+                <?= tke_badge($status) ?>
+                <?php if ($isCurrentSchedule): ?>
+                <div class="tke-current-note">Current Scheduled Window</div>
+                <?php endif; ?>
+                <?php if ($startDelaySec > 0): ?>
+                <div class="tke-delay-note">Started <?= htmlspecialchars(tke_delay_text($startDelaySec)) ?> late</div>
+                <?php endif; ?>
+            </td>
             <td>
                 <div class="tke-actions">
                 <?php if ($status === 'Scheduled'): ?>
                     <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>)">
                         &#9654; Start Journey
                     </button>
-                <?php elseif ($status === 'Running' || $status === 'Delayed'): ?>
+                <?php elseif ($canManage): ?>
                     <button class="tke-btn tke-btn-arrive" onclick="tkeArrive(<?= $tripId ?>, this)">
                         &#10003; Mark Arrived
                     </button>

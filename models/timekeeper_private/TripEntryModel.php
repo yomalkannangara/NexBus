@@ -219,6 +219,29 @@ class TripEntryModel extends BaseModel
         return "$first - $last";
     }
 
+    private function delaySeconds(string $scheduledTime, ?string $actualTime = null): int
+    {
+        $scheduled = trim($scheduledTime);
+        if ($scheduled === '') {
+            return 0;
+        }
+
+        $actual = trim((string)($actualTime ?? date('H:i:s')));
+        if ($actual === '') {
+            return 0;
+        }
+
+        $baseDate = date('Y-m-d');
+        $schedTs = strtotime($baseDate . ' ' . $scheduled);
+        $actualTs = strtotime($baseDate . ' ' . $actual);
+        if ($schedTs === false || $actualTs === false) {
+            return 0;
+        }
+
+        $delta = $actualTs - $schedTs;
+        return $delta > 0 ? $delta : 0;
+    }
+
     /* ── Schedule list ────────────────────────────────────────────── */
 
     /**
@@ -241,6 +264,9 @@ class TripEntryModel extends BaseModel
             p.private_trip_id         AS trip_id,
             COALESCE(p.status,'Planned') AS trip_status,
             COALESCE(p.turn_no, 0)    AS turn_no,
+            TIME(p.arrival_time)      AS actual_arr,
+            COALESCE(p.start_delay_seconds, 0) AS start_delay_seconds,
+            COALESCE(p.end_delay_seconds, 0)   AS end_delay_seconds,
             (p.private_trip_id IS NOT NULL) AS already_today
         FROM timetables tt
         JOIN private_buses pb ON pb.reg_no = tt.bus_reg_no
@@ -248,14 +274,25 @@ class TripEntryModel extends BaseModel
         JOIN routes r ON r.route_id = tt.route_id
         LEFT JOIN private_trips p
                ON p.timetable_id = tt.timetable_id AND p.trip_date = CURDATE()
-        ORDER BY TIME(tt.departure_time), r.route_no+0, r.route_no";
+                WHERE tt.operator_type = 'Private'
+                    AND tt.day_of_week = :dow
+                ORDER BY CASE
+                                     WHEN CURRENT_TIME() BETWEEN TIME(tt.departure_time)
+                                                                                    AND IFNULL(TIME(tt.arrival_time),'23:59:59') THEN 0
+                                     WHEN TIME(tt.departure_time) >= CURRENT_TIME() THEN 1
+                                     ELSE 2
+                                 END,
+                                 ABS(TIME_TO_SEC(TIMEDIFF(TIME(tt.departure_time), CURRENT_TIME()))),
+               TIME(tt.departure_time), r.route_no+0, r.route_no";
 
         $st = $this->pdo->prepare($sql);
-        $params = $this->hasOperatorScope() ? [':op' => $this->opId] : [];
+                $params = [':dow' => (int)date('w')];
+                if ($this->hasOperatorScope()) {
+                        $params[':op'] = $this->opId;
+                }
         $st->execute($params);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 
-        $now = date('H:i:s');
         $filtered = [];
         foreach ($rows as &$r) {
             if (!$this->routeContainsLocation((string)($r['stops_json'] ?? '[]'))) {
@@ -263,16 +300,25 @@ class TripEntryModel extends BaseModel
             }
             $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
             $ts  = (string)($r['trip_status'] ?? '');
-            $arr = (string)($r['sched_arr']   ?? '');
-            if ($ts === 'InProgress') {
-                $r['ui_status'] = ($arr && $now > $arr) ? 'Delayed' : 'Running';
+            $actualArr = trim((string)($r['actual_arr'] ?? ''));
+            $startDelay = (int)($r['start_delay_seconds'] ?? 0);
+            $endDelay = (int)($r['end_delay_seconds'] ?? 0);
+            $isRunning = $actualArr === '' && ($ts === 'InProgress' || $ts === 'Delayed');
+            $r['can_manage'] = $isRunning;
+
+            if ($ts === 'Cancelled') {
+                $r['ui_status'] = 'Cancelled';
+            } elseif ($isRunning) {
+                $r['ui_status'] = ($ts === 'Delayed' || $startDelay > 0) ? 'Delayed' : 'Running';
+            } elseif ($ts === 'Delayed' || $startDelay > 0 || $endDelay > 0) {
+                $r['ui_status'] = 'Delayed';
             } elseif ($ts === 'Completed') {
                 $r['ui_status'] = 'Completed';
-            } elseif ($ts === 'Cancelled') {
-                $r['ui_status'] = 'Cancelled';
             } else {
                 $r['ui_status'] = 'Scheduled';
             }
+            $r['is_current_schedule'] = ((int)($r['is_current'] ?? 0) === 1)
+                && !in_array((string)$r['ui_status'], ['Completed', 'Cancelled'], true);
             $filtered[] = $r;
         }
         unset($r);
@@ -303,13 +349,15 @@ class TripEntryModel extends BaseModel
         JOIN routes r ON r.route_id = tt.route_id
         LEFT JOIN private_trips p
                ON p.timetable_id = tt.timetable_id AND p.trip_date = CURDATE()
-        WHERE TIME(tt.departure_time) BETWEEN :now AND :until
+                WHERE tt.operator_type = 'Private'
+                    AND tt.day_of_week = :dow
+                    AND TIME(tt.departure_time) BETWEEN :now AND :until
           AND (p.private_trip_id IS NULL
-               OR p.status NOT IN ('InProgress','Completed','Cancelled'))
+             OR p.status NOT IN ('InProgress','Completed','Cancelled','Delayed'))
         ORDER BY TIME(tt.departure_time)";
 
         $st = $this->pdo->prepare($sql);
-        $params = [':now' => $now, ':until' => $until];
+        $params = [':dow' => (int)date('w'), ':now' => $now, ':until' => $until];
         if ($this->hasOperatorScope()) {
             $params[':op'] = $this->opId;
         }
@@ -359,9 +407,13 @@ class TripEntryModel extends BaseModel
             p.bus_reg_no,
             TIME_FORMAT(COALESCE(p.departure_time, p.scheduled_departure_time),'%H:%i') AS dep_time,
             TIME_FORMAT(COALESCE(p.arrival_time,   p.scheduled_arrival_time),  '%H:%i') AS arr_time,
+                        COALESCE(p.start_delay_seconds, 0) AS start_delay_seconds,
+                        COALESCE(p.end_delay_seconds, 0)   AS end_delay_seconds,
             p.cancel_reason,
             CASE
               WHEN p.status='Cancelled' THEN 'Cancelled'
+                            WHEN p.status='Delayed' THEN 'Delayed'
+                            WHEN COALESCE(p.start_delay_seconds,0) > 0 OR COALESCE(p.end_delay_seconds,0) > 0 THEN 'Delayed'
               WHEN p.status='Completed'
                    AND p.arrival_time IS NOT NULL
                    AND p.scheduled_arrival_time IS NOT NULL
@@ -374,7 +426,7 @@ class TripEntryModel extends BaseModel
                                                             {$operatorJoin}
         LEFT JOIN routes r ON r.route_id = p.route_id
         WHERE p.trip_date BETWEEN :from AND :to
-          AND p.status IN ('Completed','Cancelled')
+                    AND p.status IN ('Completed','Cancelled','Delayed')
           {$busCond}
         ORDER BY p.trip_date DESC, dep_time DESC";
 
@@ -403,6 +455,8 @@ class TripEntryModel extends BaseModel
                 tt.bus_reg_no,
                 TIME_FORMAT(TIME(tt.departure_time),'%H:%i') AS dep_time,
                 NULL                    AS arr_time,
+                0                       AS start_delay_seconds,
+                0                       AS end_delay_seconds,
                 NULL                    AS cancel_reason,
                 'Absent'                AS ui_status
             FROM timetables tt
@@ -483,9 +537,11 @@ class TripEntryModel extends BaseModel
               JOIN private_buses pb ON pb.reg_no = tt.bus_reg_no
                                     {$operatorJoin}
               LEFT JOIN routes r ON r.route_id = tt.route_id
-              WHERE tt.timetable_id = :tt";
+                            WHERE tt.timetable_id = :tt
+                                AND tt.operator_type = 'Private'
+                                AND tt.day_of_week = :dow";
         $st = $this->pdo->prepare($q);
-        $params = [':tt' => $timetableId];
+                $params = [':tt' => $timetableId, ':dow' => (int)date('w')];
         if ($this->hasOperatorScope()) {
             $params[':op'] = $this->opId;
         }
@@ -500,6 +556,8 @@ class TripEntryModel extends BaseModel
         if ($tripOperatorId <= 0 && $this->hasOperatorScope()) {
             $tripOperatorId = $this->opId;
         }
+        $startDelaySeconds = $this->delaySeconds((string)($t['sdep'] ?? ''));
+        $startStatus = $startDelaySeconds > 0 ? 'Delayed' : 'InProgress';
 
         // Latest assignment today (optional)
         if ($tripOperatorId > 0) {
@@ -533,15 +591,17 @@ class TripEntryModel extends BaseModel
                   (timetable_id, bus_reg_no, trip_date,
                    scheduled_departure_time, scheduled_arrival_time,
                    route_id, private_driver_id, private_conductor_id, private_operator_id,
-                   turn_no, departure_time, status)
+                         turn_no, departure_time, status, start_delay_seconds, end_delay_seconds)
                 VALUES
                   (:tt, :bus, CURDATE(),
                    :sdep, :sarr,
                    :rid, :drv, :con, :op,
-                   :turn, CURRENT_TIME(), 'InProgress')
+                         :turn, CURRENT_TIME(), :status, :start_delay, 0)
                 ON DUPLICATE KEY UPDATE
-                   status='InProgress',
+                         status=VALUES(status),
                    departure_time=VALUES(departure_time),
+                         start_delay_seconds=VALUES(start_delay_seconds),
+                         end_delay_seconds=0,
                    private_driver_id=VALUES(private_driver_id),
                    private_conductor_id=VALUES(private_conductor_id),
                    turn_no=VALUES(turn_no)";
@@ -555,8 +615,10 @@ class TripEntryModel extends BaseModel
             ':con'  => $a['private_conductor_id'] ?? null,
             ':op'   => $tripOperatorId > 0 ? $tripOperatorId : null,
             ':turn' => $turn,
+            ':status' => $startStatus,
+            ':start_delay' => $startDelaySeconds,
         ]);
-        return ['ok' => $ok, 'turn' => $turn];
+        return ['ok' => $ok, 'turn' => $turn, 'status' => $startStatus, 'start_delay_seconds' => $startDelaySeconds];
     }
 
     /**
@@ -567,7 +629,9 @@ class TripEntryModel extends BaseModel
     {
         $stopsExpr = $this->routeStopsExpr('r');
         $trip = $this->pdo->prepare(
-            "SELECT p.private_trip_id, p.status, p.private_operator_id, {$stopsExpr} AS stops_json
+            "SELECT p.private_trip_id, p.status, p.private_operator_id, p.scheduled_arrival_time,
+                    COALESCE(p.start_delay_seconds,0) AS start_delay_seconds,
+                    {$stopsExpr} AS stops_json
              FROM private_trips p
              LEFT JOIN routes r ON r.route_id = p.route_id
              WHERE p.private_trip_id=:id AND p.trip_date=CURDATE()"
@@ -575,21 +639,35 @@ class TripEntryModel extends BaseModel
         $trip->execute([':id' => $tripId]);
         $t = $trip->fetch(PDO::FETCH_ASSOC);
         if (!$t)                               return ['ok' => false, 'msg' => 'no_trip'];
-        if ($t['status'] !== 'InProgress')     return ['ok' => false, 'msg' => 'not_running'];
+        if (!in_array((string)$t['status'], ['InProgress', 'Delayed'], true)) return ['ok' => false, 'msg' => 'not_running'];
         if ($this->hasOperatorScope() && (int)$t['private_operator_id'] !== $this->opId)
                                                return ['ok' => false, 'msg' => 'not_authorized'];
         if (!$this->routeContainsLocation((string)($t['stops_json'] ?? '[]')))
                                                return ['ok' => false, 'msg' => 'not_authorized'];
 
+        $endDelaySeconds = $this->delaySeconds((string)($t['scheduled_arrival_time'] ?? ''));
+        $hasDelay = ((int)($t['start_delay_seconds'] ?? 0) > 0) || ($endDelaySeconds > 0) || ((string)$t['status'] === 'Delayed');
+        $finalStatus = $hasDelay ? 'Delayed' : 'Completed';
+
         $uid = (int)($_SESSION['user']['user_id'] ?? $_SESSION['user']['id'] ?? 0);
         $upd = $this->pdo->prepare(
             "UPDATE private_trips
-             SET status='Completed', arrival_time=CURRENT_TIME(), completed_by=:user
-             WHERE private_trip_id=:id AND status='InProgress'"
+             SET status=:status, arrival_time=CURRENT_TIME(), end_delay_seconds=:end_delay, completed_by=:user
+             WHERE private_trip_id=:id AND status IN ('InProgress','Delayed')"
         );
-        $upd->execute([':user' => $uid ?: null, ':id' => $tripId]);
+        $upd->execute([
+            ':status' => $finalStatus,
+            ':end_delay' => $endDelaySeconds,
+            ':user' => $uid ?: null,
+            ':id' => $tripId,
+        ]);
         $ok = $upd->rowCount() > 0;
-        return ['ok' => $ok, 'msg' => $ok ? null : 'update_failed'];
+        return [
+            'ok' => $ok,
+            'msg' => $ok ? null : 'update_failed',
+            'status' => $finalStatus,
+            'end_delay_seconds' => $endDelaySeconds,
+        ];
     }
 
     /** Cancel an InProgress trip (operator-scoped). */
@@ -608,7 +686,7 @@ class TripEntryModel extends BaseModel
         $trip->execute([':id' => $tripId]);
         $t = $trip->fetch(PDO::FETCH_ASSOC);
         if (!$t)                             return ['ok' => false, 'msg' => 'no_trip'];
-        if ($t['status'] !== 'InProgress')   return ['ok' => false, 'msg' => 'not_in_progress'];
+        if (!in_array((string)$t['status'], ['InProgress', 'Delayed'], true)) return ['ok' => false, 'msg' => 'not_in_progress'];
         if ($this->hasOperatorScope() && (int)$t['private_operator_id'] !== $this->opId)
                                              return ['ok' => false, 'msg' => 'not_authorized'];
         if (!$this->routeContainsLocation((string)($t['stops_json'] ?? '[]')))
@@ -619,7 +697,7 @@ class TripEntryModel extends BaseModel
             "UPDATE private_trips
              SET status='Cancelled', cancelled_by=:user, cancel_reason=:reason,
                  cancelled_at=CURRENT_TIMESTAMP()
-             WHERE private_trip_id=:id AND status='InProgress'"
+             WHERE private_trip_id=:id AND status IN ('InProgress','Delayed')"
         );
         $upd->execute([':user' => $uid ?: null, ':reason' => $reasonText, ':id' => $tripId]);
         $ok = $upd->rowCount() > 0;
