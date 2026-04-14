@@ -212,14 +212,19 @@ $uname    = $uname !== '' ? $uname : ($user['name'] ?? ($user['full_name'] ?? 'O
 
 <!-- â”€â”€ Six KPI Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <?php
-$activeBuses      = (int)($stats['activeBuses']      ?? 0);
-$maintBuses       = (int)($stats['maintBuses']       ?? 0);
-$driversOnDuty    = (int)($stats['driversOnDuty']    ?? 0);
-$conductorsOnDuty = (int)($stats['conductorsOnDuty'] ?? 0);
-$tripsCompleted   = (int)($stats['tripsCompleted']   ?? 0);
-$delayedTrips     = (int)($stats['delayedTrips']     ?? $counts['delayed'] ?? 0);
+$activeBuses       = (int)($stats['activeBuses']       ?? 0);
+$maintBuses        = (int)($stats['maintBuses']        ?? 0);
+$driversOnDuty     = (int)($stats['driversOnDuty']     ?? 0);
+$conductorsOnDuty  = (int)($stats['conductorsOnDuty']  ?? 0);
+$tripsCompleted    = (int)($stats['tripsCompleted']    ?? 0);
+$delayedTrips      = (int)($stats['delayedTrips']      ?? $counts['delayed'] ?? 0);
+$driversPresent    = (int)($stats['driversPresent']    ?? 0);
+$conductorsPresent = (int)($stats['conductorsPresent'] ?? 0);
+$driversAbsent     = (int)($stats['driversAbsent']     ?? 0);
+$conductorsAbsent  = (int)($stats['conductorsAbsent']  ?? 0);
+$attendanceMarked  = (bool)($stats['attendanceMarked'] ?? false);
 
-// visual bar widths â€” relative to a sensible ceiling
+// visual bar widths — relative to a sensible ceiling
 $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*100)).'%' : '6%';
 ?>
 
@@ -268,7 +273,7 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
       <div class="do-kpi-label">Drivers On Duty</div>
       <div class="do-kpi-value"><?= $driversOnDuty ?></div>
       <div class="do-kpi-bar-wrap"><div class="do-kpi-bar" style="width:<?= $barW($driversOnDuty) ?>"></div></div>
-      <div class="do-kpi-sub">Assigned today</div>
+      <div class="do-kpi-sub">Assigned today<?= $attendanceMarked ? ' &middot; <strong style="color:#16a34a">'.$driversPresent.' present</strong>' : '' ?></div>
     </div>
   </div>
 
@@ -285,7 +290,7 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
       <div class="do-kpi-label">Conductors On Duty</div>
       <div class="do-kpi-value"><?= $conductorsOnDuty ?></div>
       <div class="do-kpi-bar-wrap"><div class="do-kpi-bar" style="width:<?= $barW($conductorsOnDuty) ?>"></div></div>
-      <div class="do-kpi-sub">Assigned today</div>
+      <div class="do-kpi-sub">Assigned today<?= $attendanceMarked ? ' &middot; <strong style="color:#16a34a">'.$conductorsPresent.' present</strong>' : '' ?></div>
     </div>
   </div>
 
@@ -322,6 +327,69 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
   </div>
 
 </div>
+
+<?php if ($attendanceMarked): ?>
+<!-- ── Today's Attendance Summary ──────────────────────────── -->
+<div class="card" style="margin-bottom:24px;">
+  <h3 class="do-section-title">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <polyline points="16 11 18 13 22 9"/>
+    </svg>
+    Today's Attendance
+    <a href="/O/attendance" style="margin-left:auto;font-size:.78rem;font-weight:500;color:#80143c;background:#fce8ef;padding:3px 12px;border-radius:999px;text-decoration:none;">Manage &rarr;</a>
+  </h3>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+
+    <!-- Drivers block -->
+    <?php $drvTotal = $driversPresent + $driversAbsent; ?>
+    <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#2563eb;margin-bottom:10px;">Drivers</div>
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:1.8rem;font-weight:800;color:#16a34a;line-height:1;"><?= $driversPresent ?></div>
+          <div style="font-size:.72rem;color:#6b7280;margin-top:3px;">Present</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:1.8rem;font-weight:800;color:#dc2626;line-height:1;"><?= $driversAbsent ?></div>
+          <div style="font-size:.72rem;color:#6b7280;margin-top:3px;">Absent</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:1.8rem;font-weight:800;color:#2563eb;line-height:1;"><?= $drvTotal > 0 ? round($driversPresent/$drvTotal*100) : 0 ?>%</div>
+          <div style="font-size:.72rem;color:#6b7280;margin-top:3px;">Rate</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;height:6px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+        <div style="height:6px;background:#16a34a;border-radius:4px;width:<?= $drvTotal > 0 ? round($driversPresent/$drvTotal*100) : 0 ?>%;"></div>
+      </div>
+    </div>
+
+    <!-- Conductors block -->
+    <?php $conTotal = $conductorsPresent + $conductorsAbsent; ?>
+    <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;margin-bottom:10px;">Conductors</div>
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:1.8rem;font-weight:800;color:#16a34a;line-height:1;"><?= $conductorsPresent ?></div>
+          <div style="font-size:.72rem;color:#6b7280;margin-top:3px;">Present</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:1.8rem;font-weight:800;color:#dc2626;line-height:1;"><?= $conductorsAbsent ?></div>
+          <div style="font-size:.72rem;color:#6b7280;margin-top:3px;">Absent</div>
+        </div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:1.8rem;font-weight:800;color:#7c3aed;line-height:1;"><?= $conTotal > 0 ? round($conductorsPresent/$conTotal*100) : 0 ?>%</div>
+          <div style="font-size:.72rem;color:#6b7280;margin-top:3px;">Rate</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;height:6px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+        <div style="height:6px;background:#7c3aed;border-radius:4px;width:<?= $conTotal > 0 ? round($conductorsPresent/$conTotal*100) : 0 ?>%;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<?php endif; ?>
 
 <!-- â”€â”€ Quick Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 <div class="card" style="margin-bottom:24px;">
