@@ -47,7 +47,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 .abadge-blue   { background:#dbeafe; color:#1d4ed8; }
 .abadge-gray   { background:#f3f4f6; color:#6b7280; }
 /* ── Filters bar ─────────────────────────────────────── */
-.asgn-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.asgn-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px; }
 .asgn-filters label { font-size:12px; font-weight:600; color:#6b7280; }
 .asgn-filters select, .asgn-filters input[type=text] {
   padding:7px 10px; border:1.5px solid #d1d5db; border-radius:8px;
@@ -229,7 +229,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
       <label>Destination:
         <input type="text" id="filter-dest" placeholder="Filter by destination…">
       </label>
-      <button id="btnAddAssignment" class="btn-asgn-add" style="margin-left:auto;margin-top:0;">
+      <button id="btnAddAssignment" class="btn-asgn-add" style="margin-left:24px;margin-top:0;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Assignment
       </button>
@@ -316,7 +316,14 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
         <input list="add-buses-dl" name="bus_reg_no" id="add-bus" required placeholder="Type or select bus reg no">
         <datalist id="add-buses-dl">
           <?php foreach($buses as $b): ?>
-            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no'].' — Route '.($b['route_no']??'N/A').' — '.($b['route_name']??'')) ?></option>
+            <?php
+              $rNo   = $b['route_no']   ?? '';
+              $rName = $b['route_name'] ?? '';
+              $label = $b['reg_no'];
+              if ($rNo)   $label .= ' — Route ' . $rNo;
+              if ($rName) $label .= ' — ' . $rName;
+            ?>
+            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($label) ?></option>
           <?php endforeach; ?>
         </datalist>
       </div>
