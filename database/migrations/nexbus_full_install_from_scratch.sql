@@ -433,7 +433,11 @@ CREATE TABLE `private_assignments` (
 
 INSERT INTO `private_assignments` (`assignment_id`, `assigned_date`, `shift`, `bus_reg_no`, `private_driver_id`, `private_conductor_id`, `private_operator_id`) VALUES
 (4, '2025-10-23', 'Morning', 'PA-1002', 1, 2, 1),
-(5, '2025-10-23', 'Evening', 'PB-2001', 4, 3, 2);
+(5, '2025-10-23', 'Evening', 'PB-2001', 4, 3, 2),
+-- Today 2026-04-14 assignments for private buses
+(6, '2026-04-14', 'Morning', 'PB-1001', 1, 1, 1),
+(7, '2026-04-14', 'Morning', 'PB-2001', 4, 3, 2),
+(8, '2026-04-14', 'Morning', 'PB-3001', 7, 6, 3);
 
 -- --------------------------------------------------------
 
@@ -792,7 +796,16 @@ INSERT INTO `sltb_assignments` (`assignment_id`, `assigned_date`, `shift`, `bus_
 (7, '2025-10-23', 'Morning', 'NA-2024', 2, 8, 1, NULL, NULL, NULL),
 (8, '2025-10-23', 'Morning', 'NB-3104', 1001, 2, 1, NULL, NULL, NULL),
 (9, '2025-10-24', 'Morning', 'NB-1002', 1001, 2001, 1, NULL, NULL, NULL),
-(10, '2025-10-24', 'Evening', 'NB-2001', 3, 3, 2, NULL, NULL, NULL);
+(10, '2025-10-24', 'Evening', 'NB-2001', 3, 3, 2, NULL, NULL, NULL),
+-- Today 2026-04-14 (Tuesday) assignments for all depots
+(11, '2026-04-14', 'Morning', 'NB-3101', 1001, 11, 1, NULL, NULL, NULL),
+(12, '2026-04-14', 'Morning', 'NB-3102', 8, 2, 1, NULL, NULL, NULL),
+(13, '2026-04-14', 'Morning', 'NB-1001', 1, 1, 1, NULL, NULL, NULL),
+(14, '2026-04-14', 'Morning', 'NB-1002', 1002, 2001, 1, NULL, NULL, NULL),
+(15, '2026-04-14', 'Morning', 'NB-2001', 3, 3, 2, NULL, NULL, NULL),
+(16, '2026-04-14', 'Morning', 'NB-2002', 4, 4, 2, NULL, NULL, NULL),
+(17, '2026-04-14', 'Morning', 'NB-3001', 5, 5, 3, NULL, NULL, NULL),
+(18, '2026-04-14', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1236,7 +1249,17 @@ INSERT INTO `timetables` (`timetable_id`, `operator_type`, `route_id`, `bus_reg_
 (94035, 'Private', 12002, 'PB-1001', 6, '06:00:00', '07:00:00', NULL, NULL, NULL, NULL),
 (94036, 'Private', 12002, 'PB-1001', 6, '08:00:00', '09:00:00', NULL, NULL, NULL, NULL),
 (94037, 'Private', 12002, 'PB-1001', 6, '10:00:00', '11:00:00', NULL, NULL, NULL, NULL),
-(94038, 'Private', 12002, 'PB-1001', 6, '12:00:00', '13:00:00', NULL, NULL, NULL, NULL);
+(94038, 'Private', 12002, 'PB-1001', 6, '12:00:00', '13:00:00', NULL, NULL, NULL, NULL),
+-- Tuesday (day_of_week=2) entries added 2026-04-14
+(95001, 'SLTB', 2, 'NB-2001', 2, '07:00:00', '08:15:00', 1, 3, '2026-01-01', NULL),
+(95002, 'SLTB', 1, 'NB-3001', 2, '06:45:00', '07:40:00', 1, 3, '2026-01-01', NULL),
+(95003, 'SLTB', 4, 'NB-3002', 2, '09:00:00', '10:00:00', 1, 3, '2026-01-01', NULL),
+(95004, 'Private', 7, 'PB-2001', 2, '07:00:00', '08:30:00', 1, 3, '2026-01-01', NULL),
+(95005, 'Private', 10, 'PB-3001', 2, '06:45:00', '07:40:00', 1, 3, '2026-01-01', NULL),
+(95006, 'SLTB', 1, 'NB-3101', 2, '06:00:00', '06:50:00', 1, 4, '2026-01-01', NULL),
+(95007, 'SLTB', 3, 'NB-3102', 2, '06:30:00', '07:15:00', 1, 4, '2026-01-01', NULL),
+(95008, 'SLTB', 1, 'NB-1001', 2, '07:00:00', '08:00:00', 1, 3, '2026-01-01', NULL),
+(95009, 'SLTB', 2, 'NB-1002', 2, '08:00:00', '09:00:00', 1, 3, '2026-01-01', NULL);
 
 -- --------------------------------------------------------
 
@@ -16155,7 +16178,33 @@ INSERT INTO `users` (`user_id`, `role`, `first_name`, `last_name`, `email`, `pho
 (10001, 'SLTBTimekeeper', 'Test TK', NULL, 'tk@sltb.lk', '077-0000000', '$2y$10$abcdefghijklmnopqrstuv/0nx2cBqZ1kQ6Vxk9tD5mY5oR6E', 'Active', NULL, NULL, 1, '2025-10-21 14:14:18', NULL),
 (10002, 'PrivateTimekeeper', 'PrivateTimekeeper', NULL, 'privatetimekeeper@gmail.com', '456456456456', '$2y$10$RwJtGZqggLJL0WYRML..KeTtnXIkJ0HoUouviCj.wcuIzngWXo6pC', 'Active', NULL, 1, NULL, '2025-10-21 23:55:56', NULL),
 (10003, 'Passenger', 'yomal kannangara', NULL, 'yomal4@gmail.com', '0776844788', '$2y$10$C2BBkVSH6WDFvwgxQiWN5.AYlVpzSCqQBJzCaeod3mAFSx.MNQ/Pa', 'Active', NULL, NULL, NULL, '2025-10-22 11:21:34', NULL),
-(10008, 'DepotOfficer', 'yomal', NULL, 'yomalkannangara2@gmail.com', '45745345345', '$2y$10$m6kR1ipmdrtEKGpiGqwwTOPyrIhQKUDx1TvCaOJmzZZ6ET7OSFE1W', 'Active', NULL, NULL, 1, '2025-10-22 20:02:29', NULL);
+(10008, 'DepotOfficer', 'yomal', NULL, 'yomalkannangara2@gmail.com', '45745345345', '$2y$10$m6kR1ipmdrtEKGpiGqwwTOPyrIhQKUDx1TvCaOJmzZZ6ET7OSFE1W', 'Active', NULL, NULL, 1, '2025-10-22 20:02:29', NULL),
+-- Demo accounts (password = 'test' for all)
+(10004, 'SLTBTimekeeper', 'Kumari', 'Perera', 'tk.colombo.end@sltb.lk', '0711000001', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 1, '2026-01-01 08:00:00', NULL),
+(10005, 'SLTBTimekeeper', 'Asela', 'Bandara', 'tk.kandy.start@sltb.lk', '0711000002', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 2, '2026-01-01 08:00:00', NULL),
+(10006, 'SLTBTimekeeper', 'Nirosha', 'Dissanayake', 'tk.kandy.end@sltb.lk', '0711000003', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 2, '2026-01-01 08:00:00', NULL),
+(10007, 'SLTBTimekeeper', 'Thilak', 'Jayasinghe', 'tk.galle.start@sltb.lk', '0711000004', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 3, '2026-01-01 08:00:00', NULL),
+(10009, 'SLTBTimekeeper', 'Malathi', 'Fernando', 'tk.galle.end@sltb.lk', '0711000005', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 3, '2026-01-01 08:00:00', NULL),
+(10010, 'DepotManager', 'Ranjith', 'Senanayake', 'dm.kandy@sltb.lk', '0711000006', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 2, '2026-01-01 08:00:00', NULL),
+(10011, 'DepotManager', 'Sarath', 'Wickramasinghe', 'dm.galle@sltb.lk', '0711000007', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 3, '2026-01-01 08:00:00', NULL),
+(10012, 'DepotOfficer', 'Chaminda', 'Rathnayake', 'do.kandy@sltb.lk', '0711000008', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 2, '2026-01-01 08:00:00', NULL),
+(10013, 'PrivateTimekeeper', 'Priyantha', 'Kumara', 'tk.op1.end@private.lk', '0711000009', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 1, NULL, '2026-01-01 08:00:00', NULL),
+(10014, 'PrivateTimekeeper', 'Sumudu', 'Rajapaksa', 'tk.op2.start@private.lk', '0711000010', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 2, NULL, '2026-01-01 08:00:00', NULL),
+(10015, 'PrivateTimekeeper', 'Chathura', 'Gunasekara', 'tk.op2.end@private.lk', '0711000011', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 2, NULL, '2026-01-01 08:00:00', NULL),
+(10016, 'PrivateTimekeeper', 'Dilani', 'Herath', 'tk.op3.start@private.lk', '0711000012', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 3, NULL, '2026-01-01 08:00:00', NULL),
+(10017, 'PrivateBusOwner', 'Anura', 'Pathirana', 'owner.op2@private.lk', '0711000013', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 2, NULL, '2026-01-01 08:00:00', NULL),
+(10018, 'PrivateBusOwner', 'Nimal', 'Kariyawasam', 'owner.op3@private.lk', '0711000014', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 3, NULL, '2026-01-01 08:00:00', NULL);
+
+-- Set password='test' for ALL users (unified demo credential)
+UPDATE `users` SET `password_hash` = '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y';
+
+-- Set destination (end) timekeeper_point for arrival-side timekeepers
+UPDATE `users` SET `timekeeper_point` = 'end' WHERE `user_id` IN (10004, 10006, 10009, 10013, 10015);
+
+-- Link private bus owners to their user accounts
+UPDATE `private_bus_owners` SET `owner_user_id` = 55 WHERE `private_operator_id` = 1;
+UPDATE `private_bus_owners` SET `owner_user_id` = 10017 WHERE `private_operator_id` = 2;
+UPDATE `private_bus_owners` SET `owner_user_id` = 10018 WHERE `private_operator_id` = 3;
 
 --
 -- Indexes for dumped tables
