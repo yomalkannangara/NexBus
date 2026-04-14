@@ -78,21 +78,40 @@ class TimekeeperSltbController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
-            if (($_POST['action'] ?? '') === 'start') {
+            $action = $_POST['action'] ?? '';
+
+            if ($action === 'start') {
                 $tt = (int)($_POST['timetable_id'] ?? 0);
                 echo json_encode($m->start($tt)); return;
             }
-            if (($_POST['action'] ?? '') === 'cancel') {
+            if ($action === 'arrive') {
                 $id = (int)($_POST['trip_id'] ?? 0);
-                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-                $result = $m->cancel($id, $reason);
-                echo json_encode($result); return;
+                echo json_encode($m->arrive($id)); return;
             }
-            echo json_encode(['ok'=>false,'msg'=>'Unknown action']); return;
+            if ($action === 'cancel') {
+                $id     = (int)($_POST['trip_id'] ?? 0);
+                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
+                echo json_encode($m->cancel($id, $reason)); return;
+            }
+            echo json_encode(['ok' => false, 'msg' => 'Unknown action']); return;
         }
 
+        // History tab data
+        $hFrom  = $_GET['h_from']   ?? date('Y-m-d', strtotime('-30 days'));
+        $hTo    = $_GET['h_to']     ?? date('Y-m-d');
+        $hBus   = isset($_GET['h_bus']) && $_GET['h_bus'] !== '' ? $_GET['h_bus'] : null;
+        $hTab   = ($_GET['tab'] ?? 'schedule') === 'history' ? 'history' : 'schedule';
+
         $this->view('timekeeper_sltb', 'trip_entry', [
-            'rows' => $m->todayList()
+            'rows'      => $m->todayList(),
+            'point'     => $m->myPoint(),
+            'upcoming'  => $m->upcoming(60),
+            'hist_rows' => $m->historyList($hFrom, $hTo, $hBus),
+            'hist_buses'=> $m->busList(),
+            'h_from'    => $hFrom,
+            'h_to'      => $hTo,
+            'h_bus'     => $hBus ?? '',
+            'active_tab'=> $hTab,
         ]);
     }
 

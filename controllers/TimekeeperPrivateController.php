@@ -60,9 +60,11 @@ class TimekeeperPrivateController extends BaseController
         ]);
     }
 
-    /** /TP/trip_entry (GET list, POST start) */    public function trip_entry()    {
+    /** /TP/trip_entry (GET list, POST start/arrive/cancel) */
+    public function trip_entry()
+    {
         $op = $this->myOpId();
-        $m = new TripEntryModel($op);
+        $m  = new TripEntryModel($op);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
@@ -72,21 +74,42 @@ class TimekeeperPrivateController extends BaseController
                 echo json_encode($m->start($tt));
                 return;
             }
-            if ($act === 'cancel') {
+            if ($act === 'arrive') {
                 $id = (int)($_POST['trip_id'] ?? 0);
+                echo json_encode($m->arrive($id));
+                return;
+            }
+            if ($act === 'cancel') {
+                $id     = (int)($_POST['trip_id'] ?? 0);
                 $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-                $result = $m->cancel($id, $reason);
-                echo json_encode($result);
+                echo json_encode($m->cancel($id, $reason));
                 return;
             }
             echo json_encode(['ok' => false, 'msg' => 'Unknown action']);
             return;
         }
 
+        // History filter params
+        $h_from = $_GET['h_from'] ?? date('Y-m-d');
+        $h_to   = $_GET['h_to']   ?? date('Y-m-d');
+        $h_bus  = $_GET['h_bus']  ?? '';
+
+        $hist_rows  = $m->historyList($h_from, $h_to, $h_bus ?: null);
+        $hist_buses = $m->busList();
+        $active_tab = (isset($_GET['tab']) && $_GET['tab'] === 'history') ? 'history' : 'schedule';
+
         $this->view('timekeeper_private', 'trip_entry', [
-            'S' => $m->info(),
-            'rows' => $m->todayList()
-        ]);    }
+            'S'          => $m->info(),
+            'rows'       => $m->todayList(),
+            'upcoming'   => $m->upcoming(60),
+            'hist_rows'  => $hist_rows,
+            'hist_buses' => $hist_buses,
+            'h_from'     => $h_from,
+            'h_to'       => $h_to,
+            'h_bus'      => $h_bus,
+            'active_tab' => $active_tab,
+        ]);
+    }
 
 
     /** /TP/turns (GET running, POST complete) */
