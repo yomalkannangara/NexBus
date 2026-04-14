@@ -161,7 +161,7 @@ public function allToday(int $depotId): array {
                                r.route_no,
                                r.stops_json
                            FROM sltb_buses b
-                         LEFT JOIN (
+                         JOIN (
                                  /* pick one active timetable route per bus (prefer today's service) */
                                  SELECT
                                      t.bus_reg_no,
