@@ -190,10 +190,10 @@ $uname    = $uname !== '' ? $uname : ($user['name'] ?? ($user['full_name'] ?? 'O
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
       </svg>
-      <span id="do-live-time">--:--</span>&nbsp;Â·&nbsp;<span><?= date('d M Y') ?></span>
+      <span id="do-live-time">--:--</span>&nbsp;&middot;&nbsp;<span><?= date('d M Y') ?></span>
     </div>
-    <div class="do-dash-greeting"><?= $greeting ?>, <strong><?= htmlspecialchars($uname) ?></strong> ðŸ‘‹</div>
-    <p class="do-dash-sub"><?= htmlspecialchars($depot['name'] ?? 'My Depot') ?> â€” SLTB Depot Operations</p>
+    <div class="do-dash-greeting"><?= $greeting ?>, <strong><?= htmlspecialchars($uname) ?></strong> &#x1F44B;</div>
+    <p class="do-dash-sub"><?= htmlspecialchars($depot['name'] ?? 'My Depot') ?> &mdash; SLTB Depot Operations</p>
   </div>
 
   <div class="do-dash-bus-icon" aria-hidden="true">

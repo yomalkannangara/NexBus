@@ -221,10 +221,11 @@ public function assignmentShifts()
         }
 
         // listUsual returns ALL SLTB timetable rows for this depot.
-        // Split into regular (no effective dates) and special (manager-imposed, has effective_from).
+        // Regular = open-ended schedules (no effective_to).
+        // Special = time-bounded overrides (has effective_to).
         $all = $this->m->usualTimetables($dep);
-        $regularRows = array_values(array_filter($all, fn($r) => empty(trim((string)($r['effective_from'] ?? '')))));
-        $specialRows = array_values(array_filter($all, fn($r) => !empty(trim((string)($r['effective_from'] ?? '')))));
+        $regularRows = array_values(array_filter($all, fn($r) => empty(trim((string)($r['effective_to'] ?? '')))));
+        $specialRows = array_values(array_filter($all, fn($r) => !empty(trim((string)($r['effective_to'] ?? '')))));
 
         $depotInfo = $this->m->depot($dep);
 

@@ -805,7 +805,16 @@ INSERT INTO `sltb_assignments` (`assignment_id`, `assigned_date`, `shift`, `bus_
 (15, '2026-04-14', 'Morning', 'NB-2001', 3, 3, 2, NULL, NULL, NULL),
 (16, '2026-04-14', 'Morning', 'NB-2002', 4, 4, 2, NULL, NULL, NULL),
 (17, '2026-04-14', 'Morning', 'NB-3001', 5, 5, 3, NULL, NULL, NULL),
-(18, '2026-04-14', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL);
+(18, '2026-04-14', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL),
+-- Today 2026-04-15 (Wednesday) assignments for all depots
+(19, '2026-04-15', 'Morning', 'NB-3101', 1001, 11, 1, NULL, NULL, NULL),
+(20, '2026-04-15', 'Morning', 'NB-3102', 8, 2, 1, NULL, NULL, NULL),
+(21, '2026-04-15', 'Morning', 'NB-1001', 1, 1, 1, NULL, NULL, NULL),
+(22, '2026-04-15', 'Morning', 'NB-1002', 1002, 2001, 1, NULL, NULL, NULL),
+(23, '2026-04-15', 'Morning', 'NB-2001', 3, 3, 2, NULL, NULL, NULL),
+(24, '2026-04-15', 'Morning', 'NB-2002', 4, 4, 2, NULL, NULL, NULL),
+(25, '2026-04-15', 'Morning', 'NB-3001', 5, 5, 3, NULL, NULL, NULL),
+(26, '2026-04-15', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -16143,7 +16152,7 @@ CREATE TABLE `users` (
   `profile_image` varchar(255) DEFAULT NULL COMMENT 'Path to user profile image',
   `private_operator_id` int(11) DEFAULT NULL,
   `sltb_depot_id` int(11) DEFAULT NULL,
-  `timekeeper_location` varchar(120) DEFAULT NULL COMMENT 'Route stop name used to filter timekeeper schedules',
+  `timekeeper_point` enum('start','end') NOT NULL DEFAULT 'start' COMMENT 'SLTBTimekeeper: start=originating depot, end=destination depot',
   `created_at` datetime DEFAULT current_timestamp(),
   `last_login` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -16199,10 +16208,8 @@ INSERT INTO `users` (`user_id`, `role`, `first_name`, `last_name`, `email`, `pho
 -- Set password='test' for ALL users (unified demo credential)
 UPDATE `users` SET `password_hash` = '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y';
 
-UPDATE `users`
-SET `timekeeper_location` = 'Common'
-WHERE `role` IN ('SLTBTimekeeper','PrivateTimekeeper')
-  AND (`timekeeper_location` IS NULL OR TRIM(`timekeeper_location`) = '');
+-- Set destination (end) timekeeper_point for arrival-side timekeepers
+UPDATE `users` SET `timekeeper_point` = 'end' WHERE `user_id` IN (10004, 10006, 10009, 10013, 10015);
 
 -- Link private bus owners to their user accounts
 UPDATE `private_bus_owners` SET `owner_user_id` = 55 WHERE `private_operator_id` = 1;

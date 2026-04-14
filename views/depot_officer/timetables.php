@@ -201,13 +201,6 @@ $isSpecialTab = ($tab === 'special');
 .tt2-eff { font-size: .78rem; color: #6b7280; white-space: nowrap; }
 .tt2-eff strong { color: #5b21b6; }
 
-/* View-only badge on special rows */
-.tt2-view-only {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px;
-    padding: 4px 10px; font-size: .73rem; font-weight: 700; color: #5b21b6;
-}
-
 /* Empty state */
 .tt2-empty {
     padding: 40px; text-align: center; color: #9ca3af;
@@ -327,7 +320,7 @@ $isSpecialTab = ($tab === 'special');
                 <th>Days Active</th>
                 <?php if ($isSpecialTab): ?><th>Effective Period</th><?php endif; ?>
                 <th>Type</th>
-                <th></th>
+                <th>Trips / Week</th>
             </tr>
         </thead>
         <tbody>
@@ -394,15 +387,12 @@ $isSpecialTab = ($tab === 'special');
                 <span class="type-badge type-regular">Regular</span>
                 <?php endif; ?>
             </td>
-            <td data-label="">
-                <?php if ($isSpecialRow): ?>
-                <span class="tt2-view-only">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    View Only
-                </span>
-                <?php else: ?>
-                <span style="font-size:.75rem;color:#9ca3af;">Read-Only</span>
-                <?php endif; ?>
+            <td data-label="Trips / Week">
+                <?php
+                $tripsPerWeek = count($g['departures']) * count($g['days']);
+                ?>
+                <span style="font-size:.9rem;font-weight:800;color:#7B1C3E;"><?= $tripsPerWeek ?></span>
+                <span style="font-size:.72rem;color:#9ca3af;margin-left:2px;">trip<?= $tripsPerWeek !== 1 ? 's' : '' ?></span>
             </td>
         </tr>
         <?php endforeach; ?>
