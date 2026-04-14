@@ -419,7 +419,7 @@ public function trip_logs(): void{
     $m = new \App\models\depot_officer\TrackingModel();
     $rows = $m->logs($from, $to, $filters);
 
-    $hasRunning = count(array_filter($rows, fn($r) => ($r['status'] ?? '') === 'InProgress')) > 0;
+    $hasRunning = count(array_filter($rows, fn($r) => in_array($r['status'] ?? '', ['InProgress', 'Delayed']))) > 0;
 
     $this->view('depot_officer', 'trip_logs', [
         'rows'      => $rows,

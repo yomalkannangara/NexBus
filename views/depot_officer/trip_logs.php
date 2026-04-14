@@ -155,6 +155,10 @@ function fmtLastUpdated(?string $ts): string {
 .tl-table tbody tr.row-running td { background: #f0fdf4; }
 .tl-table tbody tr.row-running:hover td { background: #dcfce7; }
 
+/* Delayed row highlight */
+.tl-table tbody tr.row-delayed td { background: #fff7ed; }
+.tl-table tbody tr.row-delayed:hover td { background: #ffedd5; }
+
 /* Bus badge */
 .tl-bus {
     font-family: 'Courier New', monospace; font-weight: 900;
@@ -323,8 +327,10 @@ function fmtLastUpdated(?string $ts): string {
                 <th>Route</th>
                 <th>Driver</th>
                 <th>Turn</th>
-                <th>Scheduled Dep</th>
+                <th>Sched. Dep</th>
                 <th>Actual Dep</th>
+                <th>Sched. Arr</th>
+                <th>Actual Arr</th>
                 <th>Status</th>
                 <th>Last Updated</th>
             </tr>
@@ -333,10 +339,11 @@ function fmtLastUpdated(?string $ts): string {
         <?php foreach ($rows as $r):
             $status   = (string)($r['status'] ?? 'Planned');
             $meta     = $statusMeta[$status] ?? ['label'=>$status,'cls'=>'st-planned'];
-            $isRunning= $status === 'InProgress';
+            $isRunning = $status === 'InProgress';
+            $isDelayed = $status === 'Delayed';
             $driver   = (string)($r['driver'] ?? '—');
         ?>
-        <tr class="<?= $isRunning ? 'row-running' : '' ?>">
+        <tr class="<?= $isRunning ? 'row-running' : ($isDelayed ? 'row-delayed' : '') ?>">
             <td><span class="tl-bus"><?= htmlspecialchars((string)($r['bus_id'] ?? '-')) ?></span></td>
             <td style="font-weight:700;"><?= htmlspecialchars((string)($r['route'] ?? '—')) ?></td>
             <td>
@@ -359,6 +366,22 @@ function fmtLastUpdated(?string $ts): string {
                 <?php $ad = fmtTime($r['actual_dep'] ?? null); ?>
                 <?php if ($ad !== '—'): ?>
                 <span class="tl-time tl-time-actual"><?= htmlspecialchars($ad) ?></span>
+                <?php else: ?>
+                <span class="tl-time-none">—</span>
+                <?php endif; ?>
+            </td>
+            <td>
+                <?php $sa = fmtTime($r['scheduled_arr'] ?? null); ?>
+                <?php if ($sa !== '—'): ?>
+                <span class="tl-time"><?= htmlspecialchars($sa) ?></span>
+                <?php else: ?>
+                <span class="tl-time-none">—</span>
+                <?php endif; ?>
+            </td>
+            <td>
+                <?php $aa = fmtTime($r['actual_arr'] ?? null); ?>
+                <?php if ($aa !== '—'): ?>
+                <span class="tl-time tl-time-actual"><?= htmlspecialchars($aa) ?></span>
                 <?php else: ?>
                 <span class="tl-time-none">—</span>
                 <?php endif; ?>
