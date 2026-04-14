@@ -859,7 +859,6 @@ CREATE TABLE `sltb_buses` (
 --
 
 INSERT INTO `sltb_buses` (`reg_no`, `sltb_depot_id`, `chassis_no`, `bus_model`, `year_manufacture`, `manufacture_date`, `bus_class`, `capacity`, `status`) VALUES
-('213123', 1, NULL, NULL, NULL, NULL, 'Normal', 54, 'Active'),
 ('NA-2024', 1, '', NULL, NULL, NULL, 'Normal', 48, 'Active'),
 ('NA-2025', 1, '', NULL, NULL, NULL, 'Normal', 54, 'Active'),
 ('NA-2030', 1, '', NULL, NULL, NULL, 'Normal', 54, 'Active'),
@@ -930,7 +929,6 @@ INSERT INTO `sltb_buses` (`reg_no`, `sltb_depot_id`, `chassis_no`, `bus_model`, 
 ('NB-3111', 1, NULL, NULL, NULL, NULL, 'Normal', 54, 'Inactive'),
 ('NB-3112', 1, NULL, NULL, NULL, NULL, 'Luxury', 54, 'Maintenance'),
 ('NB-5667', 1, NULL, NULL, NULL, NULL, 'Semi Luxury', 54, 'Maintenance'),
-('NB2341', 1, NULL, NULL, '2020', NULL, 'Normal', 54, 'Active'),
 ('PA-1001', 1, NULL, NULL, NULL, NULL, 'Normal', 54, 'Active'),
 ('PB-1002', 1, NULL, NULL, NULL, NULL, 'Normal', 54, 'Active'),
 ('TEST-1234', 1, '', '', NULL, NULL, 'Normal', 50, 'Active');
