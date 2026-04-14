@@ -70,7 +70,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 .btn-sm-delete:hover { background:#fecaca; }
 /* ── Modal overlay ───────────────────────────────────── */
 .asgn-modal-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:900;
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999;
   display:flex; align-items:center; justify-content:center; padding:16px;
 }
 .asgn-modal-overlay.hidden { display:none; }
@@ -312,7 +312,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 
       <!-- Bus -->
       <div class="asgn-form-row">
-        <label>Bus Registration</label>
+        <label>Bus Registration No</label>
         <input list="add-buses-dl" name="bus_reg_no" id="add-bus" required placeholder="Type or select bus reg no">
         <datalist id="add-buses-dl">
           <?php foreach($buses as $b): ?>
@@ -325,14 +325,6 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
         <div class="asgn-form-row"><label>Seat Capacity</label><input type="text" id="add-capacity" readonly></div>
       </div>
       <div class="asgn-form-row"><label>Destination</label><input type="text" id="add-route-name" readonly></div>
-
-      <!-- Turn Number -->
-      <div class="asgn-section-label">Turn Number</div>
-      <div class="asgn-form-row">
-        <div id="add-turn-container" class="turn-pills">
-          <span style="color:#9ca3af;font-size:13px;">Select a bus to load available turns</span>
-        </div>
-      </div>
 
       <!-- Effective Period -->
       <div class="asgn-section-label">Effective Period</div>
@@ -578,10 +570,26 @@ function checkAddConflicts() {
   const cWarn = document.getElementById('add-conductor-warn');
   const conflictBusD = currentTurnConflicts.drivers[driverId];
   const conflictBusC = currentTurnConflicts.conductors[conductorId];
-  if (driverId && conflictBusD && conflictBusD !== bus) { dWarn.textContent = '⚠ Assigned to ' + conflictBusD + ' at this turn time today.'; dWarn.classList.add('show'); }
+  if (driverId && conflictBusD && conflictBusD !== bus) { dWarn.textContent = '\u26a0 Assigned to ' + conflictBusD + ' at this time.'; dWarn.classList.add('show'); }
   else dWarn.classList.remove('show');
-  if (conductorId && conflictBusC && conflictBusC !== bus) { cWarn.textContent = '⚠ Assigned to ' + conflictBusC + ' at this turn time today.'; cWarn.classList.add('show'); }
+  if (conductorId && conflictBusC && conflictBusC !== bus) { cWarn.textContent = '\u26a0 Assigned to ' + conflictBusC + ' at this time.'; cWarn.classList.add('show'); }
   else cWarn.classList.remove('show');
+  /* Hide conflicting options so staff already assigned elsewhere don't appear */
+  filterConflictingOptions('add-driver',    currentTurnConflicts.drivers,    bus);
+  filterConflictingOptions('add-conductor', currentTurnConflicts.conductors, bus);
+}
+
+function filterConflictingOptions(selectId, conflictMap, currentBus) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  Array.from(sel.options).forEach(function (opt) {
+    if (!opt.value) return; /* keep placeholder */
+    const id  = parseInt(opt.value);
+    const bus = conflictMap[id];
+    /* hide only if conflicting with a DIFFERENT bus */
+    opt.hidden   = !!(bus && bus !== currentBus);
+    opt.disabled = opt.hidden;
+  });
 }
 
 document.getElementById('add-period-from').addEventListener('change', loadTurns);

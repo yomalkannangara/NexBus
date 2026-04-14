@@ -230,7 +230,7 @@ $isSpecialTab = ($tab === 'special');
 <!-- Hero -->
 <section class="tt2-hero">
     <div>
-        <h1>&#128641; Depot Timetables</h1>
+        <h1>Depot Timetables</h1>
         <p>Read-only schedule viewer — regular always-active and special manager-imposed schedules</p>
     </div>
     <div class="tt2-depot-badge">
