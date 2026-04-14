@@ -56,10 +56,10 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 /* ── Add button ──────────────────────────────────────── */
 .btn-asgn-add {
   display:inline-flex; align-items:center; gap:7px;
-  margin-top:18px; padding:10px 22px;
+  padding:9px 20px;
   background:#80143c; color:#fff; border:none;
-  border-radius:12px; font-size:14px; font-weight:700;
-  cursor:pointer; transition:background .15s;
+  border-radius:12px; font-size:13.5px; font-weight:700;
+  cursor:pointer; transition:background .15s; white-space:nowrap;
 }
 .btn-asgn-add:hover { background:#60102e; }
 /* ── Row action buttons ──────────────────────────────── */
@@ -229,6 +229,10 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
       <label>Destination:
         <input type="text" id="filter-dest" placeholder="Filter by destination…">
       </label>
+      <button id="btnAddAssignment" class="btn-asgn-add" style="margin-left:auto;margin-top:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Assignment
+      </button>
     </div>
     <div class="asgn-wrap">
       <table class="asgn-table" id="asgnTable">
@@ -290,10 +294,6 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
     </div>
   </div>
 
-  <button id="btnAddAssignment" class="btn-asgn-add">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Add Assignment
-  </button>
 </section>
 
 <!-- ════════ ADD MODAL ════════ -->
