@@ -967,7 +967,72 @@ INSERT INTO `sltb_conductors` (`sltb_conductor_id`, `sltb_depot_id`, `full_name`
 (11, 1, 'Pradeep Kumara', 'C-CC-1004', '0715101004', 'Active', NULL),
 (12, 2, 'Udaya Perera', 'C-KY-2004', '0715102004', 'Active', NULL),
 (13, 3, 'Sampath Fernando', 'C-GL-3004', '0715103004', 'Active', NULL),
-(2001, 1, 'Sunil Silva', 'CON-2001', '0772002001', 'Active', NULL);
+(2001, 1, 'Sunil Silva', 'CON-2001', '0772002001', 'Active', NULL),
+-- Bastian Mawatha (101) conductors (pre-existing)
+(3001, 101, 'Nadeesha Fernando', 'SLTB-C-3001', '0711-100001', 'Active', NULL),
+(3002, 101, 'M. Rifaath',        'SLTB-C-3002', '0711-100002', 'Active', NULL),
+-- Makumbura (102)
+(3003, 102, 'Ruwan Gamage',      'SLTB-C-3003', '0711-100003', 'Active', NULL),
+(3004, 102, 'S. Tharshini',      'SLTB-C-3004', '0711-100004', 'Active', NULL),
+-- Kandy (2)
+(3005, 2,   'Pradeep Kumara',    'SLTB-C-3005', '0711-100005', 'Active', NULL),
+(3006, 2,   'Fathima Shamin',    'SLTB-C-3006', '0711-100006', 'Active', NULL),
+-- Galle (3)
+(3007, 3,   'Buddhika Perera',   'SLTB-C-3007', '0711-100007', 'Active', NULL),
+(3008, 3,   'S. Logeswaran',     'SLTB-C-3008', '0711-100008', 'Active', NULL),
+-- Jaffna (114)
+(3009, 114, 'K. Thiviyan',       'SLTB-C-3009', '0711-100009', 'Active', NULL),
+(3010, 114, 'Mohamed Shafi',     'SLTB-C-3010', '0711-100010', 'Active', NULL),
+-- Colombo Depot (1) – 10 more
+(3011,1,'Chamila Kumari',        'SLTB-C-3011','0714-223355','Active',NULL),
+(3012,1,'Nirosha Perera',        'SLTB-C-3012','0718-334466','Active',NULL),
+(3013,1,'Kanthi Fernando',       'SLTB-C-3013','0715-445577','Active',NULL),
+(3014,1,'Achini Ranasinghe',     'SLTB-C-3014','0712-556688','Active',NULL),
+(3015,1,'Thilini Gunawardena',   'SLTB-C-3015','0719-667799','Active',NULL),
+(3016,1,'Ravindra Bandara',      'SLTB-C-3016','0711-778800','Active',NULL),
+(3017,1,'Kasun Sampath',         'SLTB-C-3017','0713-889911','Active',NULL),
+(3018,1,'Madhara Jayasinghe',    'SLTB-C-3018','0716-990022','Active',NULL),
+(3019,1,'Sudaraka De Silva',     'SLTB-C-3019','0714-001133','Active',NULL),
+(3020,1,'Hasini Karunaratne',    'SLTB-C-3020','0718-112244','Active',NULL),
+-- Bastian Mawatha / Fort (101) – 8
+(3021,101,'Nadeeka Amarasinghe', 'SLTB-C-3021','0715-223355','Active',NULL),
+(3022,101,'Lakmali Dissanayake', 'SLTB-C-3022','0712-334466','Active',NULL),
+(3023,101,'Ruvini Gamage',       'SLTB-C-3023','0719-445577','Active',NULL),
+(3024,101,'Mohamed Faiz',        'SLTB-C-3024','0711-556688','Active',NULL),
+(3025,101,'Sachini Weerawardana','SLTB-C-3025','0713-667799','Active',NULL),
+(3026,101,'Dimuthu Rajapaksha',  'SLTB-C-3026','0716-778800','Active',NULL),
+(3027,101,'Erandi Jayasekara',   'SLTB-C-3027','0714-889911','Active',NULL),
+(3028,101,'Kasun Wickramasinghe','SLTB-C-3028','0718-990022','Active',NULL),
+-- Makumbura (102) – 4
+(3029,102,'Piumali Herath',      'SLTB-C-3029','0715-001133','Active',NULL),
+(3030,102,'Asanka Ranatunga',    'SLTB-C-3030','0712-112244','Active',NULL),
+(3031,102,'Nilasha Fernando',    'SLTB-C-3031','0719-223355','Active',NULL),
+(3032,102,'Hashini Kumari',      'SLTB-C-3032','0711-334466','Active',NULL),
+-- Maharagama (103) – 4
+(3033,103,'Maneesha Gunasekara', 'SLTB-C-3033','0713-445577','Active',NULL),
+(3034,103,'Thilanka Bandara',    'SLTB-C-3034','0716-556688','Active',NULL),
+(3035,103,'Rasika Kumara',       'SLTB-C-3035','0714-667799','Active',NULL),
+(3036,103,'Shyamali Perera',     'SLTB-C-3036','0718-778800','Active',NULL),
+-- Kadawatha (104) – 4
+(3037,104,'Chamali Senanayake',  'SLTB-C-3037','0715-889911','Active',NULL),
+(3038,104,'Rukshan Attanayake',  'SLTB-C-3038','0712-990022','Active',NULL),
+(3039,104,'Vidura Wimalasena',   'SLTB-C-3039','0719-001133','Active',NULL),
+(3040,104,'Sadeeka Jayasinghe',  'SLTB-C-3040','0711-112245','Active',NULL),
+-- Kottawa (105) – 4
+(3041,105,'Nadeesha Gunathilake','SLTB-C-3041','0713-223356','Active',NULL),
+(3042,105,'Isurika Rajapaksha',  'SLTB-C-3042','0716-334467','Active',NULL),
+(3043,105,'Thida Rathnayake',    'SLTB-C-3043','0714-445578','Active',NULL),
+(3044,105,'Hasala Silva',        'SLTB-C-3044','0718-556689','Active',NULL),
+-- Negombo (106) – 4
+(3045,106,'Sachindra Fernando',  'SLTB-C-3045','0715-667790','Active',NULL),
+(3046,106,'Harsha Dayananda',    'SLTB-C-3046','0712-778801','Active',NULL),
+(3047,106,'Kasvini Jeyakumar',   'SLTB-C-3047','0719-889912','Active',NULL),
+(3048,106,'Amoda Perera',        'SLTB-C-3048','0711-990023','Active',NULL),
+-- Gampaha (107) – 4
+(3049,107,'Dilhani Abeywickrama','SLTB-C-3049','0713-001134','Active',NULL),
+(3050,107,'Kasuni Senanayake',   'SLTB-C-3050','0716-112245','Active',NULL),
+(3051,107,'Anusha Premaratne',   'SLTB-C-3051','0714-223356','Active',NULL),
+(3052,107,'Samantha Bandara',    'SLTB-C-3052','0718-334467','Active',NULL);
 
 -- --------------------------------------------------------
 
@@ -1028,7 +1093,70 @@ INSERT INTO `sltb_drivers` (`sltb_driver_id`, `sltb_depot_id`, `full_name`, `emp
 (12, 2, 'Asanka Wickramasinghe', 'D-KY-2004', '0715002004', 'Active', NULL),
 (13, 3, 'Janaka Silva', 'D-GL-3004', '0715003004', 'Active', NULL),
 (1001, 1, 'Kamal Perera', 'DRV-1001', '0771001001', 'Active', NULL),
-(1002, 1, 'gayashan', 'B12345', '0712345678', 'Active', NULL);
+(1002, 1, 'gayashan', 'B12345', '0712345678', 'Active', NULL),
+-- Colombo Depot - extended
+(2001, 101, 'Kumara Jayawardena', 'SLTB-D-2001', '0711-000001', 'Active', NULL),
+(2002, 101, 'S. Pathmanathan',    'SLTB-D-2002', '0711-000002', 'Active', NULL),
+(2003, 102, 'Nimal Perera',       'SLTB-D-2003', '0711-000003', 'Active', NULL),
+(2004, 102, 'R. Thilakaratne',    'SLTB-D-2004', '0711-000004', 'Active', NULL),
+(2005, 2,   'Sunil Wickramasinghe','SLTB-D-2005','0711-000005', 'Active', NULL),
+(2006, 2,   'M. Ilyas',           'SLTB-D-2006', '0711-000006', 'Active', NULL),
+(2007, 3,   'Chamara De Silva',   'SLTB-D-2007', '0711-000007', 'Active', NULL),
+(2008, 3,   'S. Jeyakumar',       'SLTB-D-2008', '0711-000008', 'Active', NULL),
+(2009, 114, 'Sivapalan Ravikumar','SLTB-D-2009', '0711-000009', 'Active', NULL),
+(2010, 114, 'Ahamed Niyas',       'SLTB-D-2010', '0711-000010', 'Active', NULL),
+-- Colombo Depot (1) – 12 more
+(2011,1,'Dilshan Rathnayake',    'SLTB-D-2011','0714-223344','Active',NULL),
+(2012,1,'Lasitha Fernando',      'SLTB-D-2012','0718-334455','Active',NULL),
+(2013,1,'Ruwan Senanayake',      'SLTB-D-2013','0715-445566','Active',NULL),
+(2014,1,'Nalinda Siriwardena',   'SLTB-D-2014','0712-556677','Active',NULL),
+(2015,1,'Saman Gunawardena',     'SLTB-D-2015','0719-667788','Active',NULL),
+(2016,1,'Tharaka Bandara',       'SLTB-D-2016','0711-778899','Active',NULL),
+(2017,1,'Prasad Jayasuriya',     'SLTB-D-2017','0713-889900','Active',NULL),
+(2018,1,'Ishara Madushanka',     'SLTB-D-2018','0716-990011','Active',NULL),
+(2019,1,'Kanishka Alwis',        'SLTB-D-2019','0714-001122','Active',NULL),
+(2020,1,'Supun Wickramasinghe',  'SLTB-D-2020','0718-112233','Active',NULL),
+(2021,1,'Asitha Dissanayake',    'SLTB-D-2021','0715-223344','Active',NULL),
+(2022,1,'Dhanushka Pathirana',   'SLTB-D-2022','0712-334455','Active',NULL),
+-- Bastian Mawatha / Fort (101) – 8
+(2023,101,'Chaminda Jayasinghe', 'SLTB-D-2023','0719-445566','Active',NULL),
+(2024,101,'Upul Ranatunga',      'SLTB-D-2024','0711-556677','Active',NULL),
+(2025,101,'Gayan Fernando',      'SLTB-D-2025','0713-667788','Active',NULL),
+(2026,101,'Vindana Rodrigo',     'SLTB-D-2026','0716-778899','Active',NULL),
+(2027,101,'Mohamed Imran',       'SLTB-D-2027','0714-889900','Active',NULL),
+(2028,101,'Nishan De Silva',     'SLTB-D-2028','0718-990011','Active',NULL),
+(2029,101,'Roshan Kulatunga',    'SLTB-D-2029','0715-001122','Active',NULL),
+(2030,101,'Aruna Wimalasena',    'SLTB-D-2030','0712-112233','Active',NULL),
+-- Makumbura (102) – 4
+(2031,102,'Pradeep Liyanage',    'SLTB-D-2031','0719-223344','Active',NULL),
+(2032,102,'Harsha Amarasinghe',  'SLTB-D-2032','0711-334455','Active',NULL),
+(2033,102,'Buddhika Gunasekara', 'SLTB-D-2033','0713-445566','Active',NULL),
+(2034,102,'Nilantha Herath',     'SLTB-D-2034','0716-556677','Active',NULL),
+-- Maharagama (103) – 4
+(2035,103,'Kapila Bandara',      'SLTB-D-2035','0714-667788','Active',NULL),
+(2036,103,'Dinesh Ranasinghe',   'SLTB-D-2036','0718-778899','Active',NULL),
+(2037,103,'Charith Samarasinghe','SLTB-D-2037','0715-889900','Active',NULL),
+(2038,103,'Akila Kumara',        'SLTB-D-2038','0712-990011','Active',NULL),
+-- Kadawatha (104) – 4
+(2039,104,'Nuwan Gamage',        'SLTB-D-2039','0719-001122','Active',NULL),
+(2040,104,'Chathura Abeywickrama','SLTB-D-2040','0711-112234','Active',NULL),
+(2041,104,'Sampath Karunaratne', 'SLTB-D-2041','0713-223345','Active',NULL),
+(2042,104,'Piyal Wickramaratne', 'SLTB-D-2042','0716-334456','Active',NULL),
+-- Kottawa (105) – 4
+(2043,105,'Lahiru Senadeera',    'SLTB-D-2043','0714-445567','Active',NULL),
+(2044,105,'Tisara Gunathilake',  'SLTB-D-2044','0718-556678','Active',NULL),
+(2045,105,'Malitha Rajapaksha',  'SLTB-D-2045','0715-667789','Active',NULL),
+(2046,105,'Isuru Madanayake',    'SLTB-D-2046','0712-778890','Active',NULL),
+-- Negombo (106) – 4
+(2047,106,'Janaka Weerasinghe',  'SLTB-D-2047','0719-889901','Active',NULL),
+(2048,106,'Amara de Silva',      'SLTB-D-2048','0711-990012','Active',NULL),
+(2049,106,'Thilak Nanayakkara',  'SLTB-D-2049','0713-001123','Active',NULL),
+(2050,106,'Sisira Samarakoon',   'SLTB-D-2050','0716-112234','Active',NULL),
+-- Gampaha (107) – 4
+(2051,107,'Sanjeewa Kumara',     'SLTB-D-2051','0714-223345','Active',NULL),
+(2052,107,'Ruchira Madushan',    'SLTB-D-2052','0718-334456','Active',NULL),
+(2053,107,'Hasitha Jayaweera',   'SLTB-D-2053','0715-445567','Active',NULL),
+(2054,107,'Dilruksha Kottegoda', 'SLTB-D-2054','0712-556678','Active',NULL);
 
 -- --------------------------------------------------------
 
