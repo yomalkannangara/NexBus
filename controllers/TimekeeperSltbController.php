@@ -78,22 +78,28 @@ class TimekeeperSltbController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
-            $action = $_POST['action'] ?? '';
+            try {
+                $action = $_POST['action'] ?? '';
 
-            if ($action === 'start') {
-                $tt = (int)($_POST['timetable_id'] ?? 0);
-                echo json_encode($m->start($tt)); return;
+                if ($action === 'start') {
+                    $tt = (int)($_POST['timetable_id'] ?? 0);
+                    echo json_encode($m->start($tt)); return;
+                }
+                if ($action === 'arrive') {
+                    $id = (int)($_POST['trip_id'] ?? 0);
+                    echo json_encode($m->arrive($id)); return;
+                }
+                if ($action === 'cancel') {
+                    $id     = (int)($_POST['trip_id'] ?? 0);
+                    $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
+                    echo json_encode($m->cancel($id, $reason)); return;
+                }
+                echo json_encode(['ok' => false, 'msg' => 'Unknown action']);
+            } catch (\Throwable $e) {
+                error_log('[TK-SLTB entry] ' . $e->getMessage());
+                echo json_encode(['ok' => false, 'msg' => $e->getMessage()]);
             }
-            if ($action === 'arrive') {
-                $id = (int)($_POST['trip_id'] ?? 0);
-                echo json_encode($m->arrive($id)); return;
-            }
-            if ($action === 'cancel') {
-                $id     = (int)($_POST['trip_id'] ?? 0);
-                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-                echo json_encode($m->cancel($id, $reason)); return;
-            }
-            echo json_encode(['ok' => false, 'msg' => 'Unknown action']); return;
+            return;
         }
 
         // History tab data

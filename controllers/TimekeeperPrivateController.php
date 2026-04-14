@@ -68,24 +68,29 @@ class TimekeeperPrivateController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
-            $act = $_POST['action'] ?? '';
-            if ($act === 'start') {
-                $tt = (int)($_POST['timetable_id'] ?? $_POST['tt'] ?? 0);
-                echo json_encode($m->start($tt));
-                return;
+            try {
+                $act = $_POST['action'] ?? '';
+                if ($act === 'start') {
+                    $tt = (int)($_POST['timetable_id'] ?? $_POST['tt'] ?? 0);
+                    echo json_encode($m->start($tt));
+                    return;
+                }
+                if ($act === 'arrive') {
+                    $id = (int)($_POST['trip_id'] ?? 0);
+                    echo json_encode($m->arrive($id));
+                    return;
+                }
+                if ($act === 'cancel') {
+                    $id     = (int)($_POST['trip_id'] ?? 0);
+                    $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
+                    echo json_encode($m->cancel($id, $reason));
+                    return;
+                }
+                echo json_encode(['ok' => false, 'msg' => 'Unknown action']);
+            } catch (\Throwable $e) {
+                error_log('[TK-Private trip_entry] ' . $e->getMessage());
+                echo json_encode(['ok' => false, 'msg' => $e->getMessage()]);
             }
-            if ($act === 'arrive') {
-                $id = (int)($_POST['trip_id'] ?? 0);
-                echo json_encode($m->arrive($id));
-                return;
-            }
-            if ($act === 'cancel') {
-                $id     = (int)($_POST['trip_id'] ?? 0);
-                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-                echo json_encode($m->cancel($id, $reason));
-                return;
-            }
-            echo json_encode(['ok' => false, 'msg' => 'Unknown action']);
             return;
         }
 
