@@ -805,7 +805,16 @@ INSERT INTO `sltb_assignments` (`assignment_id`, `assigned_date`, `shift`, `bus_
 (15, '2026-04-14', 'Morning', 'NB-2001', 3, 3, 2, NULL, NULL, NULL),
 (16, '2026-04-14', 'Morning', 'NB-2002', 4, 4, 2, NULL, NULL, NULL),
 (17, '2026-04-14', 'Morning', 'NB-3001', 5, 5, 3, NULL, NULL, NULL),
-(18, '2026-04-14', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL);
+(18, '2026-04-14', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL),
+-- Today 2026-04-15 (Wednesday) assignments for all depots
+(19, '2026-04-15', 'Morning', 'NB-3101', 1001, 11, 1, NULL, NULL, NULL),
+(20, '2026-04-15', 'Morning', 'NB-3102', 8, 2, 1, NULL, NULL, NULL),
+(21, '2026-04-15', 'Morning', 'NB-1001', 1, 1, 1, NULL, NULL, NULL),
+(22, '2026-04-15', 'Morning', 'NB-1002', 1002, 2001, 1, NULL, NULL, NULL),
+(23, '2026-04-15', 'Morning', 'NB-2001', 3, 3, 2, NULL, NULL, NULL),
+(24, '2026-04-15', 'Morning', 'NB-2002', 4, 4, 2, NULL, NULL, NULL),
+(25, '2026-04-15', 'Morning', 'NB-3001', 5, 5, 3, NULL, NULL, NULL),
+(26, '2026-04-15', 'Morning', 'NB-3002', 6, 6, 3, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
