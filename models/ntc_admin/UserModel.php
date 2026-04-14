@@ -16,7 +16,7 @@ class UserModel extends BaseModel {
     }
 
     public function list(array $filters = []): array {
-        $sql = "SELECT user_id, first_name, last_name, email, phone, role, status, last_login, private_operator_id, sltb_depot_id
+        $sql = "SELECT user_id, first_name, last_name, email, phone, role, status, last_login, private_operator_id, sltb_depot_id, timekeeper_location
                 FROM users";
         $where = [];
         $params = [];
@@ -72,22 +72,191 @@ class UserModel extends BaseModel {
         return $this->pdo->query("SELECT sltb_depot_id, name FROM sltb_depots ORDER BY name")->fetchAll();
     }
 
+    private function normalizeStop(string $text): string {
+        $norm = strtolower(trim($text));
+        if ($norm === '') return '';
+        $norm = preg_replace('/[^a-z0-9 ]+/i', ' ', $norm) ?? $norm;
+        $norm = preg_replace('/\s+/', ' ', $norm) ?? $norm;
+        return trim($norm);
+    }
+
+    private function availableRouteStopColumns(): array {
+        try {
+            $st = $this->pdo->query("SHOW COLUMNS FROM routes");
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+            $cols = [];
+            foreach ($rows as $r) {
+                $name = strtolower((string)($r['Field'] ?? ''));
+                if ($name !== '') $cols[] = $name;
+            }
+
+            $out = [];
+            foreach (['stops_json', 'stops'] as $want) {
+                if (in_array($want, $cols, true)) {
+                    $out[] = $want;
+                }
+            }
+            return $out;
+        } catch (\Throwable $e) {
+            return ['stops_json'];
+        }
+    }
+
+    private function collectStopNamesFromNode(mixed $node, array &$out): void {
+        if (is_string($node)) {
+            $v = trim($node);
+            if ($v !== '') $out[] = $v;
+            return;
+        }
+
+        if (!is_array($node)) {
+            return;
+        }
+
+        if (isset($node['stops'])) {
+            $this->collectStopNamesFromNode($node['stops'], $out);
+            return;
+        }
+
+        foreach (['stop', 'name', 'location'] as $k) {
+            if (isset($node[$k]) && is_string($node[$k])) {
+                $v = trim((string)$node[$k]);
+                if ($v !== '') $out[] = $v;
+                return;
+            }
+        }
+
+        foreach ($node as $child) {
+            $this->collectStopNamesFromNode($child, $out);
+        }
+    }
+
+    private function extractStopsFromRaw(mixed $raw): array {
+        $text = trim((string)$raw);
+        if ($text === '' || strtolower($text) === 'null') {
+            return [];
+        }
+
+        $attempts = [$text];
+
+        // Common escaped payloads from SQL dumps/app writes.
+        $attempts[] = stripslashes($text);
+        $attempts[] = str_replace('\\"', '"', $text);
+
+        if (
+            (str_starts_with($text, '"') && str_ends_with($text, '"'))
+            || (str_starts_with($text, "'") && str_ends_with($text, "'"))
+        ) {
+            $attempts[] = substr($text, 1, -1);
+        }
+
+        foreach ($attempts as $candidate) {
+            $decoded = json_decode($candidate, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                continue;
+            }
+
+            if (is_string($decoded)) {
+                $decoded2 = json_decode($decoded, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $decoded = $decoded2;
+                }
+            }
+
+            $out = [];
+            $this->collectStopNamesFromNode($decoded, $out);
+            if (!empty($out)) {
+                return $out;
+            }
+        }
+
+        // Fallback for legacy delimited formats.
+        if (preg_match('/,|\||->|;|>/', $text)) {
+            $parts = preg_split('/\s*(?:,|\||->|;|>)\s*/', $text) ?: [];
+            $parts = array_values(array_filter(array_map('trim', $parts), fn($v) => $v !== ''));
+            if (!empty($parts)) {
+                return $parts;
+            }
+        }
+
+        return [];
+    }
+
+    public function timekeeperLocations(): array {
+        $locations = ['Common'];
+        $seen = ['common' => true];
+
+        try {
+            foreach ($this->availableRouteStopColumns() as $col) {
+                $sql = "SELECT {$col} AS raw_stops FROM routes WHERE {$col} IS NOT NULL AND TRIM({$col}) <> ''";
+                $st = $this->pdo->query($sql);
+                foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $raw) {
+                    foreach ($this->extractStopsFromRaw($raw) as $name) {
+                        $key = $this->normalizeStop((string)$name);
+                        if ($key === '' || isset($seen[$key])) continue;
+                        $seen[$key] = true;
+                        $locations[] = (string)$name;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Keep a safe fallback list with Common if routes are unavailable.
+        }
+
+        $others = array_values(array_filter($locations, fn($v) => $this->normalizeStop((string)$v) !== 'common'));
+        usort($others, fn($a, $b) => strnatcasecmp((string)$a, (string)$b));
+        array_unshift($others, 'Common');
+        return $others;
+    }
+
+    private function validatedTimekeeperLocation(array $d, string $role): ?string {
+        if (!in_array($role, ['SLTBTimekeeper', 'PrivateTimekeeper'], true)) {
+            return null;
+        }
+
+        $input = trim((string)($d['timekeeper_location'] ?? ''));
+        if ($input === '') {
+            return 'Common';
+        }
+
+        $want = $this->normalizeStop($input);
+        if ($want === 'common') {
+            return 'Common';
+        }
+
+        foreach ($this->timekeeperLocations() as $candidate) {
+            if ($this->normalizeStop((string)$candidate) === $want) {
+                return (string)$candidate;
+            }
+        }
+
+        return 'Common';
+    }
+
     public function create(array $d): void {
         $this->pdo->beginTransaction();
         try {
             // normalize by role (same rule used in update)
             $role = $d['role'] ?? '';
 
+            $timekeeperLocation = $this->validatedTimekeeperLocation($d, $role);
+
             $depotId    = !empty($d['sltb_depot_id']) ? $d['sltb_depot_id'] : null;
             $operatorId = !empty($d['private_operator_id']) ? $d['private_operator_id'] : null;
 
             if ($role === 'PrivateBusOwner') {
                 $depotId = null;
-            } elseif (in_array($role, ['DepotManager','DepotOfficer','SLTBTimekeeper'], true)) {
+                $timekeeperLocation = null;
+            } elseif (in_array($role, ['DepotManager','DepotOfficer'], true)) {
                 $operatorId = null;
+                $timekeeperLocation = null;
+            } elseif (in_array($role, ['SLTBTimekeeper','PrivateTimekeeper'], true)) {
+                $operatorId = null;
+                $depotId = null;
             } else {
                 $operatorId = null;
                 $depotId = null;
+                $timekeeperLocation = null;
             }
 
             $employeeId = (int)($d['employee_id'] ?? 0);
@@ -101,8 +270,8 @@ class UserModel extends BaseModel {
 
             // Insert into users (employee id goes to user_id)
             $st = $this->pdo->prepare("
-                INSERT INTO users (user_id, role, first_name, last_name, email, phone, password_hash, status, private_operator_id, sltb_depot_id)
-                VALUES (?,?,?,?,?,?,?, 'Active', ?, ?)
+                INSERT INTO users (user_id, role, first_name, last_name, email, phone, password_hash, status, private_operator_id, sltb_depot_id, timekeeper_location)
+                VALUES (?,?,?,?,?,?,?, 'Active', ?, ?, ?)
             ");
             $st->execute([
                 $employeeId,
@@ -113,7 +282,8 @@ class UserModel extends BaseModel {
                 $d['phone'] ?: null,
                 $pwdHash,
                 $operatorId,
-                $depotId
+                $depotId,
+                $timekeeperLocation
             ]);
 
             $userId = $employeeId;
@@ -166,19 +336,26 @@ class UserModel extends BaseModel {
             $lastName   = $d['last_name'] ?? '';
             $email      = trim($d['email'] ?? '');
             $phone      = trim($d['phone'] ?? '');
+            $timekeeperLocation = $this->validatedTimekeeperLocation($d, $role);
             $depotId    = !empty($d['sltb_depot_id']) ? $d['sltb_depot_id'] : null;
             $operatorId = !empty($d['private_operator_id']) ? $d['private_operator_id'] : null;
 
-            if (in_array($role, ['PrivateBusOwner','PrivateTimekeeper'], true)) {
+            if ($role === 'PrivateBusOwner') {
                 $depotId = null;
-            } elseif (in_array($role, ['DepotManager','DepotOfficer','SLTBTimekeeper'], true)) {
+                $timekeeperLocation = null;
+            } elseif (in_array($role, ['DepotManager','DepotOfficer'], true)) {
                 $operatorId = null;
+                $timekeeperLocation = null;
+            } elseif (in_array($role, ['SLTBTimekeeper','PrivateTimekeeper'], true)) {
+                $operatorId = null;
+                $depotId = null;
             } else {
                 $operatorId = null;
                 $depotId = null;
+                $timekeeperLocation = null;
             }
 
-            $sets = "role=:role, first_name=:first_name, last_name=:last_name, email=:email, phone=:phone, private_operator_id=:po, sltb_depot_id=:dp";
+            $sets = "role=:role, first_name=:first_name, last_name=:last_name, email=:email, phone=:phone, private_operator_id=:po, sltb_depot_id=:dp, timekeeper_location=:tk_loc";
             $args = [
                 ':role'       => $role,
                 ':first_name' => $firstName,
@@ -187,6 +364,7 @@ class UserModel extends BaseModel {
                 ':phone'      => ($phone !== '') ? $phone : null,
                 ':po'         => $operatorId,
                 ':dp'         => $depotId,
+                ':tk_loc'     => $timekeeperLocation,
                 ':user_id'    => $userId,
             ];
 

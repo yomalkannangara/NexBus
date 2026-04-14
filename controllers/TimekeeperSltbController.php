@@ -103,7 +103,7 @@ class TimekeeperSltbController extends BaseController
         // --- GET ---
         $this->view('timekeeper_sltb', 'trip_entry', [
             'rows'     => $m->todayList(),
-            'point'    => $m->myPoint(),
+            'location' => $m->myLocationLabel(),
             'upcoming' => $m->upcoming(60),
         ]);
     }

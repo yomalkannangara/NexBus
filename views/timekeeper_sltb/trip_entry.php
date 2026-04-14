@@ -1,12 +1,10 @@
 <?php
-/* vars: rows, point, upcoming */
-$point     = $point     ?? 'start';
-$rows      = $rows      ?? [];
-$upcoming  = $upcoming  ?? [];
-$me        = $_SESSION['user'] ?? [];
-$depotName = 'Depot';
+/* vars: rows, location, upcoming */
+$location = trim((string)($location ?? 'Common'));
+$rows = $rows ?? [];
+$upcoming = $upcoming ?? [];
 
-$roleLabel = ($point === 'end') ? 'End-Point Timekeeper' : 'Start-Point Timekeeper';
+$roleLabel = 'Stop: ' . ($location !== '' ? $location : 'Common');
 
 /* ── Cancel reasons ── */
 $cancelReasons = [
@@ -217,7 +215,7 @@ function tke_badge(string $status): string {
 <div class="tke-notify-bar">
     <div class="tke-notify-bar__title">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        <?= $point === 'start' ? 'Upcoming Departures' : 'Expected Arrivals' ?> (next 60 min)
+        Upcoming Departures (next 60 min)
     </div>
     <div class="tke-notify-pills">
         <?php foreach ($upcoming as $u): ?>
@@ -258,16 +256,12 @@ function tke_badge(string $status): string {
             <th>Route</th>
             <th>Turn</th>
             <th>Scheduled Dep</th>
-            <?php if ($point === 'end'): ?>
-            <th>Expected Arr</th>
-            <th>From Depot</th>
-            <?php endif; ?>
             <th>Status</th>
             <th>Actions</th>
         </tr></thead>
         <tbody>
         <?php if (empty($rows)): ?>
-        <tr><td colspan="<?= $point === 'end' ? 8 : 6 ?>" class="tke-empty">
+        <tr><td colspan="6" class="tke-empty">
             <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
             <p>No trips scheduled for today.</p>
         </td></tr>
@@ -287,32 +281,20 @@ function tke_badge(string $status): string {
             </td>
             <td class="mono"><?= $turn > 0 ? "Turn $turn" : '—' ?></td>
             <td class="mono"><?= htmlspecialchars(substr($r['sched_dep'] ?? '—', 0, 5)) ?></td>
-            <?php if ($point === 'end'): ?>
-            <td class="mono"><?= htmlspecialchars(substr($r['sched_arr'] ?? '—', 0, 5)) ?></td>
-            <td style="font-size:.78rem;color:#6b7280;"><?= htmlspecialchars((string)($r['origin_depot'] ?? '—')) ?></td>
-            <?php endif; ?>
             <td><?= tke_badge($status) ?></td>
             <td>
                 <div class="tke-actions">
-                <?php if ($point === 'start'): ?>
-                    <?php if ($status === 'Scheduled'): ?>
-                        <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>)">
-                            &#9654; Start Journey
-                        </button>
-                    <?php elseif ($status === 'Running' || $status === 'Delayed'): ?>
-                        <button class="tke-btn tke-btn-cancel" onclick="tkeOpenCancel(<?= $tripId ?>)">
-                            &#215; Cancel Trip
-                        </button>
-                    <?php endif; ?>
-                <?php elseif ($point === 'end'): ?>
-                    <?php if ($status === 'Running' || $status === 'Delayed'): ?>
-                        <button class="tke-btn tke-btn-arrive" onclick="tkeArrive(<?= $tripId ?>, this)">
-                            &#10003; Mark Arrived
-                        </button>
-                        <button class="tke-btn tke-btn-cancel" onclick="tkeOpenCancel(<?= $tripId ?>)">
-                            &#215; Cancel Trip
-                        </button>
-                    <?php endif; ?>
+                <?php if ($status === 'Scheduled'): ?>
+                    <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>)">
+                        &#9654; Start Journey
+                    </button>
+                <?php elseif ($status === 'Running' || $status === 'Delayed'): ?>
+                    <button class="tke-btn tke-btn-arrive" onclick="tkeArrive(<?= $tripId ?>, this)">
+                        &#10003; Mark Arrived
+                    </button>
+                    <button class="tke-btn tke-btn-cancel" onclick="tkeOpenCancel(<?= $tripId ?>)">
+                        &#215; Cancel Trip
+                    </button>
                 <?php endif; ?>
                 </div>
             </td>
@@ -371,7 +353,7 @@ function tke_badge(string $status): string {
         if (btn) btn.disabled = true;
         var fd = new FormData();
         Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
-        fetch('/TS/entry', { method: 'POST', body: fd })
+        fetch('/TS/trip_entry', { method: 'POST', body: fd })
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (btn) btn.disabled = false;

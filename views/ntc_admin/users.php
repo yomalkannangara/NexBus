@@ -1,3 +1,5 @@
+<?php $timekeeperLocations = $timekeeperLocations ?? []; ?>
+
 <section class="page-hero">
   <h1>User & Role Management</h1>
   <p>Manage user accounts and permissions</p>
@@ -114,7 +116,7 @@
     </label>
 
     <label>Role
-      <select name="role" required>
+      <select name="role" id="create_role" required>
         <option value="NTCAdmin">NTCAdmin</option>
         <option value="DepotManager">DepotManager</option>
         <option value="DepotOfficer">DepotOfficer</option>
@@ -125,7 +127,7 @@
       </select>
     </label>
 
-    <label>Private company
+    <label id="create_private_operator_wrap" style="display:none;">Private company
       <select name="private_operator_id">
         <option value="">-- none --</option>
         <?php foreach($owners as $o): ?>
@@ -136,7 +138,7 @@
       </select>
     </label>
 
-    <label>SLTB Depot
+    <label id="create_sltb_depot_wrap" style="display:none;">SLTB Depot
       <select name="sltb_depot_id">
         <option value="">-- none --</option>
         <?php foreach($depots as $d): ?>
@@ -145,6 +147,14 @@
           </option>
         <?php endforeach; ?>
       </select>
+    </label>
+
+    <label id="create_timekeeper_location_wrap" style="display:none;">Timekeeper Location
+      <input
+        name="timekeeper_location"
+        id="create_timekeeper_location"
+        list="timekeeper_locations_list"
+        placeholder="Search and select route stop">
     </label>
 
     <div class="form-actions">
@@ -191,7 +201,7 @@
       </select>
     </label>
 
-    <label>Private company
+    <label id="edit_private_operator_wrap" style="display:none;">Private company
       <select name="private_operator_id" id="edit_private_operator_id">
         <option value="">-- none --</option>
         <?php foreach($owners as $o): ?>
@@ -202,7 +212,7 @@
       </select>
     </label>
 
-    <label>SLTB Depot
+    <label id="edit_sltb_depot_wrap" style="display:none;">SLTB Depot
       <select name="sltb_depot_id" id="edit_sltb_depot_id">
         <option value="">-- none --</option>
         <?php foreach($depots as $d): ?>
@@ -213,12 +223,26 @@
       </select>
     </label>
 
+    <label id="edit_timekeeper_location_wrap" style="display:none;">Timekeeper Location
+      <input
+        name="timekeeper_location"
+        id="edit_timekeeper_location"
+        list="timekeeper_locations_list"
+        placeholder="Search and select route stop">
+    </label>
+
     <div class="form-actions">
       <button class="btn primary">Update</button>
       <button type="button" class="btn" id="cancelEditU">Cancel</button>
     </div>
   </form>
 </div>
+
+<datalist id="timekeeper_locations_list">
+  <?php foreach ($timekeeperLocations as $loc): ?>
+    <option value="<?= htmlspecialchars((string)$loc) ?>"></option>
+  <?php endforeach; ?>
+</datalist>
 
 <section class="table-panel">
   <div class="table-panel-head"><h2>Users</h2>
@@ -230,7 +254,7 @@
         <th>Name</th>
         <th>Contact</th>
         <th>Role</th>
-        <th>Linked Depot/private bus owner</th>
+        <th>Linked Depot/private bus owner/location</th>
         <th>Status</th>
         <th>Last Login</th>
         <th>Action</th>
@@ -258,11 +282,13 @@
                 $q->execute([$u['user_id']]);
                 $link = $q->fetchColumn();
                 echo htmlspecialchars($link ?: '-');
-              } elseif (in_array($u['role'], ['DepotManager','DepotOfficer','SLTBTimekeeper'])) {
+              } elseif (in_array($u['role'], ['DepotManager','DepotOfficer'])) {
                 $q = $GLOBALS['db']->prepare('SELECT name FROM sltb_depots WHERE sltb_depot_id = (SELECT sltb_depot_id FROM users WHERE user_id=?)');
                 $q->execute([$u['user_id']]);
                 $link = $q->fetchColumn();
                 echo htmlspecialchars($link ?: '-');
+              } elseif (in_array($u['role'], ['SLTBTimekeeper','PrivateTimekeeper'], true)) {
+                echo htmlspecialchars((string)($u['timekeeper_location'] ?: 'Common'));
               } else {
                 echo '-';
               }
@@ -291,6 +317,7 @@
               data-role="<?= htmlspecialchars($u['role'], ENT_QUOTES) ?>"
               data-private-operator-id="<?= htmlspecialchars((string)($u['private_operator_id'] ?? ''), ENT_QUOTES) ?>"
               data-sltb-depot-id="<?= htmlspecialchars((string)($u['sltb_depot_id'] ?? ''), ENT_QUOTES) ?>"
+              data-timekeeper-location="<?= htmlspecialchars((string)($u['timekeeper_location'] ?? ''), ENT_QUOTES) ?>"
             >Update</a>
 
             <form method="post" class="inline-form inline" style="display:inline"
@@ -305,3 +332,71 @@
     </tbody>
   </table>
 </section>
+
+<script>
+(function () {
+  function byId(id) { return document.getElementById(id); }
+
+  function syncRole(mode) {
+    var isEdit = mode === 'edit';
+
+    var roleEl = byId(isEdit ? 'edit_role' : 'create_role');
+    if (!roleEl) return;
+
+    var ownerWrap = byId(isEdit ? 'edit_private_operator_wrap' : 'create_private_operator_wrap');
+    var depotWrap = byId(isEdit ? 'edit_sltb_depot_wrap' : 'create_sltb_depot_wrap');
+    var locWrap = byId(isEdit ? 'edit_timekeeper_location_wrap' : 'create_timekeeper_location_wrap');
+
+    var ownerSelect = isEdit
+      ? byId('edit_private_operator_id')
+      : document.querySelector('#addUPanel select[name="private_operator_id"]');
+    var depotSelect = isEdit
+      ? byId('edit_sltb_depot_id')
+      : document.querySelector('#addUPanel select[name="sltb_depot_id"]');
+    var locInput = byId(isEdit ? 'edit_timekeeper_location' : 'create_timekeeper_location');
+
+    var role = roleEl.value || '';
+    var isOwner = role === 'PrivateBusOwner';
+    var isDepot = role === 'DepotManager' || role === 'DepotOfficer';
+    var isTimekeeper = role === 'SLTBTimekeeper' || role === 'PrivateTimekeeper';
+
+    if (ownerWrap) ownerWrap.style.display = isOwner ? 'block' : 'none';
+    if (depotWrap) depotWrap.style.display = isDepot ? 'block' : 'none';
+    if (locWrap) locWrap.style.display = isTimekeeper ? 'block' : 'none';
+
+    if (ownerSelect) {
+      ownerSelect.required = isOwner;
+      if (!isOwner) ownerSelect.value = '';
+    }
+    if (depotSelect) {
+      depotSelect.required = isDepot;
+      if (!isDepot) depotSelect.value = '';
+    }
+    if (locInput) {
+      locInput.required = isTimekeeper;
+      if (!isTimekeeper) {
+        locInput.value = '';
+      } else if (!locInput.value.trim()) {
+        locInput.value = 'Common';
+      }
+    }
+  }
+
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.id === 'create_role') syncRole('create');
+    if (e.target && e.target.id === 'edit_role') syncRole('edit');
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.target && e.target.closest('#showAddU')) {
+      setTimeout(function () { syncRole('create'); }, 0);
+    }
+    if (e.target && e.target.closest('.btn-edit')) {
+      setTimeout(function () { syncRole('edit'); }, 0);
+    }
+  });
+
+  syncRole('create');
+  syncRole('edit');
+})();
+</script>

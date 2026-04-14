@@ -1,7 +1,15 @@
--- SLTB Timekeeper: designate whether a timekeeper is at the
--- starting depot (start) or the destination depot (end).
--- Default 'start' keeps all existing accounts working without re-login.
+-- Replace old point-based assignment with a shared stop location field
+-- for both SLTB and Private timekeepers.
+
 ALTER TABLE `users`
-  ADD COLUMN IF NOT EXISTS `timekeeper_point`
-    ENUM('start','end') NOT NULL DEFAULT 'start'
-    COMMENT 'SLTBTimekeeper: start=originating depot, end=destination depot';
+  DROP COLUMN IF EXISTS `timekeeper_point`;
+
+ALTER TABLE `users`
+  ADD COLUMN IF NOT EXISTS `timekeeper_location`
+    varchar(120) DEFAULT NULL
+    COMMENT 'Route stop name used to filter timekeeper schedules';
+
+UPDATE `users`
+SET `timekeeper_location` = 'Common'
+WHERE `role` IN ('SLTBTimekeeper','PrivateTimekeeper')
+  AND (`timekeeper_location` IS NULL OR TRIM(`timekeeper_location`) = '');

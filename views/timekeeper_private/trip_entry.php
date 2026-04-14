@@ -1,8 +1,9 @@
 <?php
-/* vars: rows, upcoming, S */
-$rows     = $rows     ?? [];
+/* vars: rows, upcoming, S, location */
+$rows = $rows ?? [];
 $upcoming = $upcoming ?? [];
-$S        = $S ?? ['depot_name' => 'Operator'];
+$S = $S ?? ['depot_name' => 'Operator'];
+$location = trim((string)($location ?? 'Common'));
 
 /* ── Cancel reasons ── */
 $cancelReasons = [
@@ -230,7 +231,10 @@ function tke_badge(string $status): string {
 <div class="tke-hero">
     <div>
         <h1>&#128652; Private Bus Timekeeper Portal</h1>
-        <p><?= htmlspecialchars($S['depot_name'] ?? 'Operator') ?></p>
+        <p>
+            <?= htmlspecialchars($S['depot_name'] ?? 'Operator') ?>
+            &bull; Stop: <?= htmlspecialchars($location !== '' ? $location : 'Common') ?>
+        </p>
     </div>
     <div>
         <span class="tke-hero-badge">Bus Timekeeper</span>

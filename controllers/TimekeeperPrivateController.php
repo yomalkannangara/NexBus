@@ -97,6 +97,7 @@ class TimekeeperPrivateController extends BaseController
 
         $this->view('timekeeper_private', 'trip_entry', [
             'S'        => $m->info(),
+            'location' => $m->myLocationLabel(),
             'rows'     => $m->todayList(),
             'upcoming' => $m->upcoming(60),
         ]);

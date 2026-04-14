@@ -16143,7 +16143,7 @@ CREATE TABLE `users` (
   `profile_image` varchar(255) DEFAULT NULL COMMENT 'Path to user profile image',
   `private_operator_id` int(11) DEFAULT NULL,
   `sltb_depot_id` int(11) DEFAULT NULL,
-  `timekeeper_point` enum('start','end') NOT NULL DEFAULT 'start' COMMENT 'SLTBTimekeeper: start=originating depot, end=destination depot',
+  `timekeeper_location` varchar(120) DEFAULT NULL COMMENT 'Route stop name used to filter timekeeper schedules',
   `created_at` datetime DEFAULT current_timestamp(),
   `last_login` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -16199,8 +16199,10 @@ INSERT INTO `users` (`user_id`, `role`, `first_name`, `last_name`, `email`, `pho
 -- Set password='test' for ALL users (unified demo credential)
 UPDATE `users` SET `password_hash` = '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y';
 
--- Set destination (end) timekeeper_point for arrival-side timekeepers
-UPDATE `users` SET `timekeeper_point` = 'end' WHERE `user_id` IN (10004, 10006, 10009, 10013, 10015);
+UPDATE `users`
+SET `timekeeper_location` = 'Common'
+WHERE `role` IN ('SLTBTimekeeper','PrivateTimekeeper')
+  AND (`timekeeper_location` IS NULL OR TRIM(`timekeeper_location`) = '');
 
 -- Link private bus owners to their user accounts
 UPDATE `private_bus_owners` SET `owner_user_id` = 55 WHERE `private_operator_id` = 1;

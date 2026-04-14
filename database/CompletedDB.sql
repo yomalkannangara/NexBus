@@ -29527,6 +29527,7 @@ CREATE TABLE `users` (
   `profile_image` varchar(255) DEFAULT NULL COMMENT 'Path to user profile image',
   `private_operator_id` int(11) DEFAULT NULL,
   `sltb_depot_id` int(11) DEFAULT NULL,
+  `timekeeper_location` varchar(120) DEFAULT NULL COMMENT 'Route stop name used to filter timekeeper schedules',
   `created_at` datetime DEFAULT current_timestamp(),
   `last_login` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -29562,6 +29563,11 @@ INSERT INTO `users` (`user_id`, `role`, `first_name`, `last_name`, `email`, `pho
 (10002, 'PrivateTimekeeper', 'PrivateTimekeeper', NULL, 'privatetimekeeper@gmail.com', '456456456456', '$2y$10$RwJtGZqggLJL0WYRML..KeTtnXIkJ0HoUouviCj.wcuIzngWXo6pC', 'Active', NULL, 1, NULL, '2025-10-21 23:55:56', NULL),
 (10003, 'Passenger', 'yomal kannangara', NULL, 'yomal4@gmail.com', '0776844788', '$2y$10$C2BBkVSH6WDFvwgxQiWN5.AYlVpzSCqQBJzCaeod3mAFSx.MNQ/Pa', 'Active', NULL, NULL, NULL, '2025-10-22 11:21:34', NULL),
 (10008, 'DepotOfficer', 'yomal', NULL, 'yomalkannangara2@gmail.com', '45745345345', '$2y$10$m6kR1ipmdrtEKGpiGqwwTOPyrIhQKUDx1TvCaOJmzZZ6ET7OSFE1W', 'Active', NULL, NULL, 1, '2025-10-22 20:02:29', NULL);
+
+UPDATE `users`
+SET `timekeeper_location` = 'Common'
+WHERE `role` IN ('SLTBTimekeeper','PrivateTimekeeper')
+  AND (`timekeeper_location` IS NULL OR TRIM(`timekeeper_location`) = '');
 
 -- --------------------------------------------------------
 

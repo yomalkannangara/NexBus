@@ -1,0 +1,6 @@
+[15-Apr-2026 00:23:54 Asia/Colombo] PHP Fatal error:  Uncaught Error: Call to undefined method App\models\timekeeper_sltb\TripEntryModel::info() in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php:120
+Stack trace:
+#0 C:\xampp\htdocs\NexBus-1\public\index.php(41): App\controllers\TimekeeperSltbController->history()
+#1 C:\xampp\htdocs\NexBus-1\public\index.php(205): run('TimekeeperSltbC...', 'history')
+#2 {main}
+  thrown in C:\xampp\htdocs\NexBus-1\controllers\TimekeeperSltbController.php on line 120
