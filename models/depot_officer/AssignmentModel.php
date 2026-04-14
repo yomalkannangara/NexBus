@@ -538,18 +538,31 @@ public function allToday(int $depotId): array {
     }
 
     /**
-     * For a given timetable departure time (HH:MM), return driver/conductor IDs
-     * already assigned to a different bus at that time today, along with which bus.
+     * Map HH:MM departure time to the ENUM shift category used in sltb_assignments.
+     */
+    private function timeToShift(string $hhmm): string
+    {
+        $h = (int)substr($hhmm, 0, 2);
+        if ($h < 12) return 'Morning';
+        if ($h < 17) return 'Evening';
+        return 'Night';
+    }
+
+    /**
+     * For a given timetable departure time (HH:MM) and effective date range, return
+     * driver/conductor IDs already assigned to a different bus within that period,
+     * along with which bus they are assigned to.
      * Used by the JS conflict-checker AJAX endpoint.
      */
-    public function staffConflictsForTurn(int $depotId, string $departureTime): array
+    public function staffConflictsForTurn(int $depotId, string $departureTime, string $from, string $to): array
     {
+        $shift = $this->timeToShift($departureTime);
         $sql = "SELECT a.sltb_driver_id, a.sltb_conductor_id, a.bus_reg_no
                 FROM sltb_assignments a
-                WHERE a.sltb_depot_id=? AND a.assigned_date=CURDATE()
-                  AND a.shift=?";
+                WHERE a.sltb_depot_id=? AND a.shift=?
+                  AND a.assigned_date BETWEEN ? AND ?";
         $st = $this->pdo->prepare($sql);
-        $st->execute([$depotId, $departureTime]);
+        $st->execute([$depotId, $shift, $from, $to]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 
         $drivers = [];

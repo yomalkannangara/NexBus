@@ -463,8 +463,16 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 
 <script>
 /* ── Modal helpers ── */
-function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el.parentNode !== document.body) document.body.appendChild(el);
+  el.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  document.body.style.overflow = '';
+}
 document.getElementById('btnAddAssignment').onclick  = () => openModal('addModalOverlay');
 document.getElementById('closeAddModal').onclick     = () => closeModal('addModalOverlay');
 document.getElementById('closeAddModal2').onclick    = () => closeModal('addModalOverlay');
@@ -555,7 +563,13 @@ async function loadConflictsAndCheck() {
   const departure = document.getElementById('add-shift').value;
   if (!departure) { currentTurnConflicts = { drivers: {}, conductors: {} }; checkAddConflicts(); return; }
   try {
-    const res  = await fetch('/O/assignments/staff-conflicts?departure=' + encodeURIComponent(departure), { headers: { Accept: 'application/json' } });
+    const from  = document.getElementById('add-period-from').value || '<?= date('Y-m-d') ?>';
+    const until = document.getElementById('add-until-notice').checked;
+    const to    = until ? '2099-12-31' : (document.getElementById('add-period-to').value || from);
+    const url   = '/O/assignments/staff-conflicts?departure=' + encodeURIComponent(departure)
+                + '&period_from=' + encodeURIComponent(from)
+                + '&period_to='   + encodeURIComponent(to);
+    const res  = await fetch(url, { headers: { Accept: 'application/json' } });
     const data = await res.json();
     if (data.ok) currentTurnConflicts = { drivers: data.drivers || {}, conductors: data.conductors || {} };
   } catch (e) { currentTurnConflicts = { drivers: {}, conductors: {} }; }
@@ -593,6 +607,7 @@ function filterConflictingOptions(selectId, conflictMap, currentBus) {
 }
 
 document.getElementById('add-period-from').addEventListener('change', loadTurns);
+document.getElementById('add-period-to').addEventListener('change', loadConflictsAndCheck);
 document.getElementById('add-driver').addEventListener('change', checkAddConflicts);
 document.getElementById('add-conductor').addEventListener('change', checkAddConflicts);
 
@@ -611,6 +626,7 @@ document.getElementById('add-until-notice').addEventListener('change', function 
   const toEl = document.getElementById('add-period-to');
   toEl.disabled = this.checked;
   toEl.style.opacity = this.checked ? '.4' : '1';
+  loadConflictsAndCheck();
 });
 
 /* ── Edit conflict check (client-side from today's rows) ── */

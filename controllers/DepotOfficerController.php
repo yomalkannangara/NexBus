@@ -171,7 +171,11 @@ public function assignmentStaffConflicts()
     if (!preg_match('/^\d{2}:\d{2}$/', $departure)) {
         http_response_code(400); echo json_encode(['ok'=>false,'error'=>'bad_departure']); return;
     }
-    echo json_encode(['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure));
+    $from = trim((string)($_GET['period_from'] ?? date('Y-m-d')));
+    $to   = trim((string)($_GET['period_to']   ?? $from));
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) $from = date('Y-m-d');
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $to))   $to   = $from;
+    echo json_encode(['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure, $from, $to));
 }
 
 public function assignmentShifts()
