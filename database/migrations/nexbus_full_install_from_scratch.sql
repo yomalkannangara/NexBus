@@ -16193,7 +16193,8 @@ INSERT INTO `users` (`user_id`, `role`, `first_name`, `last_name`, `email`, `pho
 (10015, 'PrivateTimekeeper', 'Chathura', 'Gunasekara', 'tk.op2.end@private.lk', '0711000011', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 2, NULL, '2026-01-01 08:00:00', NULL),
 (10016, 'PrivateTimekeeper', 'Dilani', 'Herath', 'tk.op3.start@private.lk', '0711000012', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 3, NULL, '2026-01-01 08:00:00', NULL),
 (10017, 'PrivateBusOwner', 'Anura', 'Pathirana', 'owner.op2@private.lk', '0711000013', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 2, NULL, '2026-01-01 08:00:00', NULL),
-(10018, 'PrivateBusOwner', 'Nimal', 'Kariyawasam', 'owner.op3@private.lk', '0711000014', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 3, NULL, '2026-01-01 08:00:00', NULL);
+(10018, 'PrivateBusOwner', 'Nimal', 'Kariyawasam', 'owner.op3@private.lk', '0711000014', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, 3, NULL, '2026-01-01 08:00:00', NULL),
+(10019, 'DepotOfficer', 'Kasun', 'Wijeratne', 'do.colombo@sltb.lk', '0711000015', '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y', 'Active', NULL, NULL, 1, '2026-01-01 08:00:00', NULL);
 
 -- Set password='test' for ALL users (unified demo credential)
 UPDATE `users` SET `password_hash` = '$2y$10$IOusW542N/9oHxkTYuobfu1gs9sAZQJJR5Q4xwL/Ww8/IR6QNt53y';
