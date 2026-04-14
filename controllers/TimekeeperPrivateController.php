@@ -6,9 +6,7 @@ namespace App\controllers;
 
 use App\controllers\BaseController;
 use App\models\timekeeper_private\DashboardModel;
-use App\models\timekeeper_private\TripHistoryModel;
 use App\models\timekeeper_private\TripEntryModel;
-use App\models\timekeeper_private\TurnModel;
 use App\models\timekeeper_private\ProfileModel;
 
 class TimekeeperPrivateController extends BaseController
@@ -105,35 +103,6 @@ class TimekeeperPrivateController extends BaseController
     }
 
 
-    /** /TP/turns (GET running, POST complete) */
-    public function turns()
-    {
-        $op = $this->myOpId();
-        $m = new TurnModel($op);
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            header('Content-Type: application/json');
-            if (($_POST['action'] ?? '') === 'complete') {
-                $id = (int)($_POST['private_trip_id'] ?? $_POST['sltb_trip_id'] ?? 0); // accept both keys
-                echo json_encode(['ok' => $m->complete($id)]);
-                return;
-            }
-            if (($_POST['action'] ?? '') === 'cancel') {
-                $id = (int)($_POST['private_trip_id'] ?? $_POST['sltb_trip_id'] ?? 0);
-                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-                $result = $m->cancel($id, $reason);
-                echo json_encode($result);
-                return;
-            }
-            echo json_encode(['ok' => false]);
-            return;
-        }
-
-        $this->view('timekeeper_private', 'turn_management', [
-            'S' => $m->info(),
-            'rows' => $m->running()
-        ]);
-    }
     public function profile()
     {
         $me = $_SESSION['user'] ?? null;

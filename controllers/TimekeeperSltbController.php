@@ -6,8 +6,6 @@ namespace App\controllers;
 use App\controllers\BaseController;
 
 use App\models\timekeeper_sltb\DashboardModel;
-use App\models\timekeeper_sltb\TripHistoryModel;
-use App\models\timekeeper_sltb\TurnModel;
 use App\models\timekeeper_sltb\TripEntryModel;
 use App\models\timekeeper_sltb\ProfileModel;
 
@@ -102,69 +100,29 @@ class TimekeeperSltbController extends BaseController
             return;
         }
 
-        // History tab data
-        $hFrom  = $_GET['h_from']   ?? date('Y-m-d', strtotime('-30 days'));
-        $hTo    = $_GET['h_to']     ?? date('Y-m-d');
-        $hBus   = isset($_GET['h_bus']) && $_GET['h_bus'] !== '' ? $_GET['h_bus'] : null;
-        $hTab   = ($_GET['tab'] ?? 'schedule') === 'history' ? 'history' : 'schedule';
-
+        // --- GET ---
         $this->view('timekeeper_sltb', 'trip_entry', [
-            'rows'      => $m->todayList(),
-            'point'     => $m->myPoint(),
-            'upcoming'  => $m->upcoming(60),
-            'hist_rows' => $m->historyList($hFrom, $hTo, $hBus),
-            'hist_buses'=> $m->busList(),
-            'h_from'    => $hFrom,
-            'h_to'      => $hTo,
-            'h_bus'     => $hBus ?? '',
-            'active_tab'=> $hTab,
-        ]);
-    }
-
-    public function turns()
-    {
-        $m = new TurnModel();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            header('Content-Type: application/json');
-            if (($_POST['action'] ?? '') === 'complete') {
-                $id = (int)($_POST['sltb_trip_id'] ?? $_POST['private_trip_id'] ?? 0);
-                echo json_encode(['ok' => $m->complete($id)]); return;
-            }
-            if (($_POST['action'] ?? '') === 'cancel') {
-                $id = (int)($_POST['sltb_trip_id'] ?? $_POST['private_trip_id'] ?? 0);
-                $reason = trim((string)($_POST['reason'] ?? '')) ?: null;
-                $result = $m->cancel($id, $reason);
-                echo json_encode($result); return;
-            }
-            echo json_encode(['ok'=>false]); return;
-        }
-
-        $this->view('timekeeper_sltb', 'turn_management', [
-            'S' => $m->info(),
-            'rows' => $m->running()
+            'rows'     => $m->todayList(),
+            'point'    => $m->myPoint(),
+            'upcoming' => $m->upcoming(60),
         ]);
     }
 
     public function history()
     {
-        $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
-        $to   = $_GET['to']   ?? date('Y-m-d');
-        $routeId = isset($_GET['route_id']) ? (int)$_GET['route_id'] : null;
-        $turnNo  = isset($_GET['turn_no'])  ? (int)$_GET['turn_no']  : null;
+        $m = new TripEntryModel();
 
-        $m = new TripHistoryModel();
-        $rows   = $m->list($from, $to, $routeId, $turnNo);
-        $routes = $m->routesForDepot();
+        $hFrom = $_GET['h_from'] ?? date('Y-m-d');
+        $hTo   = $_GET['h_to']   ?? date('Y-m-d');
+        $hBus  = isset($_GET['h_bus']) && $_GET['h_bus'] !== '' ? $_GET['h_bus'] : null;
 
         $this->view('timekeeper_sltb', 'history', [
-            'from' => $from,
-            'to'   => $to,
-            'rows' => $rows,
-            'routes' => $routes,
-            'route_id' => $routeId,
-            'turn_no'  => $turnNo,
-            'count' => count($rows),
+            'S'          => $m->info(),
+            'hist_rows'  => $m->historyList($hFrom, $hTo, $hBus),
+            'hist_buses' => $m->busList(),
+            'h_from'     => $hFrom,
+            'h_to'       => $hTo,
+            'h_bus'      => $hBus ?? '',
         ]);
     }
 
