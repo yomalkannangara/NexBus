@@ -185,6 +185,7 @@ class TimekeeperPrivateController extends BaseController
             : 'all';
 
         $action = (string)($_GET['action'] ?? '');
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'read' && isset($_GET['id'])) {
             $ok = $model->markRead((int)$_GET['id'], $uid);
             $this->redirect('/TP/messages?filter=' . rawurlencode($filter) . '&msg=' . ($ok ? 'read' : 'error'));
@@ -195,6 +196,13 @@ class TimekeeperPrivateController extends BaseController
             $ok = $model->markAllRead($uid);
             $this->redirect('/TP/messages?filter=' . rawurlencode($filter) . '&msg=' . ($ok ? 'read_all' : 'error'));
             return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'ack' && isset($_GET['id'])) {
+            $ok = $model->acknowledge((int)$_GET['id'], $uid);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => $ok]);
+            exit;
         }
 
         $opId = $this->myOpId();
