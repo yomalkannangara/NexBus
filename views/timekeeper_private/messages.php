@@ -32,15 +32,15 @@ function tp_time_ago(?string $ts): string {
 }
 ?>
 <style>
-:root { --owner:#1e3a5f; --gold:#f3b944; }
+:root { --owner:#7B1C3E; --gold:#f3b944; }
 .tmsg-page { color:#111827; display:flex; flex-direction:column; gap:16px; }
-.tmsg-hero { background:linear-gradient(135deg,var(--owner) 0%,#2d5fa8 100%); border-bottom:4px solid var(--gold); border-radius:14px; color:#fff; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.tmsg-hero { background:linear-gradient(135deg,var(--owner) 0%,#a8274e 100%); border-bottom:4px solid var(--gold); border-radius:14px; color:#fff; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .tmsg-hero h1 { margin:0; font-size:1.3rem; font-weight:800; }
 .tmsg-hero p  { margin:3px 0 0; font-size:.84rem; opacity:.9; }
 .tmsg-badge { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 16px; font-size:.8rem; font-weight:800; }
 .tmsg-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .tmsg-filters { display:flex; gap:8px; flex-wrap:wrap; }
-.tmsg-filter { text-decoration:none; color:var(--owner); border:1px solid #b8d4f2; border-radius:999px; padding:6px 14px; font-size:.78rem; font-weight:700; background:#f0f7ff; }
+.tmsg-filter { text-decoration:none; color:var(--owner); border:1px solid #e8d39a; border-radius:999px; padding:6px 14px; font-size:.78rem; font-weight:700; background:#fffdf6; }
 .tmsg-filter.active { background:var(--owner); color:#fff; border-color:var(--owner); }
 .tmsg-mark-all { border:none; border-radius:8px; background:var(--owner); color:#fff; padding:8px 14px; font-size:.78rem; font-weight:700; cursor:pointer; }
 .tmsg-flash { border-radius:10px; padding:10px 14px; font-size:.86rem; font-weight:700; }
@@ -58,7 +58,7 @@ function tp_time_ago(?string $ts): string {
 .tmsg-sender-role { font-size:.75rem; color:#6b7280; margin-top:3px; }
 .tmsg-badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
 .tbadge { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:3px 9px; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
-.tbadge-msg   { background:#dbeafe; color:#1e3a8a; }
+.tbadge-msg   { background:#fde8ef; color:#7B1C3E; }
 .tbadge-alert { background:#ffedd5; color:#9a3412; }
 .tbadge-unread   { background:#fde8e8; color:#7f1d1d; }
 .tbadge-urgent   { background:#fef9c3; color:#854d0e; }
