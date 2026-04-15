@@ -180,6 +180,7 @@ $isSpecialTab = ($tab === 'special');
     background: #eff6ff; border-radius: 6px; padding: 3px 8px;
     display: inline-block; white-space: nowrap;
 }
+.tt2-turns-wrap { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
 .tt2-turn-empty { color: #d1d5db; font-size: .8rem; }
 
 /* Days active */
@@ -314,9 +315,7 @@ $isSpecialTab = ($tab === 'special');
             <tr>
                 <th>Bus Number</th>
                 <th>Route</th>
-                <th>Turn 1</th>
-                <th>Turn 2</th>
-                <th>Turn 3</th>
+                <th>Departure Times</th>
                 <th>Days Active</th>
                 <?php if ($isSpecialTab): ?><th>Effective Period</th><?php endif; ?>
                 <th>Type</th>
@@ -341,18 +340,13 @@ $isSpecialTab = ($tab === 'special');
                 <div class="tt2-route-sub"><?= htmlspecialchars($g['route_name']) ?></div>
                 <?php endif; ?>
             </td>
-            <td data-label="Turn 1">
-                <?= $t1 ? '<span class="tt2-turn">' . htmlspecialchars($t1) . '</span>' : '<span class="tt2-turn-empty">—</span>' ?>
-            </td>
-            <td data-label="Turn 2">
-                <?= $t2 ? '<span class="tt2-turn">' . htmlspecialchars($t2) . '</span>' : '<span class="tt2-turn-empty">—</span>' ?>
-            </td>
-            <td data-label="Turn 3">
-                <?php if ($t3): ?>
-                    <span class="tt2-turn"><?= htmlspecialchars($t3) ?></span>
-                    <?php if (count($deps) > 3): ?>
-                    <span style="font-size:.72rem;color:#9ca3af;margin-left:4px;">+<?= count($deps)-3 ?> more</span>
-                    <?php endif; ?>
+            <td data-label="Departure Times">
+                <?php if (!empty($deps)): ?>
+                <div class="tt2-turns-wrap">
+                    <?php foreach ($deps as $dep): ?>
+                    <span class="tt2-turn"><?= htmlspecialchars($dep) ?></span>
+                    <?php endforeach; ?>
+                </div>
                 <?php else: ?>
                     <span class="tt2-turn-empty">—</span>
                 <?php endif; ?>
