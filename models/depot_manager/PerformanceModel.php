@@ -340,6 +340,62 @@ class PerformanceModel extends BaseModel
 
     /* ---------- Chart Data Methods ---------- */
 
+    public function getFleetStatusComparisonData(array $filters = []): array
+    {
+        try {
+            $depotId = $this->depotId();
+            if ($depotId === null) {
+                return [];
+            }
+
+            $params = [':depot_id' => $depotId];
+            $where = ['sb.sltb_depot_id = :depot_id'];
+
+            if (!empty($filters['bus_reg'])) {
+                $where[] = 'sb.reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+
+            if (!empty($filters['route_no'])) {
+                $where[] = "EXISTS (
+                    SELECT 1
+                    FROM tracking_monitoring tm
+                    LEFT JOIN routes r ON r.route_id = tm.route_id
+                    WHERE tm.operator_type = 'SLTB'
+                      AND tm.bus_reg_no = sb.reg_no
+                      AND DATE(tm.snapshot_at) = CURDATE()
+                      AND r.route_no = :route_no
+                )";
+                $params[':route_no'] = $filters['route_no'];
+            }
+
+            $sql = "SELECT
+                        SUM(CASE WHEN LOWER(COALESCE(sb.status, 'active')) = 'active' THEN 1 ELSE 0 END) AS active_count,
+                        SUM(CASE WHEN LOWER(COALESCE(sb.status, '')) LIKE '%maint%' THEN 1 ELSE 0 END) AS maintenance_count,
+                        SUM(CASE
+                                WHEN LOWER(COALESCE(sb.status, '')) IN ('inactive', 'in-active', 'deactive', 'disabled') THEN 1
+                                WHEN LOWER(COALESCE(sb.status, '')) NOT IN ('active')
+                                     AND LOWER(COALESCE(sb.status, '')) NOT LIKE '%maint%'
+                                THEN 1
+                                ELSE 0
+                            END) AS inactive_count
+                    FROM sltb_buses sb
+                    WHERE " . implode(' AND ', $where);
+
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $row = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            return [
+                ['label' => 'Active', 'value' => (int)($row['active_count'] ?? 0), 'status' => 'Active'],
+                ['label' => 'Maintenance', 'value' => (int)($row['maintenance_count'] ?? 0), 'status' => 'Maintenance'],
+                ['label' => 'Inactive', 'value' => (int)($row['inactive_count'] ?? 0), 'status' => 'Inactive'],
+            ];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
     public function getBusStatusData(array $filters = []): array
     {
         try {
@@ -396,29 +452,79 @@ class PerformanceModel extends BaseModel
     {
         try {
             $depotId = $this->depotId();
-            $params = [];
+            if ($depotId === null) {
+                return ['labels' => [], 'delayed' => [], 'total' => []];
+            }
+
+            $requestedDate = trim((string)($filters['date'] ?? ''));
+            $reportDate = '';
+            if ($requestedDate !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $requestedDate)) {
+                $reportDate = $requestedDate;
+            }
+
+            if ($reportDate === '') {
+                $probeParams = [':depot_id' => $depotId];
+                $probeWhere = [
+                    "tm.operator_type='SLTB'",
+                    'EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)',
+                ];
+
+                if (!empty($filters['route_no'])) {
+                    $probeWhere[] = 'EXISTS (SELECT 1 FROM routes rr WHERE rr.route_id = tm.route_id AND rr.route_no = :route_no)';
+                    $probeParams[':route_no'] = $filters['route_no'];
+                }
+                if (!empty($filters['bus_reg'])) {
+                    $probeWhere[] = 'tm.bus_reg_no = :bus_reg';
+                    $probeParams[':bus_reg'] = $filters['bus_reg'];
+                }
+
+                $probeSql = 'SELECT MAX(DATE(tm.snapshot_at)) FROM tracking_monitoring tm WHERE ' . implode(' AND ', $probeWhere);
+                $probeSt = $this->pdo->prepare($probeSql);
+                $probeSt->execute($probeParams);
+                $reportDate = (string)($probeSt->fetchColumn() ?: date('Y-m-d'));
+            }
+
+            $params = [
+                ':depot_id' => $depotId,
+                ':report_date' => $reportDate,
+            ];
+            $routeClause = '';
             $busClause = '';
-            $depotClause = '';
-            if ($depotId !== null) {
-                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
-                $params[':depot_id'] = $depotId;
+
+            if (!empty($filters['route_no'])) {
+                $routeClause = ' AND r.route_no = :route_no';
+                $params[':route_no'] = $filters['route_no'];
             }
             if (!empty($filters['bus_reg'])) {
-                $busClause = " AND tm.bus_reg_no = :bus_reg";
+                $busClause = ' AND x.bus_reg_no = :bus_reg';
                 $params[':bus_reg'] = $filters['bus_reg'];
             }
 
-            $sql = "SELECT r.route_no,
-                           SUM(CASE WHEN tm.operational_status='Delayed' THEN 1 ELSE 0 END) AS delayed,
-                           COUNT(*) AS total
-                    FROM tracking_monitoring tm
-                    LEFT JOIN routes r ON r.route_id = tm.route_id
-                    WHERE tm.operator_type='SLTB' 
-                                            AND DATE(tm.snapshot_at)=CURDATE() $depotClause $busClause
-                    GROUP BY r.route_id, r.route_no
-                    ORDER BY total DESC
+            $sql = "SELECT
+                        COALESCE(r.route_no, 'Unknown') AS route_no,
+                        SUM(CASE WHEN x.operational_status='Delayed' THEN 1 ELSE 0 END) AS delayed_count,
+                        COUNT(*) AS total_count
+                    FROM (
+                        SELECT tm.bus_reg_no,
+                               tm.route_id,
+                               tm.operational_status,
+                               ROW_NUMBER() OVER (PARTITION BY tm.bus_reg_no ORDER BY tm.snapshot_at DESC) AS rn
+                        FROM tracking_monitoring tm
+                        WHERE tm.operator_type='SLTB'
+                          AND DATE(tm.snapshot_at)=:report_date
+                          AND EXISTS (
+                              SELECT 1
+                              FROM sltb_buses sb
+                              WHERE sb.reg_no = tm.bus_reg_no
+                                AND sb.sltb_depot_id = :depot_id
+                          )
+                    ) x
+                    LEFT JOIN routes r ON r.route_id = x.route_id
+                    WHERE x.rn = 1 $routeClause $busClause
+                    GROUP BY COALESCE(r.route_no, 'Unknown')
+                    ORDER BY total_count DESC
                     LIMIT 8";
-            
+
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -429,8 +535,8 @@ class PerformanceModel extends BaseModel
             
             foreach ($rows as $r) {
                 $labels[] = $r['route_no'] ?? 'Unknown';
-                $delayed[] = (int)$r['delayed'];
-                $total[] = (int)$r['total'];
+                $delayed[] = (int)($r['delayed_count'] ?? 0);
+                $total[] = (int)($r['total_count'] ?? 0);
             }
             
             return ['labels' => $labels, 'delayed' => $delayed, 'total' => $total];
@@ -486,22 +592,44 @@ class PerformanceModel extends BaseModel
     {
         try {
             $depotId = $this->depotId();
-            $depotClause = '';
-            $params = [];
-            if ($depotId !== null) {
-                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
-                $params[':depot_id'] = $depotId;
+            if ($depotId === null) {
+                return ['labels' => [], 'values' => []];
             }
-            $sql = "SELECT 
-                        DATE_FORMAT(tm.snapshot_at, '%b') AS month,
-                        SUM(COALESCE(tm.revenue, 0)) AS revenue
-                    FROM tracking_monitoring tm
-                    WHERE tm.operator_type='SLTB'
-                      AND YEAR(tm.snapshot_at) = YEAR(CURDATE())
-                      $depotClause
-                    GROUP BY MONTH(tm.snapshot_at), DATE_FORMAT(tm.snapshot_at, '%b')
-                    ORDER BY MONTH(tm.snapshot_at)";
-            
+
+            $params = [':depot_id' => $depotId];
+            $routeClause = '';
+            $busClause = '';
+
+            if (!empty($filters['route_no'])) {
+                $routeClause = " AND EXISTS (
+                    SELECT 1
+                    FROM timetables t2
+                    JOIN routes r2 ON r2.route_id = t2.route_id
+                    WHERE t2.bus_reg_no = e.bus_reg_no
+                      AND t2.operator_type = 'SLTB'
+                      AND r2.route_no = :route_no
+                )";
+                $params[':route_no'] = $filters['route_no'];
+            }
+
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND e.bus_reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+
+            $sql = "SELECT
+                        DATE_FORMAT(e.date, '%b') AS month,
+                        SUM(COALESCE(e.amount, 0)) AS revenue,
+                        MONTH(e.date) AS month_num
+                    FROM earnings e
+                    JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no AND sb.sltb_depot_id = :depot_id
+                    WHERE e.operator_type='SLTB'
+                      AND YEAR(e.date)=YEAR(CURDATE())
+                      $routeClause
+                      $busClause
+                    GROUP BY MONTH(e.date), DATE_FORMAT(e.date, '%b')
+                    ORDER BY month_num";
+
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -511,7 +639,7 @@ class PerformanceModel extends BaseModel
             
             foreach ($rows as $r) {
                 $labels[] = $r['month'] ?? '';
-                $values[] = round((float)($r['revenue'] ?? 0) / 1000000, 1); // Convert to millions
+                $values[] = round((float)($r['revenue'] ?? 0) / 1000000, 1);
             }
             
             return ['labels' => $labels, 'values' => $values];
@@ -571,38 +699,63 @@ class PerformanceModel extends BaseModel
     {
         try {
             $depotId = $this->depotId();
-            $params = [];
-            $busClause = '';
-            $depotClause = '';
-            if ($depotId !== null) {
-                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = c.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
-                $params[':depot_id'] = $depotId;
-            }
-            if (!empty($filters['bus_reg'])) {
-                $busClause = " AND c.bus_reg_no = :bus_reg";
-                $params[':bus_reg'] = $filters['bus_reg'];
+            if ($depotId === null) {
+                return ['labels' => [], 'values' => []];
             }
 
-            $sql = "SELECT r.route_no, COUNT(*) AS count
-                    FROM passenger_feedback c
+            $params = [':depot_id' => $depotId];
+            $busClause = '';
+            $routeClause = '';
+
+            if (!empty($filters['bus_reg'])) {
+                $busClause = ' AND c.bus_reg_no = :bus_reg';
+                $params[':bus_reg'] = $filters['bus_reg'];
+            }
+            if (!empty($filters['route_no'])) {
+                $routeClause = ' AND r.route_no = :route_no';
+                $params[':route_no'] = $filters['route_no'];
+            }
+
+            $sqlPrimary = "SELECT c.bus_reg_no, COUNT(*) AS cnt
+                    FROM complaints c
+                    JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no AND sb.sltb_depot_id = :depot_id
                     LEFT JOIN routes r ON r.route_id = c.route_id
                     WHERE c.operator_type='SLTB'
-                      AND LOWER(c.type) = 'complaint'
-                                            AND DATE(c.created_at)=CURDATE() $depotClause $busClause
-                    GROUP BY r.route_id, r.route_no
-                    ORDER BY count DESC
-                    LIMIT 8";
-            
-            $st = $this->pdo->prepare($sql);
-            $st->execute($params);
-            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+                      AND LOWER(COALESCE(c.category, ''))='complaint'
+                                            AND NULLIF(NULLIF(TRIM(COALESCE(c.bus_reg_no, '')), ''), 'undefined') IS NOT NULL
+                      $busClause $routeClause
+                    GROUP BY c.bus_reg_no
+                    ORDER BY cnt DESC, c.bus_reg_no ASC
+                    LIMIT 12";
+
+            $rows = [];
+            try {
+                $st = $this->pdo->prepare($sqlPrimary);
+                $st->execute($params);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } catch (PDOException $e) {
+                $sqlFallback = "SELECT c.bus_reg_no, COUNT(*) AS cnt
+                        FROM passenger_feedback c
+                        JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no AND sb.sltb_depot_id = :depot_id
+                        LEFT JOIN routes r ON r.route_id = c.route_id
+                        WHERE c.operator_type='SLTB'
+                          AND LOWER(COALESCE(c.type, ''))='complaint'
+                                                    AND NULLIF(NULLIF(TRIM(COALESCE(c.bus_reg_no, '')), ''), 'undefined') IS NOT NULL
+                          $busClause $routeClause
+                        GROUP BY c.bus_reg_no
+                        ORDER BY cnt DESC, c.bus_reg_no ASC
+                        LIMIT 12";
+                $st = $this->pdo->prepare($sqlFallback);
+                $st->execute($params);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            }
             
             $labels = [];
             $values = [];
             
             foreach ($rows as $r) {
-                $labels[] = $r['route_no'] ?? 'Unknown';
-                $values[] = (int)$r['count'];
+                $labels[] = $r['bus_reg_no'] ?? 'Unknown';
+                $values[] = (int)($r['cnt'] ?? 0);
             }
             
             return ['labels' => $labels, 'values' => $values];

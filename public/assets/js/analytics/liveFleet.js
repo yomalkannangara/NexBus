@@ -208,6 +208,9 @@
   const SHOW_LIMIT = 5;
 
   function buildRow(b) {
+    if (typeof window._perfBuildRow === 'function') {
+      return window._perfBuildRow(b);
+    }
     const over     = (+b.speedKmh || 0) > SPEED_LIMIT;
     const spBadge  = over
       ? '<span class="lf-badge lf-badge--red">⚡ ' + b.speedKmh + '</span>'
@@ -272,9 +275,9 @@
       html += hidden.map(b => buildRow(b).replace('<tr', '<tr class="fleet-extra" style="display:none"')).join('');
       html += '<tr id="fleet-expander">'  
         + '<td colspan="7" style="text-align:center;padding:.4rem .75rem">'  
-        + '<button onclick="window._fleetExpand()" '
+        + '<button onclick="window._fleetExpand()" class="fleet-expand-btn" '
         + 'style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:3px 14px;font-size:.8rem;cursor:pointer;color:#374151">'  
-        + 'Show ' + hidden.length + ' more ▼</button>'  
+        + 'Show ' + hidden.length + ' more ▼</button>'  
         + '</td></tr>';
     }
 
@@ -282,6 +285,10 @@
   }
 
   window._fleetExpand = function () {
+    if (typeof window._perfFleetExpand === 'function') {
+      window._perfFleetExpand();
+      return;
+    }
     const extras = document.querySelectorAll('tr.fleet-extra');
     const btn    = el('fleet-expander');
     const shown  = extras.length && extras[0].style.display !== 'none';
@@ -289,8 +296,8 @@
     if (btn) {
       const b = btn.querySelector('button');
       if (b) b.textContent = shown
-        ? 'Show ' + extras.length + ' more ▼'
-        : 'Collapse ▲';
+        ? 'Show ' + extras.length + ' more ▼'
+        : 'Collapse ▲';
     }
   };
 
