@@ -1,295 +1,179 @@
 <?php
-$S = $S ?? [];
-$recent = $recent ?? [];
-$filter = in_array(($filter ?? 'all'), ['all', 'unread', 'message', 'alert'], true) ? $filter : 'all';
+$S          = $S ?? [];
+$recent     = $recent ?? [];
+$filter     = in_array(($filter ?? 'all'), ['all','unread','message','alert'], true) ? $filter : 'all';
 $unreadCount = (int)($unread_count ?? 0);
-$msg = $msg ?? null;
+$msg        = $msg ?? null;
 
 $flashMap = [
-    'read' => ['type' => 'ok', 'text' => 'Message marked as read.'],
-    'read_all' => ['type' => 'ok', 'text' => 'All messages marked as read.'],
-    'error' => ['type' => 'err', 'text' => 'Unable to update message status.'],
+    'read'     => ['type'=>'ok',  'text'=>'Message marked as read.'],
+    'read_all' => ['type'=>'ok',  'text'=>'All messages marked as read.'],
+    'error'    => ['type'=>'err', 'text'=>'Unable to update message status.'],
 ];
 
-function tp_msg_time_ago(?string $ts): string
-{
-    if (!$ts) {
-        return 'Unknown time';
-    }
+$catMeta = [
+    'schedule_change'  => ['icon'=>'📅', 'label'=>'Schedule Change',  'color'=>'#0369a1','bg'=>'#e0f2fe'],
+    'breakdown_alert'  => ['icon'=>'🔧', 'label'=>'Breakdown Alert',  'color'=>'#b91c1c','bg'=>'#fee2e2'],
+    'driver_notice'    => ['icon'=>'🧑‍✈️', 'label'=>'Driver Notice',   'color'=>'#1d4ed8','bg'=>'#dbeafe'],
+    'poya_schedule'    => ['icon'=>'🌕', 'label'=>'Poya Day Schedule','color'=>'#065f46','bg'=>'#d1fae5'],
+    'passenger_complaint'=>['icon'=>'😠', 'label'=>'Passenger Complaint','color'=>'#9a3412','bg'=>'#ffedd5'],
+    'general_update'   => ['icon'=>'📢', 'label'=>'General Update',   'color'=>'#374151','bg'=>'#f3f4f6'],
+];
 
-    $at = strtotime($ts);
-    if ($at === false) {
-        return $ts;
-    }
-
+function tp_time_ago(?string $ts): string {
+    if (!$ts) return '';
+    $at   = strtotime($ts);
+    if ($at === false) return $ts;
     $diff = time() - $at;
-    if ($diff < 60) {
-        return 'Just now';
-    }
-    if ($diff < 3600) {
-        return (string)max(1, intdiv($diff, 60)) . ' min ago';
-    }
-    if ($diff < 86400) {
-        return (string)max(1, intdiv($diff, 3600)) . ' hr ago';
-    }
-    return date('Y-m-d H:i', $at);
-}
-
-function tp_msg_type_class(string $type): string
-{
-    return match ($type) {
-        'Delay', 'Alert', 'Breakdown', 'Timetable' => 'is-alert',
-        default => 'is-message',
-    };
-}
-
-function tp_msg_source(array $row): string
-{
-    $name = trim((string)($row['source_name'] ?? ''));
-    return $name !== '' ? $name : 'Depot Messaging';
-}
-
-function tp_msg_priority(array $row): ?string
-{
-    $priority = strtolower(trim((string)($row['priority'] ?? 'normal')));
-    if (!in_array($priority, ['urgent', 'critical'], true)) {
-        return null;
-    }
-    return strtoupper($priority);
+    if ($diff < 60)    return 'Just now';
+    if ($diff < 3600)  return intdiv($diff, 60) . ' min ago';
+    if ($diff < 86400) return intdiv($diff, 3600) . ' hr ago';
+    return date('d M Y', $at);
 }
 ?>
-
 <style>
-:root { --maroon:#7B1C3E; --gold:#f3b944; }
-
-.tmsg-page { color: #111827; }
-.tmsg-hero {
-    background: linear-gradient(135deg, var(--maroon) 0%, #a8274e 100%);
-    border-bottom: 4px solid var(--gold);
-    border-radius: 14px;
-    color: #fff;
-    padding: 22px 26px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-}
-.tmsg-hero h1 { margin: 0; font-size: 1.35rem; font-weight: 800; color: #ffffff; }
-.tmsg-hero p { margin: 4px 0 0; font-size: .86rem; color: rgba(255,255,255,.92); }
-.tmsg-badge {
-    background: rgba(255,255,255,.18);
-    border: 1px solid rgba(255,255,255,.3);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: .78rem;
-    font-weight: 800;
-    color: #fff;
-}
-
-.tmsg-flash {
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 12px;
-    font-size: .86rem;
-    font-weight: 700;
-}
-.tmsg-flash.ok  { background: #dcfce7; color: #14532d; border: 1px solid #86efac; }
-.tmsg-flash.err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-
-.tmsg-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-.tmsg-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-.tmsg-filter {
-    text-decoration: none;
-    color: #7b1c3e;
-    border: 1px solid #e8d39a;
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: .78rem;
-    font-weight: 700;
-    background: #fffdf6;
-}
-.tmsg-filter.active {
-    background: #7b1c3e;
-    color: #fff;
-    border-color: #7b1c3e;
-}
-.tmsg-mark-all {
-    border: none;
-    border-radius: 8px;
-    background: #7b1c3e;
-    color: #fff;
-    padding: 8px 12px;
-    font-size: .78rem;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.tmsg-list {
-    display: grid;
-    gap: 12px;
-}
-.tmsg-item {
-    background: #fff;
-    border: 1px solid #f2e6d2;
-    border-left: 4px solid #d1d5db;
-    border-radius: 12px;
-    padding: 14px;
-    box-shadow: 0 4px 14px rgba(17,24,39,.06);
-}
-.tmsg-item.unread { border-left-color: #7b1c3e; }
-.tmsg-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-.tmsg-title {
-    margin: 0;
-    font-size: .95rem;
-    font-weight: 800;
-    color: #111827;
-}
-.tmsg-meta {
-    margin-top: 3px;
-    font-size: .75rem;
-    color: #6b7280;
-}
-.tmsg-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-.tmsg-tag {
-    border-radius: 999px;
-    padding: 3px 8px;
-    font-size: .68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .03em;
-}
-.tmsg-tag.is-message { background: #e0f2fe; color: #075985; }
-.tmsg-tag.is-alert { background: #ffedd5; color: #9a3412; }
-.tmsg-tag.priority { background: #fee2e2; color: #991b1b; }
-
-.tmsg-body {
-    margin: 0;
-    font-size: .88rem;
-    color: #1f2937;
-    line-height: 1.6;
-}
-
-.tmsg-actions {
-    margin-top: 12px;
-    display: flex;
-    justify-content: flex-end;
-}
-.tmsg-read {
-    border: 1px solid #7b1c3e;
-    background: #fff;
-    color: #7b1c3e;
-    border-radius: 7px;
-    padding: 6px 10px;
-    font-size: .75rem;
-    font-weight: 700;
-    cursor: pointer;
-}
-.tmsg-read-state {
-    font-size: .75rem;
-    color: #4b5563;
-    font-weight: 700;
-    background: #f3f4f6;
-    border-radius: 999px;
-    padding: 4px 10px;
-}
-
-.tmsg-empty {
-    padding: 40px 16px;
-    border: 1px dashed #d1d5db;
-    border-radius: 12px;
-    text-align: center;
-    color: #6b7280;
-    background: #fff;
-}
+:root { --owner:#7B1C3E; --gold:#f3b944; }
+.tmsg-page { color:#111827; display:flex; flex-direction:column; gap:16px; }
+.tmsg-hero { background:linear-gradient(135deg,var(--owner) 0%,#a8274e 100%); border-bottom:4px solid var(--gold); border-radius:14px; color:#fff; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.tmsg-hero h1 { margin:0; font-size:1.3rem; font-weight:800; }
+.tmsg-hero p  { margin:3px 0 0; font-size:.84rem; opacity:.9; }
+.tmsg-badge { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 16px; font-size:.8rem; font-weight:800; }
+.tmsg-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.tmsg-filters { display:flex; gap:8px; flex-wrap:wrap; }
+.tmsg-filter { text-decoration:none; color:var(--owner); border:1px solid #e8d39a; border-radius:999px; padding:6px 14px; font-size:.78rem; font-weight:700; background:#fffdf6; }
+.tmsg-filter.active { background:var(--owner); color:#fff; border-color:var(--owner); }
+.tmsg-mark-all { border:none; border-radius:8px; background:var(--owner); color:#fff; padding:8px 14px; font-size:.78rem; font-weight:700; cursor:pointer; }
+.tmsg-flash { border-radius:10px; padding:10px 14px; font-size:.86rem; font-weight:700; }
+.tmsg-flash.ok  { background:#dcfce7; color:#14532d; border:1px solid #86efac; }
+.tmsg-flash.err { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+.tmsg-empty { padding:40px 16px; border:1px dashed #d1d5db; border-radius:12px; text-align:center; color:#6b7280; background:#fff; }
+.tmsg-list { display:grid; gap:14px; }
+.tmsg-card { background:#fff; border:1px solid #e2eaf5; border-left:4px solid #d1d5db; border-radius:12px; padding:16px 18px; box-shadow:0 2px 10px rgba(0,0,0,.05); transition:box-shadow .15s; }
+.tmsg-card:hover { box-shadow:0 4px 18px rgba(0,0,0,.09); }
+.tmsg-card.unread { border-left-color:var(--owner); }
+.tmsg-card.priority-urgent   { border-left-color:#d97706; }
+.tmsg-card.priority-critical { border-left-color:#dc2626; }
+.tmsg-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.tmsg-sender-name { font-size:1rem; font-weight:800; color:#111827; margin:0; }
+.tmsg-sender-role { font-size:.75rem; color:#6b7280; margin-top:3px; }
+.tmsg-badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.tbadge { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:3px 9px; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.tbadge-msg   { background:#fde8ef; color:#7B1C3E; }
+.tbadge-alert { background:#ffedd5; color:#9a3412; }
+.tbadge-unread   { background:#fde8e8; color:#7f1d1d; }
+.tbadge-urgent   { background:#fef9c3; color:#854d0e; }
+.tbadge-critical { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; animation:blink 2s infinite; }
+@keyframes blink {0%,100%{opacity:1}50%{opacity:.7}}
+.tmsg-cat-chip { display:inline-flex; align-items:center; gap:5px; border-radius:8px; padding:5px 10px; font-size:.78rem; font-weight:700; margin-bottom:10px; }
+.tmsg-body { font-size:.9rem; color:#1f2937; line-height:1.65; margin:0 0 12px; }
+.tmsg-card-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.tmsg-time { font-size:.72rem; color:#9ca3af; }
+.tmsg-btn-read { border:1px solid var(--owner); background:#fff; color:var(--owner); border-radius:7px; padding:5px 12px; font-size:.75rem; font-weight:700; cursor:pointer; }
+.tmsg-btn-ack  { border:none; background:var(--owner); color:#fff; border-radius:7px; padding:5px 12px; font-size:.75rem; font-weight:700; cursor:pointer; }
+.tmsg-btn-ack:disabled { opacity:.5; cursor:default; }
+.tmsg-read-state { font-size:.72rem; color:#4b5563; background:#f3f4f6; border-radius:999px; padding:4px 10px; font-weight:700; }
 </style>
 
 <div class="tmsg-page">
+
     <div class="tmsg-hero">
         <div>
-            <h1>Private Timekeeper Messages</h1>
-            <p><?= htmlspecialchars($S['depot_name'] ?? 'Operator') ?> notifications from depot operations.</p>
+            <h1>📨 Messages</h1>
+            <p>Notices from your Bus Owner / Operator</p>
         </div>
         <div class="tmsg-badge">Unread: <?= $unreadCount ?></div>
     </div>
 
     <?php if (!empty($msg) && isset($flashMap[$msg])): ?>
-        <div class="tmsg-flash <?= htmlspecialchars($flashMap[$msg]['type']) ?>">
-            <?= htmlspecialchars($flashMap[$msg]['text']) ?>
-        </div>
+        <div class="tmsg-flash <?= $flashMap[$msg]['type'] ?>"><?= htmlspecialchars($flashMap[$msg]['text']) ?></div>
     <?php endif; ?>
 
     <div class="tmsg-toolbar">
         <div class="tmsg-filters">
-            <a class="tmsg-filter <?= $filter === 'all' ? 'active' : '' ?>" href="/TP/messages?filter=all">All</a>
-            <a class="tmsg-filter <?= $filter === 'unread' ? 'active' : '' ?>" href="/TP/messages?filter=unread">Unread</a>
-            <a class="tmsg-filter <?= $filter === 'message' ? 'active' : '' ?>" href="/TP/messages?filter=message">Messages</a>
-            <a class="tmsg-filter <?= $filter === 'alert' ? 'active' : '' ?>" href="/TP/messages?filter=alert">Alerts</a>
+            <a class="tmsg-filter <?= $filter==='all'     ?'active':'' ?>" href="/TP/messages?filter=all">All</a>
+            <a class="tmsg-filter <?= $filter==='unread'  ?'active':'' ?>" href="/TP/messages?filter=unread">Unread</a>
+            <a class="tmsg-filter <?= $filter==='message' ?'active':'' ?>" href="/TP/messages?filter=message">Messages</a>
+            <a class="tmsg-filter <?= $filter==='alert'   ?'active':'' ?>" href="/TP/messages?filter=alert">Alerts</a>
         </div>
-
         <?php if ($unreadCount > 0): ?>
-            <form method="post" action="/TP/messages?action=read_all&amp;filter=<?= urlencode($filter) ?>">
-                <button type="submit" class="tmsg-mark-all">Mark all as read</button>
+            <form method="post" action="/TP/messages?action=read_all&filter=<?= urlencode($filter) ?>">
+                <button type="submit" class="tmsg-mark-all">✓ Mark all read</button>
             </form>
         <?php endif; ?>
     </div>
 
     <div class="tmsg-list">
         <?php if (empty($recent)): ?>
-            <div class="tmsg-empty">No messages available for this filter.</div>
+            <div class="tmsg-empty"><div style="font-size:36px;margin-bottom:8px">📭</div>No messages yet.</div>
         <?php else: ?>
-            <?php foreach ($recent as $row): ?>
-                <?php
-                $id = (int)($row['id'] ?? 0);
-                $type = (string)($row['type'] ?? 'Message');
+            <?php foreach ($recent as $row):
+                $id       = (int)($row['id'] ?? 0);
+                $type     = (string)($row['type'] ?? 'Message');
                 $isUnread = ((int)($row['is_seen'] ?? 0) === 0);
-                $sourceRole = trim((string)($row['source_role'] ?? ''));
-                $priority = tp_msg_priority($row);
-                ?>
-                <article class="tmsg-item <?= $isUnread ? 'unread' : '' ?>">
-                    <div class="tmsg-top">
-                        <div>
-                            <h3 class="tmsg-title"><?= htmlspecialchars(tp_msg_source($row)) ?></h3>
-                            <div class="tmsg-meta">
-                                <?= htmlspecialchars($sourceRole !== '' ? $sourceRole : 'Depot Officer') ?>
-                                | <?= htmlspecialchars(tp_msg_time_ago((string)($row['created_at'] ?? ''))) ?>
-                            </div>
-                        </div>
-                        <div class="tmsg-tags">
-                            <span class="tmsg-tag <?= tp_msg_type_class($type) ?>"><?= htmlspecialchars($type) ?></span>
-                            <?php if ($priority !== null): ?>
-                                <span class="tmsg-tag priority"><?= htmlspecialchars($priority) ?></span>
-                            <?php endif; ?>
+                $priority = strtolower(trim((string)($row['priority'] ?? 'normal')));
+                $catKey   = trim((string)($row['category'] ?? ''));
+                $catInfo  = $catMeta[$catKey] ?? null;
+                $srcName  = trim((string)($row['source_name'] ?? ''));
+                $srcRole  = trim((string)($row['source_role'] ?? ''));
+                $isAlert  = in_array($type, ['Delay','Alert','Breakdown','Timetable']);
+                $cardCls  = 'tmsg-card' . ($isUnread?' unread':'') . ($priority==='urgent'?' priority-urgent':'') . ($priority==='critical'?' priority-critical':'');
+            ?>
+            <article class="<?= $cardCls ?>" id="msg-<?= $id ?>">
+                <div class="tmsg-card-head">
+                    <div>
+                        <p class="tmsg-sender-name"><?= htmlspecialchars($srcName ?: 'Bus Owner') ?></p>
+                        <div class="tmsg-sender-role">
+                            <?= htmlspecialchars($srcRole ?: 'Bus Owner') ?>
+                            · <?= htmlspecialchars(tp_time_ago((string)($row['created_at'] ?? ''))) ?>
                         </div>
                     </div>
+                    <div class="tmsg-badges">
+                        <?php if ($isUnread): ?><span class="tbadge tbadge-unread">New</span><?php endif; ?>
+                        <?php if ($priority==='urgent'):   ?><span class="tbadge tbadge-urgent">🟠 Urgent</span><?php endif; ?>
+                        <?php if ($priority==='critical'): ?><span class="tbadge tbadge-critical">🔴 Critical</span><?php endif; ?>
+                        <span class="tbadge <?= $isAlert?'tbadge-alert':'tbadge-msg' ?>"><?= htmlspecialchars($type) ?></span>
+                    </div>
+                </div>
 
-                    <p class="tmsg-body"><?= nl2br(htmlspecialchars((string)($row['message'] ?? ''))) ?></p>
+                <?php if ($catInfo): ?>
+                    <div class="tmsg-cat-chip" style="background:<?= htmlspecialchars($catInfo['bg']) ?>;color:<?= htmlspecialchars($catInfo['color']) ?>">
+                        <?= $catInfo['icon'] ?> <?= htmlspecialchars($catInfo['label']) ?>
+                    </div>
+                <?php endif; ?>
 
-                    <div class="tmsg-actions">
+                <p class="tmsg-body"><?= nl2br(htmlspecialchars((string)($row['message'] ?? ''))) ?></p>
+
+                <div class="tmsg-card-foot">
+                    <span class="tmsg-time"><?= htmlspecialchars(date('d M Y H:i', strtotime((string)($row['created_at'] ?? 'now')))) ?></span>
+                    <div style="display:flex;gap:8px;align-items:center;">
                         <?php if ($isUnread && $id > 0): ?>
-                            <form method="post" action="/TP/messages?action=read&amp;id=<?= $id ?>&amp;filter=<?= urlencode($filter) ?>">
-                                <button type="submit" class="tmsg-read">Mark as read</button>
+                            <form method="post" action="/TP/messages?action=read&id=<?= $id ?>&filter=<?= urlencode($filter) ?>" style="display:inline">
+                                <button type="submit" class="tmsg-btn-read">Mark read</button>
                             </form>
                         <?php else: ?>
-                            <span class="tmsg-read-state">Read</span>
+                            <span class="tmsg-read-state">✓ Read</span>
+                        <?php endif; ?>
+                        <?php if (in_array($priority,['urgent','critical']) && $id > 0): ?>
+                            <button class="tmsg-btn-ack" id="ack-<?= $id ?>" onclick="ackMsg(<?= $id ?>,this)">✔ Acknowledge</button>
                         <?php endif; ?>
                     </div>
-                </article>
+                </div>
+            </article>
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+function ackMsg(id, btn) {
+    btn.disabled = true; btn.textContent = 'Acknowledging…';
+    fetch('/TP/messages?action=ack&id='+id, {method:'POST'})
+        .then(r=>r.json())
+        .then(d=>{
+            if(d.ok){ btn.textContent='✔ Acknowledged'; btn.style.background='#059669';
+                const c=document.getElementById('msg-'+id); if(c) c.classList.remove('unread');
+            } else { btn.disabled=false; btn.textContent='✔ Acknowledge'; }
+        })
+        .catch(()=>{ btn.disabled=false; btn.textContent='✔ Acknowledge'; });
+}
+</script>

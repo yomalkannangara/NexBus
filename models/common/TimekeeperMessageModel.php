@@ -58,16 +58,19 @@ class TimekeeperMessageModel extends BaseModel
         $idCol = $this->idColumn();
         $hasPriority = $this->columnExists('notifications', 'priority');
         $hasMetadata = $this->columnExists('notifications', 'metadata');
+        $hasCategory = $this->columnExists('notifications', 'category');
 
-        $prioritySelect = $hasPriority ? 'n.priority' : "'normal' AS priority";
-        $sourceNameExpr = "CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END";
-        $sourceRoleExpr = 'NULL';
-        $archiveClause = '';
+        $prioritySelect  = $hasPriority ? 'n.priority' : "'normal' AS priority";
+        $categorySelect  = $hasCategory ? 'n.category'
+            : ($hasMetadata ? "JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.category')) AS category" : "NULL AS category");
+        $sourceNameExpr  = "CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END";
+        $sourceRoleExpr  = 'NULL';
+        $archiveClause   = '';
 
         if ($hasMetadata) {
             $sourceNameExpr = "COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_name')), ''), CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END)";
             $sourceRoleExpr = "NULLIF(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_role')), '')";
-            $archiveClause = " AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
+            $archiveClause  = " AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
         }
 
         $sql = "SELECT
@@ -78,6 +81,7 @@ class TimekeeperMessageModel extends BaseModel
                     n.is_seen,
                     n.created_at,
                     {$prioritySelect},
+                    {$categorySelect},
                     {$sourceNameExpr} AS source_name,
                     {$sourceRoleExpr} AS source_role
                 FROM notifications n
@@ -170,5 +174,26 @@ class TimekeeperMessageModel extends BaseModel
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    public function acknowledge(int $messageId, int $userId): bool
+    {
+        if ($messageId <= 0 || $userId <= 0) return false;
+        $idCol = $this->idColumn();
+        $hasMetadata = $this->columnExists('notifications', 'metadata');
+
+        if ($hasMetadata) {
+            try {
+                $st = $this->pdo->prepare(
+                    "UPDATE notifications SET is_seen=1,
+                        metadata=JSON_SET(COALESCE(metadata,'{}'), '$.acknowledged_by', ?, '$.acknowledged_at', ?)
+                     WHERE {$idCol}=? AND user_id=?"
+                );
+                return $st->execute([$userId, date('Y-m-d H:i:s'), $messageId, $userId]);
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+        return $this->markRead($messageId, $userId);
     }
 }

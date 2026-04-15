@@ -6,7 +6,7 @@
     const STATUS_COLOR = {
       'Active':'#16a34a','active':'#16a34a',
       'Maintenance':'#f59e0b','maintenance':'#f59e0b',
-      'Inactive':'#6b7280','inactive':'#6b7280',
+      'Inactive':'#dc2626','inactive':'#dc2626',
       'On Time':'#16a34a','OnTime':'#16a34a','Ontime':'#16a34a',
       'Delayed':'#b91c1c','delayed':'#b91c1c',
       'Cancelled':'#ef4444','cancelled':'#ef4444',
@@ -50,7 +50,7 @@
         list = [
           { label: "Active",      value: 0, color: NB.colors.green },
           { label: "Maintenance", value: 0, color: NB.colors.gold },
-          { label: "Inactive",    value: 0, color: '#6b7280' },
+          { label: "Inactive",    value: 0, color: '#dc2626' },
         ];
       }
     }

@@ -65,6 +65,11 @@ public function assignments()
                 $this->redirect('/O/assignments?msg=conflict_conductor&exists=' . urlencode($existing));
                 return;
             }
+            if (is_string($res) && strpos($res, 'conflict_bus::') === 0) {
+                $existing = explode('::', $res, 2)[1] ?? '';
+                $this->redirect('/O/assignments?msg=conflict_bus&exists=' . urlencode($existing));
+                return;
+            }
             $this->redirect('/O/assignments?msg=error');
             return;
         }
@@ -175,7 +180,14 @@ public function assignmentStaffConflicts()
     $to   = trim((string)($_GET['period_to']   ?? $from));
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) $from = date('Y-m-d');
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $to))   $to   = $from;
-    echo json_encode(['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure, $from, $to));
+    $bus = trim((string)($_GET['bus'] ?? ''));
+    $result = ['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure, $from, $to);
+    if ($bus !== '') {
+        $busConflicts = $m->busConflictsForPeriod((int)$depotId, $bus, $departure, $from, $to);
+        $result['bus_taken']     = count($busConflicts) > 0;
+        $result['bus_conflicts'] = $busConflicts;
+    }
+    echo json_encode($result);
 }
 
 public function assignmentShifts()
@@ -305,8 +317,9 @@ public function assignmentShifts()
             }
 
             $senderRole = (string)($u['role'] ?? 'DepotOfficer');
+            $category   = trim($_POST['category'] ?? '') ?: null;
             $ok = ($text && ($to || $allDepot))
-                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole)
+                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole, $category)
                   : false;
 
             $this->redirect('/O/messages?msg=' . ($ok ? 'sent' : 'error'));
@@ -455,6 +468,69 @@ public function trip_logs(): void{
 
         /* ── CSV export for HR reports ── */
         if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+            if ($reportType === 'trip_completion') {
+                $rows = $this->m->tripCompletionReport($dep, $from, $to);
+                $out  = fopen('php://temp', 'r+');
+                fputcsv($out, ['Date', 'Total Trips', 'Completed', 'Delayed', 'Cancelled', 'In Progress', 'Completion %']);
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r['trip_date']      ?? '',
+                        $r['total_trips']    ?? 0,
+                        $r['completed']      ?? 0,
+                        $r['delayed']        ?? 0,
+                        $r['cancelled']      ?? 0,
+                        $r['in_progress']    ?? 0,
+                        $r['completion_pct'] ?? 0,
+                    ]);
+                }
+                rewind($out);
+                header('Content-Type: text/csv');
+                header('Content-Disposition: attachment; filename="trip-completion-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
+                echo stream_get_contents($out); exit;
+            }
+            if ($reportType === 'delay_analysis') {
+                $rows = $this->m->delayAnalysisReport($dep, $from, $to);
+                $out  = fopen('php://temp', 'r+');
+                fputcsv($out, ['Route No', 'Route Name', 'Total Trips', 'Delayed Trips', 'Delay %', 'Avg Delay (min)', 'Max Delay (min)']);
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r['route_no']       ?? '',
+                        $r['route_name']     ?? '',
+                        $r['total_trips']    ?? 0,
+                        $r['delayed_trips']  ?? 0,
+                        $r['delay_pct']      ?? 0,
+                        $r['avg_delay_min']  ?? 0,
+                        $r['max_delay_min']  ?? 0,
+                    ]);
+                }
+                rewind($out);
+                header('Content-Type: text/csv');
+                header('Content-Disposition: attachment; filename="delay-analysis-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
+                echo stream_get_contents($out); exit;
+            }
+            if ($reportType === 'bus_utilization') {
+                $rows = $this->m->busUtilizationReport($dep, $from, $to);
+                $out  = fopen('php://temp', 'r+');
+                fputcsv($out, ['Bus Reg No', 'Make', 'Total Trips', 'Completed', 'Delayed', 'Cancelled', 'Active Days', 'Assignments', 'Utilization %', 'Completion %']);
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r['bus_reg_no']        ?? '',
+                        $r['bus_make']          ?? '',
+                        $r['total_trips']       ?? 0,
+                        $r['completed']         ?? 0,
+                        $r['delayed']           ?? 0,
+                        $r['cancelled']         ?? 0,
+                        $r['active_days']       ?? 0,
+                        $r['assignments_count'] ?? 0,
+                        $r['utilization_pct']   ?? 0,
+                        $r['completion_pct']    ?? 0,
+                    ]);
+                }
+                rewind($out);
+                header('Content-Type: text/csv');
+                header('Content-Disposition: attachment; filename="bus-utilization-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
+                echo stream_get_contents($out); exit;
+            }
             if ($reportType === 'attendance') {
                 $rows = $this->m->hrAttendanceReport($dep, $from, $to);
                 $out = fopen('php://temp', 'r+');
@@ -512,21 +588,43 @@ public function trip_logs(): void{
             echo stream_get_contents($out); exit;
         }
 
-        /* ── Fetch HR data for the two HR report types ── */
+        /* ── Fetch data for all report types ── */
         $hrRows     = [];
         $hrSummary  = [];
         if ($reportType === 'attendance') {
             $hrRows = $this->m->hrAttendanceReport($dep, $from, $to);
             $totalStaff  = count($hrRows);
             $avgAtt      = $totalStaff ? round(array_sum(array_column($hrRows, 'att_pct')) / $totalStaff, 1) : 0;
-            $mostAbsent  = $totalStaff ? $hrRows[0]['full_name'] . ' (' . $hrRows[0]['absent_days'] . ' days)' : '—';
-            $hrSummary   = ['total_staff'=>$totalStaff, 'avg_att_pct'=>$avgAtt, 'most_absent'=>$mostAbsent];
+            // most_absent as array so view can access ['name'] and ['absent_days']
+            $mostAbsentRow = $totalStaff ? $hrRows[0] : null; // already sorted by absent_days DESC
+            $mostAbsent = $mostAbsentRow
+                ? ['name' => $mostAbsentRow['full_name'], 'absent_days' => (int)$mostAbsentRow['absent_days']]
+                : ['name' => '—', 'absent_days' => 0];
+            $hrSummary   = ['total_staff' => $totalStaff, 'avg_att_pct' => $avgAtt, 'most_absent' => $mostAbsent];
         } elseif ($reportType === 'driver_performance') {
             $hrRows = $this->m->hrDriverPerformanceReport($dep, $from, $to);
-            $totalTrips  = (int)array_sum(array_column($hrRows, 'trips_assigned'));
             $avgOnTime   = count($hrRows) ? round(array_sum(array_column($hrRows, 'on_time_pct')) / count($hrRows), 1) : 0;
             $avgDelay    = count($hrRows) ? round(array_sum(array_column($hrRows, 'avg_delay_min')) / count($hrRows), 1) : 0;
-            $hrSummary   = ['total_trips'=>$totalTrips, 'on_time_pct'=>$avgOnTime, 'avg_delay_min'=>$avgDelay];
+            $hrSummary   = ['on_time_pct' => $avgOnTime, 'avg_delay_min' => $avgDelay];
+        } elseif ($reportType === 'trip_completion') {
+            $hrRows      = $this->m->tripCompletionReport($dep, $from, $to);
+            $totalTrips  = (int)array_sum(array_column($hrRows, 'total_trips'));
+            $totalDone   = (int)array_sum(array_column($hrRows, 'completed'));
+            $avgPct      = $totalTrips > 0 ? round(($totalDone / $totalTrips) * 100, 1) : 0;
+            $totalCancel = (int)array_sum(array_column($hrRows, 'cancelled'));
+            $hrSummary   = ['total_trips'=>$totalTrips, 'completion_pct'=>$avgPct, 'cancelled'=>$totalCancel];
+        } elseif ($reportType === 'delay_analysis') {
+            $hrRows       = $this->m->delayAnalysisReport($dep, $from, $to);
+            $totalDelayed = (int)array_sum(array_column($hrRows, 'delayed_trips'));
+            $avgDelay     = count($hrRows) ? round(array_sum(array_column($hrRows, 'avg_delay_min')) / count($hrRows), 1) : 0;
+            $mostDelayed  = count($hrRows) ? $hrRows[0]['route_name'] . ' (' . $hrRows[0]['delayed_trips'] . ' trips)' : '—';
+            $hrSummary    = ['total_delayed'=>$totalDelayed, 'avg_delay_min'=>$avgDelay, 'most_delayed_route'=>$mostDelayed];
+        } elseif ($reportType === 'bus_utilization') {
+            $hrRows      = $this->m->busUtilizationReport($dep, $from, $to);
+            $totalBuses  = count($hrRows);
+            $activeBuses = count(array_filter($hrRows, fn($r) => (int)$r['total_trips'] > 0));
+            $avgUtil     = $totalBuses ? round(array_sum(array_column($hrRows, 'utilization_pct')) / $totalBuses, 1) : 0;
+            $hrSummary   = ['total_buses'=>$totalBuses, 'active_buses'=>$activeBuses, 'avg_utilization'=>$avgUtil];
         }
 
         /* ── Operational analytics (kept for operational report types) ── */

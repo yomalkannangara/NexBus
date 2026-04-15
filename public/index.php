@@ -90,7 +90,12 @@ $routes = [
     '/M/feedback'       => ['DepotManagerController','feedback'],
     '/M/drivers'    => ['DepotManagerController','drivers'],    // NEW
     '/M/performance'      => ['DepotManagerController','performance'],      // NEW
+    '/M/performance/delayed-modal' => ['DepotManagerController','delayedModal'],
+    '/M/performance/rating-modal'  => ['DepotManagerController','ratingModal'],
+    '/M/performance/speed-modal'   => ['DepotManagerController','speedModal'],
+    '/M/performance/wait-modal'    => ['DepotManagerController','waitModal'],
     '/M/performance/details' => ['DepotManagerController','performanceDetails'],
+    '/M/live'             => ['DepotManagerController','depotLive'],
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
     '/M/profile'      => ['DepotManagerController','profile'],      // NEW
 
@@ -135,6 +140,7 @@ $routes = [
     '/B/attendance'    => ['BusOwnerController','attendance'],
     '/B/profile'    => ['BusOwnerController','profile'],
     '/B/live'       => ['BusOwnerController','ownerLive'],
+    '/B/messages'   => ['BusOwnerController','messages'],
 
     // Live buses (no auth)
     // Writes from external API to tracking_monitoring (call via scheduler/cron)

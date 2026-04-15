@@ -12,12 +12,11 @@ class FleetModel extends BaseModel
         if (isset($u['sltb_depot_id']) && $u['sltb_depot_id'] !== '') {
             return (int)$u['sltb_depot_id'];
         }
+        if (isset($u['depot_id']) && $u['depot_id'] !== '') {
+            return (int)$u['depot_id'];
+        }
         return null;
     }
-    /**
-     * Users without an assigned depot will see the full fleet rather than
-     * nothing; this makes development easier and prevents silent failures.
-     */
     private function hasDepot(): bool { return $this->depotId() !== null; }
 
     private function getRouteDisplayName(string $stopsJson): string {
@@ -192,17 +191,12 @@ class FleetModel extends BaseModel
     /** Count buses matching the given filter set */
     private function countBusesWithFilters(array $filters): int
     {
+        if (!$this->hasDepot()) return 0;
         try {
             list($where, $params) = $this->buildFilterWhere($filters);
             $did = $this->depotId();
-            if ($did !== null) {
-                if (!isset($params[':d'])) {
-                    $params[':d'] = $did;
-                }
-            } else {
-                // if no depot assigned, just remove the depot constraint
-                $where = preg_replace('/WHERE\s+sb\.sltb_depot_id=:d\s+AND\s+/', 'WHERE ', $where);
-                $where = preg_replace('/WHERE\s+sb\.sltb_depot_id=:d\b/', 'WHERE 1=1 ', $where);
+            if ($did !== null && !isset($params[':d'])) {
+                $params[':d'] = $did;
             }
 
             $sql = "SELECT COUNT(DISTINCT sb.reg_no) as c FROM sltb_buses sb
@@ -234,6 +228,7 @@ class FleetModel extends BaseModel
 
     public function list(array $filters = []): array
     {
+        if (!$this->hasDepot()) return [];
         try {
             // build filter where clause along with params
             // build filter where clause along with params; add depot constraint if available
@@ -318,9 +313,18 @@ class FleetModel extends BaseModel
 
     public function routes(): array
     {
+        if (!$this->hasDepot()) return [];
         try {
-            $rows = $this->pdo->query("SELECT route_id, route_no, stops_json FROM routes ORDER BY route_no+0, route_no")
-                              ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT r.route_id, r.route_no, r.stops_json
+                   FROM routes r
+                   JOIN timetables t ON t.route_id = r.route_id AND t.operator_type='SLTB'
+                   JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                  WHERE sb.sltb_depot_id = :d
+                  ORDER BY r.route_no+0, r.route_no"
+            );
+            $st->execute([':d' => $this->depotId()]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
             
             foreach ($rows as &$r) {
                 $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
@@ -343,6 +347,7 @@ class FleetModel extends BaseModel
 
     public function getBusByReg(string $regNo): array
     {
+        if (!$this->hasDepot()) return [];
         try {
             $sql = "
                 SELECT
@@ -373,15 +378,11 @@ class FleetModel extends BaseModel
             ";
 
             $did = $this->depotId();
-            if ($did !== null) {
-                $sql .= " AND sb.sltb_depot_id = :d";
-            }
+            $sql .= " AND sb.sltb_depot_id = :d";
 
             $st = $this->pdo->prepare($sql);
             $st->bindValue(':reg_no', $regNo);
-            if ($did !== null) {
-                $st->bindValue(':d', $did, PDO::PARAM_INT);
-            }
+            $st->bindValue(':d', $did, PDO::PARAM_INT);
             $st->execute();
             $row = $st->fetch(PDO::FETCH_ASSOC) ?: [];
             if (!empty($row)) {

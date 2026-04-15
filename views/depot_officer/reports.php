@@ -4,224 +4,66 @@
 $reportType  = $report_type ?? 'attendance';
 $hrRows      = $hr_rows     ?? [];
 $hrSummary   = $hr_summary  ?? [];
-$from        = $from        ?? date('Y-m-d', strtotime('-30 days'));
+$from        = $from        ?? date('Y-m-01');
 $to          = $to          ?? date('Y-m-d');
 $filters     = $filters     ?? [];
 $kpis        = $kpis        ?? [];
 
 $reportTypes = [
-    'attendance'        => 'Staff Attendance Report',
-    'driver_performance'=> 'Driver Performance Report',
-    'trip_completion'   => 'Trip Completion Rate',
-    'delay_analysis'    => 'Delay Analysis Report',
-    'bus_utilization'   => 'Bus Utilization Report',
+    'attendance'         => 'Staff Attendance Report',
+    'driver_performance' => 'Driver Performance Report',
+    'trip_completion'    => 'Trip Completion Rate',
+    'delay_analysis'     => 'Delay Analysis Report',
+    'bus_utilization'    => 'Bus Utilization Report',
 ];
-$isHr  = in_array($reportType, ['attendance', 'driver_performance'], true);
-$isOps = !$isHr;
+
+$depotId   = $_SESSION['user']['sltb_depot_id'] ?? 0;
+$depotName = htmlspecialchars($_SESSION['user']['depot_name'] ?? ('Depot ' . $depotId));
 
 $baseQs = http_build_query([
     'report_type' => $reportType,
     'from'        => $from,
     'to'          => $to,
-    'route'       => $filters['route']  ?? '',
-    'bus_id'      => $filters['bus_id'] ?? '',
-    'status'      => $filters['status'] ?? '',
 ]);
+
+/* ── Badge/helper functions ─────────────────────────── */
+function rpBadge(string $label, string $cls): string {
+    return '<span class="rp-badge ' . $cls . '">' . htmlspecialchars($label) . '</span>';
+}
+function pctBar(float $pct, string $color): string {
+    $w = min(100, max(0, $pct));
+    return '<div class="rp-pct-wrap">'
+         . '<div class="rp-pct-bar"><div class="rp-pct-fill" style="width:' . $w . '%;background:' . $color . ';"></div></div>'
+         . '<span class="rp-pct-lbl" style="color:' . $color . ';">' . $pct . '%</span>'
+         . '</div>';
+}
+function pctColor(float $pct, float $good = 85, float $ok = 70): string {
+    return $pct >= $good ? '#16a34a' : ($pct >= $ok ? '#f59e0b' : '#dc2626');
+}
+function gradeClass(string $grade): string {
+    return 'badge-' . strtolower(in_array($grade, ['A','B','C','D']) ? $grade : 'staff');
+}
+function trendArrow(string $trend): string {
+    return match($trend) {
+        'improving' => '<span class="rp-badge badge-improving">↑ Improving</span>',
+        'declining' => '<span class="rp-badge badge-declining">↓ Declining</span>',
+        default     => '<span class="rp-badge badge-stable">→ Stable</span>',
+    };
+}
+function slotBadge(string $slot): string {
+    $labels = ['early-morning'=>'🌅 Early Morning','morning'=>'🌤 Morning','afternoon'=>'☀ Afternoon','evening'=>'🌇 Evening','night'=>'🌙 Night'];
+    return '<span class="rp-badge badge-' . $slot . '">' . htmlspecialchars($labels[$slot] ?? ucfirst($slot)) . '</span>';
+}
 ?>
-<style>
-/* ── Reports Page ──────────────────────────────── */
-.rp-page { display: grid; gap: 20px; }
+<link rel="stylesheet" href="/assets/css/reports.css">
 
-/* Hero */
-.rp-hero {
-    background: linear-gradient(135deg, #7B1C3E 0%, #a8274e 100%);
-    border-bottom: 4px solid #f3b944;
-    border-radius: 14px; color: #fff;
-    padding: 24px 28px 20px;
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;
-}
-.rp-hero h1 { margin: 0; font-size: 1.45rem; font-weight: 800; }
-.rp-hero p  { margin: 4px 0 0; opacity: .8; font-size: .88rem; }
-.rp-hero-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-
-/* Filter bar */
-.rp-filter-bar {
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(17,24,39,.07);
-    border-left: 4px solid #f3b944;
-    padding: 14px 20px;
-}
-.rp-filter-bar form {
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
-}
-.rp-field { display: grid; gap: 4px; }
-.rp-field-label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #7B1C3E; }
-.rp-field select,
-.rp-field input[type=date] {
-    border: 1.5px solid #e8d39a; border-radius: 8px;
-    padding: 8px 10px; font-size: .84rem; background: #fffdf6; color: #2b2b2b;
-    transition: border-color .18s, box-shadow .18s;
-}
-.rp-field select:focus, .rp-field input:focus {
-    outline: none; border-color: #f3b944; box-shadow: 0 0 0 3px rgba(243,185,68,.18);
-}
-.rp-field select.type-select {
-    min-width: 240px; font-weight: 700; color: #7B1C3E;
-    border-color: #f3b944; background: #fffdf6;
-}
-.rp-btn-group { display: flex; gap: 8px; align-items: flex-end; }
-.rp-btn {
-    padding: 9px 18px; border-radius: 8px;
-    font-size: .85rem; font-weight: 700; cursor: pointer; border: none;
-    white-space: nowrap; transition: background .2s;
-    display: inline-flex; align-items: center; gap: 6px;
-}
-.rp-btn-primary { background: #7B1C3E; color: #fff; }
-.rp-btn-primary:hover { background: #a8274e; }
-.rp-btn-outline {
-    background: #fff; color: #7B1C3E;
-    border: 2px solid #7B1C3E; text-decoration: none;
-}
-.rp-btn-outline:hover { background: #fce8ef; }
-.rp-btn-pdf {
-    background: #1d4ed8; color: #fff; text-decoration: none;
-}
-.rp-btn-pdf:hover { background: #1e40af; }
-
-/* Summary cards */
-.rp-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.rp-card {
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(17,24,39,.07);
-    border-top: 4px solid var(--accent);
-    padding: 18px 20px;
-    display: grid; gap: 4px;
-    opacity: 0; animation: rpCardIn .4s cubic-bezier(.22,.68,0,1.2) forwards;
-    transition: transform .15s, box-shadow .15s;
-}
-.rp-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(17,24,39,.1); }
-.rp-card:nth-child(1){animation-delay:.05s}
-.rp-card:nth-child(2){animation-delay:.12s}
-.rp-card:nth-child(3){animation-delay:.19s}
-@keyframes rpCardIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-.rp-card-val  { font-size: 1.9rem; font-weight: 800; color: var(--accent); line-height: 1.1; }
-.rp-card-lbl  { font-size: .78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
-.rp-card-hint { font-size: .74rem; color: #9ca3af; margin-top: 2px; }
-
-/* Table card */
-.rp-table-card {
-    background: #fff; border-radius: 14px;
-    box-shadow: 0 8px 24px rgba(17,24,39,.08); overflow: hidden;
-}
-.rp-table-head {
-    background: linear-gradient(90deg, #7B1C3E, #a8274e);
-    border-bottom: 3px solid #f3b944;
-    color: #fff; padding: 13px 20px;
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-}
-.rp-table-head h2 { margin: 0; font-size: .98rem; font-weight: 800; }
-.rp-table-head .meta { font-size: .78rem; opacity: .8; }
-.rp-table-wrap { overflow-x: auto; }
-.rp-table { width: 100%; border-collapse: collapse; min-width: 700px; }
-.rp-table thead th {
-    background: #7B1C3E; color: #fff;
-    padding: 10px 14px; font-size: .72rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: .06em;
-    text-align: left; white-space: nowrap;
-    border-right: 1px solid rgba(255,255,255,.1);
-}
-.rp-table thead th:last-child { border-right: none; }
-.rp-table tbody td {
-    padding: 10px 14px; border-bottom: 1px solid #fdf3e3;
-    font-size: .86rem; color: #1f2937; vertical-align: middle;
-}
-.rp-table tbody tr:last-child td { border-bottom: none; }
-.rp-table tbody tr:hover td { background: #fffdf6; }
-.rp-table .name-cell { font-weight: 700; }
-.rp-table .num-cell  { font-variant-numeric: tabular-nums; text-align: right; }
-
-/* Role badge */
-.role-pill {
-    display: inline-block; padding: 2px 8px; border-radius: 99px;
-    font-size: .7rem; font-weight: 800; text-transform: uppercase;
-}
-.role-driver    { background: #fce8ef; color: #7B1C3E; }
-.role-conductor { background: #fef3c7; color: #92400e; }
-.role-staff     { background: #eff6ff; color: #1d4ed8; }
-
-/* Attendance % bar */
-.att-pct-wrap { display: flex; align-items: center; gap: 8px; }
-.att-pct-bar  { flex: 1; height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; min-width: 60px; }
-.att-pct-fill { height: 100%; border-radius: 99px; transition: width .6s cubic-bezier(.22,.68,0,1.2); }
-.att-pct-label { font-weight: 700; font-size: .82rem; min-width: 38px; text-align: right; }
-
-/* On-Time % dot meter */
-.pct-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-
-/* Empty state */
-.rp-empty { padding: 36px; text-align: center; color: #9ca3af; }
-.rp-empty p { margin: 8px 0 0; font-size: .9rem; }
-
-/* ── CSS Bar Chart ─────────────────────────── */
-.rp-chart-card {
-    background: #fff; border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(17,24,39,.07); padding: 20px 24px;
-}
-.rp-chart-card h3 {
-    margin: 0 0 20px; font-size: .95rem; font-weight: 800; color: #7B1C3E;
-    display: flex; align-items: center; gap: 8px;
-}
-.rp-bar-chart { display: flex; flex-direction: column; gap: 10px; }
-.rp-bar-row { display: grid; grid-template-columns: 160px 1fr 60px; align-items: center; gap: 10px; }
-.rp-bar-name { font-size: .8rem; font-weight: 600; color: #374151; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; text-align: right; }
-.rp-bar-track { height: 22px; background: #f1f5f9; border-radius: 6px; overflow: hidden; position: relative; }
-.rp-bar-fill  { height: 100%; border-radius: 6px; transition: width .7s cubic-bezier(.22,.68,0,1.2); display: flex; align-items: center; padding-left: 8px; }
-.rp-bar-fill span { font-size: .7rem; font-weight: 700; color: rgba(255,255,255,.9); white-space: nowrap; }
-.rp-bar-val   { font-size: .82rem; font-weight: 800; color: #374151; text-align: left; }
-.rp-chart-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #fdf3e3; }
-.rp-legend-item { display: flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 600; color: #4b5563; }
-.rp-legend-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-
-/* ── Operational section (kept intact) ── */
-.rp-ops-section { display: grid; gap: 16px; }
-.kpi-wrap--neo {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 16px !important;
-}
-@media(max-width:1100px){ .kpi-wrap--neo{ grid-template-columns:repeat(2,1fr) !important; } }
-@media(max-width:640px) { .kpi-wrap--neo{ grid-template-columns:1fr !important; } }
-.kpi2 { border:1px solid #e5e7eb !important; border-top-width:4px !important; border-radius:12px !important;
-         background:#fff !important; padding:16px !important;
-         box-shadow:0 2px 8px rgba(0,0,0,.06) !important; transition:box-shadow .3s,transform .3s !important; }
-.kpi2:hover { box-shadow:0 4px 12px rgba(0,0,0,.1) !important; transform:translateY(-2px) !important; }
-.kpi2.tone-red   { border-top-color:#d0302c !important; }
-.kpi2.tone-green { border-top-color:#1e9e4a !important; }
-.kpi2.tone-orange{ border-top-color:#e06a00 !important; }
-.kpi2.tone-blue  { border-top-color:#3b82f6 !important; }
-.kpi2 header { display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:8px !important; }
-.kpi2 h3 { margin:0 !important; font-size:15px !important; font-weight:600 !important; color:#1f2937 !important; }
-.kpi2 .ico { width:36px !important; height:36px !important; border-radius:50% !important;
-              display:flex !important; align-items:center !important; justify-content:center !important;
-              background:rgba(0,0,0,.05) !important; flex-shrink:0 !important; }
-.kpi2.tone-red .ico { color:#d0302c !important; } .kpi2.tone-green .ico { color:#1e9e4a !important; }
-.kpi2.tone-orange .ico { color:#e06a00 !important; } .kpi2.tone-blue .ico { color:#3b82f6 !important; }
-.kpi2 .value { font-size:28px !important; font-weight:800 !important; margin:6px 0 !important; color:#1f2937 !important; }
-.kpi2.tone-red .value { color:#d0302c !important; } .kpi2.tone-green .value { color:#1e9e4a !important; }
-.kpi2.tone-orange .value { color:#e06a00 !important; } .kpi2.tone-blue .value { color:#3b82f6 !important; }
-.kpi2 .hint { margin-top:4px !important; font-size:12px !important; color:#6b7280 !important; }
-.chart-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px;
-              box-shadow:var(--shadow); margin:0; position:relative; }
-.chart-card h2 { margin:0 0 12px; font-size:15px; font-weight:600; color:#1f2937; }
-.chart-card canvas { max-height:280px; width:100% !important; }
-.charts-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(400px,1fr)); gap:16px; }
-@media(max-width:768px){ .charts-grid{ grid-template-columns:1fr; } }
-
-@media(max-width:900px) {
-    .rp-bar-row { grid-template-columns: 100px 1fr 50px; }
-    .rp-filter-bar form { gap: 8px; }
-}
-</style>
+<!-- Print-only header -->
+<div class="rp-print-header" id="rp-print-header-el">
+    <h2><?= htmlspecialchars($reportTypes[$reportType] ?? 'Report') ?></h2>
+    <p>Depot: <strong><?= $depotName ?></strong> &nbsp;|&nbsp;
+       Period: <strong><?= date('d M Y', strtotime($from)) ?> – <?= date('d M Y', strtotime($to)) ?></strong> &nbsp;|&nbsp;
+       Generated: <strong><?= date('d M Y H:i') ?></strong></p>
+</div>
 
 <div class="rp-page">
 
@@ -232,11 +74,11 @@ $baseQs = http_build_query([
         <p><?= htmlspecialchars($reportTypes[$reportType] ?? 'Report') ?> &bull; <?= date('d M Y', strtotime($from)) ?> – <?= date('d M Y', strtotime($to)) ?></p>
     </div>
     <div class="rp-hero-right">
-        <a class="rp-btn rp-btn-outline" href="/O/reports?<?= $baseQs ?>&export=csv">
+        <button class="rp-btn rp-btn-csv" id="rp-csv-btn">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export CSV
-        </a>
-        <button class="rp-btn rp-btn-pdf" id="rp-print-btn" onclick="window.print()">
+        </button>
+        <button class="rp-btn rp-btn-pdf" id="rp-print-btn">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Print / PDF
         </button>
@@ -245,7 +87,7 @@ $baseQs = http_build_query([
 
 <!-- Filter bar -->
 <div class="rp-filter-bar">
-<form method="get" action="/O/reports">
+<form method="get" action="/O/reports" id="rp-filter-form">
     <div class="rp-field">
         <span class="rp-field-label">Report Type</span>
         <select name="report_type" class="type-select" onchange="this.form.submit()">
@@ -262,337 +104,826 @@ $baseQs = http_build_query([
         <span class="rp-field-label">To</span>
         <input type="date" name="to" value="<?= htmlspecialchars($to) ?>" max="<?= date('Y-m-d') ?>">
     </div>
-    <?php if ($isOps): ?>
-    <div class="rp-field">
-        <span class="rp-field-label">Route</span>
-        <select name="route">
-            <option value="">All Routes</option>
-            <?php foreach (($routes ?? []) as $r): ?>
-            <option value="<?= htmlspecialchars($r['route_id']) ?>" <?= (!empty($filters['route']) && $filters['route']==$r['route_id']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($r['route_no'] . (isset($r['name']) ? ' — ' . $r['name'] : '')) ?>
-            </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <div class="rp-field">
-        <span class="rp-field-label">Bus ID</span>
-        <select name="bus_id">
-            <option value="">All Buses</option>
-            <?php foreach (($buses ?? []) as $b): ?>
-            <option value="<?= htmlspecialchars($b['reg_no']) ?>" <?= (!empty($filters['bus_id']) && $filters['bus_id']==$b['reg_no']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($b['reg_no'] . (isset($b['make']) ? ' ' . $b['make'] : '')) ?>
-            </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <?php endif; ?>
     <div class="rp-btn-group">
         <button type="submit" class="rp-btn rp-btn-primary">Apply</button>
-        <a class="rp-btn rp-btn-outline" href="/O/reports?report_type=<?= urlencode($reportType) ?>">Reset</a>
+        <a class="rp-btn rp-btn-reset" href="/O/reports?report_type=<?= urlencode($reportType) ?>&from=<?= date('Y-m-01') ?>&to=<?= date('Y-m-d') ?>">Reset</a>
     </div>
 </form>
 </div>
 
 <?php if ($reportType === 'attendance'): ?>
-<!-- ══ Staff Attendance Report ══════════════════════════════════════ -->
-
-<!-- Summary cards -->
+<?php /* ═══ REPORT 1 — STAFF ATTENDANCE ══════════════════════════════ */ ?>
+<?php
+$totalStaff   = (int)($hrSummary['total_staff']              ?? count($hrRows));
+$avgAtt       = (float)($hrSummary['avg_att_pct']            ?? 0);
+$mostAbsent   = is_array($hrSummary['most_absent'] ?? null)
+    ? $hrSummary['most_absent']
+    : ['name' => (string)($hrSummary['most_absent'] ?? '—'), 'absent_days' => 0];
+$perfectCount = (int)($hrSummary['perfect_attendance_count'] ?? count(array_filter($hrRows, fn($r)=>(float)($r['att_pct']??0)>=100)));
+?>
 <div class="rp-cards">
-    <div class="rp-card" style="--accent:#7B1C3E">
+    <div class="rp-card" style="--rp-card-accent:#2563eb">
+        <div class="rp-card-icon" style="background:#eff6ff;color:#2563eb"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
         <div class="rp-card-lbl">Total Staff</div>
-        <div class="rp-card-val"><?= (int)($hrSummary['total_staff'] ?? 0) ?></div>
+        <div class="rp-card-val"><?= $totalStaff ?></div>
         <div class="rp-card-hint">with records in period</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:100%"></div></div>
     </div>
-    <div class="rp-card" style="--accent:#16a34a">
-        <div class="rp-card-lbl">Avg Attendance %</div>
-        <div class="rp-card-val"><?= $hrSummary['avg_att_pct'] ?? 0 ?>%</div>
+    <div class="rp-card" style="--rp-card-accent:#16a34a">
+        <div class="rp-card-icon" style="background:#f0fdf4;color:#16a34a"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="rp-card-lbl">Avg Attendance</div>
+        <div class="rp-card-val"><?= $avgAtt ?>%</div>
         <div class="rp-card-hint">across all staff</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $avgAtt ?>%"></div></div>
     </div>
-    <div class="rp-card" style="--accent:#dc2626">
-        <div class="rp-card-lbl">Most Absent Staff</div>
-        <div class="rp-card-val" style="font-size:1rem;padding-top:8px;"><?= htmlspecialchars((string)($hrSummary['most_absent'] ?? '—')) ?></div>
-        <div class="rp-card-hint">highest absent days</div>
+    <div class="rp-card" style="--rp-card-accent:#dc2626">
+        <div class="rp-card-icon" style="background:#fef2f2;color:#dc2626"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/></svg></div>
+        <div class="rp-card-lbl">Most Absent</div>
+        <div class="rp-card-val" style="font-size:1.05rem"><?= htmlspecialchars((string)($mostAbsent['name']??'—')) ?></div>
+        <div class="rp-card-hint"><?= (int)($mostAbsent['absent_days']??0) ?> absent days</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:100%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#f59e0b">
+        <div class="rp-card-icon" style="background:#fffbeb;color:#f59e0b"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="rp-card-lbl">Perfect Attendance</div>
+        <div class="rp-card-val"><?= $perfectCount ?></div>
+        <div class="rp-card-hint">staff with 100%</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $totalStaff?min(100,round($perfectCount/$totalStaff*100)):0 ?>%"></div></div>
     </div>
 </div>
 
 <?php if (!empty($hrRows)): ?>
-<!-- Bar chart – Attendance % per staff -->
 <div class="rp-chart-card">
-    <h3>
-        <svg width="16" height="16" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Attendance % by Staff Member
-    </h3>
-    <div class="rp-bar-chart" id="att-bar-chart">
-        <?php
-        $chartRows = array_slice($hrRows, 0, 15); // cap at 15 for readability
-        foreach ($chartRows as $i => $r):
-            $pct  = (float)($r['att_pct'] ?? 0);
-            $color = $pct >= 90 ? '#16a34a' : ($pct >= 70 ? '#d97706' : '#dc2626');
-        ?>
-        <div class="rp-bar-row">
-            <div class="rp-bar-name" title="<?= htmlspecialchars($r['full_name']) ?>"><?= htmlspecialchars($r['full_name']) ?></div>
-            <div class="rp-bar-track">
-                <div class="rp-bar-fill" style="width:0%;background:<?= $color ?>;"
-                     data-target="<?= $pct ?>">
-                    <?php if ($pct >= 20): ?><span><?= $pct ?>%</span><?php endif; ?>
-                </div>
-            </div>
-            <div class="rp-bar-val"><?= $pct ?>%</div>
-        </div>
-        <?php endforeach; ?>
-        <?php if (count($hrRows) > 15): ?>
-        <div style="font-size:.75rem;color:#9ca3af;text-align:center;padding:4px 0;">
-            Showing top 15 of <?= count($hrRows) ?> staff
-        </div>
-        <?php endif; ?>
-    </div>
+    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> Attendance % by Staff (top 20)</h3>
+    <div class="rp-canvas-wrap rp-canvas-bar"><canvas id="attendanceChart"></canvas></div>
+    <p class="rp-chart-note">Charts available in digital version only.</p>
     <div class="rp-chart-legend">
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#16a34a"></span> ≥ 90% (Good)</span>
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#d97706"></span> 70–89% (Fair)</span>
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#dc2626"></span> &lt; 70% (Low)</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#16a34a"></span>&nbsp;≥ 85%</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#f59e0b"></span>&nbsp;70–84%</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#dc2626"></span>&nbsp;&lt; 70%</span>
     </div>
 </div>
-
-<!-- Table -->
 <div class="rp-table-card">
-    <div class="rp-table-head">
-        <h2>Staff Attendance Details</h2>
-        <span class="meta"><?= count($hrRows) ?> staff &bull; <?= date('d M Y', strtotime($from)) ?> – <?= date('d M Y', strtotime($to)) ?></span>
-    </div>
-    <div class="rp-table-wrap">
-    <table class="rp-table">
+    <div class="rp-table-head"><h2>Staff Attendance Details</h2><span class="meta"><?= count($hrRows) ?> staff &bull; <?= date('d M Y',strtotime($from)) ?> – <?= date('d M Y',strtotime($to)) ?></span></div>
+    <div class="rp-table-wrap"><table class="rp-table rp-sortable" id="att-table">
         <thead><tr>
-            <th>#</th><th>Name</th><th>Role</th>
-            <th class="num-cell">Present Days</th>
-            <th class="num-cell">Absent Days</th>
-            <th class="num-cell">Leave Days</th>
-            <th>Attendance %</th>
-            <th>Last Absent Date</th>
+            <th>#</th>
+            <th class="sortable" data-col="1">Name<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="2">Role<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="3">Present<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="4">Absent<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="5">Leave<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="6">Days<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="7">Att %<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="8">Trend<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="9">Last Absent<span class="sort-ind">⇅</span></th>
         </tr></thead>
         <tbody>
         <?php foreach ($hrRows as $i => $r):
-            $pct  = (float)($r['att_pct'] ?? 0);
-            $color = $pct >= 90 ? '#16a34a' : ($pct >= 70 ? '#d97706' : '#dc2626');
-            $roleCls = match(strtolower((string)($r['role'] ?? ''))) {
-                'driver'    => 'role-driver',
-                'conductor' => 'role-conductor',
-                default     => 'role-staff',
-            };
+            $pct    = (float)($r['att_pct']??0); $col = pctColor($pct);
+            $role   = strtolower((string)($r['role']??''));
+            $roleCls = match($role){'driver'=>'badge-driver','conductor'=>'badge-conductor',default=>'badge-staff'};
         ?>
         <tr>
             <td style="color:#9ca3af;font-size:.78rem;"><?= $i+1 ?></td>
-            <td class="name-cell"><?= htmlspecialchars((string)($r['full_name'] ?? '—')) ?></td>
-            <td><span class="role-pill <?= $roleCls ?>"><?= htmlspecialchars((string)($r['role'] ?? '—')) ?></span></td>
-            <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['present_days'] ?? 0) ?></td>
-            <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['absent_days'] ?? 0) ?></td>
-            <td class="num-cell" style="color:#d97706;font-weight:700;"><?= (int)($r['leave_days'] ?? 0) ?></td>
-            <td>
-                <div class="att-pct-wrap">
-                    <div class="att-pct-bar">
-                        <div class="att-pct-fill" style="width:<?= min(100,$pct) ?>%;background:<?= $color ?>;"></div>
-                    </div>
-                    <span class="att-pct-label" style="color:<?= $color ?>;"><?= $pct ?>%</span>
-                </div>
-            </td>
-            <td style="color:#6b7280;font-size:.82rem;">
-                <?= !empty($r['last_absent_date']) ? date('d M Y', strtotime((string)$r['last_absent_date'])) : '—' ?>
-            </td>
+            <td class="name-cell"><?= htmlspecialchars((string)($r['full_name']??'—')) ?></td>
+            <td><?= rpBadge(ucfirst($role?:'Staff'), $roleCls) ?></td>
+            <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['present_days']??0) ?></td>
+            <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['absent_days']??0) ?></td>
+            <td class="num-cell" style="color:#f59e0b;font-weight:700;"><?= (int)($r['leave_days']??0) ?></td>
+            <td class="num-cell"><?= (int)($r['total_days']??0) ?></td>
+            <td><?= pctBar($pct, $col) ?></td>
+            <td><?= trendArrow((string)($r['trend']??'stable')) ?></td>
+            <td style="color:#6b7280;font-size:.82rem;"><?= !empty($r['last_absent_date'])?date('d M Y',strtotime((string)$r['last_absent_date'])):'—' ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
-    </table>
-    </div>
+    </table></div>
 </div>
 <?php else: ?>
-<div class="rp-table-card"><div class="rp-empty">
-    <svg width="44" height="44" fill="none" stroke="#e5e7eb" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-    <p>No attendance data found for the selected period.</p>
-</div></div>
+<div class="rp-table-card"><div class="rp-empty"><svg width="44" height="44" fill="none" stroke="#e5e7eb" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h4>No Data Found</h4><p>No attendance data for the selected period.</p></div></div>
 <?php endif; ?>
+<?php
+$_attChart = json_encode(array_map(fn($r)=>['full_name'=>$r['full_name']??'','att_pct'=>(float)($r['att_pct']??0)], array_slice($hrRows,0,20)), JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_attCsv   = json_encode(array_map(fn($r)=>['full_name'=>$r['full_name']??'','role'=>$r['role']??'','present_days'=>$r['present_days']??0,'absent_days'=>$r['absent_days']??0,'leave_days'=>$r['leave_days']??0,'total_days'=>$r['total_days']??0,'att_pct'=>$r['att_pct']??0,'trend'=>$r['trend']??''], $hrRows), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+$_attSum   = json_encode(['total_staff'=>$totalStaff,'avg_att_pct'=>$avgAtt,'perfect_attendance_count'=>$perfectCount,'most_absent'=>['name'=>$mostAbsent['name']??'—','absent_days'=>$mostAbsent['absent_days']??0]], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+?>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    if(window.ReportCharts) ReportCharts.buildAttendanceChart('attendanceChart',<?= $_attChart ?>);
+    document.getElementById('rp-csv-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.exportAttendance(<?= $_attCsv ?>,<?= $_attSum ?>,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+    document.getElementById('rp-print-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.printReport('Staff Attendance Report','<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+});
+</script>
 
 <?php elseif ($reportType === 'driver_performance'): ?>
-<!-- ══ Driver Performance Report ══════════════════════════════════ -->
+<?php /* ═══ REPORT 2 — DRIVER PERFORMANCE ══════════════════════════ */ ?>
+<?php
+$avgOnTime  = (float)($hrSummary['on_time_pct'] ?? 0);
+$avgDelaySu = (float)($hrSummary['avg_delay_min'] ?? 0);
+$avgScore   = count($hrRows) ? round(array_sum(array_column($hrRows,'performance_score'))/count($hrRows),1) : 0;
+$topRow     = !empty($hrRows) ? array_reduce($hrRows,fn($c,$r)=>((float)($r['performance_score']??0)>(float)($c['performance_score']??0))?$r:$c,$hrRows[0]) : null;
+$gradeCount = ['A'=>0,'B'=>0,'C'=>0,'D'=>0];
+foreach ($hrRows as $_r) { $g=(string)($_r['grade']??''); if(isset($gradeCount[$g])) $gradeCount[$g]++; }
+$atRiskCount = $gradeCount['C'] + $gradeCount['D'];
+$totalTripsAll = (int)array_sum(array_column($hrRows,'trips_assigned'));
+?>
 
-<!-- Summary cards -->
+<!-- KPI Cards: row 1 -->
 <div class="rp-cards">
-    <div class="rp-card" style="--accent:#1d4ed8">
-        <div class="rp-card-lbl">Total Trips</div>
-        <div class="rp-card-val"><?= (int)($hrSummary['total_trips'] ?? 0) ?></div>
-        <div class="rp-card-hint">in selected period</div>
+    <div class="rp-card" style="--rp-card-accent:#2563eb">
+        <div class="rp-card-icon" style="background:#eff6ff;color:#2563eb"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="rp-card-lbl">Total Drivers</div>
+        <div class="rp-card-val"><?= count($hrRows) ?></div>
+        <div class="rp-card-hint"><?= $totalTripsAll ?> trips in period</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:100%"></div></div>
     </div>
-    <div class="rp-card" style="--accent:#16a34a">
-        <div class="rp-card-lbl">On-Time %</div>
-        <div class="rp-card-val"><?= $hrSummary['on_time_pct'] ?? 0 ?>%</div>
-        <div class="rp-card-hint">average across drivers</div>
+    <div class="rp-card" style="--rp-card-accent:#16a34a">
+        <div class="rp-card-icon" style="background:#f0fdf4;color:#16a34a"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="rp-card-lbl">Avg On-Time %</div>
+        <div class="rp-card-val"><?= $avgOnTime ?>%</div>
+        <div class="rp-card-hint">across all drivers</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $avgOnTime ?>%"></div></div>
     </div>
-    <div class="rp-card" style="--accent:#d97706">
-        <div class="rp-card-lbl">Avg Delay</div>
-        <div class="rp-card-val"><?= $hrSummary['avg_delay_min'] ?? 0 ?><span style="font-size:.55em;margin-left:3px;">min</span></div>
-        <div class="rp-card-hint">per delayed departure</div>
+    <div class="rp-card" style="--rp-card-accent:#f59e0b">
+        <div class="rp-card-icon" style="background:#fffbeb;color:#f59e0b"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="rp-card-lbl">Avg Score /100</div>
+        <div class="rp-card-val"><?= $avgScore ?></div>
+        <div class="rp-card-hint">fleet performance index</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $avgScore ?>%"></div></div>
     </div>
+    <div class="rp-card" style="--rp-card-accent:<?= $atRiskCount > 0 ? '#dc2626' : '#16a34a' ?>">
+        <div class="rp-card-icon" style="background:<?= $atRiskCount > 0 ? '#fef2f2' : '#f0fdf4' ?>;color:<?= $atRiskCount > 0 ? '#dc2626' : '#16a34a' ?>"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="rp-card-lbl">At-Risk Drivers</div>
+        <div class="rp-card-val"><?= $atRiskCount ?></div>
+        <div class="rp-card-hint">Grade C or D (needs action)</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= count($hrRows)?min(100,round($atRiskCount/count($hrRows)*100)):0 ?>%"></div></div>
+    </div>
+</div>
+
+<!-- Grade breakdown mini-row -->
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+<?php
+$gradeStyles = ['A'=>['#16a34a','#f0fdf4'],'B'=>['#f59e0b','#fffbeb'],'C'=>['#ea580c','#fff7ed'],'D'=>['#dc2626','#fef2f2']];
+$gradeLabels = ['A'=>'Excellent (≥85)','B'=>'Good (70–84)','C'=>'Fair (55–69)','D'=>'Poor (<55)'];
+foreach ($gradeStyles as $g => [$col,$bg]):
+    $n = $gradeCount[$g];
+?>
+<div style="flex:1;min-width:100px;background:<?= $bg ?>;border:1px solid <?= $col ?>22;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:1.8rem;font-weight:800;color:<?= $col ?>;line-height:1;"><?= $n ?></span>
+    <div>
+        <div style="font-size:.65rem;font-weight:700;color:<?= $col ?>;letter-spacing:.05em;">GRADE <?= $g ?></div>
+        <div style="font-size:.72rem;color:#6b7280;"><?= $gradeLabels[$g] ?></div>
+    </div>
+</div>
+<?php endforeach; ?>
 </div>
 
 <?php if (!empty($hrRows)): ?>
-<!-- Bar chart – Trips per driver -->
-<div class="rp-chart-card">
-    <h3>
-        <svg width="16" height="16" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-        Trips Assigned per Driver
-    </h3>
-    <div class="rp-bar-chart" id="drv-bar-chart">
-        <?php
-        $chartRows = array_slice($hrRows, 0, 15);
-        $maxTrips  = max(1, max(array_column($chartRows, 'trips_assigned')));
-        foreach ($chartRows as $r):
-            $trips = (int)($r['trips_assigned'] ?? 0);
-            $done  = (int)($r['completed'] ?? 0);
-            $barPct = round(($trips / $maxTrips) * 100);
-            $donePct = $trips > 0 ? round(($done / $trips) * 100) : 0;
-        ?>
-        <div class="rp-bar-row">
-            <div class="rp-bar-name" title="<?= htmlspecialchars($r['driver_name'] ?? '') ?>"><?= htmlspecialchars((string)($r['driver_name'] ?? '—')) ?></div>
-            <div class="rp-bar-track">
-                <div class="rp-bar-fill" style="width:0%;background:#7B1C3E;" data-target="<?= $barPct ?>">
-                    <?php if ($barPct >= 15): ?><span><?= $trips ?> trips</span><?php endif; ?>
-                </div>
-            </div>
-            <div class="rp-bar-val"><?= number_format((float)($r['on_time_pct'] ?? 0), 0) ?>%</div>
-        </div>
-        <?php endforeach; ?>
+<!-- Two-chart row -->
+<div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:20px;">
+    <div class="rp-chart-card" style="margin-bottom:0;">
+        <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Performance Score per Driver</h3>
+        <div class="rp-canvas-wrap rp-canvas-hbar" style="height:<?= min(380, max(220, count($hrRows)*22)) ?>px;"><canvas id="driverPerfChart"></canvas></div>
+        <p class="rp-chart-note">Bar color = grade. Dashed line at 70 = minimum threshold.</p>
     </div>
-    <div class="rp-chart-legend">
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#7B1C3E"></span> Bar = Trips Assigned</span>
-        <span class="rp-legend-item" style="margin-left:auto;font-size:.74rem;color:#6b7280;">Value = On-Time %</span>
+    <div class="rp-chart-card" style="margin-bottom:0;">
+        <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Grade Distribution</h3>
+        <div class="rp-canvas-wrap" style="height:260px;"><canvas id="gradeDonutChart"></canvas></div>
+        <p class="rp-chart-note"><?= $gradeCount['A'] + $gradeCount['B'] ?> of <?= count($hrRows) ?> drivers at Grade B or above.</p>
     </div>
 </div>
 
-<!-- Table -->
+<!-- Trip behaviour stacked bar -->
+<div class="rp-chart-card">
+    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> Trip Behaviour by Driver (top <?= min(15,count($hrRows)) ?>)</h3>
+    <div class="rp-canvas-wrap" style="height:260px;"><canvas id="driverStackedChart"></canvas></div>
+    <p class="rp-chart-note">On-Time = completed trips that departed without delay. Green is good.</p>
+</div>
+
+<!-- Avg delay per driver — inline bar list -->
+<?php $delayRows = array_filter($hrRows, fn($r)=>(float)($r['avg_delay_min']??0)>0);
+      usort($delayRows, fn($a,$b)=>(float)($b['avg_delay_min']??0)-(float)($a['avg_delay_min']??0));
+      $delayRows = array_slice($delayRows, 0, 10); ?>
+<?php if (!empty($delayRows)): ?>
+<div class="rp-chart-card">
+    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Average Departure Delay — Top <?= count($delayRows) ?> Drivers</h3>
+    <div class="rp-bar-list" style="padding:0 4px;">
+    <?php $maxDelay = max(array_column($delayRows,'avg_delay_min') ?: [1]); ?>
+    <?php foreach ($delayRows as $r):
+        $mins = (float)($r['avg_delay_min']??0);
+        $barW = round($mins / $maxDelay * 100);
+        $col  = $mins > 15 ? '#dc2626' : ($mins > 8 ? '#f59e0b' : '#16a34a');
+    ?>
+    <div class="rp-bar-row">
+        <div class="rp-bar-name" style="min-width:150px;"><?= htmlspecialchars((string)($r['driver_name']??'')) ?></div>
+        <div class="rp-bar-stacked" style="flex:1;">
+            <div class="rp-bar-seg" style="width:<?= $barW ?>%;background:<?= $col ?>;border-radius:4px;"></div>
+        </div>
+        <div class="rp-bar-val" style="color:<?= $col ?>;font-weight:700;min-width:60px;"><?= number_format($mins,1) ?> min</div>
+    </div>
+    <?php endforeach; ?>
+    </div>
+    <p class="rp-chart-note" style="margin-top:8px;">Avg departure delay on late trips only. &lt;5 min = acceptable, &gt;15 min = concern.</p>
+</div>
+<?php endif; ?>
+
+<!-- Full detail table -->
 <div class="rp-table-card">
     <div class="rp-table-head">
         <h2>Driver Performance Details</h2>
-        <span class="meta"><?= count($hrRows) ?> driver<?= count($hrRows) !== 1 ? 's' : '' ?> &bull; <?= date('d M Y', strtotime($from)) ?> – <?= date('d M Y', strtotime($to)) ?></span>
+        <span class="meta"><?= count($hrRows) ?> driver<?= count($hrRows)!==1?'s':'' ?> &bull; <?= date('d M Y',strtotime($from)) ?> – <?= date('d M Y',strtotime($to)) ?></span>
     </div>
-    <div class="rp-table-wrap">
-    <table class="rp-table">
+    <div class="rp-table-wrap"><table class="rp-table rp-sortable" id="drv-table">
         <thead><tr>
-            <th>#</th><th>Driver Name</th>
-            <th class="num-cell">Trips Assigned</th>
-            <th class="num-cell">Completed</th>
-            <th class="num-cell">Delayed</th>
-            <th class="num-cell">Cancelled</th>
-            <th>On-Time %</th>
-            <th class="num-cell">Avg Delay (min)</th>
+            <th>#</th>
+            <th class="sortable" data-col="1">Driver<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="2">Emp No<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="3">Trips<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="4">Done<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="5">Delayed<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="6">Cancelled<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="7">On-Time %<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="8">Avg Delay<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="9">Score<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="10">Grade<span class="sort-ind">⇅</span></th>
         </tr></thead>
         <tbody>
         <?php foreach ($hrRows as $i => $r):
-            $otp   = (float)($r['on_time_pct'] ?? 0);
-            $otCol = $otp >= 90 ? '#16a34a' : ($otp >= 70 ? '#d97706' : '#dc2626');
+            $otp   = (float)($r['on_time_pct']??0);
+            $otCol = pctColor($otp);
+            $score = (float)($r['performance_score']??0);
+            $grade = (string)($r['grade']??'—');
+            $sCls  = 'score-'.strtolower(in_array($grade,['A','B','C','D'])?$grade:'staff');
+            $delayMin = (float)($r['avg_delay_min']??0);
+            $delayCol = $delayMin > 15 ? '#dc2626' : ($delayMin > 8 ? '#f59e0b' : '#16a34a');
+            $rowBg = ($grade==='D') ? 'background:#fff5f5;' : (($grade==='C') ? 'background:#fffbeb;' : '');
         ?>
-        <tr>
+        <tr style="<?= $rowBg ?>">
             <td style="color:#9ca3af;font-size:.78rem;"><?= $i+1 ?></td>
-            <td class="name-cell"><?= htmlspecialchars((string)($r['driver_name'] ?? '—')) ?></td>
-            <td class="num-cell" style="font-weight:700;"><?= (int)($r['trips_assigned'] ?? 0) ?></td>
-            <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed'] ?? 0) ?></td>
-            <td class="num-cell" style="color:#d97706;font-weight:700;"><?= (int)($r['delayed'] ?? 0) ?></td>
-            <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled'] ?? 0) ?></td>
-            <td>
-                <div class="att-pct-wrap">
-                    <div class="att-pct-bar">
-                        <div class="att-pct-fill" style="width:<?= min(100,$otp) ?>%;background:<?= $otCol ?>;"></div>
-                    </div>
-                    <span class="att-pct-label" style="color:<?= $otCol ?>;"><?= $otp ?>%</span>
-                </div>
-            </td>
-            <td class="num-cell" style="color:#d97706;"><?= number_format((float)($r['avg_delay_min'] ?? 0), 1) ?></td>
+            <td class="name-cell" style="font-weight:600;"><?= htmlspecialchars((string)($r['driver_name']??'—')) ?></td>
+            <td style="font-size:.78rem;color:#6b7280;"><?= htmlspecialchars((string)($r['license_number']??'—')) ?></td>
+            <td class="num-cell" style="font-weight:700;"><?= (int)($r['trips_assigned']??0) ?></td>
+            <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed']??0) ?></td>
+            <td class="num-cell" style="color:#f59e0b;font-weight:700;"><?= (int)($r['delayed']??0) ?></td>
+            <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled']??0) ?></td>
+            <td><?= pctBar($otp, $otCol) ?></td>
+            <td class="num-cell" style="color:<?= $delayCol ?>;font-weight:600;"><?= $delayMin > 0 ? number_format($delayMin,1).' min' : '<span style="color:#16a34a;">—</span>' ?></td>
+            <td><span class="rp-score-badge <?= $sCls ?>"><?= $score ?></span></td>
+            <td><?= rpBadge($grade, gradeClass($grade)) ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
-    </table>
+    </table></div>
+</div>
+<?php else: ?>
+<div class="rp-table-card"><div class="rp-empty"><svg width="44" height="44" fill="none" stroke="#e5e7eb" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h4>No Data Found</h4><p>No driver trip data found for the selected period.</p></div></div>
+<?php endif; ?>
+<?php
+$_drvChart  = json_encode(array_slice(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','performance_score'=>(float)($r['performance_score']??0),'grade'=>$r['grade']??''],$hrRows),0,20),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_drvDonut  = json_encode(array_map(fn($r)=>['grade'=>$r['grade']??'','performance_score'=>(float)($r['performance_score']??0)],$hrRows),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_drvStack  = json_encode(array_slice(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','completed'=>(int)($r['completed']??0),'delayed'=>(int)($r['delayed']??0),'cancelled'=>(int)($r['cancelled']??0)],$hrRows),0,15),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_drvCsv    = json_encode(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','employee_no'=>$r['license_number']??'','trips_assigned'=>$r['trips_assigned']??0,'completed'=>$r['completed']??0,'delayed'=>$r['delayed']??0,'cancelled'=>$r['cancelled']??0,'on_time_pct'=>$r['on_time_pct']??0,'avg_delay_min'=>$r['avg_delay_min']??0,'performance_score'=>$r['performance_score']??0,'grade'=>$r['grade']??''],$hrRows),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+?>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    if(window.ReportCharts){
+        ReportCharts.buildPerformanceChart('driverPerfChart',<?= $_drvChart ?>);
+        ReportCharts.buildGradeDonutChart('gradeDonutChart',<?= $_drvDonut ?>);
+        ReportCharts.buildDriverStackedChart('driverStackedChart',<?= $_drvStack ?>);
+    }
+    var _sum={total_drivers:<?= count($hrRows) ?>,avg_on_time_pct:<?= $avgOnTime ?>,avg_performance_score:<?= $avgScore ?>,top_driver:{name:'<?= addslashes((string)($topRow['driver_name']??'')) ?>',score:<?= (float)($topRow['performance_score']??0) ?>}};
+    document.getElementById('rp-csv-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.exportDriverPerformance(<?= $_drvCsv ?>,_sum,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+    document.getElementById('rp-print-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.printReport('Driver Performance Report','<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+});
+</script>
+
+<?php elseif ($reportType === 'trip_completion'): ?>
+<?php /* ═══ REPORT 3 — TRIP COMPLETION RATE ══════════════════════════ */ ?>
+<?php
+$dailyRows = $hrRows;
+$byRoute   = $hrSummary['by_route'] ?? [];
+$byBus     = $hrSummary['by_bus']   ?? [];
+$totSched   = (int)array_sum(array_column($dailyRows,'total_trips'));
+$totDone    = (int)array_sum(array_column($dailyRows,'completed'));
+$totCxl     = (int)array_sum(array_column($dailyRows,'cancelled'));
+$overallCR  = $totSched>0 ? round($totDone/$totSched*100,1) : 0;
+$bestRow    = !empty($dailyRows)?array_reduce($dailyRows,fn($c,$r)=>((float)($r['completion_pct']??0)>(float)($c['completion_pct']??0))?$r:$c,$dailyRows[0]):null;
+?>
+<div class="rp-cards">
+    <div class="rp-card" style="--rp-card-accent:#16a34a">
+        <div class="rp-card-icon" style="background:#f0fdf4;color:#16a34a"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="rp-card-lbl">Overall Completion</div>
+        <div class="rp-card-val"><?= $overallCR ?>%</div>
+        <div class="rp-card-hint">completed / scheduled</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $overallCR ?>%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#2563eb">
+        <div class="rp-card-icon" style="background:#eff6ff;color:#2563eb"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></div>
+        <div class="rp-card-lbl">Total Scheduled</div>
+        <div class="rp-card-val"><?= $totSched ?></div>
+        <div class="rp-card-hint">in selected period</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:100%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#dc2626">
+        <div class="rp-card-icon" style="background:#fef2f2;color:#dc2626"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <div class="rp-card-lbl">Cancelled</div>
+        <div class="rp-card-val"><?= $totCxl ?></div>
+        <div class="rp-card-hint"><?= $totSched>0?round($totCxl/$totSched*100,1):0 ?>% of total</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $totSched>0?min(100,round($totCxl/$totSched*100)):0 ?>%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#f59e0b">
+        <div class="rp-card-icon" style="background:#fffbeb;color:#f59e0b"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="rp-card-lbl">Best Day</div>
+        <div class="rp-card-val" style="font-size:1.1rem"><?= $bestRow?date('d M',strtotime((string)($bestRow['trip_date']??$from))):'—' ?></div>
+        <div class="rp-card-hint"><?= $bestRow?($bestRow['completion_pct']??0).'% completion':'—' ?></div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $bestRow?min(100,(float)($bestRow['completion_pct']??0)):0 ?>%"></div></div>
     </div>
 </div>
+
+<div style="background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(17,24,39,.08);overflow:hidden;">
+<div class="rp-tabs">
+    <button class="rp-tab active" data-tab="tc-daily">Daily Breakdown</button>
+    <?php if (!empty($byRoute)): ?><button class="rp-tab" data-tab="tc-route">By Route</button><?php endif; ?>
+    <?php if (!empty($byBus)):   ?><button class="rp-tab" data-tab="tc-bus">By Bus</button><?php endif; ?>
+</div>
+<div id="tc-daily" class="rp-tab-panel" style="display:block;">
+<?php if (!empty($dailyRows)): ?>
+<div style="padding:16px 20px 0;">
+    <div class="rp-bar-list">
+    <?php foreach ($dailyRows as $r):
+        $tot=max(1,(int)($r['total_trips']??0));$c=(int)($r['completed']??0);$d=(int)($r['delayed']??0);$x=(int)($r['cancelled']??0);
+        $cP=round($c/$tot*100);$dP=round($d/$tot*100);$xP=round($x/$tot*100);
+    ?>
+    <div class="rp-bar-row">
+        <div class="rp-bar-name"><?= date('d M',strtotime((string)$r['trip_date'])) ?></div>
+        <div class="rp-bar-stacked">
+            <?php if($cP):?><div class="rp-bar-seg" style="width:<?=$cP?>%;background:#16a34a;" title="Completed:<?=$c?>"></div><?php endif;?>
+            <?php if($dP):?><div class="rp-bar-seg" style="width:<?=$dP?>%;background:#f59e0b;" title="Delayed:<?=$d?>"></div><?php endif;?>
+            <?php if($xP):?><div class="rp-bar-seg" style="width:<?=$xP?>%;background:#dc2626;" title="Cancelled:<?=$x?>"></div><?php endif;?>
+            <?php $rem=max(0,100-$cP-$dP-$xP);if($rem):?><div class="rp-bar-seg" style="width:<?=$rem?>%;background:#d1d5db;"></div><?php endif;?>
+        </div>
+        <div class="rp-bar-val"><?= (float)($r['completion_pct']??0) ?>%</div>
+    </div>
+    <?php endforeach; ?>
+    </div>
+    <div class="rp-chart-legend" style="margin-top:8px;padding-top:8px;">
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#16a34a"></span>&nbsp;Completed</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#f59e0b"></span>&nbsp;Delayed</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#dc2626"></span>&nbsp;Cancelled</span>
+    </div>
+</div>
+<div style="overflow-x:auto;"><table class="rp-table rp-sortable" id="tc-daily-table">
+    <thead><tr>
+        <th class="sortable" data-col="0">Date<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="1">Total<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="2">Completed<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="3">Delayed<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="4">Cancelled<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="5">In Progress<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="6">Completion %<span class="sort-ind">⇅</span></th>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($dailyRows as $r): $pct=(float)($r['completion_pct']??0);$col=pctColor($pct,90,70); ?>
+    <tr>
+        <td class="name-cell"><?= date('d M Y',strtotime((string)$r['trip_date'])) ?></td>
+        <td class="num-cell" style="font-weight:700;"><?= (int)($r['total_trips']??0) ?></td>
+        <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed']??0) ?></td>
+        <td class="num-cell" style="color:#f59e0b;font-weight:700;"><?= (int)($r['delayed']??0) ?></td>
+        <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled']??0) ?></td>
+        <td class="num-cell" style="color:#6b7280;"><?= (int)($r['in_progress']??0) ?></td>
+        <td><?= pctBar($pct,$col) ?></td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table></div>
 <?php else: ?>
-<div class="rp-table-card"><div class="rp-empty">
-    <svg width="44" height="44" fill="none" stroke="#e5e7eb" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
-    <p>No driver trip data found for the selected period.</p>
-</div></div>
+<div class="rp-empty"><h4>No Data Found</h4><p>No trip data for the selected period.</p></div>
 <?php endif; ?>
-
-<?php else: ?>
-<!-- ══ Operational Reports (Trip Completion / Delay / Bus Utilization) ════ -->
-<div class="rp-ops-section">
-    <section class="kpi-wrap kpi-wrap--neo">
-        <article class="kpi2 tone-red">
-            <header><h3>Delayed Trips</h3><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></span></header>
-            <div class="value"><?= (int)($kpis['delayed'] ?? 0) ?></div>
-            <div class="hint">in selected period</div>
-        </article>
-        <article class="kpi2 tone-green">
-            <header><h3>Total Trips</h3><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M4 16c0 .88.39 1.67 1 2.22V20a1 1 0 001 1h1a1 1 0 001-1v-1h6v1a1 1 0 001 1h1a1 1 0 001-1v-1.78c.61-.55 1-1.34 1-2.22V5a3 3 0 00-3-3H7A3 3 0 004 5v11z"/></svg></span></header>
-            <div class="value"><?= (int)($kpis['trips'] ?? 0) ?></div>
-            <div class="hint">completed trips</div>
-        </article>
-        <article class="kpi2 tone-orange">
-            <header><h3>Avg Delay</h3><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M6 2v6l4 4-4 4v6h12v-6l-4-4 4-4V2H6zM8 4h8v1.17L12 9 8 5.17V4zm8 16H8v-1.17L12 15l4 3.83V20z"/></svg></span></header>
-            <div class="value"><?= number_format((float)($kpis['avgDelayMin'] ?? 0), 1) ?><span style="font-size:.6em;margin-left:4px;">min</span></div>
-            <div class="hint">per delayed trip</div>
-        </article>
-        <article class="kpi2 tone-blue">
-            <header><h3>Cancellations</h3><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M22.7 19.3l-4.4-4.4c.5-1 .7-2.1.7-3.3 0-4.4-3.6-8-8-8-1.2 0-2.3.2-3.3.7L4.7 1.3 1.3 4.7l3.9 3.9C5 9.3 5 10.1 5 11c0 4.4 3.6 8 8 8 .9 0 1.7 0 2.1-.2l3.9 3.9 3.4-3.4-0.2-0.1z"/></svg></span></header>
-            <div class="value"><?= (int)($kpis['breakdowns'] ?? 0) ?></div>
-            <div class="hint">maintenance events</div>
-        </article>
-    </section>
-
-    <section class="charts-grid">
-        <div class="chart-card">
-            <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=bus_status&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>">View Details</a>
-            <h2>Bus Status Distribution</h2>
-            <canvas id="busStatusChart" data-drill-key="bus_status" data-drill-base="/O/reports/details"></canvas>
-        </div>
-        <div class="chart-card">
-            <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=delayed_by_route&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>">View Details</a>
-            <h2>Delayed Trips by Route</h2>
-            <canvas id="delayedByRouteChart" data-drill-key="delayed_by_route" data-drill-base="/O/reports/details"></canvas>
-        </div>
-        <div class="chart-card">
-            <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=speed_by_bus&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>">View Details</a>
-            <h2>Speed Violations by Bus</h2>
-            <canvas id="speedByBusChart" data-drill-key="speed_by_bus" data-drill-base="/O/reports/details"></canvas>
-        </div>
-        <div class="chart-card">
-            <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=wait_time&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>">View Details</a>
-            <h2>Bus Wait Time Distribution</h2>
-            <canvas id="waitTimeChart" data-drill-key="wait_time" data-drill-base="/O/reports/details"></canvas>
-        </div>
-        <div class="chart-card">
-            <a class="js-chart-detail-btn" style="position:absolute;top:10px;right:10px;z-index:2" href="/O/reports/details?chart=complaints_by_route&from=<?= urlencode($from) ?>&to=<?= urlencode($to) ?>">View Details</a>
-            <h2>Complaints by Route</h2>
-            <canvas id="complaintsRouteChart" data-drill-key="complaints_by_route" data-drill-base="/O/reports/details"></canvas>
-        </div>
-    </section>
-
-    <script id="analytics-data" type="application/json"><?= $analyticsJson ?? '{}' ?></script>
-    <script src="/assets/js/analytics/dummyData.js"></script>
-    <script src="/assets/js/analytics/chartCore.js"></script>
-    <script src="/assets/js/analytics/busStatus.js"></script>
-    <script src="/assets/js/analytics/revenue.js"></script>
-    <script src="/assets/js/analytics/speedByBus.js"></script>
-    <script src="/assets/js/analytics/waitTime.js"></script>
-    <script src="/assets/js/analytics/delayedByRoute.js"></script>
-    <script src="/assets/js/analytics/complaintsRoute.js"></script>
-    <script src="/assets/js/analytics/drilldown.js"></script>
+</div>
+<?php if (!empty($byRoute)): ?>
+<div id="tc-route" class="rp-tab-panel" style="display:none;overflow-x:auto;">
+<table class="rp-table rp-sortable" id="tc-route-table">
+    <thead><tr>
+        <th class="sortable" data-col="0">Route No<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="1">Route Name<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="2">Scheduled<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="3">Completed<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="4">Delayed<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="5">Cancelled<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="6">Completion %<span class="sort-ind">⇅</span></th>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($byRoute as $r): $cp=(float)($r['completion_rate']??0);$cCol=pctColor($cp); ?>
+    <tr>
+        <td class="name-cell"><?= htmlspecialchars((string)($r['route_no']??'—')) ?></td>
+        <td><?= htmlspecialchars((string)($r['route_name']??'—')) ?></td>
+        <td class="num-cell font-bold"><?= (int)($r['total_scheduled']??0) ?></td>
+        <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed']??0) ?></td>
+        <td class="num-cell" style="color:#f59e0b;font-weight:700;"><?= (int)($r['delayed']??0) ?></td>
+        <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled']??0) ?></td>
+        <td><?= pctBar($cp,$cCol) ?></td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
 </div>
 <?php endif; ?>
+<?php if (!empty($byBus)): ?>
+<div id="tc-bus" class="rp-tab-panel" style="display:none;overflow-x:auto;">
+<table class="rp-table rp-sortable" id="tc-bus-table">
+    <thead><tr>
+        <th class="sortable" data-col="0">Bus No<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="1">Scheduled<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="2">Completed<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="3">Cancelled<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="4">Completion %<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="5">Utilization %<span class="sort-ind">⇅</span></th>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($byBus as $r): $cp=(float)($r['completion_rate']??0);$up=(float)($r['utilization_pct']??0); ?>
+    <tr>
+        <td class="name-cell"><?= htmlspecialchars((string)($r['bus_reg_no']??'—')) ?></td>
+        <td class="num-cell"><?= (int)($r['total_scheduled']??0) ?></td>
+        <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed']??0) ?></td>
+        <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled']??0) ?></td>
+        <td><?= pctBar($cp,pctColor($cp)) ?></td>
+        <td><?= pctBar($up,pctColor($up,80,60)) ?></td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+</div>
+<?php endif; ?>
+</div><!-- tabbed card -->
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    var sum={overall_completion_rate:<?= $overallCR ?>,total_scheduled:<?= $totSched ?>,total_completed:<?= $totDone ?>,total_cancelled:<?= $totCxl ?>};
+    var byRoute=<?= json_encode($byRoute,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+    var byBus=<?= json_encode($byBus,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+    document.getElementById('rp-csv-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.exportTripCompletion(byRoute,byBus,sum,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+    document.getElementById('rp-print-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.printReport('Trip Completion Rate','<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+});
+</script>
+
+<?php elseif ($reportType === 'delay_analysis'): ?>
+<?php /* ═══ REPORT 4 — DELAY ANALYSIS ══════════════════════════════ */ ?>
+<?php
+$byRoute  = $hrSummary['by_route']  ?? $hrRows;
+$bySlot   = $hrSummary['by_slot']   ?? [];
+$byReason = $hrSummary['by_reason'] ?? [];
+$totDel   = (int)array_sum(array_column($byRoute,'delayed_trips'));
+$totAll   = max(1,(int)array_sum(array_column($byRoute,'total_trips')));
+$dRate    = round($totDel/$totAll*100,1);
+$avgDel   = count($byRoute)?round(array_sum(array_column($byRoute,'avg_delay_min'))/count($byRoute),1):0;
+$wSlot    = !empty($bySlot)?array_reduce($bySlot,fn($c,$r)=>((float)($r['delay_rate']??0)>(float)($c['delay_rate']??0))?$r:$c,$bySlot[0]):null;
+?>
+<div class="rp-cards">
+    <div class="rp-card" style="--rp-card-accent:#ea580c">
+        <div class="rp-card-icon" style="background:#fff7ed;color:#ea580c"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="rp-card-lbl">Total Delayed</div>
+        <div class="rp-card-val"><?= $totDel ?></div>
+        <div class="rp-card-hint">in selected period</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:100%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#dc2626">
+        <div class="rp-card-icon" style="background:#fef2f2;color:#dc2626"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="rp-card-lbl">Delay Rate</div>
+        <div class="rp-card-val"><?= $dRate ?>%</div>
+        <div class="rp-card-hint">delayed / total trips</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $dRate ?>%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#f59e0b">
+        <div class="rp-card-icon" style="background:#fffbeb;color:#f59e0b"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="rp-card-lbl">Avg Delay</div>
+        <div class="rp-card-val"><?= $avgDel ?><span style="font-size:.5em;margin-left:3px;">min</span></div>
+        <div class="rp-card-hint">across all routes</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= min(100,$avgDel) ?>%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#7c3aed">
+        <div class="rp-card-icon" style="background:#f5f3ff;color:#7c3aed"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="rp-card-lbl">Worst Time Slot</div>
+        <div class="rp-card-val" style="font-size:1.05rem"><?= $wSlot?htmlspecialchars((string)$wSlot['label']):'—' ?></div>
+        <div class="rp-card-hint"><?= $wSlot?($wSlot['delay_rate']??0).'% delay rate':'No slot data' ?></div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $wSlot?min(100,(float)($wSlot['delay_rate']??0)):0 ?>%"></div></div>
+    </div>
+</div>
+
+<div style="background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(17,24,39,.08);overflow:hidden;">
+<div class="rp-tabs">
+    <button class="rp-tab active" data-tab="da-route">By Route</button>
+    <button class="rp-tab" data-tab="da-slot">By Time Slot</button>
+    <button class="rp-tab" data-tab="da-reason">By Reason</button>
+</div>
+<div id="da-route" class="rp-tab-panel" style="display:block;">
+<?php if (!empty($byRoute)): ?>
+<div style="padding:16px 20px 0;">
+    <div class="rp-bar-list">
+    <?php $maxD=max(1,max(array_column($byRoute,'delayed_trips')??[0]));
+    foreach (array_slice($byRoute,0,12) as $r): $del=(int)($r['delayed_trips']??0);$bp=round($del/$maxD*100);$dp=(float)($r['delay_pct']??0);$c=$dp>=50?'#dc2626':($dp>=25?'#f59e0b':'#16a34a'); ?>
+    <div class="rp-bar-row">
+        <div class="rp-bar-name" title="<?= htmlspecialchars((string)($r['route_name']??'')) ?>"><?= htmlspecialchars((string)($r['route_no']??'—')) ?></div>
+        <div class="rp-bar-track"><div class="rp-bar-fill" style="width:0%;background:<?= $c ?>;" data-target="<?= $bp ?>"><?php if($bp>=15):?><span><?= $del ?></span><?php endif;?></div></div>
+        <div class="rp-bar-val"><?= $dp ?>%</div>
+    </div>
+    <?php endforeach; ?>
+    </div>
+</div>
+<div style="overflow-x:auto;"><table class="rp-table rp-sortable" id="da-route-table">
+    <thead><tr>
+        <th>#</th>
+        <th class="sortable" data-col="1">Route<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="2">Name<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="3">Total<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="4">Delayed<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="5">Delay Rate<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="6">Avg Delay<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="7">Max Delay<span class="sort-ind">⇅</span></th>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($byRoute as $i=>$r): $dp=(float)($r['delay_pct']??0);$c=$dp>=50?'#dc2626':($dp>=25?'#f59e0b':'#16a34a'); ?>
+    <tr>
+        <td style="color:#9ca3af;font-size:.78rem;"><?= $i+1 ?></td>
+        <td class="name-cell"><?= htmlspecialchars((string)($r['route_no']??'—')) ?></td>
+        <td style="color:#4b5563;"><?= htmlspecialchars((string)($r['route_name']??'—')) ?></td>
+        <td class="num-cell"><?= (int)($r['total_trips']??0) ?></td>
+        <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['delayed_trips']??0) ?></td>
+        <td><?= pctBar($dp,$c) ?></td>
+        <td class="num-cell" style="color:#f59e0b;"><?= number_format((float)($r['avg_delay_min']??0),1) ?> min</td>
+        <td class="num-cell" style="color:#dc2626;"><?= number_format((float)($r['max_delay_min']??0),1) ?> min</td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table></div>
+<?php else: ?>
+<div class="rp-empty"><h4>No Delay Data</h4><p>No delay records for the selected period.</p></div>
+<?php endif; ?>
+</div>
+<div id="da-slot" class="rp-tab-panel" style="display:none;">
+<?php if (!empty($bySlot)): ?>
+<div style="padding:16px 20px 0;">
+    <div class="rp-canvas-wrap rp-canvas-bar" style="max-width:700px;"><canvas id="delaySlotChart"></canvas></div>
+    <p class="rp-chart-note">Charts available in digital version only.</p>
+</div>
+<div style="overflow-x:auto;"><table class="rp-table rp-sortable" id="da-slot-table">
+    <thead><tr>
+        <th class="sortable" data-col="0">Time Slot<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="1">Total<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="2">Delayed<span class="sort-ind">⇅</span></th>
+        <th class="sortable" data-col="3">Delay Rate<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="4">Avg Delay<span class="sort-ind">⇅</span></th>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($bySlot as $r): $dr=(float)($r['delay_rate']??0);$c=$dr>=60?'#dc2626':($dr>=35?'#ea580c':($dr>=20?'#f59e0b':'#16a34a')); ?>
+    <tr>
+        <td><?= slotBadge((string)($r['slot']??'')) ?></td>
+        <td class="num-cell"><?= (int)($r['total_trips']??0) ?></td>
+        <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['delayed_trips']??0) ?></td>
+        <td><?= pctBar($dr,$c) ?></td>
+        <td class="num-cell" style="color:#f59e0b;"><?= number_format((float)($r['avg_delay_min']??0),1) ?> min</td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table></div>
+<?php else: ?><div class="rp-empty"><h4>No Time Slot Data</h4></div><?php endif; ?>
+</div>
+<div id="da-reason" class="rp-tab-panel" style="display:none;">
+<?php if (!empty($byReason)): ?>
+<div style="padding:16px 20px 0;max-width:320px;margin:0 auto;">
+    <div class="rp-canvas-wrap rp-canvas-donut"><canvas id="delayReasonChart"></canvas></div>
+    <p class="rp-chart-note">Charts available in digital version only.</p>
+</div>
+<div style="overflow-x:auto;"><table class="rp-table rp-sortable" id="da-reason-table">
+    <thead><tr>
+        <th class="sortable" data-col="0">Reason<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="1">Count<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="2">% of Delays<span class="sort-ind">⇅</span></th>
+        <th class="sortable num-cell" data-col="3">Avg Delay<span class="sort-ind">⇅</span></th>
+    </tr></thead>
+    <tbody>
+    <?php foreach ($byReason as $r): ?>
+    <tr>
+        <td class="name-cell"><?= htmlspecialchars(ucwords(str_replace(['-','_'],' ',(string)($r['reason']??'')))) ?></td>
+        <td class="num-cell" style="font-weight:700;"><?= (int)($r['count']??0) ?></td>
+        <td class="num-cell" style="color:#7B1C3E;font-weight:700;"><?= number_format((float)($r['percentage']??0),1) ?>%</td>
+        <td class="num-cell" style="color:#f59e0b;"><?= number_format((float)($r['avg_delay_min']??0),1) ?> min</td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table></div>
+<?php else: ?><div class="rp-empty"><h4>No Reason Data</h4></div><?php endif; ?>
+</div>
+</div><!-- tabbed -->
+<?php
+$_slotJs   = json_encode($bySlot,   JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_reasonJs = json_encode($byReason, JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_routeJs  = json_encode($byRoute,  JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+?>
+<script>
+window._rp_slotData=<?= $_slotJs ?>;window._rp_reasonData=<?= $_reasonJs ?>;window._rp_avgDelay=<?= $dRate ?>;
+document.addEventListener('DOMContentLoaded',function(){
+    var sum={total_delayed:<?= $totDel ?>,overall_delay_rate:<?= $dRate ?>,avg_delay_min:<?= $avgDel ?>};
+    document.getElementById('rp-csv-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.exportDelayAnalysis(<?= $_routeJs ?>,window._rp_slotData,window._rp_reasonData,sum,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+    document.getElementById('rp-print-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.printReport('Delay Analysis Report','<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+});
+</script>
+
+<?php elseif ($reportType === 'bus_utilization'): ?>
+<?php /* ═══ REPORT 5 — BUS UTILIZATION ══════════════════════════════ */ ?>
+<?php
+$totBuses  = (int)($hrSummary['total_buses']            ?? count($hrRows));
+$actBuses  = (int)($hrSummary['active_buses']           ?? count(array_filter($hrRows,fn($r)=>(int)($r['total_trips']??0)>0)));
+$avgUtil   = (float)($hrSummary['avg_utilization']      ?? (count($hrRows)?round(array_sum(array_column($hrRows,'utilization_pct'))/count($hrRows),1):0));
+$overdue   = (int)($hrSummary['buses_overdue']          ?? 0);
+$dueSoon   = (int)($hrSummary['buses_service_due_soon'] ?? 0);
+?>
+<?php if ($overdue > 0): ?>
+<div class="rp-alert-banner" id="rp-maint-alert">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+    <span><strong><?= $overdue ?> bus<?= $overdue!==1?'es':'' ?></strong> have overdue maintenance. Immediate action required.</span>
+    <button class="rp-alert-close" onclick="this.parentElement.remove()">✕</button>
+</div>
+<?php endif; ?>
+<div class="rp-cards">
+    <div class="rp-card" style="--rp-card-accent:#16a34a">
+        <div class="rp-card-icon" style="background:#f0fdf4;color:#16a34a"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="rp-card-lbl">Fleet Utilization</div>
+        <div class="rp-card-val"><?= $avgUtil ?>%</div>
+        <div class="rp-card-hint">avg across all buses</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $avgUtil ?>%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#2563eb">
+        <div class="rp-card-icon" style="background:#eff6ff;color:#2563eb"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/></svg></div>
+        <div class="rp-card-lbl">Active Buses</div>
+        <div class="rp-card-val"><?= $actBuses ?><span style="font-size:.5em;color:#9ca3af;margin-left:4px;">/ <?= $totBuses ?></span></div>
+        <div class="rp-card-hint">with trips in period</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $totBuses>0?round($actBuses/$totBuses*100):0 ?>%"></div></div>
+    </div>
+    <div class="rp-card" style="--rp-card-accent:#f59e0b">
+        <div class="rp-card-icon" style="background:#fffbeb;color:#f59e0b"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+        <div class="rp-card-lbl">Service Due Soon</div>
+        <div class="rp-card-val"><?= $dueSoon ?></div>
+        <div class="rp-card-hint">check maintenance schedule</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $totBuses>0?min(100,round($dueSoon/$totBuses*100)):0 ?>%"></div></div>
+    </div>
+    <div class="rp-card <?= $overdue>0?'rp-card-urgent':'' ?>" style="--rp-card-accent:#dc2626">
+        <div class="rp-card-icon" style="background:#fef2f2;color:#dc2626"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="rp-card-lbl">Overdue Service</div>
+        <div class="rp-card-val"><?= $overdue ?></div>
+        <div class="rp-card-hint">buses past service date</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $totBuses>0?min(100,round($overdue/$totBuses*100)):0 ?>%"></div></div>
+    </div>
+</div>
+
+<?php if (!empty($hrRows)): ?>
+<div class="rp-chart-card">
+    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/></svg> Bus Utilization Rates</h3>
+    <div class="rp-canvas-wrap rp-canvas-hbar"><canvas id="busUtilChart"></canvas></div>
+    <p class="rp-chart-note">Charts available in digital version only.</p>
+    <div class="rp-chart-legend">
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#16a34a"></span>&nbsp;≥ 80%</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#f59e0b"></span>&nbsp;60–79%</span>
+        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#dc2626"></span>&nbsp;&lt; 60%</span>
+    </div>
+</div>
+<div class="rp-table-card">
+    <div class="rp-table-head"><h2>Bus Utilization Details</h2><span class="meta"><?= count($hrRows) ?> bus<?= count($hrRows)!==1?'es':'' ?> &bull; <?= date('d M Y',strtotime($from)) ?> – <?= date('d M Y',strtotime($to)) ?></span></div>
+    <div class="rp-table-wrap"><table class="rp-table rp-sortable" id="util-table">
+        <thead><tr>
+            <th>#</th>
+            <th class="sortable" data-col="1">Bus No<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="2">Make<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="3">Total<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="4">Completed<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="5">Delayed<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="6">Cancelled<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="7">Active Days<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="8">Utilization<span class="sort-ind">⇅</span></th>
+        </tr></thead>
+        <tbody>
+        <?php foreach ($hrRows as $i=>$r): $u=(float)($r['utilization_pct']??0);$uC=pctColor($u,80,60); ?>
+        <tr>
+            <td style="color:#9ca3af;font-size:.78rem;"><?= $i+1 ?></td>
+            <td class="name-cell"><?= htmlspecialchars((string)($r['bus_reg_no']??'—')) ?></td>
+            <td style="color:#6b7280;font-size:.82rem;"><?= htmlspecialchars((string)($r['bus_make']??'—')) ?></td>
+            <td class="num-cell" style="font-weight:700;"><?= (int)($r['total_trips']??0) ?></td>
+            <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed']??0) ?></td>
+            <td class="num-cell" style="color:#f59e0b;font-weight:700;"><?= (int)($r['delayed']??0) ?></td>
+            <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled']??0) ?></td>
+            <td class="num-cell" style="color:#2563eb;font-weight:700;"><?= (int)($r['active_days']??0) ?></td>
+            <td><?= pctBar($u,$uC) ?></td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table></div>
+</div>
+<?php else: ?>
+<div class="rp-table-card"><div class="rp-empty"><h4>No Bus Data</h4><p>No bus data found for the selected period.</p></div></div>
+<?php endif; ?>
+<?php $_utilChart=json_encode(array_map(fn($r)=>['bus_reg_no'=>$r['bus_reg_no']??'','utilization_pct'=>(float)($r['utilization_pct']??0)],$hrRows),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_utilCsv=json_encode(array_map(fn($r)=>['bus_reg_no'=>$r['bus_reg_no']??'','bus_make'=>$r['bus_make']??'','total_trips'=>$r['total_trips']??0,'completed'=>$r['completed']??0,'delayed'=>$r['delayed']??0,'cancelled'=>$r['cancelled']??0,'active_days'=>$r['active_days']??0,'assignments_count'=>$r['assignments_count']??0,'utilization_pct'=>$r['utilization_pct']??0],$hrRows),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+$_utilSum=json_encode(['total_buses'=>$totBuses,'active_buses'=>$actBuses,'avg_utilization_rate'=>$avgUtil,'buses_service_due_soon'=>$dueSoon,'buses_overdue'=>$overdue],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+?>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    if(window.ReportCharts) ReportCharts.buildUtilizationChart('busUtilChart',<?= $_utilChart ?>);
+    document.getElementById('rp-csv-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.exportBusUtilization(<?= $_utilCsv ?>,<?= $_utilSum ?>,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+    document.getElementById('rp-print-btn').addEventListener('click',function(){
+        if(window.ReportExport) ReportExport.printReport('Bus Utilization Report','<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+    });
+});
+</script>
+
+<?php endif; /* end report type switch */ ?>
 
 </div><!-- /.rp-page -->
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="/assets/js/reports/reportCharts.js"></script>
+<script src="/assets/js/reports/reportExport.js"></script>
+
 <script>
-/* Animate CSS bar chart fills on page load */
 document.addEventListener('DOMContentLoaded', function () {
+
+    /* Animate CSS bar fills */
     document.querySelectorAll('.rp-bar-fill[data-target]').forEach(function (bar) {
-        var target = parseFloat(bar.dataset.target) || 0;
+        var t = parseFloat(bar.dataset.target) || 0;
         bar.style.width = '0%';
-        setTimeout(function () { bar.style.width = target + '%'; }, 120);
+        setTimeout(function () { bar.style.width = t + '%'; }, 150);
+    });
+
+    /* Tab switching */
+    document.querySelectorAll('.rp-tabs').forEach(function (tabBar) {
+        tabBar.addEventListener('click', function (e) {
+            var btn = e.target.closest('.rp-tab');
+            if (!btn) return;
+            var target = btn.dataset.tab;
+            tabBar.querySelectorAll('.rp-tab').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var container = tabBar.parentElement;
+            container.querySelectorAll('.rp-tab-panel').forEach(function (p) {
+                p.style.display = (p.id === target) ? 'block' : 'none';
+            });
+            /* Lazy-init charts in delay analysis tabs */
+            if (target === 'da-slot' && window.ReportCharts && !window._slotChartDone) {
+                window._slotChartDone = true;
+                if ((window._rp_slotData||[]).length) ReportCharts.buildDelaySlotChart('delaySlotChart', window._rp_slotData, window._rp_avgDelay||0);
+            }
+            if (target === 'da-reason' && window.ReportCharts && !window._reasonChartDone) {
+                window._reasonChartDone = true;
+                if ((window._rp_reasonData||[]).length) ReportCharts.buildDelayReasonChart('delayReasonChart', window._rp_reasonData);
+            }
+        });
+    });
+
+    /* Sortable tables */
+    document.querySelectorAll('.rp-sortable').forEach(function (table) {
+        var sortDir = {};
+        table.querySelectorAll('thead th.sortable').forEach(function (th) {
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', function () {
+                var col = parseInt(th.dataset.col);
+                var asc = !sortDir[col];
+                sortDir = {};
+                sortDir[col] = asc;
+                table.querySelectorAll('thead th').forEach(function (h) {
+                    h.classList.remove('sort-asc','sort-desc');
+                    var ind = h.querySelector('.sort-ind');
+                    if (ind) ind.textContent = '⇅';
+                });
+                th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+                var ind = th.querySelector('.sort-ind');
+                if (ind) ind.textContent = asc ? '▲' : '▼';
+                var tbody = table.querySelector('tbody');
+                var rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort(function (a, b) {
+                    var va = (a.cells[col] ? a.cells[col].textContent.replace(/[^0-9.\-]/g,'') : '');
+                    var vb = (b.cells[col] ? b.cells[col].textContent.replace(/[^0-9.\-]/g,'') : '');
+                    var na = parseFloat(va), nb = parseFloat(vb);
+                    if (!isNaN(na) && !isNaN(nb)) return asc ? na - nb : nb - na;
+                    return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+                });
+                rows.forEach(function (r) { tbody.appendChild(r); });
+            });
+        });
     });
 });
 </script>

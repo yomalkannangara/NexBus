@@ -1,4 +1,6 @@
 <?php
+$newContent = <<<'PHPEOF'
+<?php
 $S          = $S ?? [];
 $recent     = $recent ?? [];
 $filter     = in_array(($filter ?? 'all'), ['all','unread','message','alert'], true) ? $filter : 'all';
@@ -178,3 +180,7 @@ function ackMsg(id, btn) {
         .catch(()=>{ btn.disabled=false; btn.textContent='✔ Acknowledge'; });
 }
 </script>
+PHPEOF;
+
+file_put_contents('views/timekeeper_sltb/messages.php', $newContent);
+echo "Written SLTB messages view\n";

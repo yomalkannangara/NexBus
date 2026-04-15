@@ -46,13 +46,24 @@ foreach ($staff as $s) {
     $byRole[$r][] = $s;
 }
 
-/* Templates */
+/* SL Operations Categories (each has icon, label, priority hint, body template) */
+$slCategories = [
+    'schedule_change'    => ['icon'=>'📅', 'label'=>'Schedule Change',    'priority'=>'normal',   'text'=>'TIMETABLE NOTICE: Effective [DATE], the departure times for Route [NO] have changed. New schedule: [DETAILS]. All timekeepers please update your records accordingly.'],
+    'route_deviation'    => ['icon'=>'🔀', 'label'=>'Route Deviation',    'priority'=>'urgent',   'text'=>'ROUTE DIVERSION: Due to [REASON — e.g., road closure / flooding / VIP movement] near [LOCATION], buses on Route [NO] will divert via [ALT ROUTE]. Return to normal route when clearance is given.'],
+    'breakdown_alert'    => ['icon'=>'🔧', 'label'=>'Breakdown Alert',    'priority'=>'urgent',   'text'=>'BREAKDOWN: Bus [REG] has broken down at [LOCATION] on Route [NO]. Dispatch replacement bus immediately. Contact control room for towing arrangements.'],
+    'strike_notice'      => ['icon'=>'✊', 'label'=>'Strike / Union Notice','priority'=>'critical', 'text'=>'UNION NOTICE: A trade union action has been called by [UNION NAME] effective [DATE/TIME]. Services on [ROUTES] may be affected. Follow NTC/SLTB directives. Report all developments to the Depot Manager immediately.'],
+    'poya_schedule'      => ['icon'=>'🌕', 'label'=>'Poya Day Schedule',  'priority'=>'normal',   'text'=>'POYA DAY NOTICE: On [DATE] (Poya), all services will operate on the Public Holiday schedule. Reduced frequencies apply. All staff report by [TIME]. No overtime allowances without prior approval.'],
+    'passenger_complaint'=> ['icon'=>'😠', 'label'=>'Passenger Complaint','priority'=>'normal',   'text'=>'PASSENGER COMPLAINT FORWARDED: A complaint has been received regarding Bus [REG] / Route [NO] on [DATE]. Issue: [DESCRIPTION]. Relevant driver/conductor should respond to the Depot Officer within 24 hours.'],
+    'general_update'     => ['icon'=>'📢', 'label'=>'General Update',     'priority'=>'normal',   'text'=>'GENERAL NOTICE: [Your message here]'],
+];
+
+/* Legacy template list (kept for backward compat with existing JS) */
 $templates = [
-    ['id'=>'delay',       'icon'=>'⏱️', 'label'=>'Trip Delay',       'text'=>'DELAY ALERT: Bus [REG] on Route [NO] is delayed by approx. [MIN] minutes. Please adjust schedules accordingly.'],
-    ['id'=>'breakdown',   'icon'=>'🔧', 'label'=>'Breakdown',         'text'=>'BREAKDOWN: Bus [REG] has broken down near [LOCATION] on Route [NO]. Dispatch replacement immediately.'],
-    ['id'=>'override',    'icon'=>'🔄', 'label'=>'Schedule Override',  'text'=>'SCHEDULE OVERRIDE: Assignment for Trip [ID] has been modified. New departure: [TIME]. Driver/Conductor please confirm receipt.'],
-    ['id'=>'maintenance', 'icon'=>'🛠️', 'label'=>'Maintenance Notice', 'text'=>'MAINTENANCE NOTICE: Bus [REG] is scheduled for maintenance on [DATE]. Ensure replacement is arranged.'],
-    ['id'=>'headcount',   'icon'=>'📋', 'label'=>'Attendance Check',   'text'=>'ATTENDANCE CHECK: All staff please confirm availability for tomorrow [DATE] by [TIME].'],
+    ['id'=>'delay',           'icon'=>'⏱️', 'label'=>'Trip Delay',        'text'=>'DELAY ALERT: Bus [REG] on Route [NO] is delayed by approx. [MIN] minutes. Please adjust schedules accordingly.'],
+    ['id'=>'breakdown',       'icon'=>'🔧', 'label'=>'Breakdown',          'text'=>'BREAKDOWN: Bus [REG] has broken down near [LOCATION] on Route [NO]. Dispatch replacement immediately.'],
+    ['id'=>'override',        'icon'=>'🔄', 'label'=>'Schedule Override',   'text'=>'SCHEDULE OVERRIDE: Assignment for Trip [ID] has been modified. New departure: [TIME]. Driver/Conductor please confirm receipt.'],
+    ['id'=>'maintenance',     'icon'=>'🛠️', 'label'=>'Maintenance Notice',  'text'=>'MAINTENANCE NOTICE: Bus [REG] is scheduled for maintenance on [DATE]. Ensure replacement is arranged.'],
+    ['id'=>'headcount',       'icon'=>'📋', 'label'=>'Attendance Check',    'text'=>'ATTENDANCE CHECK: All staff please confirm availability for tomorrow [DATE] by [TIME].'],
 ];
 
 /* Flash messages */
@@ -381,6 +392,19 @@ $flashMessages = [
 .msg-priority-pill.active-critical{ background:#fef2f2; color:#991b1b; border-color:#fca5a5; }
 .msg-priority-pill:hover { border-color:var(--maroon,#7f1d1d); }
 
+/* category selector */
+.msg-cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px; }
+.msg-cat-btn {
+    display:flex; align-items:center; gap:6px; padding:7px 9px;
+    background:#fff; border:1.5px solid #e5e7eb; border-radius:9px;
+    cursor:pointer; font-size:11px; font-weight:700; color:#374151;
+    transition:all .15s; text-align:left;
+}
+.msg-cat-btn:hover { border-color:#a01c2e; background:#fffaf5; }
+.msg-cat-btn.active { border-color:#7f1d1d; background:#fde8e8; color:#7f1d1d; }
+.msg-cat-icon { font-size:14px; }
+.msg-cat-none { color:#9ca3af; font-style:italic; font-size:11px; margin-top:3px; }
+
 /* send button full width */
 .msg-send-full {
     margin:12px 16px 16px;
@@ -705,9 +729,28 @@ $flashMessages = [
                     </div>
                 </div>
 
-                <!-- TEMPLATES -->
+                <!-- CATEGORY (SL Operations) -->
                 <div class="msg-cp-section">
-                    <div class="msg-cp-label">📋 Templates</div>
+                    <div class="msg-cp-label">🏷️ Category</div>
+                    <input type="hidden" name="category" id="categoryInput" value="">
+                    <div class="msg-cat-grid" id="categoryGrid">
+                        <?php foreach ($slCategories as $catKey => $cat): ?>
+                        <button type="button" class="msg-cat-btn"
+                            data-cat="<?= htmlspecialchars($catKey) ?>"
+                            data-template="<?= htmlspecialchars($cat['text']) ?>"
+                            data-priority="<?= htmlspecialchars($cat['priority']) ?>"
+                            onclick="selectCategory(this)">
+                            <span class="msg-cat-icon"><?= $cat['icon'] ?></span>
+                            <span><?= htmlspecialchars($cat['label']) ?></span>
+                        </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="msg-cat-none" id="catNoneHint">No category selected — or pick one above to pre-fill a template</div>
+                </div>
+
+                <!-- QUICK TEMPLATES (legacy) -->
+                <div class="msg-cp-section">
+                    <div class="msg-cp-label">📋 Quick Templates</div>
                     <div class="msg-tpl-grid">
                         <?php foreach ($templates as $tpl): ?>
                         <button type="button" class="msg-tpl-btn"
@@ -1152,6 +1195,43 @@ window.applyTemplate = function(btn) {
     body.value = text;
     updateCharCount(body);
     body.focus();
+};
+
+/* ─── Category selector ─────────────────────────────────────────────── */
+window.selectCategory = function(btn) {
+    const catVal = btn.dataset.cat;
+    const catInput = document.getElementById('categoryInput');
+    const hint = document.getElementById('catNoneHint');
+
+    // Toggle: clicking same category deselects
+    const alreadyActive = btn.classList.contains('active');
+    document.querySelectorAll('.msg-cat-btn').forEach(b => b.classList.remove('active'));
+
+    if (alreadyActive) {
+        catInput.value = '';
+        hint.style.display = '';
+        return;
+    }
+
+    btn.classList.add('active');
+    catInput.value = catVal;
+    hint.style.display = 'none';
+
+    // Apply template text
+    const tpl = btn.dataset.template || '';
+    if (tpl) {
+        const body = document.getElementById('messageBody');
+        body.value = tpl;
+        updateCharCount(body);
+        body.focus();
+    }
+
+    // Apply suggested priority
+    const pri = btn.dataset.priority || 'normal';
+    const pill = document.querySelector('.msg-priority-pill[data-priority="' + pri + '"]');
+    if (pill && typeof window.setPriority === 'function') {
+        window.setPriority(pill, pri);
+    }
 };
 
 document.querySelectorAll('.msg-tpl-btn').forEach((btn) => {

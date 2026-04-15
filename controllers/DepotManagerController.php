@@ -416,51 +416,173 @@ public function fleet()
     {
         $m = new PerformanceModel();
 
-        // Read & sanitise filter params from GET
         $routeNo = trim($_GET['route_no'] ?? '');
-        $busReg  = trim($_GET['bus_reg']  ?? '');
-
+        $busReg  = trim($_GET['bus_reg'] ?? '');
         $filters = [
             'route_no' => $routeNo,
             'bus_reg'  => $busReg,
+            'date'     => trim($_GET['date'] ?? ''),
         ];
 
-        // Fetch filter-aware metrics for SLTB data only
         $metrics = $m->getPerformanceMetricsForSLTB($filters);
-
-        // Map to $kpi keys matching the view
         $kpi = [
-            'delayed_buses'    => $metrics['delayed_buses'],
-            'average_rating'   => $metrics['average_rating'] ?? 0,
-            'speed_violations' => $metrics['speed_violations'],
-            'long_wait_rate'   => $metrics['long_wait_rate'],
+            'delayedToday' => $metrics['delayed_buses'],
+            'avgRating'    => $metrics['average_rating'] ?? 0,
+            'speedViol'    => $metrics['speed_violations'],
+            'longWaitPct'  => $metrics['long_wait_rate'],
         ];
 
-        // Build complete analyticsJson with all chart data
         $analytics = [
             '_fromServer' => true,
-            'kpi'         => $kpi,
-            'busStatus'   => $m->getBusStatusData($filters),
+            'kpi' => $kpi,
+            'busStatus' => $m->getFleetStatusComparisonData($filters),
             'delayedByRoute' => $m->getDelayedByRouteData($filters),
-            'speedByBus'  => $m->getSpeedByBusData($filters),
-            'revenue'     => $m->getRevenueData($filters),
-            'waitTime'    => $m->getWaitTimeData($filters),
+            'speedByBus' => $m->getSpeedByBusData($filters),
+            'revenue' => $m->getRevenueData($filters),
+            'waitTime' => $m->getWaitTimeData($filters),
             'complaintsByRoute' => $m->getComplaintsByRouteData($filters),
         ];
 
-        // Render view: views/depot_manager/performance.php
         $this->view('depot_manager', 'performance', [
-            'kpi'           => $kpi,
-            'filters'       => $filters,
+            'kpi' => $kpi,
+            'filters' => $filters,
+            'depotName' => method_exists($m, 'depotName') ? $m->depotName() : 'SLTB Depot',
             'analyticsJson' => json_encode(
                 $analytics,
                 JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK |
                 JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
             ),
-            'routes'        => $m->getSLTBRoutes(),
-            'buses'         => $m->getSLTBBuses(),
-            'msg'           => $_GET['msg'] ?? null,
+            'routes' => $m->getSLTBRoutes(),
+            'buses' => $m->getSLTBBuses(),
+            'msg' => $_GET['msg'] ?? null,
         ]);
+    }
+
+    private function performanceFiltersFromQuery(): array
+    {
+        return [
+            'route_no' => trim($_GET['route_no'] ?? ''),
+            'bus_reg' => trim($_GET['bus_reg'] ?? ''),
+            'date' => trim($_GET['date'] ?? ''),
+        ];
+    }
+
+    public function delayedModal()
+    {
+        $m = new PerformanceModel();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($m->getDelayedTodayDetail($this->performanceFiltersFromQuery()), JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+        exit;
+    }
+
+    public function ratingModal()
+    {
+        $m = new PerformanceModel();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($m->getRatingDetail($this->performanceFiltersFromQuery()), JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+        exit;
+    }
+
+    public function speedModal()
+    {
+        $m = new PerformanceModel();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($m->getSpeedViolationsDetail($this->performanceFiltersFromQuery()), JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+        exit;
+    }
+
+    public function waitModal()
+    {
+        $m = new PerformanceModel();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($m->getLongWaitDetail($this->performanceFiltersFromQuery()), JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
+        exit;
+    }
+
+    /**
+     * /M/live — depot-scoped live tracking JSON endpoint.
+     */
+    public function depotLive(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+        $depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? $_SESSION['user']['depot_id'] ?? 0);
+        if ($depotId <= 0 || !isset($GLOBALS['db'])) {
+            echo '[]';
+            return;
+        }
+
+        $pdo = $GLOBALS['db'];
+
+        try {
+            $stmt = $pdo->prepare(
+                "SELECT
+                     tm.bus_reg_no          AS busId,
+                     tm.operator_type       AS operatorType,
+                     ROUND(tm.speed, 1)     AS speedKmh,
+                     tm.lat,
+                     tm.lng,
+                     tm.heading,
+                     tm.operational_status  AS operationalStatus,
+                     tm.snapshot_at         AS snapshotAt,
+                     r.route_no             AS routeNo,
+                     d.name                 AS depot,
+                     sb.sltb_depot_id       AS depotId
+                 FROM tracking_monitoring tm
+                 INNER JOIN (
+                     SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                     FROM tracking_monitoring
+                     WHERE operator_type = 'SLTB'
+                     GROUP BY bus_reg_no
+                 ) latest
+                     ON latest.bus_reg_no = tm.bus_reg_no
+                    AND latest.max_snap = tm.snapshot_at
+                 JOIN sltb_buses sb
+                     ON sb.reg_no = tm.bus_reg_no
+                    AND sb.sltb_depot_id = :depot_id
+                    AND LOWER(COALESCE(sb.status, 'active')) = 'active'
+                 LEFT JOIN sltb_depots d
+                     ON d.sltb_depot_id = sb.sltb_depot_id
+                 LEFT JOIN routes r
+                     ON r.route_id = tm.route_id
+                 WHERE tm.operator_type = 'SLTB'
+                 ORDER BY tm.snapshot_at DESC"
+            );
+            $stmt->execute([':depot_id' => $depotId]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            error_log('[depotLive] query error: ' . $e->getMessage());
+            echo '[]';
+            return;
+        }
+
+        if (empty($rows)) {
+            echo '[]';
+            return;
+        }
+
+        $out = array_map(static function (array $r) use ($depotId): array {
+            return [
+                'busId' => $r['busId'],
+                'routeNo' => $r['routeNo'] ?? '',
+                'speedKmh' => (float)($r['speedKmh'] ?? 0),
+                'operatorType' => 'SLTB',
+                'depot' => $r['depot'] ?: ('Depot #' . $depotId),
+                'depotId' => $depotId,
+                'owner' => null,
+                'ownerId' => null,
+                'lat' => $r['lat'] !== null ? (float)$r['lat'] : null,
+                'lng' => $r['lng'] !== null ? (float)$r['lng'] : null,
+                'heading' => $r['heading'] !== null ? (int)$r['heading'] : null,
+                'operationalStatus' => $r['operationalStatus'] ?? 'OnTime',
+                'snapshotAt' => $r['snapshotAt'],
+                'updatedAt' => $r['snapshotAt'],
+                'inDb' => true,
+            ];
+        }, $rows);
+
+        echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
     public function performanceDetails()
@@ -841,7 +963,7 @@ public function fleet()
             return $this->redirect('/M/fleet');
         }
 
-        $m = new \App\models\depot_officer\BusProfileModel();
+        $m = new FleetModel();
         $bus = $m->getBusByReg($busReg);
         if (empty($bus)) {
             return $this->redirect('/M/fleet');
@@ -849,9 +971,9 @@ public function fleet()
 
         $this->view('depot_officer', 'bus_profile', [
             'bus'         => $bus,
-            'tracking'    => $m->getTracking($busReg),
-            'assignments' => $m->getAssignments($busReg),
-            'trips'       => $m->getTrips($busReg),
+            'tracking'    => [],
+            'assignments' => [],
+            'trips'       => [],
             'backUrl'     => '/M/fleet',
         ]);
     }
