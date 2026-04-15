@@ -416,6 +416,104 @@
     return reason.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  /* ════════════════════════════════════════════════════
+     6. GRADE DISTRIBUTION DONUT
+        data: [{ grade, performance_score }]   (full hrRows)
+  ════════════════════════════════════════════════════ */
+  function buildGradeDonutChart(canvasId, data) {
+    const canvas = getCanvas(canvasId);
+    if (!canvas) return;
+    destroyChart(canvasId);
+
+    const counts = { A: 0, B: 0, C: 0, D: 0 };
+    data.forEach(d => { if (counts[d.grade] !== undefined) counts[d.grade]++; });
+    const labels = ['Grade A (≥85)', 'Grade B (70–84)', 'Grade C (55–69)', 'Grade D (<55)'];
+    const values = [counts.A, counts.B, counts.C, counts.D];
+    const colors = [C.green, C.amber, C.orange, C.red];
+
+    chartInstances[canvasId] = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderColor: '#fff',
+          borderWidth: 3,
+          hoverOffset: 8,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { family: 'system-ui,sans-serif', size: 12 }, padding: 12, boxWidth: 14 },
+          },
+          tooltip: {
+            backgroundColor: C.dark, titleColor: '#F9FAFB', bodyColor: '#D1D5DB',
+            cornerRadius: 8, padding: 10,
+            callbacks: {
+              label: (ctx) => {
+                const total = values.reduce((a, b) => a + b, 0) || 1;
+                return ` ${ctx.raw} driver${ctx.raw !== 1 ? 's' : ''} (${Math.round(ctx.raw / total * 100)}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  /* ════════════════════════════════════════════════════
+     7. DRIVER TRIP BEHAVIOUR STACKED BAR
+        data: [{ driver_name, completed, delayed, cancelled }]
+  ════════════════════════════════════════════════════ */
+  function buildDriverStackedChart(canvasId, data) {
+    const canvas = getCanvas(canvasId);
+    if (!canvas) return;
+    destroyChart(canvasId);
+
+    const display = data.slice(0, 15); // top 15 by trips assigned
+    const shortName = n => {
+      const p = (n || '').split(' ');
+      return p.length >= 2 ? p[0] + ' ' + p[p.length - 1][0] + '.' : p[0] || '?';
+    };
+    const labels  = display.map(d => shortName(d.driver_name));
+    const onTime  = display.map(d => Math.max(0, (parseInt(d.completed) || 0) - (parseInt(d.delayed) || 0)));
+    const delayed = display.map(d => parseInt(d.delayed)   || 0);
+    const cancel  = display.map(d => parseInt(d.cancelled) || 0);
+
+    chartInstances[canvasId] = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'On-Time',  data: onTime,  backgroundColor: C.green,  borderWidth: 0, borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 3, bottomRight: 3 } },
+          { label: 'Delayed',  data: delayed, backgroundColor: C.amber,  borderWidth: 0, borderRadius: 0 },
+          { label: 'Cancelled',data: cancel,  backgroundColor: C.red,    borderWidth: 0, borderRadius: { topLeft: 3, topRight: 3, bottomLeft: 0, bottomRight: 0 } },
+        ],
+      },
+      options: mergeDeep(sharedDefaults, {
+        plugins: {
+          legend: { display: true },
+          tooltip: {
+            callbacks: {
+              title: (ctx) => display[ctx[0].dataIndex]?.driver_name || '',
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} trip${ctx.raw !== 1 ? 's' : ''}`,
+            },
+          },
+        },
+        scales: {
+          x: { stacked: true, ticks: { font: { size: 11 } } },
+          y: { stacked: true, ticks: { stepSize: 1 } },
+        },
+      }),
+    });
+  }
+
   /* ── Public API ─────────────────────────────────────── */
   window.ReportCharts = {
     buildAttendanceChart,
@@ -424,6 +522,8 @@
     buildDelaySlotChart,
     buildDelayReasonChart,
     buildUtilizationChart,
+    buildGradeDonutChart,
+    buildDriverStackedChart,
     destroyAll: function() {
       Object.keys(chartInstances).forEach(id => {
         chartInstances[id].destroy();

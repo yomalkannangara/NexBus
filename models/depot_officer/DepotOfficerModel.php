@@ -270,7 +270,7 @@ public function depot(int $depotId): ?array {
             WHERE t.sltb_depot_id = ?
               AND COALESCE(t.trip_date, CURDATE()) BETWEEN ? AND ?
               AND t.sltb_driver_id IS NOT NULL
-            GROUP BY t.sltb_driver_id, sd.full_name, sd.license_number
+            GROUP BY t.sltb_driver_id, sd.full_name, sd.employee_no
             ORDER BY trips_assigned DESC, sd.full_name
             ";
             $st = $this->pdo->prepare($sql);

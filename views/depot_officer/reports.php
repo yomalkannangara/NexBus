@@ -116,7 +116,9 @@ function slotBadge(string $slot): string {
 <?php
 $totalStaff   = (int)($hrSummary['total_staff']              ?? count($hrRows));
 $avgAtt       = (float)($hrSummary['avg_att_pct']            ?? 0);
-$mostAbsent   = $hrSummary['most_absent_info']               ?? ['name'=>($hrSummary['most_absent']??'—'), 'absent_days'=>0];
+$mostAbsent   = is_array($hrSummary['most_absent'] ?? null)
+    ? $hrSummary['most_absent']
+    : ['name' => (string)($hrSummary['most_absent'] ?? '—'), 'absent_days' => 0];
 $perfectCount = (int)($hrSummary['perfect_attendance_count'] ?? count(array_filter($hrRows, fn($r)=>(float)($r['att_pct']??0)>=100)));
 ?>
 <div class="rp-cards">
@@ -221,16 +223,23 @@ document.addEventListener('DOMContentLoaded',function(){
 <?php elseif ($reportType === 'driver_performance'): ?>
 <?php /* ═══ REPORT 2 — DRIVER PERFORMANCE ══════════════════════════ */ ?>
 <?php
-$avgOnTime = (float)($hrSummary['on_time_pct'] ?? 0);
-$avgScore  = count($hrRows) ? round(array_sum(array_column($hrRows,'performance_score'))/count($hrRows),1) : 0;
-$topRow    = !empty($hrRows) ? array_reduce($hrRows,fn($c,$r)=>((float)($r['performance_score']??0)>(float)($c['performance_score']??0))?$r:$c,$hrRows[0]) : null;
+$avgOnTime  = (float)($hrSummary['on_time_pct'] ?? 0);
+$avgDelaySu = (float)($hrSummary['avg_delay_min'] ?? 0);
+$avgScore   = count($hrRows) ? round(array_sum(array_column($hrRows,'performance_score'))/count($hrRows),1) : 0;
+$topRow     = !empty($hrRows) ? array_reduce($hrRows,fn($c,$r)=>((float)($r['performance_score']??0)>(float)($c['performance_score']??0))?$r:$c,$hrRows[0]) : null;
+$gradeCount = ['A'=>0,'B'=>0,'C'=>0,'D'=>0];
+foreach ($hrRows as $_r) { $g=(string)($_r['grade']??''); if(isset($gradeCount[$g])) $gradeCount[$g]++; }
+$atRiskCount = $gradeCount['C'] + $gradeCount['D'];
+$totalTripsAll = (int)array_sum(array_column($hrRows,'trips_assigned'));
 ?>
+
+<!-- KPI Cards: row 1 -->
 <div class="rp-cards">
     <div class="rp-card" style="--rp-card-accent:#2563eb">
         <div class="rp-card-icon" style="background:#eff6ff;color:#2563eb"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
         <div class="rp-card-lbl">Total Drivers</div>
         <div class="rp-card-val"><?= count($hrRows) ?></div>
-        <div class="rp-card-hint">with trips in period</div>
+        <div class="rp-card-hint"><?= $totalTripsAll ?> trips in period</div>
         <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:100%"></div></div>
     </div>
     <div class="rp-card" style="--rp-card-accent:#16a34a">
@@ -244,61 +253,126 @@ $topRow    = !empty($hrRows) ? array_reduce($hrRows,fn($c,$r)=>((float)($r['perf
         <div class="rp-card-icon" style="background:#fffbeb;color:#f59e0b"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
         <div class="rp-card-lbl">Avg Score /100</div>
         <div class="rp-card-val"><?= $avgScore ?></div>
-        <div class="rp-card-hint">performance index</div>
+        <div class="rp-card-hint">fleet performance index</div>
         <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= $avgScore ?>%"></div></div>
     </div>
-    <div class="rp-card" style="--rp-card-accent:#7B1C3E">
-        <div class="rp-card-icon" style="background:#fce8ef;color:#7B1C3E"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
-        <div class="rp-card-lbl">Top Performer</div>
-        <div class="rp-card-val" style="font-size:1.05rem"><?= htmlspecialchars((string)($topRow['driver_name']??'—')) ?></div>
-        <div class="rp-card-hint">Score: <?= $topRow['performance_score']??0 ?> &nbsp; <?= rpBadge((string)($topRow['grade']??'—'), gradeClass((string)($topRow['grade']??''))) ?></div>
-        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= min(100,(float)($topRow['performance_score']??0)) ?>%"></div></div>
+    <div class="rp-card" style="--rp-card-accent:<?= $atRiskCount > 0 ? '#dc2626' : '#16a34a' ?>">
+        <div class="rp-card-icon" style="background:<?= $atRiskCount > 0 ? '#fef2f2' : '#f0fdf4' ?>;color:<?= $atRiskCount > 0 ? '#dc2626' : '#16a34a' ?>"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div class="rp-card-lbl">At-Risk Drivers</div>
+        <div class="rp-card-val"><?= $atRiskCount ?></div>
+        <div class="rp-card-hint">Grade C or D (needs action)</div>
+        <div class="rp-card-bar"><div class="rp-card-bar-fill" style="width:<?= count($hrRows)?min(100,round($atRiskCount/count($hrRows)*100)):0 ?>%"></div></div>
     </div>
 </div>
 
-<?php if (!empty($hrRows)): ?>
-<div class="rp-chart-card">
-    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Driver Performance Scores (reference at 70)</h3>
-    <div class="rp-canvas-wrap rp-canvas-hbar"><canvas id="driverPerfChart"></canvas></div>
-    <p class="rp-chart-note">Charts available in digital version only.</p>
-    <div class="rp-chart-legend">
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#16a34a"></span>&nbsp;A ≥85</span>
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#f59e0b"></span>&nbsp;B 70–84</span>
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#ea580c"></span>&nbsp;C 55–69</span>
-        <span class="rp-legend-item"><span class="rp-legend-dot" style="background:#dc2626"></span>&nbsp;D &lt;55</span>
+<!-- Grade breakdown mini-row -->
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+<?php
+$gradeStyles = ['A'=>['#16a34a','#f0fdf4'],'B'=>['#f59e0b','#fffbeb'],'C'=>['#ea580c','#fff7ed'],'D'=>['#dc2626','#fef2f2']];
+$gradeLabels = ['A'=>'Excellent (≥85)','B'=>'Good (70–84)','C'=>'Fair (55–69)','D'=>'Poor (<55)'];
+foreach ($gradeStyles as $g => [$col,$bg]):
+    $n = $gradeCount[$g];
+?>
+<div style="flex:1;min-width:100px;background:<?= $bg ?>;border:1px solid <?= $col ?>22;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:1.8rem;font-weight:800;color:<?= $col ?>;line-height:1;"><?= $n ?></span>
+    <div>
+        <div style="font-size:.65rem;font-weight:700;color:<?= $col ?>;letter-spacing:.05em;">GRADE <?= $g ?></div>
+        <div style="font-size:.72rem;color:#6b7280;"><?= $gradeLabels[$g] ?></div>
     </div>
 </div>
+<?php endforeach; ?>
+</div>
+
+<?php if (!empty($hrRows)): ?>
+<!-- Two-chart row -->
+<div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:20px;">
+    <div class="rp-chart-card" style="margin-bottom:0;">
+        <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Performance Score per Driver</h3>
+        <div class="rp-canvas-wrap rp-canvas-hbar" style="height:<?= min(380, max(220, count($hrRows)*22)) ?>px;"><canvas id="driverPerfChart"></canvas></div>
+        <p class="rp-chart-note">Bar color = grade. Dashed line at 70 = minimum threshold.</p>
+    </div>
+    <div class="rp-chart-card" style="margin-bottom:0;">
+        <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Grade Distribution</h3>
+        <div class="rp-canvas-wrap" style="height:260px;"><canvas id="gradeDonutChart"></canvas></div>
+        <p class="rp-chart-note"><?= $gradeCount['A'] + $gradeCount['B'] ?> of <?= count($hrRows) ?> drivers at Grade B or above.</p>
+    </div>
+</div>
+
+<!-- Trip behaviour stacked bar -->
+<div class="rp-chart-card">
+    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> Trip Behaviour by Driver (top <?= min(15,count($hrRows)) ?>)</h3>
+    <div class="rp-canvas-wrap" style="height:260px;"><canvas id="driverStackedChart"></canvas></div>
+    <p class="rp-chart-note">On-Time = completed trips that departed without delay. Green is good.</p>
+</div>
+
+<!-- Avg delay per driver — inline bar list -->
+<?php $delayRows = array_filter($hrRows, fn($r)=>(float)($r['avg_delay_min']??0)>0);
+      usort($delayRows, fn($a,$b)=>(float)($b['avg_delay_min']??0)-(float)($a['avg_delay_min']??0));
+      $delayRows = array_slice($delayRows, 0, 10); ?>
+<?php if (!empty($delayRows)): ?>
+<div class="rp-chart-card">
+    <h3><svg width="15" height="15" fill="none" stroke="#7B1C3E" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Average Departure Delay — Top <?= count($delayRows) ?> Drivers</h3>
+    <div class="rp-bar-list" style="padding:0 4px;">
+    <?php $maxDelay = max(array_column($delayRows,'avg_delay_min') ?: [1]); ?>
+    <?php foreach ($delayRows as $r):
+        $mins = (float)($r['avg_delay_min']??0);
+        $barW = round($mins / $maxDelay * 100);
+        $col  = $mins > 15 ? '#dc2626' : ($mins > 8 ? '#f59e0b' : '#16a34a');
+    ?>
+    <div class="rp-bar-row">
+        <div class="rp-bar-name" style="min-width:150px;"><?= htmlspecialchars((string)($r['driver_name']??'')) ?></div>
+        <div class="rp-bar-stacked" style="flex:1;">
+            <div class="rp-bar-seg" style="width:<?= $barW ?>%;background:<?= $col ?>;border-radius:4px;"></div>
+        </div>
+        <div class="rp-bar-val" style="color:<?= $col ?>;font-weight:700;min-width:60px;"><?= number_format($mins,1) ?> min</div>
+    </div>
+    <?php endforeach; ?>
+    </div>
+    <p class="rp-chart-note" style="margin-top:8px;">Avg departure delay on late trips only. &lt;5 min = acceptable, &gt;15 min = concern.</p>
+</div>
+<?php endif; ?>
+
+<!-- Full detail table -->
 <div class="rp-table-card">
-    <div class="rp-table-head"><h2>Driver Performance Details</h2><span class="meta"><?= count($hrRows) ?> driver<?= count($hrRows)!==1?'s':'' ?> &bull; <?= date('d M Y',strtotime($from)) ?> – <?= date('d M Y',strtotime($to)) ?></span></div>
+    <div class="rp-table-head">
+        <h2>Driver Performance Details</h2>
+        <span class="meta"><?= count($hrRows) ?> driver<?= count($hrRows)!==1?'s':'' ?> &bull; <?= date('d M Y',strtotime($from)) ?> – <?= date('d M Y',strtotime($to)) ?></span>
+    </div>
     <div class="rp-table-wrap"><table class="rp-table rp-sortable" id="drv-table">
         <thead><tr>
             <th>#</th>
             <th class="sortable" data-col="1">Driver<span class="sort-ind">⇅</span></th>
-            <th class="sortable num-cell" data-col="2">Trips<span class="sort-ind">⇅</span></th>
-            <th class="sortable num-cell" data-col="3">Done<span class="sort-ind">⇅</span></th>
-            <th class="sortable num-cell" data-col="4">Delayed<span class="sort-ind">⇅</span></th>
-            <th class="sortable num-cell" data-col="5">Cancelled<span class="sort-ind">⇅</span></th>
-            <th class="sortable" data-col="6">On-Time %<span class="sort-ind">⇅</span></th>
-            <th class="sortable num-cell" data-col="7">Avg Delay<span class="sort-ind">⇅</span></th>
-            <th class="sortable" data-col="8">Score<span class="sort-ind">⇅</span></th>
-            <th class="sortable" data-col="9">Grade<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="2">Emp No<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="3">Trips<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="4">Done<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="5">Delayed<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="6">Cancelled<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="7">On-Time %<span class="sort-ind">⇅</span></th>
+            <th class="sortable num-cell" data-col="8">Avg Delay<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="9">Score<span class="sort-ind">⇅</span></th>
+            <th class="sortable" data-col="10">Grade<span class="sort-ind">⇅</span></th>
         </tr></thead>
         <tbody>
         <?php foreach ($hrRows as $i => $r):
-            $otp   = (float)($r['on_time_pct']??0); $otCol = pctColor($otp);
+            $otp   = (float)($r['on_time_pct']??0);
+            $otCol = pctColor($otp);
             $score = (float)($r['performance_score']??0);
             $grade = (string)($r['grade']??'—');
             $sCls  = 'score-'.strtolower(in_array($grade,['A','B','C','D'])?$grade:'staff');
+            $delayMin = (float)($r['avg_delay_min']??0);
+            $delayCol = $delayMin > 15 ? '#dc2626' : ($delayMin > 8 ? '#f59e0b' : '#16a34a');
+            $rowBg = ($grade==='D') ? 'background:#fff5f5;' : (($grade==='C') ? 'background:#fffbeb;' : '');
         ?>
-        <tr>
+        <tr style="<?= $rowBg ?>">
             <td style="color:#9ca3af;font-size:.78rem;"><?= $i+1 ?></td>
-            <td class="name-cell"><?= htmlspecialchars((string)($r['driver_name']??'—')) ?></td>
+            <td class="name-cell" style="font-weight:600;"><?= htmlspecialchars((string)($r['driver_name']??'—')) ?></td>
+            <td style="font-size:.78rem;color:#6b7280;"><?= htmlspecialchars((string)($r['license_number']??'—')) ?></td>
             <td class="num-cell" style="font-weight:700;"><?= (int)($r['trips_assigned']??0) ?></td>
             <td class="num-cell" style="color:#16a34a;font-weight:700;"><?= (int)($r['completed']??0) ?></td>
             <td class="num-cell" style="color:#f59e0b;font-weight:700;"><?= (int)($r['delayed']??0) ?></td>
             <td class="num-cell" style="color:#dc2626;font-weight:700;"><?= (int)($r['cancelled']??0) ?></td>
             <td><?= pctBar($otp, $otCol) ?></td>
-            <td class="num-cell" style="color:#f59e0b;"><?= number_format((float)($r['avg_delay_min']??0),1) ?> min</td>
+            <td class="num-cell" style="color:<?= $delayCol ?>;font-weight:600;"><?= $delayMin > 0 ? number_format($delayMin,1).' min' : '<span style="color:#16a34a;">—</span>' ?></td>
             <td><span class="rp-score-badge <?= $sCls ?>"><?= $score ?></span></td>
             <td><?= rpBadge($grade, gradeClass($grade)) ?></td>
         </tr>
@@ -309,14 +383,22 @@ $topRow    = !empty($hrRows) ? array_reduce($hrRows,fn($c,$r)=>((float)($r['perf
 <?php else: ?>
 <div class="rp-table-card"><div class="rp-empty"><svg width="44" height="44" fill="none" stroke="#e5e7eb" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h4>No Data Found</h4><p>No driver trip data found for the selected period.</p></div></div>
 <?php endif; ?>
-<?php $_drvChart = json_encode(array_slice(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','performance_score'=>(float)($r['performance_score']??0),'grade'=>$r['grade']??''], $hrRows),0,20), JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK); ?>
-<?php $_drvCsv = json_encode(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','trips_assigned'=>$r['trips_assigned']??0,'completed'=>$r['completed']??0,'delayed'=>$r['delayed']??0,'cancelled'=>$r['cancelled']??0,'on_time_pct'=>$r['on_time_pct']??0,'avg_delay_min'=>$r['avg_delay_min']??0,'performance_score'=>$r['performance_score']??0,'grade'=>$r['grade']??''], $hrRows), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT); ?>
+<?php
+$_drvChart  = json_encode(array_slice(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','performance_score'=>(float)($r['performance_score']??0),'grade'=>$r['grade']??''],$hrRows),0,20),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_drvDonut  = json_encode(array_map(fn($r)=>['grade'=>$r['grade']??'','performance_score'=>(float)($r['performance_score']??0)],$hrRows),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_drvStack  = json_encode(array_slice(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','completed'=>(int)($r['completed']??0),'delayed'=>(int)($r['delayed']??0),'cancelled'=>(int)($r['cancelled']??0)],$hrRows),0,15),JSON_HEX_TAG|JSON_HEX_AMP|JSON_NUMERIC_CHECK);
+$_drvCsv    = json_encode(array_map(fn($r)=>['driver_name'=>$r['driver_name']??'','employee_no'=>$r['license_number']??'','trips_assigned'=>$r['trips_assigned']??0,'completed'=>$r['completed']??0,'delayed'=>$r['delayed']??0,'cancelled'=>$r['cancelled']??0,'on_time_pct'=>$r['on_time_pct']??0,'avg_delay_min'=>$r['avg_delay_min']??0,'performance_score'=>$r['performance_score']??0,'grade'=>$r['grade']??''],$hrRows),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
+?>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
-    if(window.ReportCharts) ReportCharts.buildPerformanceChart('driverPerfChart',<?= $_drvChart ?>);
-    var sum={total_drivers:<?= count($hrRows) ?>,avg_on_time_pct:<?= $avgOnTime ?>,avg_performance_score:<?= $avgScore ?>,top_driver:{name:'<?= addslashes((string)($topRow['driver_name']??'')) ?>',score:<?= (float)($topRow['performance_score']??0) ?>}};
+    if(window.ReportCharts){
+        ReportCharts.buildPerformanceChart('driverPerfChart',<?= $_drvChart ?>);
+        ReportCharts.buildGradeDonutChart('gradeDonutChart',<?= $_drvDonut ?>);
+        ReportCharts.buildDriverStackedChart('driverStackedChart',<?= $_drvStack ?>);
+    }
+    var _sum={total_drivers:<?= count($hrRows) ?>,avg_on_time_pct:<?= $avgOnTime ?>,avg_performance_score:<?= $avgScore ?>,top_driver:{name:'<?= addslashes((string)($topRow['driver_name']??'')) ?>',score:<?= (float)($topRow['performance_score']??0) ?>}};
     document.getElementById('rp-csv-btn').addEventListener('click',function(){
-        if(window.ReportExport) ReportExport.exportDriverPerformance(<?= $_drvCsv ?>,sum,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
+        if(window.ReportExport) ReportExport.exportDriverPerformance(<?= $_drvCsv ?>,_sum,'<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
     });
     document.getElementById('rp-print-btn').addEventListener('click',function(){
         if(window.ReportExport) ReportExport.printReport('Driver Performance Report','<?= addslashes($depotName) ?>','<?= $from ?>','<?= $to ?>');
