@@ -47,7 +47,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 .abadge-blue   { background:#dbeafe; color:#1d4ed8; }
 .abadge-gray   { background:#f3f4f6; color:#6b7280; }
 /* ── Filters bar ─────────────────────────────────────── */
-.asgn-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.asgn-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px; }
 .asgn-filters label { font-size:12px; font-weight:600; color:#6b7280; }
 .asgn-filters select, .asgn-filters input[type=text] {
   padding:7px 10px; border:1.5px solid #d1d5db; border-radius:8px;
@@ -56,10 +56,10 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 /* ── Add button ──────────────────────────────────────── */
 .btn-asgn-add {
   display:inline-flex; align-items:center; gap:7px;
-  margin-top:18px; padding:10px 22px;
+  padding:9px 20px;
   background:#80143c; color:#fff; border:none;
-  border-radius:12px; font-size:14px; font-weight:700;
-  cursor:pointer; transition:background .15s;
+  border-radius:12px; font-size:13.5px; font-weight:700;
+  cursor:pointer; transition:background .15s; white-space:nowrap;
 }
 .btn-asgn-add:hover { background:#60102e; }
 /* ── Row action buttons ──────────────────────────────── */
@@ -141,6 +141,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 /* ── Conflict warning ────────────────────────────────── */
 .asgn-warn { display:none; padding:7px 12px; border-radius:8px; background:#fef9e7; border:1px solid #fde68a; color:#92400e; font-size:12.5px; margin-top:4px; }
 .asgn-warn.show { display:block; }
+.asgn-warn.warn-red { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; font-weight:700; font-size:13px; padding:10px 14px; }
 /* ── Modal action row ────────────────────────────────── */
 .asgn-action-row { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
 .btn-maroon { background:#80143c; color:#fff; border:none; padding:10px 24px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; transition:background .15s; }
@@ -165,6 +166,8 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
     <div class="notice warning">Driver already assigned to bus <strong><?= htmlspecialchars($_GET['exists'] ?? '') ?></strong> on this date. <button id="btnOverrideDriver" class="btn small">Override</button></div>
   <?php elseif(!empty($_GET['msg']) && $_GET['msg'] === 'conflict_conductor'): ?>
     <div class="notice warning">Conductor already assigned to bus <strong><?= htmlspecialchars($_GET['exists'] ?? '') ?></strong> on this date. <button id="btnOverrideConductor" class="btn small">Override</button></div>
+  <?php elseif(!empty($_GET['msg']) && $_GET['msg'] === 'conflict_bus'): ?>
+    <div class="notice warning">Bus <strong><?= htmlspecialchars($_GET['exists'] ?? '') ?></strong> is already assigned for this shift in the selected period with different staff. Use the Override field if you intend to replace the existing assignment.</div>
   <?php elseif(!empty($msg)): ?>
     <div class="notice"><?= htmlspecialchars($msg) ?></div>
   <?php endif; ?>
@@ -229,6 +232,10 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
       <label>Destination:
         <input type="text" id="filter-dest" placeholder="Filter by destination…">
       </label>
+      <button id="btnAddAssignment" class="btn-asgn-add" style="margin-left:24px;margin-top:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Assignment
+      </button>
     </div>
     <div class="asgn-wrap">
       <table class="asgn-table" id="asgnTable">
@@ -290,10 +297,6 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
     </div>
   </div>
 
-  <button id="btnAddAssignment" class="btn-asgn-add">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Add Assignment
-  </button>
 </section>
 
 <!-- ════════ ADD MODAL ════════ -->
@@ -316,9 +319,17 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
         <input list="add-buses-dl" name="bus_reg_no" id="add-bus" required placeholder="Type or select bus reg no">
         <datalist id="add-buses-dl">
           <?php foreach($buses as $b): ?>
-            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($b['reg_no'].' — Route '.($b['route_no']??'N/A').' — '.($b['route_name']??'')) ?></option>
+            <?php
+              $rNo   = $b['route_no']   ?? '';
+              $rName = $b['route_name'] ?? '';
+              $label = $b['reg_no'];
+              if ($rNo)   $label .= ' — Route ' . $rNo;
+              if ($rName) $label .= ' — ' . $rName;
+            ?>
+            <option value="<?= htmlspecialchars($b['reg_no']) ?>"><?= htmlspecialchars($label) ?></option>
           <?php endforeach; ?>
         </datalist>
+        <div class="asgn-warn" id="add-bus-warn"></div>
       </div>
       <div class="asgn-two-col">
         <div class="asgn-form-row"><label>Route No</label><input type="text" id="add-route-no" readonly></div>
@@ -561,18 +572,27 @@ async function loadTurns() {
 /* ── Staff conflict check via AJAX ── */
 async function loadConflictsAndCheck() {
   const departure = document.getElementById('add-shift').value;
-  if (!departure) { currentTurnConflicts = { drivers: {}, conductors: {} }; checkAddConflicts(); return; }
+  if (!departure) { currentTurnConflicts = { drivers: {}, conductors: {}, bus_taken: false, bus_conflicts: [] }; checkAddConflicts(); return; }
   try {
     const from  = document.getElementById('add-period-from').value || '<?= date('Y-m-d') ?>';
     const until = document.getElementById('add-until-notice').checked;
     const to    = until ? '2099-12-31' : (document.getElementById('add-period-to').value || from);
+    const bus   = (addBusEl.value || '').trim().toUpperCase();
     const url   = '/O/assignments/staff-conflicts?departure=' + encodeURIComponent(departure)
                 + '&period_from=' + encodeURIComponent(from)
-                + '&period_to='   + encodeURIComponent(to);
+                + '&period_to='   + encodeURIComponent(to)
+                + (bus ? '&bus=' + encodeURIComponent(bus) : '');
     const res  = await fetch(url, { headers: { Accept: 'application/json' } });
     const data = await res.json();
-    if (data.ok) currentTurnConflicts = { drivers: data.drivers || {}, conductors: data.conductors || {} };
-  } catch (e) { currentTurnConflicts = { drivers: {}, conductors: {} }; }
+    if (data.ok) {
+      currentTurnConflicts = {
+        drivers:       data.drivers       || {},
+        conductors:    data.conductors    || {},
+        bus_taken:     data.bus_taken     || false,
+        bus_conflicts: data.bus_conflicts || [],
+      };
+    }
+  } catch (e) { currentTurnConflicts = { drivers: {}, conductors: {}, bus_taken: false, bus_conflicts: [] }; }
   checkAddConflicts();
 }
 
@@ -582,13 +602,32 @@ function checkAddConflicts() {
   const conductorId = parseInt(document.getElementById('add-conductor').value) || 0;
   const dWarn = document.getElementById('add-driver-warn');
   const cWarn = document.getElementById('add-conductor-warn');
+  const bWarn = document.getElementById('add-bus-warn');
+  const submitBtn = document.querySelector('#addForm button[type=submit]');
+
   const conflictBusD = currentTurnConflicts.drivers[driverId];
   const conflictBusC = currentTurnConflicts.conductors[conductorId];
-  if (driverId && conflictBusD && conflictBusD !== bus) { dWarn.textContent = '\u26a0 Assigned to ' + conflictBusD + ' at this time.'; dWarn.classList.add('show'); }
+  if (driverId && conflictBusD && conflictBusD !== bus) { dWarn.textContent = '\u26a0 Already assigned to ' + conflictBusD + ' for this shift.'; dWarn.classList.add('show'); }
   else dWarn.classList.remove('show');
-  if (conductorId && conflictBusC && conflictBusC !== bus) { cWarn.textContent = '\u26a0 Assigned to ' + conflictBusC + ' at this time.'; cWarn.classList.add('show'); }
+  if (conductorId && conflictBusC && conflictBusC !== bus) { cWarn.textContent = '\u26a0 Already assigned to ' + conflictBusC + ' for this shift.'; cWarn.classList.add('show'); }
   else cWarn.classList.remove('show');
-  /* Hide conflicting options so staff already assigned elsewhere don't appear */
+
+  /* Bus conflict — red block, disable submit */
+  if (bus && currentTurnConflicts.bus_taken) {
+    const conflicts = currentTurnConflicts.bus_conflicts || [];
+    const first = conflicts[0] || {};
+    const staffInfo = first.driver_name
+      ? ' Currently assigned: ' + (first.driver_name || '—') + ' (driver) / ' + (first.conductor_name || '—') + ' (conductor).'
+      : '';
+    bWarn.textContent = '\u26d4 This bus is already assigned for this shift in the selected period.' + staffInfo + ' Remove or change the existing assignment first.';
+    bWarn.classList.add('show', 'warn-red');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '.45'; }
+  } else {
+    bWarn.classList.remove('show', 'warn-red');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ''; }
+  }
+
+  /* Hide ALL staff already assigned anywhere in this period/shift from the dropdowns */
   filterConflictingOptions('add-driver',    currentTurnConflicts.drivers,    bus);
   filterConflictingOptions('add-conductor', currentTurnConflicts.conductors, bus);
 }
@@ -598,10 +637,9 @@ function filterConflictingOptions(selectId, conflictMap, currentBus) {
   if (!sel) return;
   Array.from(sel.options).forEach(function (opt) {
     if (!opt.value) return; /* keep placeholder */
-    const id  = parseInt(opt.value);
-    const bus = conflictMap[id];
-    /* hide only if conflicting with a DIFFERENT bus */
-    opt.hidden   = !!(bus && bus !== currentBus);
+    const id = parseInt(opt.value);
+    /* hide if this staff member is assigned to ANY bus in this period/shift */
+    opt.hidden   = !!conflictMap[id];
     opt.disabled = opt.hidden;
   });
 }

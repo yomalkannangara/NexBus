@@ -83,13 +83,13 @@ class DashboardModel extends BaseModel
             };
             $d = $depotId;
 
-            // Today's attendance from depot_attendance (present = Present/Late/Half_Day)
+            // Today's attendance from depot_attendance (mark_absent=0 means present)
             $attPresent = "SELECT COUNT(*) FROM depot_attendance
                            WHERE sltb_depot_id=? AND work_date=CURDATE()
-                             AND attendance_key LIKE ? AND status IN ('Present','Late','Half_Day')";
+                             AND attendance_key LIKE ? AND mark_absent=0";
             $attAbsent  = "SELECT COUNT(*) FROM depot_attendance
                            WHERE sltb_depot_id=? AND work_date=CURDATE()
-                             AND attendance_key LIKE ? AND status='Absent'";
+                             AND attendance_key LIKE ? AND mark_absent=1";
             $attTotal   = "SELECT COUNT(*) FROM depot_attendance
                            WHERE sltb_depot_id=? AND work_date=CURDATE()";
 

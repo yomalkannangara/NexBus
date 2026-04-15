@@ -161,7 +161,7 @@ public function allToday(int $depotId): array {
                                r.route_no,
                                r.stops_json
                            FROM sltb_buses b
-                         LEFT JOIN (
+                         JOIN (
                                  /* pick one active timetable route per bus (prefer today's service) */
                                  SELECT
                                      t.bus_reg_no,
@@ -286,8 +286,23 @@ public function allToday(int $depotId): array {
         $overriddenBy = $_SESSION['user']['user_id'] ?? null;
         $now = date('Y-m-d H:i:s');
 
+        // --- Check if this bus is already assigned for this date+shift with DIFFERENT staff ---
+        $stBus = $this->pdo->prepare(
+            "SELECT sltb_driver_id, sltb_conductor_id FROM sltb_assignments
+              WHERE bus_reg_no=? AND assigned_date=? AND shift=? AND sltb_depot_id=? LIMIT 1"
+        );
+        $stBus->execute([$bus, $assigned_date, $this->timeToShift($shift), $depotId]);
+        $ebRow = $stBus->fetch(PDO::FETCH_ASSOC);
+        if ($ebRow) {
+            $sameDriver    = (int)$ebRow['sltb_driver_id']    === $driver;
+            $sameConductor = (int)$ebRow['sltb_conductor_id'] === $conductor;
+            if (!$sameDriver || !$sameConductor) {
+                if (!$overrideRemark) {
+                    return 'conflict_bus::' . $bus;
+                }
+            }
+        }
         // --- Prevent same driver/conductor being assigned to different buses on same date ---
-        // If overrideRemark is provided we allow the operation but will record an audit row.
         $prevBusForDriver = null;
         if ($driver) {
             if ($timetableId) {
@@ -535,6 +550,27 @@ public function allToday(int $depotId): array {
             'available_conductors'  => max(0, $totalConductors - $assignedConductors),
             'total_conductors'      => $totalConductors,
         ];
+    }
+
+    /**
+     * Return existing assignments for a bus+shift within a date range.
+     * Used by the AJAX conflict checker to warn before the form is submitted.
+     */
+    public function busConflictsForPeriod(int $depotId, string $bus, string $departureTime, string $from, string $to): array
+    {
+        $shift = $this->timeToShift($departureTime);
+        $sql = "SELECT a.assigned_date,
+                       d.full_name AS driver_name,
+                       c.full_name AS conductor_name
+                FROM sltb_assignments a
+                LEFT JOIN sltb_drivers    d ON d.sltb_driver_id    = a.sltb_driver_id
+                LEFT JOIN sltb_conductors c ON c.sltb_conductor_id = a.sltb_conductor_id
+                WHERE a.sltb_depot_id=? AND a.bus_reg_no=? AND a.shift=?
+                  AND a.assigned_date BETWEEN ? AND ?
+                ORDER BY a.assigned_date";
+        $st = $this->pdo->prepare($sql);
+        $st->execute([$depotId, $bus, $shift, $from, $to]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
