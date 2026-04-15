@@ -1229,4 +1229,25 @@ class BusOwnerController extends BaseController
         echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
+    /** /B/messages */
+    public function messages(): void
+    {
+        $m = new \App\models\bus_owner\MessageModel();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'send') {
+            $text     = trim($_POST['message'] ?? '');
+            $priority = in_array($_POST['priority'] ?? '', ['normal','urgent','critical'], true)
+                        ? $_POST['priority'] : 'normal';
+            $category = trim($_POST['category'] ?? '') ?: null;
+            $ok = $text ? $m->send($text, $priority, $category) : false;
+            $this->redirect('/B/messages?msg=' . ($ok ? 'sent' : 'error'));
+            return;
+        }
+
+        $this->view('bus_owner', 'messages', [
+            'timekeepers' => $m->timekeeperUserIds(),
+            'sent'        => $m->sentHistory(20),
+            'msg'         => $_GET['msg'] ?? null,
+        ]);
+    }
 }

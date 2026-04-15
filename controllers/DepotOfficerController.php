@@ -317,8 +317,9 @@ public function assignmentShifts()
             }
 
             $senderRole = (string)($u['role'] ?? 'DepotOfficer');
+            $category   = trim($_POST['category'] ?? '') ?: null;
             $ok = ($text && ($to || $allDepot))
-                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole)
+                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole, $category)
                   : false;
 
             $this->redirect('/O/messages?msg=' . ($ok ? 'sent' : 'error'));

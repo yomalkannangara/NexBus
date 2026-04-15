@@ -97,7 +97,8 @@ class MessageModel extends BaseModel
         string $scope='individual',
         bool $allDepot=false,
         ?int $senderUserId=null,
-        ?string $senderRole=null
+        ?string $senderRole=null,
+        ?string $category=null
     ): bool {
         $text = trim($text);
         if (!$text) return false;
@@ -122,29 +123,26 @@ class MessageModel extends BaseModel
         }
 
         $metadata = [
-            'source' => 'depot_message',
+            'source'         => 'depot_message',
             'source_user_id' => $senderUserId ? (int)$senderUserId : null,
-            'source_role' => $senderRole,
-            'source_name' => $senderName,
-            'scope' => $scope,
+            'source_role'    => $senderRole,
+            'source_name'    => $senderName,
+            'scope'          => $scope,
+            'category'       => $category,
         ];
         $metadataJson = json_encode($metadata, JSON_UNESCAPED_UNICODE);
 
         $hasPriority = $this->columnExists('notifications', 'priority');
         $hasMetadata = $this->columnExists('notifications', 'metadata');
+        $hasCategory = $this->columnExists('notifications', 'category');
 
         $columns = ['user_id', 'type', 'message', 'is_seen'];
-        $values = ['?', '?', '?', '0'];
-        if ($hasPriority) {
-            $columns[] = 'priority';
-            $values[] = '?';
-        }
-        if ($hasMetadata) {
-            $columns[] = 'metadata';
-            $values[] = '?';
-        }
+        $values  = ['?', '?', '?', '0'];
+        if ($hasPriority) { $columns[] = 'priority';  $values[] = '?'; }
+        if ($hasMetadata) { $columns[] = 'metadata';  $values[] = '?'; }
+        if ($hasCategory) { $columns[] = 'category';  $values[] = '?'; }
         $columns[] = 'created_at';
-        $values[] = 'NOW()';
+        $values[]  = 'NOW()';
 
         $ins = $this->pdo->prepare(
             'INSERT INTO notifications(' . implode(',', $columns) . ') VALUES(' . implode(',', $values) . ')'
@@ -154,12 +152,9 @@ class MessageModel extends BaseModel
             $this->pdo->beginTransaction();
             foreach ($okIds as $uid) {
                 $params = [$uid, 'Message', $text];
-                if ($hasPriority) {
-                    $params[] = $priority;
-                }
-                if ($hasMetadata) {
-                    $params[] = $metadataJson;
-                }
+                if ($hasPriority) $params[] = $priority;
+                if ($hasMetadata) $params[] = $metadataJson;
+                if ($hasCategory) $params[] = $category;
                 $ins->execute($params);
             }
             return $this->pdo->commit();
@@ -173,8 +168,12 @@ class MessageModel extends BaseModel
         $limit = max(1, (int)$limit);
         $hasMetadata = $this->columnExists('notifications', 'metadata');
 
+        $hasCategory = $this->columnExists('notifications', 'category');
+        $categorySelect = $hasCategory ? 'n.category' : "JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.category')) AS category";
+
         if ($hasMetadata) {
             $sql = "SELECT n.*,
+                           {$categorySelect},
                            CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
                            COALESCE(
                                NULLIF(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_name')), ''),
@@ -191,6 +190,7 @@ class MessageModel extends BaseModel
                       AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
         } else {
             $sql = "SELECT n.*,
+                           NULL AS category,
                            CONCAT(ru.first_name, ' ', COALESCE(ru.last_name, '')) AS recipient_name,
                            CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END AS full_name,
                            NULL AS source_role
