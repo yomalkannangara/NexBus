@@ -19,10 +19,11 @@ class DepotOfficerController extends \App\controllers\BaseController {
         $u   = $this->m->me();
         $dep = $this->m->myDepotId($u);
         $this->view('depot_officer','dashboard',[
-            'me'=>$u,
-            'depot'=>$this->m->depot($dep),
-            'counts'=>$this->m->dashboardCounts($dep),
-            'todayDelayed'=>$this->m->delayedToday($dep),
+            'me'           => $u,
+            'depot'        => $this->m->depot($dep),
+            'counts'       => $this->m->dashboardCounts($dep),
+            'todayDelayed' => $this->m->delayedToday($dep),
+            'stats'        => $this->m->dashboardStats($dep),
         ]);
     }
 
@@ -149,14 +150,32 @@ public function assignments()
     }
 
     $this->view('depot_officer', 'assignments', [
-        'rows'       => $m->allToday($depotId),
-        'buses'      => $m->buses($depotId),
-        'drivers'    => $m->drivers($depotId),
-        'conductors' => $m->conductors($depotId),
-        'routes'     => $m->routes(),
-        'today'      => date('Y-m-d'),
-        'msg'        => $_GET['msg'] ?? null,
+        'rows'        => $m->allToday($depotId),
+        'buses'       => $m->buses($depotId),
+        'drivers'     => $m->drivers($depotId),
+        'conductors'  => $m->conductors($depotId),
+        'routes'      => $m->routes(),
+        'today'       => date('Y-m-d'),
+        'msg'         => $_GET['msg'] ?? null,
+        'availability'=> $m->availability($depotId),
     ]);
+}
+
+public function assignmentStaffConflicts()
+{
+    $m = new AssignmentModel();
+    $depotId = $_SESSION['user']['sltb_depot_id'] ?? null;
+    header('Content-Type: application/json');
+    if (!$depotId) { http_response_code(401); echo json_encode(['ok'=>false]); return; }
+    $departure = trim((string)($_GET['departure'] ?? ''));
+    if (!preg_match('/^\d{2}:\d{2}$/', $departure)) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'bad_departure']); return;
+    }
+    $from = trim((string)($_GET['period_from'] ?? date('Y-m-d')));
+    $to   = trim((string)($_GET['period_to']   ?? $from));
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) $from = date('Y-m-d');
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $to))   $to   = $from;
+    echo json_encode(['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure, $from, $to));
 }
 
 public function assignmentShifts()
@@ -196,34 +215,34 @@ public function assignmentShifts()
             return;
         }
 
-        $view = in_array($_GET['view'] ?? '', ['current', 'usual', 'seasonal'], true)
-            ? (string)$_GET['view']
-            : 'current';
+        $tab = in_array($_GET['tab'] ?? '', ['regular', 'special'], true)
+            ? (string)$_GET['tab']
+            : 'regular';
 
         $date = (string)($_GET['date'] ?? date('Y-m-d'));
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             $date = date('Y-m-d');
         }
 
-        $current = $this->m->currentTimetables($dep, $date);
-        $usual = $this->m->usualTimetables($dep);
-        $seasonal = $this->m->seasonalTimetables($dep, $date);
+        // listUsual returns ALL SLTB timetable rows for this depot.
+        // Regular = open-ended schedules (no effective_to).
+        // Special = time-bounded overrides (has effective_to).
+        $all = $this->m->usualTimetables($dep);
+        $regularRows = array_values(array_filter($all, fn($r) => empty(trim((string)($r['effective_to'] ?? '')))));
+        $specialRows = array_values(array_filter($all, fn($r) => !empty(trim((string)($r['effective_to'] ?? '')))));
 
-        $rows = match ($view) {
-            'usual' => $usual,
-            'seasonal' => $seasonal,
-            default => $current,
-        };
+        $depotInfo = $this->m->depot($dep);
 
-        $this->view('depot_officer','timetables',[
-            'me'=>$u,
-            'selected_view' => $view,
+        $this->view('depot_officer', 'timetables', [
+            'me'            => $u,
+            'tab'           => $tab,
             'selected_date' => $date,
-            'rows' => $rows,
-            'count_current' => count($current),
-            'count_usual' => count($usual),
-            'count_seasonal' => count($seasonal),
-            'msg'=>$_GET['msg'] ?? null,
+            'regular_rows'  => $regularRows,
+            'special_rows'  => $specialRows,
+            'count_regular' => count($regularRows),
+            'count_special' => count($specialRows),
+            'depot_name'    => $depotInfo['name'] ?? 'Colombo Depot',
+            'msg'           => $_GET['msg'] ?? null,
         ]);
     }
 
@@ -404,70 +423,136 @@ public function trip_logs(): void{
     $m = new \App\models\depot_officer\TrackingModel();
     $rows = $m->logs($from, $to, $filters);
 
+    $hasRunning = count(array_filter($rows, fn($r) => in_array($r['status'] ?? '', ['InProgress', 'Delayed']))) > 0;
+
     $this->view('depot_officer', 'trip_logs', [
-        'rows' => $rows,
-        'date' => $date,
-        'routes' => $this->m->routes(),
-        'buses'  => $this->m->depotBuses($dep),
-        'filters'=> $filters,
+        'rows'      => $rows,
+        'date'      => $date,
+        'routes'    => $this->m->routes(),
+        'buses'     => $this->m->depotBuses($dep),
+        'filters'   => $filters,
+        'last_sync' => date('H:i:s'),
+        'has_running'=> $hasRunning,
     ]);
 }
 
 
     public function reports() {
         $u = $this->m->me(); $dep = $this->m->myDepotId($u);
-        $from = $_GET['from'] ?? date('Y-m-d');
+        $from = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
         $to   = $_GET['to']   ?? date('Y-m-d');
 
+        $validTypes = ['attendance','driver_performance','trip_completion','delay_analysis','bus_utilization'];
+        $reportType = in_array($_GET['report_type'] ?? '', $validTypes, true)
+            ? (string)$_GET['report_type']
+            : 'attendance';
+
         $filters = [
-            'route' => $_GET['route'] ?? '',
+            'route'  => $_GET['route']  ?? '',
             'bus_id' => $_GET['bus_id'] ?? '',
             'status' => $_GET['status'] ?? '',
         ];
 
+        /* ── CSV export for HR reports ── */
         if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+            if ($reportType === 'attendance') {
+                $rows = $this->m->hrAttendanceReport($dep, $from, $to);
+                $out = fopen('php://temp', 'r+');
+                fputcsv($out, ['Name','Role','Present Days','Absent Days','Leave Days','Attendance %','Last Absent Date']);
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r['full_name'] ?? '',
+                        $r['role']      ?? '',
+                        $r['present_days'] ?? 0,
+                        $r['absent_days']  ?? 0,
+                        $r['leave_days']   ?? 0,
+                        $r['att_pct']      ?? 0,
+                        $r['last_absent_date'] ?? '',
+                    ]);
+                }
+                rewind($out);
+                header('Content-Type: text/csv');
+                header('Content-Disposition: attachment; filename="attendance-report-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
+                echo stream_get_contents($out); exit;
+            }
+            if ($reportType === 'driver_performance') {
+                $rows = $this->m->hrDriverPerformanceReport($dep, $from, $to);
+                $out = fopen('php://temp', 'r+');
+                fputcsv($out, ['Driver Name','Trips Assigned','Completed','Delayed','Cancelled','On-Time %','Avg Delay (min)']);
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r['driver_name']    ?? '',
+                        $r['trips_assigned'] ?? 0,
+                        $r['completed']      ?? 0,
+                        $r['delayed']        ?? 0,
+                        $r['cancelled']      ?? 0,
+                        $r['on_time_pct']    ?? 0,
+                        $r['avg_delay_min']  ?? 0,
+                    ]);
+                }
+                rewind($out);
+                header('Content-Type: text/csv');
+                header('Content-Disposition: attachment; filename="driver-performance-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
+                echo stream_get_contents($out); exit;
+            }
+            /* existing operational CSV export */
             $tracking = new \App\models\depot_officer\TrackingModel();
             $logs = $tracking->logs($from, $to, $filters);
             $out = fopen('php://temp', 'r+');
-            fputcsv($out, ['trip_date', 'route', 'turn_number', 'bus_id', 'departure_time', 'arrival_time', 'status']);
+            fputcsv($out, ['trip_date','route','turn_number','bus_id','departure_time','arrival_time','status']);
             foreach ($logs as $r) {
                 fputcsv($out, [
-                    $r['trip_date'] ?? '',
-                    $r['route'] ?? '',
-                    $r['turn_number'] ?? '',
-                    $r['bus_id'] ?? '',
-                    $r['departure_time'] ?? '',
-                    $r['arrival_time'] ?? '',
-                    $r['status'] ?? '',
+                    $r['trip_date'] ?? '', $r['route'] ?? '', $r['turn_number'] ?? '',
+                    $r['bus_id'] ?? '', $r['departure_time'] ?? '', $r['arrival_time'] ?? '', $r['status'] ?? '',
                 ]);
             }
             rewind($out);
-            $csv = stream_get_contents($out) ?: '';
             header('Content-Type: text/csv');
             header('Content-Disposition: attachment; filename="depot-report-'.$dep.'-'.$from.'-to-'.$to.'.csv"');
-            echo $csv; exit;
+            echo stream_get_contents($out); exit;
         }
 
+        /* ── Fetch HR data for the two HR report types ── */
+        $hrRows     = [];
+        $hrSummary  = [];
+        if ($reportType === 'attendance') {
+            $hrRows = $this->m->hrAttendanceReport($dep, $from, $to);
+            $totalStaff  = count($hrRows);
+            $avgAtt      = $totalStaff ? round(array_sum(array_column($hrRows, 'att_pct')) / $totalStaff, 1) : 0;
+            $mostAbsent  = $totalStaff ? $hrRows[0]['full_name'] . ' (' . $hrRows[0]['absent_days'] . ' days)' : '—';
+            $hrSummary   = ['total_staff'=>$totalStaff, 'avg_att_pct'=>$avgAtt, 'most_absent'=>$mostAbsent];
+        } elseif ($reportType === 'driver_performance') {
+            $hrRows = $this->m->hrDriverPerformanceReport($dep, $from, $to);
+            $totalTrips  = (int)array_sum(array_column($hrRows, 'trips_assigned'));
+            $avgOnTime   = count($hrRows) ? round(array_sum(array_column($hrRows, 'on_time_pct')) / count($hrRows), 1) : 0;
+            $avgDelay    = count($hrRows) ? round(array_sum(array_column($hrRows, 'avg_delay_min')) / count($hrRows), 1) : 0;
+            $hrSummary   = ['total_trips'=>$totalTrips, 'on_time_pct'=>$avgOnTime, 'avg_delay_min'=>$avgDelay];
+        }
+
+        /* ── Operational analytics (kept for operational report types) ── */
         $analyticsPack = $this->buildOfficerAnalyticsPack($dep, $from, $to, [
             'route_no' => '',
             'route_id' => (int)($filters['route'] ?? 0),
-            'bus_reg' => (string)($filters['bus_id'] ?? ''),
-            'status' => (string)($filters['status'] ?? ''),
+            'bus_reg'  => (string)($filters['bus_id'] ?? ''),
+            'status'   => (string)($filters['status'] ?? ''),
         ]);
 
-        $this->view('depot_officer','reports',[
-            'me'=>$u,
-            'from'=>$from,
-            'to'=>$to,
-            'kpis'=>$analyticsPack['kpis'],
-            'analyticsJson'=>json_encode(
+        $this->view('depot_officer', 'reports', [
+            'me'           => $u,
+            'from'         => $from,
+            'to'           => $to,
+            'report_type'  => $reportType,
+            'hr_rows'      => $hrRows,
+            'hr_summary'   => $hrSummary,
+            'kpis'         => $analyticsPack['kpis'],
+            'analyticsJson'=> json_encode(
                 $analyticsPack['chartData'],
                 JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK |
                 JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
             ),
-            'routes'=>$this->m->routes(),
-            'buses'=>$this->m->depotBuses($dep),
-            'filters'=>$filters,
+            'routes'       => $this->m->routes(),
+            'buses'        => $this->m->depotBuses($dep),
+            'filters'      => $filters,
         ]);
     }
 

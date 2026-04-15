@@ -75,7 +75,8 @@ $routes = [
     '/O/dashboard'     => ['DepotOfficerController','dashboard'],
     '/O/reports'       => ['DepotOfficerController','reports'],
     '/O/reports/details' => ['DepotOfficerController','reportDetails'],
-    '/O/assignments'   => ['DepotOfficerController','assignments'],   // NEW
+    '/O/assignments'            => ['DepotOfficerController','assignments'],
+    '/O/assignments/staff-conflicts' => ['DepotOfficerController','assignmentStaffConflicts'],
     '/O/timetables'    => ['DepotOfficerController','timetables'],    // NEW
     '/O/messages'      => ['DepotOfficerController','messages'],      // NEW
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],     // NEW
@@ -98,16 +99,18 @@ $routes = [
   // Private Timekeeper
     '/TP/dashboard'   => ['TimekeeperPrivateController','dashboard'],
     '/TP/trip_entry'  => ['TimekeeperPrivateController','trip_entry'],
-    '/TP/turns'      => ['TimekeeperPrivateController','turns'],
     '/TP/history'     => ['TimekeeperPrivateController','history'],
+    '/TP/live'        => ['TimekeeperPrivateController','live'],
+    '/TP/messages'    => ['TimekeeperPrivateController','messages'],
     '/TP'             => ['TimekeeperPrivateController','dashboard'],
     '/TP/profile'     => ['TimekeeperPrivateController','profile'],
 
     // SLTB Timekeeper
     '/TS/dashboard'  => ['TimekeeperSltbController','dashboard'],
-    '/TS/turns' => ['TimekeeperSltbController','turns'],
     '/TS/history'  => ['TimekeeperSltbController','history'],
     '/TS/trip_entry'    => ['TimekeeperSltbController','entry'],
+    '/TS/live'          => ['TimekeeperSltbController','live'],
+    '/TS/messages'      => ['TimekeeperSltbController','messages'],
     '/TS/profile' => ['TimekeeperSltbController','profile'],
     '/TS'            => ['TimekeeperSltbController','dashboard'],
 

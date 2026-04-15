@@ -51,6 +51,7 @@ class AuthController extends BaseController
             'role' => $user['role'],
             'private_operator_id' => $user['private_operator_id'] ?? null,
             'sltb_depot_id' => $user['sltb_depot_id'] ?? null,
+            'timekeeper_location' => $user['timekeeper_location'] ?? 'Common',
             'first_name' => $user['first_name'] ?? null,
             'last_name' => $user['last_name'] ?? null,
             'email' => $user['email'] ?? null,

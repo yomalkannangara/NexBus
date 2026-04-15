@@ -508,4 +508,69 @@ public function allToday(int $depotId): array {
         );
         return $st->execute([$id, $depotId]);
     }
+
+    /**
+     * Counts of available (unassigned today) buses, drivers, conductors for the mini analytics bar.
+     */
+    public function availability(int $depotId): array
+    {
+        $cnt = function (string $sql, array $p = []): int {
+            $st = $this->pdo->prepare($sql);
+            $st->execute($p);
+            return (int)($st->fetchColumn() ?? 0);
+        };
+
+        $assignedBuses      = $cnt("SELECT COUNT(DISTINCT bus_reg_no) FROM sltb_assignments WHERE sltb_depot_id=? AND assigned_date=CURDATE()", [$depotId]);
+        $totalBuses         = $cnt("SELECT COUNT(*) FROM sltb_buses WHERE sltb_depot_id=? AND status='Active'", [$depotId]);
+        $assignedDrivers    = $cnt("SELECT COUNT(DISTINCT sltb_driver_id) FROM sltb_assignments WHERE sltb_depot_id=? AND assigned_date=CURDATE()", [$depotId]);
+        $totalDrivers       = $cnt("SELECT COUNT(*) FROM sltb_drivers WHERE sltb_depot_id=? AND status='Active'", [$depotId]);
+        $assignedConductors = $cnt("SELECT COUNT(DISTINCT sltb_conductor_id) FROM sltb_assignments WHERE sltb_depot_id=? AND assigned_date=CURDATE()", [$depotId]);
+        $totalConductors    = $cnt("SELECT COUNT(*) FROM sltb_conductors WHERE sltb_depot_id=? AND status='Active'", [$depotId]);
+
+        return [
+            'available_buses'       => max(0, $totalBuses - $assignedBuses),
+            'total_buses'           => $totalBuses,
+            'available_drivers'     => max(0, $totalDrivers - $assignedDrivers),
+            'total_drivers'         => $totalDrivers,
+            'available_conductors'  => max(0, $totalConductors - $assignedConductors),
+            'total_conductors'      => $totalConductors,
+        ];
+    }
+
+    /**
+     * Map HH:MM departure time to the ENUM shift category used in sltb_assignments.
+     */
+    private function timeToShift(string $hhmm): string
+    {
+        $h = (int)substr($hhmm, 0, 2);
+        if ($h < 12) return 'Morning';
+        if ($h < 17) return 'Evening';
+        return 'Night';
+    }
+
+    /**
+     * For a given timetable departure time (HH:MM) and effective date range, return
+     * driver/conductor IDs already assigned to a different bus within that period,
+     * along with which bus they are assigned to.
+     * Used by the JS conflict-checker AJAX endpoint.
+     */
+    public function staffConflictsForTurn(int $depotId, string $departureTime, string $from, string $to): array
+    {
+        $shift = $this->timeToShift($departureTime);
+        $sql = "SELECT a.sltb_driver_id, a.sltb_conductor_id, a.bus_reg_no
+                FROM sltb_assignments a
+                WHERE a.sltb_depot_id=? AND a.shift=?
+                  AND a.assigned_date BETWEEN ? AND ?";
+        $st = $this->pdo->prepare($sql);
+        $st->execute([$depotId, $shift, $from, $to]);
+        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        $drivers = [];
+        $conductors = [];
+        foreach ($rows as $r) {
+            if ($r['sltb_driver_id'])    $drivers[(int)$r['sltb_driver_id']]    = $r['bus_reg_no'];
+            if ($r['sltb_conductor_id']) $conductors[(int)$r['sltb_conductor_id']] = $r['bus_reg_no'];
+        }
+        return ['drivers' => $drivers, 'conductors' => $conductors];
+    }
 }

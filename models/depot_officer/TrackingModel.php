@@ -22,23 +22,48 @@ class TrackingModel extends BaseModel
         // build base query and params
         $sql = "
         SELECT
-            t.sltb_trip_id,
-            COALESCE(t.trip_date, CURDATE())               AS trip_date,
-            r.route_no                                     AS route,
+            t.sltb_trip_id                                              AS timekeeper_id,
+            COALESCE(t.trip_date, CURDATE())                            AS trip_date,
+            r.route_no                                                  AS route,
             COALESCE(t.turn_no,
                      ROW_NUMBER() OVER (
                         PARTITION BY t.bus_reg_no, COALESCE(t.trip_date, CURDATE())
-                        ORDER BY t.departure_time
+                        ORDER BY COALESCE(t.scheduled_departure_time, t.departure_time)
                      )
-            )                                              AS turn_number,
-            t.bus_reg_no                                   AS bus_id,
-            t.departure_time,
-            t.arrival_time,
-            t.status
+            )                                                           AS turn_number,
+            t.bus_reg_no                                                AS bus_id,
+            COALESCE(sd.full_name, '—')                                 AS driver,
+            t.scheduled_departure_time                                  AS scheduled_dep,
+            t.departure_time                                            AS actual_dep,
+            t.scheduled_arrival_time                                    AS scheduled_arr,
+            t.arrival_time                                              AS actual_arr,
+            CASE
+                WHEN t.status = 'InProgress' AND tm_latest.operational_status = 'Delayed' THEN 'Delayed'
+                ELSE COALESCE(t.status, 'Planned')
+            END                                                         AS status,
+            CASE
+                WHEN t.cancelled_at IS NOT NULL
+                    THEN t.cancelled_at
+                WHEN t.arrival_time IS NOT NULL
+                    THEN CONCAT(COALESCE(t.trip_date, CURDATE()), ' ', t.arrival_time)
+                WHEN t.departure_time IS NOT NULL
+                    THEN CONCAT(COALESCE(t.trip_date, CURDATE()), ' ', t.departure_time)
+                ELSE CONCAT(COALESCE(t.trip_date, CURDATE()), ' 00:00:00')
+            END                                                         AS last_updated
         FROM sltb_trips t
-        LEFT JOIN timetables tt ON tt.timetable_id = t.timetable_id
-        LEFT JOIN routes r       ON r.route_id = COALESCE(t.route_id, tt.route_id)
-        INNER JOIN sltb_buses b  ON b.reg_no = t.bus_reg_no
+        LEFT JOIN timetables tt   ON tt.timetable_id = t.timetable_id
+        LEFT JOIN routes r        ON r.route_id = COALESCE(t.route_id, tt.route_id)
+        LEFT JOIN sltb_drivers sd ON sd.sltb_driver_id = t.sltb_driver_id
+        INNER JOIN sltb_buses b   ON b.reg_no = t.bus_reg_no
+        LEFT JOIN (
+            SELECT tm1.bus_reg_no, tm1.operational_status
+            FROM tracking_monitoring tm1
+            INNER JOIN (
+                SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                FROM tracking_monitoring
+                GROUP BY bus_reg_no
+            ) tm2 ON tm2.bus_reg_no = tm1.bus_reg_no AND tm2.max_snap = tm1.snapshot_at
+        ) tm_latest ON tm_latest.bus_reg_no = t.bus_reg_no
         WHERE b.sltb_depot_id = :depot
           AND COALESCE(t.trip_date, CURDATE()) BETWEEN :from AND :to
         ";
@@ -69,8 +94,13 @@ class TrackingModel extends BaseModel
             $params[':arr_time'] = rtrim($filters['arrival_time'], '%') . '%';
         }
         if (!empty($filters['status'])) {
-            $sql .= "\n AND t.status = :status";
-            $params[':status'] = $filters['status'];
+            if ($filters['status'] === 'Delayed') {
+                // match rows explicitly marked Delayed OR InProgress buses tracked as Delayed
+                $sql .= "\n AND (t.status = 'Delayed' OR (t.status = 'InProgress' AND tm_latest.operational_status = 'Delayed'))";
+            } else {
+                $sql .= "\n AND t.status = :status";
+                $params[':status'] = $filters['status'];
+            }
         }
 
         $sql .= "\n ORDER BY trip_date DESC, t.departure_time DESC, t.sltb_trip_id DESC";
