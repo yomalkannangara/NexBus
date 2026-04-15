@@ -841,7 +841,7 @@ public function fleet()
             return $this->redirect('/M/fleet');
         }
 
-        $m = new \App\models\depot_officer\BusProfileModel();
+        $m = new FleetModel();
         $bus = $m->getBusByReg($busReg);
         if (empty($bus)) {
             return $this->redirect('/M/fleet');
@@ -849,9 +849,9 @@ public function fleet()
 
         $this->view('depot_officer', 'bus_profile', [
             'bus'         => $bus,
-            'tracking'    => $m->getTracking($busReg),
-            'assignments' => $m->getAssignments($busReg),
-            'trips'       => $m->getTrips($busReg),
+            'tracking'    => [],
+            'assignments' => [],
+            'trips'       => [],
             'backUrl'     => '/M/fleet',
         ]);
     }

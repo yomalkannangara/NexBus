@@ -7,6 +7,30 @@ use App\models\common\BaseModel;
 
 class PerformanceModel extends BaseModel
 {
+    private function depotId(): ?int
+    {
+        $u = $_SESSION['user'] ?? [];
+        if (isset($u['sltb_depot_id']) && $u['sltb_depot_id'] !== '') {
+            return (int)$u['sltb_depot_id'];
+        }
+        if (isset($u['depot_id']) && $u['depot_id'] !== '') {
+            return (int)$u['depot_id'];
+        }
+        return null;
+    }
+
+    private function depotJoin(): array
+    {
+        $depotId = $this->depotId();
+        if ($depotId === null) {
+            return ['join' => '', 'params' => []];
+        }
+        return [
+            'join' => ' JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id',
+            'params' => [':depot_id' => $depotId],
+        ];
+    }
+
     private function getRouteDisplayName(string $stopsJson): string {
         $stops = json_decode($stopsJson, true) ?: [];
         if (empty($stops)) return 'Unknown';
@@ -176,6 +200,13 @@ class PerformanceModel extends BaseModel
         $params = [];
         $routeClause = '';
         $busClause = '';
+        $depotClause = '';
+
+        $scope = $this->depotJoin();
+        if (!empty($scope['params'])) {
+            $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+            $params += $scope['params'];
+        }
 
         // Optional route filter
         if (!empty($filters['route_no'])) {
@@ -196,6 +227,7 @@ class PerformanceModel extends BaseModel
                     FROM tracking_monitoring tm
                     WHERE tm.operator_type='SLTB'
                       AND DATE(tm.snapshot_at)=CURDATE()
+                                            $depotClause
                       AND tm.operational_status='Delayed' $routeClause $busClause
                 ) latest WHERE latest.rn = 1";
         try {
@@ -208,7 +240,7 @@ class PerformanceModel extends BaseModel
         $sql = "SELECT COALESCE(SUM(tm.speed_violations),0)
                 FROM tracking_monitoring tm
                 WHERE tm.operator_type='SLTB'
-                  AND DATE(tm.snapshot_at)=CURDATE() $routeClause $busClause";
+                                    AND DATE(tm.snapshot_at)=CURDATE() $depotClause $routeClause $busClause";
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
@@ -219,7 +251,7 @@ class PerformanceModel extends BaseModel
         $sql = "SELECT AVG(tm.reliability_index)
                 FROM tracking_monitoring tm
                 WHERE tm.operator_type='SLTB'
-                  AND DATE(tm.snapshot_at)=CURDATE() $routeClause $busClause";
+                                    AND DATE(tm.snapshot_at)=CURDATE() $depotClause $routeClause $busClause";
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
@@ -233,7 +265,7 @@ class PerformanceModel extends BaseModel
                     COUNT(*) AS total
                 FROM tracking_monitoring tm
                 WHERE tm.operator_type='SLTB'
-                  AND DATE(tm.snapshot_at)=CURDATE() $routeClause $busClause";
+                                    AND DATE(tm.snapshot_at)=CURDATE() $depotClause $routeClause $busClause";
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
@@ -251,13 +283,18 @@ class PerformanceModel extends BaseModel
     public function getSLTBRoutes(): array
     {
         try {
+            $scope = $this->depotJoin();
             // Get distinct routes that have SLTB tracking data
             $sql = "SELECT DISTINCT r.route_no, r.route_id, r.route_name as name
                     FROM routes r
                     JOIN tracking_monitoring tm ON tm.route_id = r.route_id
+                    {$scope['join']}
                     WHERE tm.operator_type = 'SLTB'
+                      AND DATE(tm.snapshot_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                     ORDER BY CAST(r.route_no AS UNSIGNED), r.route_no";
-            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $st = $this->pdo->prepare($sql);
+            $st->execute($scope['params']);
+            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
             return [];
         }
@@ -266,8 +303,12 @@ class PerformanceModel extends BaseModel
     public function getSLTBBuses(): array
     {
         try {
-            $sql = "SELECT bus_registration_no as reg_no FROM sltb_buses ORDER BY bus_registration_no";
-            return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $depotId = $this->depotId();
+            if ($depotId === null) return [];
+            $sql = "SELECT reg_no FROM sltb_buses WHERE sltb_depot_id = :depot_id ORDER BY reg_no";
+            $st = $this->pdo->prepare($sql);
+            $st->execute([':depot_id' => $depotId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
             return [];
         }
@@ -278,8 +319,7 @@ class PerformanceModel extends BaseModel
     public function getBusStatusData(array $filters = []): array
     {
         try {
-            $u       = $this->me();
-            $depotId = $u['sltb_depot_id'] ?? $u['depot_id'] ?? null;
+            $depotId = $this->depotId();
 
             $params      = [];
             $depotClause = '';
@@ -331,8 +371,14 @@ class PerformanceModel extends BaseModel
     public function getDelayedByRouteData(array $filters = []): array
     {
         try {
+            $depotId = $this->depotId();
             $params = [];
             $busClause = '';
+            $depotClause = '';
+            if ($depotId !== null) {
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $params[':depot_id'] = $depotId;
+            }
             if (!empty($filters['bus_reg'])) {
                 $busClause = " AND tm.bus_reg_no = :bus_reg";
                 $params[':bus_reg'] = $filters['bus_reg'];
@@ -344,7 +390,7 @@ class PerformanceModel extends BaseModel
                     FROM tracking_monitoring tm
                     LEFT JOIN routes r ON r.route_id = tm.route_id
                     WHERE tm.operator_type='SLTB' 
-                      AND DATE(tm.snapshot_at)=CURDATE() $busClause
+                                            AND DATE(tm.snapshot_at)=CURDATE() $depotClause $busClause
                     GROUP BY r.route_id, r.route_no
                     ORDER BY total DESC
                     LIMIT 8";
@@ -372,8 +418,14 @@ class PerformanceModel extends BaseModel
     public function getSpeedByBusData(array $filters = []): array
     {
         try {
+            $depotId = $this->depotId();
             $params = [];
             $routeClause = '';
+            $depotClause = '';
+            if ($depotId !== null) {
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $params[':depot_id'] = $depotId;
+            }
             if (!empty($filters['route_no'])) {
                 $routeClause = " AND EXISTS (SELECT 1 FROM routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
                 $params[':route_no'] = $filters['route_no'];
@@ -383,7 +435,7 @@ class PerformanceModel extends BaseModel
                            SUM(COALESCE(tm.speed_violations, 0)) AS violations
                     FROM tracking_monitoring tm
                     WHERE tm.operator_type='SLTB' 
-                      AND DATE(tm.snapshot_at)=CURDATE() $routeClause
+                                            AND DATE(tm.snapshot_at)=CURDATE() $depotClause $routeClause
                     GROUP BY tm.bus_reg_no
                     ORDER BY violations DESC
                     LIMIT 9";
@@ -409,17 +461,25 @@ class PerformanceModel extends BaseModel
     public function getRevenueData(array $filters = []): array
     {
         try {
+            $depotId = $this->depotId();
+            $depotClause = '';
+            $params = [];
+            if ($depotId !== null) {
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $params[':depot_id'] = $depotId;
+            }
             $sql = "SELECT 
                         DATE_FORMAT(tm.snapshot_at, '%b') AS month,
                         SUM(COALESCE(tm.revenue, 0)) AS revenue
                     FROM tracking_monitoring tm
                     WHERE tm.operator_type='SLTB'
                       AND YEAR(tm.snapshot_at) = YEAR(CURDATE())
+                      $depotClause
                     GROUP BY MONTH(tm.snapshot_at), DATE_FORMAT(tm.snapshot_at, '%b')
                     ORDER BY MONTH(tm.snapshot_at)";
             
             $st = $this->pdo->prepare($sql);
-            $st->execute();
+            $st->execute($params);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
             
             $labels = [];
@@ -439,9 +499,16 @@ class PerformanceModel extends BaseModel
     public function getWaitTimeData(array $filters = []): array
     {
         try {
+            $depotId = $this->depotId();
             $params = [];
             $routeClause = '';
             $busClause = '';
+            $depotClause = '';
+
+            if ($depotId !== null) {
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $params[':depot_id'] = $depotId;
+            }
 
             if (!empty($filters['route_no'])) {
                     $routeClause = " AND EXISTS (SELECT 1 FROM routes r WHERE r.route_id = tm.route_id AND r.route_no = :route_no)";
@@ -459,7 +526,7 @@ class PerformanceModel extends BaseModel
                             SUM(CASE WHEN tm.avg_delay_min >= 15 THEN 1 ELSE 0 END) AS over_15
                         FROM tracking_monitoring tm
                         WHERE tm.operator_type='SLTB' 
-                          AND DATE(tm.snapshot_at)=CURDATE() $routeClause $busClause";
+                                                    AND DATE(tm.snapshot_at)=CURDATE() $depotClause $routeClause $busClause";
                 
                 $st = $this->pdo->prepare($sql);
                 $st->execute($params);
@@ -479,8 +546,14 @@ class PerformanceModel extends BaseModel
     public function getComplaintsByRouteData(array $filters = []): array
     {
         try {
+            $depotId = $this->depotId();
             $params = [];
             $busClause = '';
+            $depotClause = '';
+            if ($depotId !== null) {
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = c.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $params[':depot_id'] = $depotId;
+            }
             if (!empty($filters['bus_reg'])) {
                 $busClause = " AND c.bus_reg_no = :bus_reg";
                 $params[':bus_reg'] = $filters['bus_reg'];
@@ -491,7 +564,7 @@ class PerformanceModel extends BaseModel
                     LEFT JOIN routes r ON r.route_id = c.route_id
                     WHERE c.operator_type='SLTB'
                       AND LOWER(c.type) = 'complaint'
-                      AND DATE(c.created_at)=CURDATE() $busClause
+                                            AND DATE(c.created_at)=CURDATE() $depotClause $busClause
                     GROUP BY r.route_id, r.route_no
                     ORDER BY count DESC
                     LIMIT 8";

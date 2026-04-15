@@ -39,6 +39,17 @@ class FeedbackModel extends BaseModel
         return (bool)$this->depotId(); 
     }
 
+    private function depotComplaintExistsSql(string $idParam = ':id'): string
+    {
+        return "EXISTS (
+            SELECT 1
+              FROM complaints c2
+              JOIN sltb_buses sb2 ON sb2.reg_no = c2.bus_reg_no
+             WHERE c2.complaint_id = {$idParam}
+               AND sb2.sltb_depot_id = :depot
+        )";
+    }
+
     private function getRouteDisplayName(string $stopsJson): string {
         $stops = json_decode($stopsJson, true) ?: [];
         if (empty($stops)) return 'Unknown';
@@ -135,16 +146,48 @@ class FeedbackModel extends BaseModel
     
     public function cards(): array
     {
-        $depot = $this->depotId();
-        $depotFilter = $this->hasDepot() 
-            ? " AND c.complaint_id IN (SELECT c2.complaint_id FROM complaints c2 LEFT JOIN sltb_buses sb ON sb.reg_no=c2.bus_reg_no WHERE c2.operator_type='SLTB' AND sb.sltb_depot_id={$depot})"
-            : " AND c.operator_type='SLTB'";
-        
-        $totalMonth = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE operator_type='SLTB' AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE())" . $depotFilter);
-        $open       = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE operator_type='SLTB' AND status IN ('Open','In Progress')" . $depotFilter);
-        $resolved   = $this->countSafe("SELECT COUNT(*) c FROM complaints WHERE operator_type='SLTB' AND status='Resolved' AND resolved_at IS NOT NULL AND YEAR(resolved_at)=YEAR(CURDATE()) AND MONTH(resolved_at)=MONTH(CURDATE())" . $depotFilter);
-        $avgRating  = $this->complaintsHasRating()
-            ? $this->avgSafe("SELECT AVG(rating) a FROM complaints WHERE operator_type='SLTB' AND rating IS NOT NULL AND rating>0" . $depotFilter)
+        if (!$this->hasDepot()) {
+            return [
+                ['value' => '0', 'label' => 'Total This Month',   'trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'message'],
+                ['value' => '0', 'label' => 'Open Complaints',    'trendText' => '', 'trend' => '', 'trendClass' => 'red',   'icon' => 'message-circle'],
+                ['value' => '0', 'label' => 'Resolved This Month', 'trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'message-circle'],
+                ['value' => '0.0', 'label' => 'Average Rating',    'trendText' => '', 'trend' => '', 'trendClass' => 'green', 'icon' => 'star'],
+            ];
+        }
+
+        $params = [':depot' => $this->depotId()];
+        $depotJoin = " JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no ";
+        $depotWhere = " c.operator_type='SLTB' AND sb.sltb_depot_id=:depot ";
+
+        $totalMonth = $this->countSafe(
+            "SELECT COUNT(*) c FROM complaints c {$depotJoin}
+              WHERE {$depotWhere}
+                AND YEAR(c.created_at)=YEAR(CURDATE())
+                AND MONTH(c.created_at)=MONTH(CURDATE())",
+            $params
+        );
+        $open = $this->countSafe(
+            "SELECT COUNT(*) c FROM complaints c {$depotJoin}
+              WHERE {$depotWhere}
+                AND c.status IN ('Open','In Progress')",
+            $params
+        );
+        $resolved = $this->countSafe(
+            "SELECT COUNT(*) c FROM complaints c {$depotJoin}
+              WHERE {$depotWhere}
+                AND c.status='Resolved'
+                AND c.resolved_at IS NOT NULL
+                AND YEAR(c.resolved_at)=YEAR(CURDATE())
+                AND MONTH(c.resolved_at)=MONTH(CURDATE())",
+            $params
+        );
+        $avgRating = $this->complaintsHasRating()
+            ? $this->avgSafe(
+                "SELECT AVG(c.rating) a FROM complaints c {$depotJoin}
+                  WHERE {$depotWhere}
+                    AND c.rating IS NOT NULL AND c.rating>0",
+                $params
+            )
             : 0.0;
 
         return [
@@ -157,6 +200,7 @@ class FeedbackModel extends BaseModel
 
     public function list(): array
     {
+        if (!$this->hasDepot()) return [];
         try {
             $ratingSelect = $this->complaintsHasRating() ? "IFNULL(c.rating, 0) AS rating" : "0 AS rating";
             // Align to actual schema: complaints has complaint_id, passenger_id, bus_reg_no, assigned_to_user_id, resolved_at, reply_text
@@ -175,10 +219,14 @@ class FeedbackModel extends BaseModel
                 FROM complaints c
                 LEFT JOIN passengers p ON p.passenger_id = c.passenger_id
                 LEFT JOIN routes r ON r.route_id = c.route_id
+                JOIN sltb_buses sb ON sb.reg_no = c.bus_reg_no
+                WHERE c.operator_type='SLTB' AND sb.sltb_depot_id=:depot
                 ORDER BY c.created_at DESC
                 LIMIT 200";
 
-            $rows = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $st = $this->pdo->prepare($sql);
+            $st->execute([':depot' => $this->depotId()]);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
             
             foreach ($rows as &$r) {
                 $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
@@ -192,14 +240,19 @@ class FeedbackModel extends BaseModel
 
     public function resolve(array $d): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
             $note = trim((string)($d['note'] ?? ''));
             $sql = "UPDATE complaints
                        SET status='Resolved',
                            resolved_at=NOW()" . ($note !== '' ? ", reply_text=:note" : "") . "
-                     WHERE complaint_id=:id";
+                     WHERE complaint_id=:id
+                       AND " . $this->depotComplaintExistsSql(':id');
             $st  = $this->pdo->prepare($sql);
-            $params = [':id' => (int)($d['complaint_id'] ?? 0)];
+            $params = [
+                ':id' => (int)($d['complaint_id'] ?? 0),
+                ':depot' => $this->depotId(),
+            ];
             if ($note !== '') $params[':note'] = $note;
             return $st->execute($params);
         } catch (PDOException $e) {
@@ -209,13 +262,18 @@ class FeedbackModel extends BaseModel
 
     public function close(array $d): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
             $sql = "UPDATE complaints
                        SET status='Closed',
                            resolved_at=COALESCE(resolved_at, NOW())
-                     WHERE complaint_id=:id";
+                     WHERE complaint_id=:id
+                       AND " . $this->depotComplaintExistsSql(':id');
             $st  = $this->pdo->prepare($sql);
-            return $st->execute([':id' => (int)($d['complaint_id'] ?? 0)]);
+            return $st->execute([
+                ':id' => (int)($d['complaint_id'] ?? 0),
+                ':depot' => $this->depotId(),
+            ]);
         } catch (PDOException $e) {
             return false;
         }
@@ -223,11 +281,19 @@ class FeedbackModel extends BaseModel
 
     public function updateStatus($idOrRef, string $status): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
             $id = is_numeric($idOrRef) ? (int)$idOrRef : (int)preg_replace('/\D+/', '', (string)$idOrRef);
-            $sql = "UPDATE complaints SET status = :status WHERE complaint_id = :id";
+            $sql = "UPDATE complaints
+                       SET status = :status
+                     WHERE complaint_id = :id
+                       AND " . $this->depotComplaintExistsSql(':id');
             $st = $this->pdo->prepare($sql);
-            return $st->execute([':status' => $status, ':id' => $id]);
+            return $st->execute([
+                ':status' => $status,
+                ':id' => $id,
+                ':depot' => $this->depotId(),
+            ]);
         } catch (PDOException $e) {
             return false;
         }
@@ -235,6 +301,7 @@ class FeedbackModel extends BaseModel
 
     public function sendResponse($idOrRef, string $message): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
             $id = is_numeric($idOrRef) ? (int)$idOrRef : (int)preg_replace('/\D+/', '', (string)$idOrRef);
             $msg = trim($message);
@@ -246,12 +313,14 @@ class FeedbackModel extends BaseModel
                        SET reply_text = :msg,
                            assigned_to_user_id = COALESCE(assigned_to_user_id, :uid),
                            status = CASE WHEN status='Open' THEN 'In Progress' ELSE status END
-                     WHERE complaint_id = :cid";
+                     WHERE complaint_id = :cid
+                       AND " . $this->depotComplaintExistsSql(':cid');
             $st = $this->pdo->prepare($sql);
             return $st->execute([
                 ':cid' => $id,
                 ':uid' => $uid ?: null,
                 ':msg' => $msg,
+                ':depot' => $this->depotId(),
             ]);
         } catch (PDOException $e) {
             return false;
@@ -260,12 +329,18 @@ class FeedbackModel extends BaseModel
 
     public function assign(array $d): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
-            $sql = "UPDATE complaints SET assigned_to_user_id=:uid, status='In Progress' WHERE complaint_id=:id";
+            $sql = "UPDATE complaints
+                       SET assigned_to_user_id=:uid,
+                           status='In Progress'
+                     WHERE complaint_id=:id
+                       AND " . $this->depotComplaintExistsSql(':id');
             $st  = $this->pdo->prepare($sql);
             return $st->execute([
                 ':uid' => (int)($d['user_id'] ?? 0),
                 ':id'  => (int)($d['complaint_id'] ?? 0),
+                ':depot' => $this->depotId(),
             ]);
         } catch (PDOException $e) {
             return false;
@@ -274,6 +349,7 @@ class FeedbackModel extends BaseModel
 
     public function reply(array $d): bool
     {
+        if (!$this->hasDepot()) return false;
         try {
             $msg = trim((string)($d['message'] ?? ''));
             if ($msg === '') return false;
@@ -284,12 +360,14 @@ class FeedbackModel extends BaseModel
                        SET reply_text = :msg,
                            assigned_to_user_id = COALESCE(assigned_to_user_id, :uid),
                            status = CASE WHEN status='Open' THEN 'In Progress' ELSE status END
-                     WHERE complaint_id = :cid";
+                     WHERE complaint_id = :cid
+                       AND " . $this->depotComplaintExistsSql(':cid');
             $st  = $this->pdo->prepare($sql);
             return $st->execute([
                 ':cid' => (int)($d['complaint_id'] ?? 0),
                 ':uid' => $uid ?: null,
                 ':msg' => $msg,
+                ':depot' => $this->depotId(),
             ]);
         } catch (PDOException $e) {
             return false;
