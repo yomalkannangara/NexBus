@@ -237,7 +237,7 @@
     const statusCls = over ? 'red' : (status === 'Delayed' ? 'red' : 'green');
 
     const locLink  = (b.lat && b.lng)
-      ? '<a href="https://maps.google.com/?q='+b.lat+','+b.lng+'" target="_blank" style="font-size:.75rem;color:#3b82f6">Map</a>'
+      ? '<a href="/A/dashboard?bus='+encodeURIComponent(b.busId)+'&lat='+encodeURIComponent(b.lat)+'&lng='+encodeURIComponent(b.lng)+'#admin-bus-map" style="font-size:.75rem;color:#3b82f6">Map</a>'
       : '<span style="color:#d1d5db">–</span>';
 
     return '<tr'+(over?' style="background:#fff5f5"':'')+'>'  

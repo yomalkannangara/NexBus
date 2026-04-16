@@ -1656,7 +1656,7 @@ document.addEventListener('keydown', function(e){
     var statusCls = over ? 'perf-badge--red' : (status === 'Delayed' ? 'perf-badge--gold' : 'perf-badge--green');
 
     var locLink = (b.lat && b.lng)
-      ? '<a href="https://maps.google.com/?q='+b.lat+','+b.lng+'" target="_blank" class="perf-badge perf-badge--blue" style="text-decoration:none">📍 Map</a>'
+      ? '<a href="/B/dashboard?bus='+encodeURIComponent(b.busId)+'&lat='+encodeURIComponent(b.lat)+'&lng='+encodeURIComponent(b.lng)+'#bo-live-map" class="perf-badge perf-badge--blue" style="text-decoration:none">📍 Map</a>'
       : '<span class="perf-badge perf-badge--gray">–</span>';
 
     return '<tr' + (over ? ' style="background:#fff5f5"' : '') + '>'
@@ -1860,7 +1860,7 @@ document.addEventListener('keydown', function(e){
     var statusCls = over ? 'perf-badge--red' : (status==='Delayed'?'perf-badge--gold':'perf-badge--green');
     var routeNo   = b.routeNo ? escHtml(String(b.routeNo)) : '—';
     var locLink   = (b.lat && b.lng)
-      ? '<a href="https://maps.google.com/?q='+b.lat+','+b.lng+'" target="_blank" class="perf-badge perf-badge--blue" style="text-decoration:none">📍 Map</a>'
+      ? '<a href="/B/dashboard?bus='+encodeURIComponent(b.busId)+'&lat='+encodeURIComponent(b.lat)+'&lng='+encodeURIComponent(b.lng)+'#bo-live-map" class="perf-badge perf-badge--blue" style="text-decoration:none">📍 Map</a>'
       : '<span class="perf-badge perf-badge--gray">—</span>';
     return '<tr'+(over?' style="background:#fff5f5"':'')+'>'+
       '<td><strong>'+escHtml(b.busId)+'</strong></td>'+

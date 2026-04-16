@@ -48,6 +48,12 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
 (function(){
+  var q = new URLSearchParams(window.location.search || '');
+  var focusBus = String(q.get('bus') || '').trim();
+  var focusLat = parseFloat(q.get('lat') || '');
+  var focusLng = parseFloat(q.get('lng') || '');
+  var focusDone = false;
+
   /* ── Map init ── */
   var map = L.map('admin-bus-map', { zoomControl: true }).setView([6.927, 79.861], 12);
 
@@ -186,6 +192,17 @@
         if(c) c.textContent = buses.length+' buses';
         if(v) v.textContent = viols+' speeding';
         if(u) u.textContent = 'Updated '+new Date().toLocaleTimeString();
+
+        if(!focusDone){
+          if(focusBus && markers[focusBus]){
+            map.setView(markers[focusBus].getLatLng(), 14);
+            markers[focusBus].openPopup();
+            focusDone = true;
+          } else if(Number.isFinite(focusLat) && Number.isFinite(focusLng)){
+            map.setView([focusLat, focusLng], 14);
+            focusDone = true;
+          }
+        }
       })
       .catch(function(){});
   }

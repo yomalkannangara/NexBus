@@ -355,6 +355,11 @@ $activePct = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
   <script>
     (function () {
       var OWNER_ID = <?= json_encode((int) (($_SESSION['user']['private_operator_id'] ?? 0))) ?>;
+      var q = new URLSearchParams(window.location.search || '');
+      var focusBus = String(q.get('bus') || q.get('focus_bus') || '').trim();
+      var focusLat = parseFloat(q.get('lat') || '');
+      var focusLng = parseFloat(q.get('lng') || '');
+      var focusDone = false;
 
       var map = L.map('bo-live-map').setView([6.927, 79.861], 10);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -439,6 +444,17 @@ $activePct = $totalBuses > 0 ? round($activeBuses / $totalBuses * 100) : 0;
             Object.keys(markers).forEach(function (id) {
               if (!seen[id]) { map.removeLayer(markers[id]); delete markers[id]; }
             });
+
+            if (!focusDone) {
+              if (focusBus && markers[focusBus]) {
+                map.setView(markers[focusBus].getLatLng(), 14);
+                markers[focusBus].openPopup();
+                focusDone = true;
+              } else if (Number.isFinite(focusLat) && Number.isFinite(focusLng)) {
+                map.setView([focusLat, focusLng], 14);
+                focusDone = true;
+              }
+            }
           })
           .catch(function () {
             var countEl = document.getElementById('bo-live-count');
