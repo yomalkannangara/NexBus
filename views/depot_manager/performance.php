@@ -94,115 +94,239 @@
 .perf-section-label h2 { margin:0; font-size:15px; font-weight:700; color:var(--text); letter-spacing:-.2px; }
 .perf-section-label .label-badge { margin-left:auto; font-size:11px; font-weight:600; color:var(--pm); background:rgba(128,20,60,.08); border-radius:999px; padding:2px 10px; border:1px solid rgba(128,20,60,.12); }
 
-/* ── KPI Grid — CIRCULAR OUTLINED icons ────────────────── */
-.perf-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
+/* ── KPI Grid — FULL CIRCLE CARDS ──────────────────────── */
+.perf-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+  justify-items: center;
+}
 @media (max-width:1100px) { .perf-kpi-grid { grid-template-columns:repeat(2,1fr); } }
-@media (max-width:600px) { .perf-kpi-grid { grid-template-columns:1fr; } }
+@media (max-width:600px)  { .perf-kpi-grid { grid-template-columns:repeat(2,1fr); gap:16px; } }
 
+/* The circle wrapper — keeps aspect-ratio 1:1 */
+.perf-kpi-wrap {
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+}
+
+/* The actual circle card */
 .perf-kpi {
-  background: #ffffff;
-  border-radius: var(--radius);
-  padding: 22px 20px 18px;
-  box-shadow: var(--shadow-sm);
-  border: 1.5px solid color-mix(in srgb, var(--kpi-color, var(--pm)) 15%, #e8dde1 85%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid var(--kpi-color, var(--pm));
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--kpi-color, var(--pm)) 10%, transparent 90%),
+    0 8px 28px rgba(128,20,60,.10);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px 14px;
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  transition: transform .25s ease, box-shadow .28s ease, border-color .25s ease;
   cursor: pointer;
+  transition: transform .28s ease, box-shadow .28s ease;
+  box-sizing: border-box;
 }
 .perf-kpi:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 36px rgba(128,20,60,.14);
-  border-color: color-mix(in srgb, var(--kpi-color, var(--pm)) 35%, #e8dde1 65%);
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 10px color-mix(in srgb, var(--kpi-color, var(--pm)) 14%, transparent 86%),
+    0 14px 36px rgba(128,20,60,.18);
 }
-/* Top accent bar */
+/* inner faint concentric ring */
 .perf-kpi::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 3px 3px 0 0;
-  background: linear-gradient(90deg, var(--kpi-color, var(--pm)) 0%, color-mix(in srgb, var(--kpi-color, var(--pm)) 55%, #f3b944 45%) 100%);
+  inset: 12px;
+  border-radius: 50%;
+  border: 1.5px dashed color-mix(in srgb, var(--kpi-color, var(--pm)) 18%, transparent 82%);
+  pointer-events: none;
 }
-/* Bottom-right decorative circle */
+/* background tint blob */
 .perf-kpi::after {
   content: '';
   position: absolute;
-  right: -28px; bottom: -36px;
-  width: 110px; height: 110px;
+  inset: 0;
   border-radius: 50%;
-  border: 18px solid color-mix(in srgb, var(--kpi-color, var(--pm)) 9%, #ffffff 91%);
+  background: radial-gradient(circle at 50% 30%,
+    color-mix(in srgb, var(--kpi-color, var(--pm)) 6%, transparent 94%) 0%,
+    transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
 
-.perf-kpi-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
-
-/* CIRCULAR OUTLINED icon container */
+/* icon inside circle */
 .perf-kpi-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;                /* ← circular */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--kpi-color, var(--pm));
   display: grid;
   place-items: center;
   background: transparent;
-  border: 2px solid var(--kpi-color, var(--pm));  /* ← outline */
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--kpi-color, var(--pm)) 10%, transparent 90%);
+  margin-bottom: 6px;
   flex-shrink: 0;
-  transition: box-shadow .25s ease, transform .25s ease;
+  transition: transform .25s ease;
 }
-.perf-kpi:hover .perf-kpi-icon {
-  box-shadow: 0 0 0 7px color-mix(in srgb, var(--kpi-color, var(--pm)) 15%, transparent 85%);
-  transform: scale(1.06);
+.perf-kpi:hover .perf-kpi-icon { transform: scale(1.1); }
+
+.perf-kpi-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #7a4e5e;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+.perf-kpi-value {
+  font-size: clamp(26px, 3.5vw, 36px);
+  font-weight: 800;
+  color: var(--kpi-color, var(--pm));
+  line-height: 1;
+  letter-spacing: -1px;
+  margin: 4px 0 2px;
+}
+.perf-kpi-hint {
+  font-size: 9px;
+  color: #8a6472;
+  line-height: 1.4;
+  text-align: center;
+  padding: 0 4px;
+}
+.perf-kpi-hint .dot { display:none; }
+.perf-kpi-hint .kpi-click-hint {
+  display: block;
+  color: var(--kpi-color, var(--pm));
+  font-weight: 700;
+  font-size: 9px;
+  margin-top: 2px;
 }
 
-.perf-kpi-label { font-size:11px; font-weight:700; color:#7a4e5e; text-transform:uppercase; letter-spacing:.7px; line-height:1.3; display:block; }
-.perf-kpi-value { font-size:clamp(32px, 3vw, 40px); font-weight:800; color:var(--kpi-color, var(--pm)); line-height:.95; letter-spacing:-1.2px; margin-bottom:12px; margin-top:8px; }
-.perf-kpi-hint { font-size:12px; color:#8a6472; display:flex; align-items:center; gap:8px; line-height:1.4; margin-top:8px; flex-wrap:wrap; }
-.perf-kpi-hint .dot { width:6px; height:6px; border-radius:50%; background:var(--kpi-color, var(--pm)); flex-shrink:0; display:none; }
-.perf-kpi-hint .kpi-click-hint { margin-left:auto; color:var(--kpi-color, var(--pm)); font-weight:700; white-space:nowrap; font-size:11px; flex-shrink:0; }
-
-/* ── Live Fleet Status ─────────────────────────────────── */
-.perf-live-row { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:22px; }
-@media (max-width:600px) { .perf-live-row { grid-template-columns:1fr; } }
-.perf-kpi-live {
-  background: linear-gradient(135deg, var(--pm-dark) 0%, var(--pm) 100%);
+/* ── Live Fleet Status — single maroon card ────────── */
+.perf-live-card {
+  background: linear-gradient(130deg, var(--pm-dark) 0%, var(--pm) 60%, #a0264a 100%);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 28px 36px;
   box-shadow: var(--shadow);
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 0;
   position: relative;
   overflow: hidden;
+  min-height: 150px;
+}
+/* hex overlay */
+.perf-live-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='35' viewBox='0 0 40 35'%3E%3Cpolygon points='20,1 38,11 38,24 20,34 2,24 2,11' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 40px 35px;
+  pointer-events: none;
+}
+
+/* LEFT: active buses stat */
+.plc-stat {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 36px;
+  border-right: 1px solid rgba(255,255,255,.15);
+  position: relative;
+  z-index: 1;
+  min-width: 180px;
+}
+.plc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,.12);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
+  margin-bottom: 10px;
+  width: fit-content;
+}
+.plc-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+.plc-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.6);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+.plc-value {
+  font-size: 52px;
+  font-weight: 900;
   color: #fff;
+  line-height: 1;
+  letter-spacing: -2px;
 }
-/* Decorative rings for live cards */
-.perf-kpi-live::before {
-  content: '';
-  position: absolute;
-  right: -30px; top: -30px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  border: 20px solid rgba(255,255,255,.06);
+.plc-sub {
+  font-size: 11.5px;
+  color: rgba(255,255,255,.5);
+  margin-top: 6px;
 }
-.perf-kpi-live::after {
-  content: '';
-  position: absolute;
-  right: 10px; bottom: -40px;
-  width: 100px; height: 100px;
-  border-radius: 50%;
-  border: 14px solid rgba(255,255,255,.04);
+
+/* RIGHT: speedometer */
+.plc-speedo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding-left: 28px;
 }
-.perf-kpi-live .live-label { font-size:12px; font-weight:600; color:rgba(255,255,255,.65); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
-.perf-kpi-live .live-value { font-size:36px; font-weight:800; color:#fff; line-height:1; letter-spacing:-1.2px; margin-bottom:6px; }
-.perf-kpi-live .live-hint { font-size:12px; color:rgba(255,255,255,.6); }
-.perf-kpi-live .live-icon {
-  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-  width: 50px; height: 50px;
-  border-radius: 50%;           /* circular live icons too */
-  border: 2px solid rgba(255,255,255,.3);
-  background: rgba(255,255,255,.1);
-  display: grid; place-items: center;
-  color: rgba(255,255,255,.9);
+.plc-speedo-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+}
+.plc-speedo svg { overflow: visible; }
+.plc-speedo-val {
+  font-size: 22px;
+  font-weight: 800;
+  fill: #fff;
+  font-family: 'Inter', ui-sans-serif, sans-serif;
+  letter-spacing: -0.5px;
+}
+.plc-speedo-unit {
+  font-size: 11px;
+  fill: rgba(255,255,255,.6);
+  font-family: 'Inter', ui-sans-serif, sans-serif;
+}
+.plc-speedo-tick { stroke: rgba(255,255,255,.3); stroke-width: 1.5; }
+.plc-speedo-tick-major { stroke: rgba(255,255,255,.6); stroke-width: 2; }
+
+@media (max-width:680px) {
+  .perf-live-card { flex-direction: column; padding: 22px 24px; gap: 20px; }
+  .plc-stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.15); padding-right: 0; padding-bottom: 18px; min-width: unset; width: 100%; }
+  .plc-speedo { padding-left: 0; }
 }
 .live-pulse { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.12); border-radius:999px; padding:3px 10px; font-size:11px; font-weight:600; color:rgba(255,255,255,.85); margin-bottom:8px; }
 .live-pulse-dot { width:6px; height:6px; border-radius:50%; background:#4ade80; animation:pulse-dot 1.5s ease-in-out infinite; }
@@ -342,29 +466,43 @@
   </div>
 
   <div class="perf-kpi-grid">
-    <div class="perf-kpi perf-kpi--clickable" id="kpi-delayed-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-soft)" onclick="openDelayedModal()" title="Click to view delayed bus details">
-      <div class="perf-kpi-top"><div><div class="perf-kpi-label">Delayed Buses Today</div></div><div class="perf-kpi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--red)"><path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1m1 12h-5V7h2v4h3z"/></svg></div></div>
-      <div class="perf-kpi-value" id="kpi-delayed"><?= (int)($kpi['delayedToday'] ?? 0) ?></div>
-      <div class="perf-kpi-hint"><span class="dot"></span>Live snapshot from database <span class="kpi-click-hint">&nbsp;· tap for details →</span></div>
+
+    <div class="perf-kpi-wrap">
+      <div class="perf-kpi perf-kpi--clickable" id="kpi-delayed-card" style="--kpi-color:var(--red)" onclick="openDelayedModal()" title="Click to view delayed bus details">
+        <div class="perf-kpi-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="var(--red)"><path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1m1 12h-5V7h2v4h3z"/></svg></div>
+        <div class="perf-kpi-label">Delayed Today</div>
+        <div class="perf-kpi-value" id="kpi-delayed"><?= (int)($kpi['delayedToday'] ?? 0) ?></div>
+        <div class="perf-kpi-hint">Live from DB<span class="kpi-click-hint">tap for details →</span></div>
+      </div>
     </div>
 
-    <div class="perf-kpi perf-kpi--clickable" id="kpi-rating-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-soft)" onclick="openRatingModal()" title="Click to view driver rating details">
-      <div class="perf-kpi-top"><div><div class="perf-kpi-label">Avg Driver Rating</div></div><div class="perf-kpi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--green)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87l1.18 6.88L12 17.77l-6.18 3.25L7 14.14L2 9.27l6.91-1.01z"/></svg></div></div>
-      <div class="perf-kpi-value" id="kpi-rating"><?= ($kpi['avgRating'] > 0) ? number_format((float)$kpi['avgRating'],1) : '&ndash;' ?></div>
-      <div class="perf-kpi-hint"><span class="dot"></span>Composite reliability score out of 10 <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span></div>
+    <div class="perf-kpi-wrap">
+      <div class="perf-kpi perf-kpi--clickable" id="kpi-rating-card" style="--kpi-color:var(--green)" onclick="openRatingModal()" title="Click to view driver rating details">
+        <div class="perf-kpi-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="var(--green)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87l1.18 6.88L12 17.77l-6.18 3.25L7 14.14L2 9.27l6.91-1.01z"/></svg></div>
+        <div class="perf-kpi-label">Avg Driver Rating</div>
+        <div class="perf-kpi-value" id="kpi-rating"><?= ($kpi['avgRating'] > 0) ? number_format((float)$kpi['avgRating'],1) : '&ndash;' ?></div>
+        <div class="perf-kpi-hint">Score out of 10<span class="kpi-click-hint">tap for details →</span></div>
+      </div>
     </div>
 
-    <div class="perf-kpi perf-kpi--clickable" id="kpi-speed-card" style="--kpi-color:var(--orange);--kpi-bg:var(--orange-soft)" onclick="openSpeedModal()" title="Click to view speed violation details">
-      <div class="perf-kpi-top"><div><div class="perf-kpi-label">Speed Violations</div></div><div class="perf-kpi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--orange)"><path d="M14 3L3 14h7v7l11-11h-7z"/></svg></div></div>
-      <div class="perf-kpi-value" id="kpi-speed"><?= (int)($kpi['speedViol'] ?? 0) ?: '&ndash;' ?></div>
-      <div class="perf-kpi-hint"><span class="dot"></span>Buses over speed limit <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span></div>
+    <div class="perf-kpi-wrap">
+      <div class="perf-kpi perf-kpi--clickable" id="kpi-speed-card" style="--kpi-color:var(--orange)" onclick="openSpeedModal()" title="Click to view speed violation details">
+        <div class="perf-kpi-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="var(--orange)"><path d="M14 3L3 14h7v7l11-11h-7z"/></svg></div>
+        <div class="perf-kpi-label">Speed Violations</div>
+        <div class="perf-kpi-value" id="kpi-speed"><?= (int)($kpi['speedViol'] ?? 0) ?: '&ndash;' ?></div>
+        <div class="perf-kpi-hint">Over speed limit<span class="kpi-click-hint">tap for details →</span></div>
+      </div>
     </div>
 
-    <div class="perf-kpi perf-kpi--clickable" id="kpi-wait-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-soft)" onclick="openWaitModal()" title="Click to view long wait time details">
-      <div class="perf-kpi-top"><div><div class="perf-kpi-label">Long Wait Times</div></div><div class="perf-kpi-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--blue)"><path d="M16 6h5v5h-2V9.41l-6.29 6.3l-4-4L2 18.41L.59 17L8.71 8.88l4 4L19.59 6z"/></svg></div></div>
-      <div class="perf-kpi-value" id="kpi-wait"><?= (int)($kpi['longWaitPct'] ?? 0) ?>%</div>
-      <div class="perf-kpi-hint"><span class="dot"></span>Snapshots with delay &gt;10 min <span class="kpi-click-hint">&nbsp;&middot; tap for details &rarr;</span></div>
+    <div class="perf-kpi-wrap">
+      <div class="perf-kpi perf-kpi--clickable" id="kpi-wait-card" style="--kpi-color:var(--blue)" onclick="openWaitModal()" title="Click to view long wait time details">
+        <div class="perf-kpi-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="var(--blue)"><path d="M16 6h5v5h-2V9.41l-6.29 6.3l-4-4L2 18.41L.59 17L8.71 8.88l4 4L19.59 6z"/></svg></div>
+        <div class="perf-kpi-label">Long Wait Times</div>
+        <div class="perf-kpi-value" id="kpi-wait"><?= (int)($kpi['longWaitPct'] ?? 0) ?>%</div>
+        <div class="perf-kpi-hint">Delay &gt;10 min<span class="kpi-click-hint">tap for details →</span></div>
+      </div>
     </div>
+
   </div>
 
   <div class="perf-section-label">
@@ -373,20 +511,116 @@
     <span class="label-badge" id="live-updated-at">Fetching…</span>
   </div>
 
-  <div class="perf-live-row">
-    <div class="perf-kpi-live">
-      <div class="live-label">Active Buses Now</div>
-      <div class="live-value" id="kpi-active-buses">&ndash;</div>
-      <div class="live-hint">Buses reporting live GPS</div>
-      <div class="live-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><path d="M17 8C8 10 5.9 16.1 3 19h3s2.5-4 9.5-4.5c-1.7 1.1-3.5 3-4.5 4.5h3C15 17 17 14 21 12c-1-1-2-2-2-4z"/></svg></div>
+  <div class="perf-live-card">
+
+    <!-- LEFT: active buses count -->
+    <div class="plc-stat">
+      <div class="plc-pill"><span class="plc-dot"></span>Live GPS</div>
+      <div class="plc-label">Active Buses Now</div>
+      <div class="plc-value" id="kpi-active-buses">&ndash;</div>
+      <div class="plc-sub">Buses reporting live GPS</div>
+      <!-- hidden sink for liveFleet.js; speedometer JS watches this via MutationObserver -->
+      <span id="kpi-avg-speed" style="display:none" aria-hidden="true"></span>
     </div>
-    <div class="perf-kpi-live" style="background:linear-gradient(135deg,#14532d 0%,#16a34a 100%)">
-      <div class="live-label">Average Fleet Speed</div>
-      <div class="live-value" id="kpi-avg-speed">&ndash;</div>
-      <div class="live-hint">Fleet average right now</div>
-      <div class="live-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m1 14.93V15h-2v1.93A8 8 0 0 1 4.07 11H6V9H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 16.93z"/></svg></div>
+
+    <!-- RIGHT: speedometer -->
+    <div class="plc-speedo">
+      <div class="plc-speedo-label">Average Fleet Speed</div>
+      <!-- SVG speedometer: 180° arc, cx=110, cy=100, r=80 -->
+      <svg id="speedoSvg" width="220" height="130" viewBox="0 0 220 130">
+        <!-- track arc: 180° semi-circle -->
+        <path d="M 20 105 A 90 90 0 0 1 200 105"
+              fill="none" stroke="rgba(255,255,255,.12)" stroke-width="14" stroke-linecap="round"/>
+        <!-- coloured progress arc -->
+        <path id="speedoArc" d="M 20 105 A 90 90 0 0 1 200 105"
+              fill="none" stroke="rgba(255,255,255,.0)" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="0 283"/>
+        <!-- tick marks (9 ticks every 20° step) -->
+        <g id="speedoTicks"></g>
+        <!-- needle -->
+        <line id="speedoNeedle"
+              x1="110" y1="105" x2="110" y2="30"
+              stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+              transform="rotate(-90 110 105)"/>
+        <!-- needle cap -->
+        <circle cx="110" cy="105" r="7" fill="rgba(255,255,255,.25)" stroke="#fff" stroke-width="2"/>
+        <circle cx="110" cy="105" r="3" fill="#fff"/>
+        <!-- value text -->
+        <text id="speedoValText" x="110" y="90" text-anchor="middle" class="plc-speedo-val">&ndash;</text>
+        <text x="110" y="104" text-anchor="middle" class="plc-speedo-unit">km / h</text>
+        <!-- scale labels -->
+        <text x="16"  y="122" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="Inter,sans-serif">0</text>
+        <text x="110" y="22"  text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="Inter,sans-serif">60</text>
+        <text x="204" y="122" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)" font-family="Inter,sans-serif">120</text>
+      </svg>
     </div>
+
   </div>
+
+  <script>
+  /* ── Speedometer updater ──────────────────────────────── */
+  (function(){
+    var MAX_SPEED = 120;
+    var CX = 110, CY = 105, R = 90;
+    var ARC_LEN = Math.PI * R; // half-circumference ≈ 283
+
+    /* Build tick marks once */
+    var tickG = document.getElementById('speedoTicks');
+    if (tickG) {
+      for (var i = 0; i <= 12; i++) {
+        var ang = -180 + i * 15; // -180° to 0° maps 0..120 km/h
+        var rad = ang * Math.PI / 180;
+        var major = (i % 3 === 0);
+        var r1 = major ? R - 18 : R - 12;
+        var r2 = R - 6;
+        var x1 = CX + r1 * Math.cos(rad), y1 = CY + r1 * Math.sin(rad);
+        var x2 = CX + r2 * Math.cos(rad), y2 = CY + r2 * Math.sin(rad);
+        var ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+        ln.setAttribute('x1', x1); ln.setAttribute('y1', y1);
+        ln.setAttribute('x2', x2); ln.setAttribute('y2', y2);
+        ln.setAttribute('class', major ? 'plc-speedo-tick-major' : 'plc-speedo-tick');
+        tickG.appendChild(ln);
+      }
+    }
+
+    function setSpeed(kmh) {
+      var v = Math.max(0, Math.min(kmh || 0, MAX_SPEED));
+      var frac = v / MAX_SPEED;
+
+      /* needle rotation: -90° = 0 km/h, +90° = 120 km/h */
+      var deg = -90 + frac * 180;
+      var needle = document.getElementById('speedoNeedle');
+      if (needle) needle.setAttribute('transform', 'rotate(' + deg + ' ' + CX + ' ' + CY + ')');
+
+      /* arc dash */
+      var arc = document.getElementById('speedoArc');
+      if (arc) {
+        var filled = frac * ARC_LEN;
+        /* colour: green < 40, gold 40-60, red > 60 */
+        var colour = v < 40 ? '#4ade80' : v < 60 ? '#f3b944' : '#f87171';
+        arc.setAttribute('stroke', colour);
+        arc.setAttribute('stroke-dasharray', filled + ' ' + (ARC_LEN - filled));
+      }
+
+      /* value text */
+      var vt = document.getElementById('speedoValText');
+      if (vt) vt.textContent = kmh != null ? v.toFixed(1) : '–';
+    }
+
+    /* Watch the hidden live value span for changes */
+    var target = document.getElementById('kpi-avg-speed');
+    if (target) {
+      var obs = new MutationObserver(function() {
+        var raw = (target.textContent || '').replace(/[^0-9.]/g, '');
+        setSpeed(raw ? parseFloat(raw) : null);
+      });
+      obs.observe(target, { childList: true, subtree: true, characterData: true });
+      /* initial draw */
+      var raw = (target.textContent || '').replace(/[^0-9.]/g, '');
+      setSpeed(raw ? parseFloat(raw) : null);
+    }
+  })();
+  </script>
 
   <div class="perf-tabs" role="tablist">
     <button class="perf-tab active" data-tab="live" role="tab"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Live View</button>
