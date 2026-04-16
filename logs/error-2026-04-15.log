@@ -113,3 +113,51 @@ Stack trace:
 [15-Apr-2026 15:17:21 Asia/Colombo] [hrDriverPerformanceReport] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sd.license_number' in 'group statement'
 [15-Apr-2026 16:13:43 Asia/Colombo] [hrDriverPerformanceReport] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sd.license_number' in 'group statement'
 [15-Apr-2026 16:18:07 Asia/Colombo] [hrDriverPerformanceReport] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'sd.license_number' in 'group statement'
+[15-Apr-2026 23:47:27 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.start_delay_seconds' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php:288
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php(288): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\TimekeeperPrivateController.php(257): App\models\timekeeper_private\TripEntryModel->todayList()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\TimekeeperPrivateController->trip_entry()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(215): run('TimekeeperPriva...', 'trip_entry')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php on line 288
+[15-Apr-2026 23:47:31 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.start_delay_seconds' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php:288
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php(288): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\TimekeeperPrivateController.php(257): App\models\timekeeper_private\TripEntryModel->todayList()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\TimekeeperPrivateController->trip_entry()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(215): run('TimekeeperPriva...', 'trip_entry')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php on line 288
+[15-Apr-2026 23:47:36 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.start_delay_seconds' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php:433
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php(433): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\TimekeeperPrivateController.php(160): App\models\timekeeper_private\TripEntryModel->historyList('2026-04-15', '2026-04-15', NULL)
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\TimekeeperPrivateController->history()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(215): run('TimekeeperPriva...', 'history')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php on line 433
+[15-Apr-2026 23:47:39 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.start_delay_seconds' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php:433
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php(433): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\TimekeeperPrivateController.php(160): App\models\timekeeper_private\TripEntryModel->historyList('2026-04-15', '2026-04-15', NULL)
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\TimekeeperPrivateController->history()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(215): run('TimekeeperPriva...', 'history')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php on line 433
+[15-Apr-2026 23:47:41 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.start_delay_seconds' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php:288
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php(288): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\TimekeeperPrivateController.php(257): App\models\timekeeper_private\TripEntryModel->todayList()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\TimekeeperPrivateController->trip_entry()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(215): run('TimekeeperPriva...', 'trip_entry')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php on line 288
+[15-Apr-2026 23:47:43 Asia/Colombo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.start_delay_seconds' in 'field list' in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php:288
+Stack trace:
+#0 C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php(288): PDO->prepare('\r\n        SELEC...')
+#1 C:\xampp\htdocs\Nexbus-1\controllers\TimekeeperPrivateController.php(257): App\models\timekeeper_private\TripEntryModel->todayList()
+#2 C:\xampp\htdocs\Nexbus-1\public\index.php(41): App\controllers\TimekeeperPrivateController->trip_entry()
+#3 C:\xampp\htdocs\Nexbus-1\public\index.php(215): run('TimekeeperPriva...', 'trip_entry')
+#4 {main}
+  thrown in C:\xampp\htdocs\Nexbus-1\models\timekeeper_private\TripEntryModel.php on line 288

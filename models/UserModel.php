@@ -51,7 +51,7 @@ class UserModel
                 $pwdHash
             ]);
 
-            $userId = (int)$this->pdo->lastInsertId();
+            $userId = (int) $this->pdo->lastInsertId();
 
             // 2) Insert/Update passengers (FK: passengers.user_id → users.user_id)
             //    Mirrors your example's ON DUPLICATE KEY pattern
@@ -77,8 +77,7 @@ class UserModel
             $this->pdo->commit();
             return $userId;
 
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             if ($this->pdo->inTransaction())
                 $this->pdo->rollBack();
             return 0;
@@ -92,8 +91,13 @@ class UserModel
         $db = $GLOBALS['db'];
 
         $allowedRoles = [
-            'NTCAdmin', 'DepotManager', 'DepotOfficer', 'SLTBTimekeeper',
-            'PrivateTimekeeper', 'PrivateBusOwner', 'Passenger'
+            'NTCAdmin',
+            'DepotManager',
+            'DepotOfficer',
+            'SLTBTimekeeper',
+            'PrivateTimekeeper',
+            'PrivateBusOwner',
+            'Passenger'
         ];
         if (!in_array($data['role'], $allowedRoles, true)) {
             throw new \InvalidArgumentException('Invalid role');
@@ -116,7 +120,7 @@ class UserModel
             ':role' => $data['role'],
             ':private_operator_id' => $data['private_operator_id'],
             ':sltb_depot_id' => $data['sltb_depot_id'],
-            ':user_id' => (int)$data['user_id'],
+            ':user_id' => (int) $data['user_id'],
         ];
 
         if (isset($data['password']) && $data['password'] !== '') {
