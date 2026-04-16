@@ -56,9 +56,9 @@ rsort($yearsList);
       foreach ($summary as $c): 
         $icon_class = '';
         $label = strtolower($c['label'] ?? '');
-        if (strpos($label, 'active') !== false) $icon_class = 'accent-green';
+        if (strpos($label, 'active') !== false && strpos($label, 'inactive') === false) $icon_class = 'accent-green';
         elseif (strpos($label, 'maintenance') !== false) $icon_class = 'accent-yellow';
-        elseif (strpos($label, 'inactive') !== false) $icon_class = 'accent-red';
+        elseif (strpos($label, 'inactive') !== false || strpos($label, 'out of service') !== false) $icon_class = 'accent-red';
         else $icon_class = 'accent-blue';
     ?>
       <div class="fleet-kpi-card <?= $icon_class ?>">

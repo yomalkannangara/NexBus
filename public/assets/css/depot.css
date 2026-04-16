@@ -1233,3 +1233,68 @@ body{
 .js-chart-detail-btn:hover {
   background: #fff7e6;
 }
+
+/* ============= Fleet KPI Cards (Fleet Management page) ============= */
+.fleet-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.fleet-kpi-card {
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.fleet-kpi-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: #eee;
+}
+
+/* Accent color bars for fleet KPI cards */
+.fleet-kpi-card.accent-blue::after   { background: linear-gradient(90deg, #4aa3ff, #2b6fff); }
+.fleet-kpi-card.accent-green::after  { background: linear-gradient(90deg, #33c28a, #1f7a54); }
+.fleet-kpi-card.accent-yellow::after { background: linear-gradient(90deg, #ffd36e, #f1b425); }
+.fleet-kpi-card.accent-red::after    { background: linear-gradient(90deg, #ff6b81, #c92c4b); }
+
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.kpi-label {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .fleet-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fleet-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
