@@ -864,6 +864,10 @@ public function fleet()
     {
         $m = new EarningsModel();
 
+        if (!isset($_SESSION['dm_earnings_used_tokens']) || !is_array($_SESSION['dm_earnings_used_tokens'])) {
+            $_SESSION['dm_earnings_used_tokens'] = [];
+        }
+
         $respondJson = static function (bool $ok, string $message, int $okCode = 200, int $errCode = 400): void {
             header('Content-Type: application/json');
             http_response_code($ok ? $okCode : $errCode);
@@ -879,7 +883,22 @@ public function fleet()
             $act = $_POST['action'] ?? '';
 
             if ($act === 'add' || $act === 'create') {
+                $requestToken = trim((string)($_POST['_request_token'] ?? ''));
+                if ($requestToken !== '' && isset($_SESSION['dm_earnings_used_tokens'][$requestToken])) {
+                    if ($isAjax) {
+                        $respondJson(true, 'Duplicate submission ignored');
+                    }
+                    return $this->redirect('/M/earnings?msg=added');
+                }
+
                 $ok = $m->add($_POST);
+                if ($ok && $requestToken !== '') {
+                    $_SESSION['dm_earnings_used_tokens'][$requestToken] = time();
+                    if (count($_SESSION['dm_earnings_used_tokens']) > 100) {
+                        asort($_SESSION['dm_earnings_used_tokens']);
+                        $_SESSION['dm_earnings_used_tokens'] = array_slice($_SESSION['dm_earnings_used_tokens'], -100, null, true);
+                    }
+                }
                 if ($isAjax) {
                     $respondJson($ok, $ok ? 'Record created successfully' : 'Failed to create record. Please select a bus from your depot.');
                 }
@@ -913,7 +932,7 @@ public function fleet()
         $revenueTrend = $m->revenueTrendChart();
         $busRanking = $m->busPerformanceRanking();
         $dailyDistribution = $m->dailyIncomeDistribution();
-        $busMetrics = $m->busPerformanceMetrics();
+        $earningsRows = $m->exportRows();
         
         // Get comparison data if buses are selected
         $comparisonData = null;
@@ -922,18 +941,19 @@ public function fleet()
         if ($compareB1 && $compareB2) {
             $comparisonData = $m->compareBuses($compareB1, $compareB2);
         }
+
+        $requestToken = bin2hex(random_bytes(16));
         
         $this->view('depot_manager', 'earnings', [
             // Original data
             'top'   => $m->topSummary(),
-            'buses' => $m->busIncomeDetail(),
             'month' => $m->monthlyOverview(),
+            'earningsRows' => $earningsRows,
             
             // New chart data
             'revenueTrend' => $revenueTrend,
             'busRanking' => $busRanking,
             'dailyDistribution' => $dailyDistribution,
-            'busMetrics' => $busMetrics,
             
             // Bus list for dropdown
             'allBuses' => $m->getAllBuses(),
@@ -941,6 +961,7 @@ public function fleet()
             'comparisonData' => $comparisonData,
             'compareB1' => $compareB1,
             'compareB2' => $compareB2,
+            'requestToken' => $requestToken,
             
             // Chart.js JSON
             'revenueTrendJson' => json_encode($revenueTrend, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT),

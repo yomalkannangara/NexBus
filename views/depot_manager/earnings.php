@@ -1,21 +1,21 @@
 <?php
 // Redesigned Earnings Dashboard - Depot Manager
-// Data from controller: $top, $buses, $month, $revenueTrend, $busRanking, $dailyDistribution, $busMetrics
+// Data from controller: $top, $month, $revenueTrend, $busRanking, $dailyDistribution, $earningsRows
 // And JSON versions for Chart.js
 
 // Safe defaults
 $top   = is_array($top ?? null) ? $top : [];
-$buses = is_array($buses ?? null) ? $buses : [];
+$earningsRows = is_array($earningsRows ?? null) ? $earningsRows : [];
 $month = is_array($month ?? null) ? $month : [];
 $revenueTrend = is_array($revenueTrend ?? null) ? $revenueTrend : ['labels' => [], 'values' => []];
 $busRanking = is_array($busRanking ?? null) ? $busRanking : ['top' => [], 'bottom' => []];
 $dailyDistribution = is_array($dailyDistribution ?? null) ? $dailyDistribution : ['labels' => [], 'values' => []];
-$busMetrics = is_array($busMetrics ?? null) ? $busMetrics : [];
 $allBuses = is_array($allBuses ?? null) ? $allBuses : [];
 $selectBuses = is_array($selectBuses ?? null) ? $selectBuses : [];
 $comparisonData = $comparisonData ?? null;
 $compareB1 = $compareB1 ?? null;
 $compareB2 = $compareB2 ?? null;
+$requestToken = (string)($requestToken ?? '');
 
 // JSON for charts
 $revenueTrendJson = $revenueTrendJson ?? json_encode(['labels' => [], 'values' => []], JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
@@ -106,6 +106,97 @@ function rupeesMini(float $v): string {
 .earning-modal__btn { border: 0; border-radius: 8px; padding: 0.65rem 1rem; font-weight: 600; cursor: pointer; }
 .earning-modal__btn--cancel { background: #f3f4f6; color: #374151; }
 .earning-modal__btn--submit { background: #80143c; color: #fff; }
+
+/* Delete confirmation modal (bus-owner style) */
+.modal[hidden] { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.46);
+  backdrop-filter: blur(2px);
+}
+.modal__dialog {
+  position: relative;
+  width: min(420px, 92vw);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  animation: dmModalIn 0.2s ease;
+}
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 0 20px;
+}
+.modal__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.modal__close {
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal__close:hover { color: #111827; }
+.modal__form {
+  padding: 14px 20px 18px 20px;
+}
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 18px 20px;
+}
+.btn-secondary,
+.btn-primary {
+  border-radius: 10px;
+  padding: 0.62rem 0.95rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background: #f3f4f6;
+}
+.btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+#deleteConfirmModal .btn-secondary {
+  color: #1f2937 !important;
+  min-width: 88px;
+}
+
+#deleteConfirmModal .btn-primary {
+  min-width: 110px;
+}
+
+@keyframes dmModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
 /* KPI Grid */
 .kpi-grid {
@@ -286,22 +377,6 @@ function rupeesMini(float $v): string {
 .status-maintenance { background: #fef3c7; color: #92400e; }
 .status-inactive { background: #fee2e2; color: #7f1d1d; }
 
-/* Bus Detail Cards */
-.bus-detail-card {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-}
-
-.bus-detail-card:hover {
-    box-shadow: 0 8px 16px rgba(128, 20, 60, 0.15);
-    transform: translateY(-2px);
-    border-color: var(--clr-primary);
-}
-
 /* Empty state */
 .empty-message {
     text-align: center;
@@ -429,7 +504,7 @@ function rupeesMini(float $v): string {
       <h4 class="performance-card-title">🌟 Top 5 Buses</h4>
       <ul class="performance-list">
         <?php foreach ($busRanking['top'] as $bus): ?>
-        <li class="performance-item" style="cursor: pointer; transition: all 0.2s;" onclick="scrollToBusCard('<?= h($bus['bus']) ?>')" onmouseover="this.style.background='rgba(128,20,60,0.05);borderRadius=0.375rem'" onmouseout="this.style.background='transparent'">
+        <li class="performance-item" style="cursor: pointer; transition: all 0.2s;" onclick="scrollToEarningRow('<?= h($bus['bus']) ?>')" onmouseover="this.style.background='rgba(128,20,60,0.05);borderRadius=0.375rem'" onmouseout="this.style.background='transparent'">
           <div class="performance-bus"><?= h($bus['bus']) ?></div>
           <div class="performance-stat">
             <span class="performance-value"><?= rupeesMini($bus['revenue']) ?></span>
@@ -447,7 +522,7 @@ function rupeesMini(float $v): string {
       <h4 class="performance-card-title">⚠️ Bottom 5 Buses</h4>
       <ul class="performance-list">
         <?php foreach ($busRanking['bottom'] as $bus): ?>
-        <li class="performance-item" style="cursor: pointer; transition: all 0.2s;" onclick="scrollToBusCard('<?= h($bus['bus']) ?>')" onmouseover="this.style.background='rgba(239,68,68,0.05);borderRadius=0.375rem'" onmouseout="this.style.background='transparent'">
+        <li class="performance-item" style="cursor: pointer; transition: all 0.2s;" onclick="scrollToEarningRow('<?= h($bus['bus']) ?>')" onmouseover="this.style.background='rgba(239,68,68,0.05);borderRadius=0.375rem'" onmouseout="this.style.background='transparent'">
           <div class="performance-bus"><?= h($bus['bus']) ?></div>
           <div class="performance-stat">
             <span class="performance-value"><?= rupeesMini($bus['revenue']) ?></span>
@@ -571,18 +646,6 @@ function rupeesMini(float $v): string {
                 </div>
               </div>
 
-              <!-- Efficiency -->
-              <div>
-                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.35rem;">Efficiency</div>
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <div style="flex: 1; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden;">
-                    <div style="height: 100%; background: rgba(255,255,255,0.8); width: <?= min(100, number_format($data['efficiency'], 0)) ?>%;"></div>
-                  </div>
-                  <div style="font-size: 1.25rem; font-weight: 700; min-width: 50px;">
-                    <?= number_format($data['efficiency'], 0) ?>%
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         <?php endforeach; ?>
@@ -599,113 +662,80 @@ function rupeesMini(float $v): string {
     <?php endif; ?>
   </section>
 
-  <!-- BUS INCOME DETAILS CARDS WITH FILTER -->
-  <?php if (!empty($buses)): ?>
+  <!-- REVENUE TRACKING TABLE -->
   <section style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
-    <div style="margin-bottom: 1.5rem;">
-      <h3 class="table-title">🚌 Income per Bus (Detailed Breakdown)</h3>
-      
-      <!-- Filter Section -->
-      <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 250px;">
-          <input 
-            type="text" 
-            id="busFilter" 
-            placeholder="🔍 Filter by bus reg. no (e.g., NA-2581)" 
-            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem;"
-          >
-        </div>
-        <button 
-          id="clearFilterBtn" 
-          style="padding: 0.75rem 1.5rem; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer; font-weight: 600; color: #374151; transition: all 0.2s;"
-          onmouseover="this.style.background='#e5e7eb'" 
-          onmouseout="this.style.background='#f3f4f6'"
-        >
-          Clear Filter
-        </button>
-      </div>
-      <div id="filterCount" style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
-        Showing all <?= count($buses) ?> buses
-      </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:1rem;">
+      <h3 class="table-title" style="margin:0;">Revenue Tracking</h3>
+      <span id="tableRowCount" style="font-size:0.875rem; color:#6b7280;"></span>
     </div>
 
-    <!-- Bus Cards Grid -->
-    <div id="busCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-      <?php foreach ($buses as $b): ?>
-        <div class="bus-detail-card" id="bus-<?= h(str_replace('-', '', $b['number'] ?? '')) ?>" data-bus-reg="<?= h($b['number'] ?? '') ?>">
-          <div style="background: linear-gradient(135deg, var(--clr-primary) 0%, #b0234f 100%); color: white; padding: 1.25rem; border-radius: 0.75rem 0.75rem 0 0; display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-              <div style="font-size: 0.875rem; opacity: 0.9;">Bus Registration</div>
-              <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem;"><?= h($b['number'] ?? '—') ?></div>
-            </div>
-            <div style="text-align: right;">
-              <span class="status-badge status-<?= strtolower($b['status'] ?? 'inactive') ?>" style="
-                background: rgba(255,255,255,0.2);
-                color: white;
-                padding: 0.35rem 0.75rem;
-              ">
-                <?= h($b['status'] ?? 'Inactive') ?>
-              </span>
-            </div>
-          </div>
-
-          <div style="padding: 1.25rem; border: 1px solid #e5e7eb; border-top: none;">
-            <!-- Route -->
-            <div style="margin-bottom: 1rem;">
-              <div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Route</div>
-              <div style="font-size: 0.95rem; color: #374151; margin-top: 0.25rem;"><?= h($b['route'] ?? '—') ?></div>
-            </div>
-
-            <!-- Efficiency Bar -->
-            <div style="margin-bottom: 1.25rem;">
-              <div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Efficiency</div>
-              <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div style="flex: 1; height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden;">
-                  <div style="height: 100%; background: linear-gradient(90deg, var(--clr-success), #059669); width: <?= min(100, (int)str_replace('%', '', $b['eff'] ?? '0')) ?>%; transition: width 0.3s;"></div>
-                </div>
-                <span style="font-weight: 700; color: var(--clr-primary); min-width: 45px; text-align: right;"><?= h($b['eff'] ?? '0%') ?></span>
-              </div>
-            </div>
-
-            <!-- Income Stats -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f3f4f6;">
-              <div>
-                <div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Latest Day</div>
-                <div style="font-size: 1.125rem; font-weight: 700; color: var(--clr-primary); margin-top: 0.35rem;">
-                  <?= h($b['daily'] ?? 'Rs. 0') ?>
-                </div>
-              </div>
-              <div>
-                <div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Last 7 Days</div>
-                <div style="font-size: 1.125rem; font-weight: 700; color: var(--clr-success); margin-top: 0.35rem;">
-                  <?= h($b['weekly'] ?? 'Rs. 0') ?>
-                </div>
-              </div>
-            </div>
-
-            <!-- All Time Total -->
-            <div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem; text-align: center;">
-              <div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;">All Time Total</div>
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--clr-primary);">
-                <?= h($b['total'] ?? 'Rs. 0') ?>
-              </div>
-            </div>
-          </div>
-        </div>
-      <?php endforeach; ?>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.75rem; margin-bottom:1rem;">
+      <input type="date" id="fltDateFrom" style="padding:0.65rem; border:1px solid #d1d5db; border-radius:0.5rem;" aria-label="From date">
+      <input type="date" id="fltDateTo" style="padding:0.65rem; border:1px solid #d1d5db; border-radius:0.5rem;" aria-label="To date">
+      <select id="fltBus" style="padding:0.65rem; border:1px solid #d1d5db; border-radius:0.5rem;">
+        <option value="">All Buses</option>
+        <?php foreach ($selectBuses as $reg): ?>
+          <option value="<?= h($reg) ?>"><?= h($reg) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <input type="text" id="fltSearch" placeholder="Search source or bus" style="padding:0.65rem; border:1px solid #d1d5db; border-radius:0.5rem;">
+      <button id="btnClearFilters" type="button" style="padding:0.65rem 1rem; border:1px solid #d1d5db; border-radius:0.5rem; background:#f9fafb; font-weight:600; cursor:pointer;">Clear</button>
     </div>
 
-    <!-- Empty State for Filter -->
-    <div id="noResultsMessage" style="display: none; text-align: center; padding: 3rem 1.5rem; color: #6b7280;">
-      <div style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">No buses found</div>
-      <p>Try adjusting your filter criteria</p>
+    <div style="overflow:auto;">
+      <table class="bus-table" id="earningsTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Bus Reg. No</th>
+            <th>Total Revenue</th>
+            <th>Source</th>
+            <th style="width:120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (!empty($earningsRows)): ?>
+            <?php foreach ($earningsRows as $r): ?>
+              <?php
+                $row = [
+                  'id' => (int)($r['earning_id'] ?? 0),
+                  'date' => (string)($r['date'] ?? ''),
+                  'bus_reg_no' => (string)($r['bus_reg_no'] ?? ''),
+                  'amount' => (float)($r['amount'] ?? 0),
+                  'source' => (string)($r['source'] ?? ''),
+                ];
+                $rowJson = htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8');
+              ?>
+              <tr data-date="<?= h($row['date']) ?>" data-bus="<?= h($row['bus_reg_no']) ?>" data-search="<?= h(strtolower($row['source'] . ' ' . $row['bus_reg_no'])) ?>">
+                <td><?= h($row['date']) ?></td>
+                <td><span class="bus-reg"><?= h($row['bus_reg_no']) ?></span></td>
+                <td><strong>LKR <?= number_format($row['amount'], 2) ?></strong></td>
+                <td><?= h($row['source'] !== '' ? $row['source'] : 'Cash') ?></td>
+                <td>
+                  <div style="display:flex; gap:0.5rem;">
+                    <button type="button" class="js-earning-edit" data-earning="<?= $rowJson ?>" style="border:1px solid #d1d5db; background:#fff; color:#111827; border-radius:8px; padding:0.35rem 0.55rem; cursor:pointer;">Edit</button>
+                    <button type="button" class="js-earning-del" data-earning-id="<?= (int)$row['id'] ?>" style="border:1px solid #fecaca; background:#fff1f2; color:#9f1239; border-radius:8px; padding:0.35rem 0.55rem; cursor:pointer;">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="5" style="text-align:center; padding:2rem; color:#6b7280;">No earnings records found for buses in this depot.</td>
+            </tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tableNoResults" style="display:none; text-align:center; padding:1rem; color:#6b7280;">No records match the selected filters.</div>
+
+    <div id="tablePager" style="display:flex; justify-content:flex-end; align-items:center; gap:0.75rem; margin-top:1rem;">
+      <button id="btnPrevPage" type="button" style="padding:0.45rem 0.8rem; border:1px solid #d1d5db; border-radius:8px; background:#fff; cursor:pointer;">Prev</button>
+      <span id="pageInfo" style="font-size:0.875rem; color:#4b5563;">Page 1</span>
+      <button id="btnNextPage" type="button" style="padding:0.45rem 0.8rem; border:1px solid #d1d5db; border-radius:8px; background:#fff; cursor:pointer;">Next</button>
     </div>
   </section>
-  <?php else: ?>
-  <div class="empty-message">
-    <p>No bus earnings data found. Add earning records to see detailed breakdown.</p>
-  </div>
-  <?php endif; ?>
 
   <div id="earningModal" class="earning-modal" hidden>
     <div class="modal__backdrop"></div>
@@ -717,6 +747,7 @@ function rupeesMini(float $v): string {
 
       <form id="earningForm" autocomplete="off">
         <input type="hidden" id="f_e_id" name="earning_id" value="">
+        <input type="hidden" id="f_e_req_token" name="_request_token" value="<?= h($requestToken) ?>">
         <div class="earning-modal__grid">
           <div class="earning-modal__field">
             <label for="f_e_date">Date</label>
@@ -746,70 +777,46 @@ function rupeesMini(float $v): string {
 
         <div class="earning-modal__footer">
           <button type="button" id="btnCancelEarning" class="earning-modal__btn earning-modal__btn--cancel">Cancel</button>
-          <button type="submit" class="earning-modal__btn earning-modal__btn--submit">Save</button>
+          <button type="submit" id="btnSubmitEarning" class="earning-modal__btn earning-modal__btn--submit">Save</button>
         </div>
       </form>
     </div>
   </div>
 
+  <div id="deleteConfirmModal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__dialog" style="max-width: 400px; padding: 0;">
+      <div class="modal__header" style="border-bottom: none; padding-bottom: 0;">
+        <h3 class="modal__title" style="color: #991B1B; display: flex; align-items: center; gap: 10px;">
+          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Delete Record
+        </h3>
+        <button type="button" class="modal__close" id="btnCloseDelete">&times;</button>
+      </div>
+      <div class="modal__form" style="padding-top: 10px;">
+        <p style="color: #4B5563; font-size: 15px; margin: 0;">Are you sure you want to delete this earning record? This action cannot be undone.</p>
+      </div>
+      <div class="modal__footer" style="border-top: none; background: #FEF2F2; border-radius: 0 0 16px 16px;">
+        <button type="button" class="btn-secondary" id="btnCancelDelete" style="background: white; border: 1px solid #E5E7EB; color: #1f2937;">No</button>
+        <button type="button" class="btn-primary" id="btnConfirmDelete" style="background: #DC2626; border: none; color: white;">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
 </section>
 
-<!-- Bus Filter Script -->
 <script>
-// Scroll to bus detail card when clicked from Top/Bottom 5 lists
-function scrollToBusCard(busReg) {
-  const busId = 'bus-' + busReg.replace('-', '');
-  const element = document.getElementById(busId);
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // Optional: Add brief highlight effect
-    element.style.transition = 'box-shadow 0.3s ease';
-    element.style.boxShadow = '0 0 0 3px rgba(128, 20, 60, 0.3)';
-    setTimeout(() => {
-      element.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-    }, 600);
-  }
+function scrollToEarningRow(busReg) {
+  const row = document.querySelector('#earningsTable tbody tr[data-bus="' + busReg + '"]');
+  if (!row) return;
+
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.style.transition = 'background-color 0.2s ease';
+  row.style.backgroundColor = 'rgba(128, 20, 60, 0.12)';
+  setTimeout(function () {
+    row.style.backgroundColor = '';
+  }, 800);
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  const filterInput = document.getElementById('busFilter');
-  const clearBtn = document.getElementById('clearFilterBtn');
-  const filterCount = document.getElementById('filterCount');
-  const busCards = document.querySelectorAll('.bus-detail-card');
-  const busCardsContainer = document.getElementById('busCardsContainer');
-  const noResultsMessage = document.getElementById('noResultsMessage');
-
-  function applyFilter() {
-    const filterValue = filterInput.value.toLowerCase().trim();
-    let visibleCount = 0;
-
-    busCards.forEach(card => {
-      const busReg = card.getAttribute('data-bus-reg').toLowerCase();
-      const matches = busReg.includes(filterValue) || filterValue === '';
-      card.style.display = matches ? '' : 'none';
-      if (matches) visibleCount++;
-    });
-
-    // Show/hide no results message
-    noResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
-    busCardsContainer.style.opacity = visibleCount === 0 ? '0.5' : '1';
-
-    // Update count
-    filterCount.textContent = visibleCount === 0 
-      ? 'No buses match your filter' 
-      : `Showing ${visibleCount} of ${busCards.length} buses`;
-  }
-
-  // Filter on input
-  filterInput.addEventListener('input', applyFilter);
-
-  // Clear filter button
-  clearBtn.addEventListener('click', function() {
-    filterInput.value = '';
-    filterInput.focus();
-    applyFilter();
-  });
-});
 </script>
 
 <!-- Chart.js Initialization -->
@@ -921,6 +928,292 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  const endpoint = document.getElementById('earningsPage')?.dataset?.endpoint || '/M/earnings';
+
+  // Revenue table filtering + pagination
+  const tableBody = document.querySelector('#earningsTable tbody');
+  const allRows = tableBody ? Array.from(tableBody.querySelectorAll('tr[data-date]')) : [];
+  let filteredRows = allRows.slice();
+  const rowsPerPage = 10;
+  let currentPage = 1;
+
+  const fltDateFrom = document.getElementById('fltDateFrom');
+  const fltDateTo = document.getElementById('fltDateTo');
+  const fltBus = document.getElementById('fltBus');
+  const fltSearch = document.getElementById('fltSearch');
+  const btnClearFilters = document.getElementById('btnClearFilters');
+  const tableRowCount = document.getElementById('tableRowCount');
+  const tableNoResults = document.getElementById('tableNoResults');
+  const tablePager = document.getElementById('tablePager');
+  const btnPrevPage = document.getElementById('btnPrevPage');
+  const btnNextPage = document.getElementById('btnNextPage');
+  const pageInfo = document.getElementById('pageInfo');
+
+  function tableTotalPages() {
+    return Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
+  }
+
+  function renderTablePage() {
+    allRows.forEach(function (r) { r.style.display = 'none'; });
+
+    if (!filteredRows.length) {
+      if (tableNoResults) tableNoResults.style.display = 'block';
+      if (tablePager) tablePager.style.display = 'none';
+      if (tableRowCount) tableRowCount.textContent = '0 records';
+      return;
+    }
+
+    if (tableNoResults) tableNoResults.style.display = 'none';
+    if (tablePager) tablePager.style.display = 'flex';
+
+    const totalPages = tableTotalPages();
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * rowsPerPage;
+
+    filteredRows.forEach(function (r, i) {
+      r.style.display = (i >= start && i < start + rowsPerPage) ? '' : 'none';
+    });
+
+    if (tableRowCount) {
+      tableRowCount.textContent = filteredRows.length + ' record' + (filteredRows.length === 1 ? '' : 's');
+    }
+    if (pageInfo) pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+    if (btnPrevPage) btnPrevPage.disabled = currentPage === 1;
+    if (btnNextPage) btnNextPage.disabled = currentPage >= totalPages;
+  }
+
+  function applyTableFilters() {
+    const from = fltDateFrom?.value || '';
+    const to = fltDateTo?.value || '';
+    const bus = (fltBus?.value || '').toLowerCase();
+    const search = (fltSearch?.value || '').toLowerCase().trim();
+
+    filteredRows = allRows.filter(function (row) {
+      const date = row.dataset.date || '';
+      const rowBus = (row.dataset.bus || '').toLowerCase();
+      const txt = (row.dataset.search || '').toLowerCase();
+      if (from && date < from) return false;
+      if (to && date > to) return false;
+      if (bus && rowBus !== bus) return false;
+      if (search && !(txt.includes(search))) return false;
+      return true;
+    });
+
+    currentPage = 1;
+    renderTablePage();
+  }
+
+  [fltDateFrom, fltDateTo, fltBus, fltSearch].forEach(function (el) {
+    if (!el) return;
+    el.addEventListener('input', applyTableFilters);
+    if (el.tagName === 'SELECT') el.addEventListener('change', applyTableFilters);
+  });
+
+  if (btnClearFilters) {
+    btnClearFilters.addEventListener('click', function () {
+      if (fltDateFrom) fltDateFrom.value = '';
+      if (fltDateTo) fltDateTo.value = '';
+      if (fltBus) fltBus.selectedIndex = 0;
+      if (fltSearch) fltSearch.value = '';
+      applyTableFilters();
+    });
+  }
+  if (btnPrevPage) {
+    btnPrevPage.addEventListener('click', function () {
+      if (currentPage > 1) {
+        currentPage -= 1;
+        renderTablePage();
+      }
+    });
+  }
+  if (btnNextPage) {
+    btnNextPage.addEventListener('click', function () {
+      if (currentPage < tableTotalPages()) {
+        currentPage += 1;
+        renderTablePage();
+      }
+    });
+  }
+  renderTablePage();
+
+  // Add / edit modal
+  const modal = document.getElementById('earningModal');
+  const form = document.getElementById('earningForm');
+  const btnAdd = document.getElementById('btnAddEarning');
+  const btnClose = document.getElementById('btnCloseEarning');
+  const btnCancel = document.getElementById('btnCancelEarning');
+  const btnSubmit = document.getElementById('btnSubmitEarning');
+  const modalTitle = document.getElementById('earningModalTitle');
+  let isSubmitting = false;
+
+  function closeModal() {
+    if (!modal || !form) return;
+    modal.setAttribute('hidden', '');
+    form.reset();
+    isSubmitting = false;
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Save';
+    }
+    const idField = document.getElementById('f_e_id');
+    if (idField) idField.value = '';
+  }
+
+  if (btnAdd) {
+    btnAdd.addEventListener('click', function () {
+      if (!modal || !form || !modalTitle) return;
+      form.reset();
+      const idField = document.getElementById('f_e_id');
+      if (idField) idField.value = '';
+      modalTitle.textContent = 'Add Income Record';
+      modal.removeAttribute('hidden');
+    });
+  }
+
+  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeModal);
+  modal?.querySelector('.modal__backdrop')?.addEventListener('click', closeModal);
+
+  document.querySelectorAll('.js-earning-edit').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const payload = this.getAttribute('data-earning') || '{}';
+      let data = {};
+      try {
+        data = JSON.parse(payload);
+      } catch (e) {
+        data = {};
+      }
+
+      const idField = document.getElementById('f_e_id');
+      const dateField = document.getElementById('f_e_date');
+      const busField = document.getElementById('f_e_bus');
+      const amountField = document.getElementById('f_e_amount');
+      const sourceField = document.getElementById('f_e_source');
+
+      if (idField) idField.value = data.id || '';
+      if (dateField) dateField.value = data.date || '';
+      if (busField) busField.value = data.bus_reg_no || '';
+      if (amountField) amountField.value = data.amount || '';
+      if (sourceField) sourceField.value = data.source || '';
+
+      if (modalTitle) modalTitle.textContent = 'Edit Income Record';
+      modal?.removeAttribute('hidden');
+    });
+  });
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      isSubmitting = true;
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Saving...';
+      }
+
+      const fd = new FormData(form);
+      const earningId = (document.getElementById('f_e_id')?.value || '').trim();
+      fd.append('action', earningId ? 'update' : 'create');
+
+      fetch(endpoint, { method: 'POST', body: fd })
+        .then(async function (res) {
+          const data = await res.json();
+          if (res.ok && data.success) {
+            window.location.reload();
+            return;
+          }
+          alert(data.message || 'Failed to save record.');
+          isSubmitting = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Save';
+          }
+        })
+        .catch(function () {
+          alert('Network error while saving record.');
+          isSubmitting = false;
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Save';
+          }
+        });
+    });
+  }
+
+  // Delete action (bus-owner style modal)
+  let deleteId = null;
+  const deleteModal = document.getElementById('deleteConfirmModal');
+  const btnConfirmDel = document.getElementById('btnConfirmDelete');
+  const btnCancelDel = document.getElementById('btnCancelDelete');
+  const btnCloseDel = document.getElementById('btnCloseDelete');
+
+  function closeDeleteModal() {
+    if (!deleteModal) return;
+    deleteModal.setAttribute('hidden', '');
+    deleteId = null;
+    if (btnConfirmDel) {
+      btnConfirmDel.disabled = false;
+      btnConfirmDel.textContent = 'Yes, Delete';
+    }
+  }
+
+  if (btnCancelDel) btnCancelDel.addEventListener('click', closeDeleteModal);
+  if (btnCloseDel) btnCloseDel.addEventListener('click', closeDeleteModal);
+  deleteModal?.querySelector('.modal__backdrop')?.addEventListener('click', closeDeleteModal);
+
+  document.addEventListener('click', function (event) {
+    const target = event.target instanceof Element ? event.target.closest('.js-earning-del') : null;
+    if (!target) return;
+
+    // Force custom modal flow and block any other attached handlers (including legacy confirm dialogs).
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof event.stopImmediatePropagation === 'function') {
+      event.stopImmediatePropagation();
+    }
+
+    deleteId = target.getAttribute('data-earning-id');
+    if (!deleteId || !deleteModal) return;
+    if (deleteModal.parentElement !== document.body) document.body.appendChild(deleteModal);
+    deleteModal.removeAttribute('hidden');
+  }, true);
+
+  if (btnConfirmDel) {
+    btnConfirmDel.addEventListener('click', function () {
+      if (!deleteId) return;
+      const fd = new FormData();
+      fd.append('action', 'delete');
+      fd.append('earning_id', deleteId);
+
+      const originalText = btnConfirmDel.textContent;
+      btnConfirmDel.disabled = true;
+      btnConfirmDel.textContent = 'Deleting...';
+
+      fetch(endpoint, { method: 'POST', body: fd })
+        .then(async function (res) {
+          const data = await res.json();
+          if (res.ok && data.success) {
+            window.location.reload();
+            return;
+          }
+          alert(data.message || 'Failed to delete record.');
+          btnConfirmDel.disabled = false;
+          btnConfirmDel.textContent = originalText;
+        })
+        .catch(function () {
+          alert('Network error while deleting record.');
+          btnConfirmDel.disabled = false;
+          btnConfirmDel.textContent = originalText;
+        });
+    });
+  }
+
+  // Export
+  document.querySelector('.js-export')?.addEventListener('click', function () {
+    window.location.href = this.dataset.exportHref || '/M/earnings/export';
+  });
   
 });
 </script>
