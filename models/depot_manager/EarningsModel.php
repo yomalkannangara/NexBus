@@ -20,12 +20,12 @@ class EarningsModel extends BaseModel
         $depotId = $this->depotId();
         if ($depotId) {
             return [
-                'join'   => "JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no AND sb.sltb_depot_id = " . (int)$depotId,
+                'join'   => "JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no AND sb.sltb_depot_id = " . (int)$depotId . " AND sb.reg_no NOT IN ('PA-1001', 'PB-1002')",
                 'params' => [],
             ];
         }
         return [
-            'join'   => "JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no",
+            'join'   => "JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no AND sb.reg_no NOT IN ('PA-1001', 'PB-1002')",
             'params' => [],
         ];
     }
@@ -528,6 +528,56 @@ class EarningsModel extends BaseModel
         }
     }
 
+    /** SLTB buses available under the logged-in manager's depot. */
+    public function getDepotBusesForSelect(bool $activeOnly = false): array
+    {
+        $depotId = $this->depotId();
+        if (!$depotId) {
+            return [];
+        }
+
+        try {
+            $sql = "SELECT reg_no
+                    FROM sltb_buses
+                    WHERE sltb_depot_id = :depot
+                      AND reg_no NOT IN ('PA-1001', 'PB-1002')";
+            if ($activeOnly) {
+                $sql .= " AND LOWER(COALESCE(status, 'active')) = 'active'";
+            }
+            $sql .= " ORDER BY reg_no ASC";
+
+            $st = $this->pdo->prepare($sql);
+            $st->execute([':depot' => $depotId]);
+            return $st->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
+    /** Rows for export/reporting scoped to the manager's SLTB depot. */
+    public function exportRows(): array
+    {
+        $depotId = $this->depotId();
+        if (!$depotId) {
+            return [];
+        }
+
+        try {
+            $sql = "SELECT e.earning_id, e.date, e.bus_reg_no, e.amount, e.source
+                    FROM earnings e
+                    JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no
+                    WHERE e.operator_type = 'SLTB'
+                      AND sb.sltb_depot_id = :depot
+                                            AND sb.reg_no NOT IN ('PA-1001', 'PB-1002')
+                    ORDER BY e.date DESC, e.earning_id DESC";
+            $st = $this->pdo->prepare($sql);
+            $st->execute([':depot' => $depotId]);
+            return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
     /* ==================== Existing helpers ==================== */
     public function add(array $d): bool
     {
@@ -550,13 +600,44 @@ class EarningsModel extends BaseModel
         }
     }
 
+    public function update(int $id, array $d): bool
+    {
+        if (!$this->depotId()) return false;
+        try {
+            $bus = trim($d['bus_reg_no'] ?? '');
+            if ($id <= 0 || $bus === '') return false;
+            if (!$this->busBelongsToDepot($bus)) return false;
+
+            $sql = "UPDATE earnings e
+                    JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no AND sb.sltb_depot_id = :depot
+                    SET e.bus_reg_no = :bus_reg_no,
+                        e.date = :date,
+                        e.amount = :amount,
+                        e.source = :source
+                    WHERE e.earning_id = :id
+                      AND e.operator_type = 'SLTB'";
+            $st = $this->pdo->prepare($sql);
+            return $st->execute([
+                ':id' => $id,
+                ':depot' => $this->depotId(),
+                ':bus_reg_no' => $bus,
+                ':date' => $d['date'] ?? date('Y-m-d'),
+                ':amount' => (float)($d['amount'] ?? 0),
+                ':source' => $d['source'] ?? 'Cash',
+            ]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
     public function delete(int $id): bool
     {
         if (!$this->depotId()) return false;
         try {
             $sql = "DELETE e FROM earnings e
                     JOIN sltb_buses sb ON sb.reg_no = e.bus_reg_no AND sb.sltb_depot_id = :depot
-                    WHERE e.earning_id = :id";
+                    WHERE e.earning_id = :id
+                      AND e.operator_type = 'SLTB'";
             $st = $this->pdo->prepare($sql);
             return $st->execute([':id' => $id, ':depot' => $this->depotId()]);
         } catch (PDOException $e) {
@@ -567,7 +648,7 @@ class EarningsModel extends BaseModel
     private function busBelongsToDepot(string $busReg): bool
     {
         try {
-            $st = $this->pdo->prepare("SELECT 1 FROM sltb_buses WHERE reg_no = :reg AND sltb_depot_id = :depot LIMIT 1");
+            $st = $this->pdo->prepare("SELECT 1 FROM sltb_buses WHERE reg_no = :reg AND sltb_depot_id = :depot AND reg_no NOT IN ('PA-1001', 'PB-1002') LIMIT 1");
             $st->execute([':reg' => $busReg, ':depot' => $this->depotId()]);
             return (bool)$st->fetchColumn();
         } catch (PDOException $e) {

@@ -26,7 +26,7 @@ class PerformanceModel extends BaseModel
             return ['join' => '', 'params' => []];
         }
         return [
-            'join' => ' JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id',
+            'join' => " JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id AND sb.reg_no NOT IN ('PA-1001', 'PB-1002')",
             'params' => [':depot_id' => $depotId],
         ];
     }
@@ -228,7 +228,7 @@ class PerformanceModel extends BaseModel
 
         $scope = $this->depotJoin();
         if (!empty($scope['params'])) {
-            $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+            $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id AND sb.reg_no NOT IN (\'PA-1001\', \'PB-1002\'))';
             $params += $scope['params'];
         }
 
@@ -329,7 +329,7 @@ class PerformanceModel extends BaseModel
         try {
             $depotId = $this->depotId();
             if ($depotId === null) return [];
-            $sql = "SELECT reg_no FROM sltb_buses WHERE sltb_depot_id = :depot_id ORDER BY reg_no";
+            $sql = "SELECT reg_no FROM sltb_buses WHERE sltb_depot_id = :depot_id AND reg_no NOT IN ('PA-1001', 'PB-1002') ORDER BY reg_no";
             $st = $this->pdo->prepare($sql);
             $st->execute([':depot_id' => $depotId]);
             return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -407,7 +407,7 @@ class PerformanceModel extends BaseModel
             $busClause   = '';
 
             if ($depotId) {
-                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id AND sb.reg_no NOT IN (\'PA-1001\', \'PB-1002\'))';
                 $params[':depot_id'] = (int)$depotId;
             }
             if (!empty($filters['route_no'])) {
@@ -553,7 +553,7 @@ class PerformanceModel extends BaseModel
             $routeClause = '';
             $depotClause = '';
             if ($depotId !== null) {
-                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id)';
+                $depotClause = ' AND EXISTS (SELECT 1 FROM sltb_buses sb WHERE sb.reg_no = tm.bus_reg_no AND sb.sltb_depot_id = :depot_id AND sb.reg_no NOT IN (\'PA-1001\', \'PB-1002\'))';
                 $params[':depot_id'] = $depotId;
             }
             if (!empty($filters['route_no'])) {

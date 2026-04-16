@@ -864,17 +864,45 @@ public function fleet()
     {
         $m = new EarningsModel();
 
+        $respondJson = static function (bool $ok, string $message, int $okCode = 200, int $errCode = 400): void {
+            header('Content-Type: application/json');
+            http_response_code($ok ? $okCode : $errCode);
+            echo json_encode(['success' => $ok, 'message' => $message]);
+            exit;
+        };
+
+        $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || (isset($_SERVER['HTTP_ACCEPT']) && stripos((string)$_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
 
-            if ($act === 'add') {
-                $m->add($_POST);
-                return $this->redirect('/M/earnings?msg=added');
+            if ($act === 'add' || $act === 'create') {
+                $ok = $m->add($_POST);
+                if ($isAjax) {
+                    $respondJson($ok, $ok ? 'Record created successfully' : 'Failed to create record. Please select a bus from your depot.');
+                }
+                return $this->redirect('/M/earnings?msg=' . ($ok ? 'added' : 'error'));
             }
+
+            if ($act === 'update') {
+                $id = (int)($_POST['earning_id'] ?? 0);
+                $ok = $m->update($id, $_POST);
+                if ($isAjax) {
+                    $respondJson($ok, $ok ? 'Record updated successfully' : 'Failed to update record.');
+                }
+                return $this->redirect('/M/earnings?msg=' . ($ok ? 'updated' : 'error'));
+            }
+
             if ($act === 'delete') {
-                $m->delete((int)($_POST['earning_id'] ?? 0));
-                return $this->redirect('/M/earnings?msg=deleted');
+                $ok = $m->delete((int)($_POST['earning_id'] ?? 0));
+                if ($isAjax) {
+                    $respondJson($ok, $ok ? 'Record deleted successfully' : 'Failed to delete record.');
+                }
+                return $this->redirect('/M/earnings?msg=' . ($ok ? 'deleted' : 'error'));
             }
+
             if ($act === 'import_csv') {
                 $m->importCsv($_FILES['file'] ?? null);
                 return $this->redirect('/M/earnings?msg=imported');
@@ -909,6 +937,7 @@ public function fleet()
             
             // Bus list for dropdown
             'allBuses' => $m->getAllBuses(),
+            'selectBuses' => $m->getDepotBusesForSelect(),
             'comparisonData' => $comparisonData,
             'compareB1' => $compareB1,
             'compareB2' => $compareB2,
@@ -922,6 +951,65 @@ public function fleet()
             ),
             'dailyDistributionJson' => json_encode($dailyDistribution, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT),
         ]);
+    }
+
+    /** /M/earnings/export - Export depot-scoped SLTB earnings as Excel */
+    public function exportEarnings()
+    {
+        $m = new EarningsModel();
+        $earnings = $m->exportRows();
+
+        $filename = 'depot_earnings_report_' . date('Y-m-d') . '.xls';
+
+        header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $total = array_sum(array_map(static fn($e) => (float)($e['amount'] ?? 0), $earnings));
+        $x = static fn($v) => htmlspecialchars((string)$v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<?mso-application progid="Excel.Sheet"?>' . "\n";
+        echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        echo '<Styles>';
+        echo '<Style ss:ID="title"><Font ss:Bold="1" ss:Size="14" ss:Color="#80143C" /></Style>';
+        echo '<Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF" /><Interior ss:Color="#80143C" ss:Pattern="Solid" /><Alignment ss:Horizontal="Center" /></Style>';
+        echo '<Style ss:ID="total"><Font ss:Bold="1" /><Interior ss:Color="#FEF3C7" ss:Pattern="Solid" /></Style>';
+        echo '<Style ss:ID="currency"><NumberFormat ss:Format="#,##0.00" /></Style>';
+        echo '<Style ss:ID="totalCurrency"><Font ss:Bold="1" /><Interior ss:Color="#FEF3C7" ss:Pattern="Solid" /><NumberFormat ss:Format="#,##0.00" /></Style>';
+        echo '<Style ss:ID="even"><Interior ss:Color="#F9FAFB" ss:Pattern="Solid" /></Style>';
+        echo '</Styles>';
+        echo '<Worksheet ss:Name="Depot Earnings Report"><Table>';
+        echo '<Column ss:Width="100" /><Column ss:Width="130" /><Column ss:Width="140" /><Column ss:Width="120" />';
+        echo '<Row><Cell ss:MergeAcross="3" ss:StyleID="title"><Data ss:Type="String">NexBus Depot Earnings Report - Generated ' . date('Y-m-d H:i') . '</Data></Cell></Row>';
+        echo '<Row />';
+        echo '<Row>';
+        echo '<Cell ss:StyleID="header"><Data ss:Type="String">Date</Data></Cell>';
+        echo '<Cell ss:StyleID="header"><Data ss:Type="String">Bus Reg. No</Data></Cell>';
+        echo '<Cell ss:StyleID="header"><Data ss:Type="String">Source</Data></Cell>';
+        echo '<Cell ss:StyleID="header"><Data ss:Type="String">Amount (LKR)</Data></Cell>';
+        echo '</Row>';
+
+        foreach ($earnings as $i => $e) {
+            $style = ($i % 2 === 1) ? ' ss:StyleID="even"' : '';
+            $amount = (float)($e['amount'] ?? 0);
+            echo '<Row>';
+            echo '<Cell' . $style . '><Data ss:Type="String">' . $x($e['date'] ?? '') . '</Data></Cell>';
+            echo '<Cell' . $style . '><Data ss:Type="String">' . $x($e['bus_reg_no'] ?? '') . '</Data></Cell>';
+            echo '<Cell' . $style . '><Data ss:Type="String">' . $x($e['source'] ?? '') . '</Data></Cell>';
+            echo '<Cell ss:StyleID="currency"><Data ss:Type="Number">' . $amount . '</Data></Cell>';
+            echo '</Row>';
+        }
+
+        echo '<Row />';
+        echo '<Row>';
+        echo '<Cell ss:StyleID="total"><Data ss:Type="String">TOTAL</Data></Cell>';
+        echo '<Cell ss:StyleID="total"><Data ss:Type="String"></Data></Cell>';
+        echo '<Cell ss:StyleID="total"><Data ss:Type="String">' . count($earnings) . ' record(s)</Data></Cell>';
+        echo '<Cell ss:StyleID="totalCurrency"><Data ss:Type="Number">' . $total . '</Data></Cell>';
+        echo '</Row>';
+        echo '</Table></Worksheet></Workbook>';
+        exit;
     }
 
     /* =========================

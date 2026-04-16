@@ -121,6 +121,8 @@ class FleetModel extends BaseModel
             $params[':bus_class'] = $filters['bus_class'];
         }
 
+        $clauses[] = "sb.reg_no NOT IN ('PA-1001', 'PB-1002')";
+
         // Bus model filter
         if (!empty($filters['model'])) {
             $clauses[] = "sb.bus_model = :model";
@@ -320,7 +322,8 @@ class FleetModel extends BaseModel
                    FROM routes r
                    JOIN timetables t ON t.route_id = r.route_id AND t.operator_type='SLTB'
                    JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
-                  WHERE sb.sltb_depot_id = :d
+                                    WHERE sb.sltb_depot_id = :d
+                                        AND sb.reg_no NOT IN ('PA-1001', 'PB-1002')
                   ORDER BY r.route_no+0, r.route_no"
             );
             $st->execute([':d' => $this->depotId()]);
@@ -338,7 +341,7 @@ class FleetModel extends BaseModel
     {
         if (!$this->hasDepot()) return [];
         try {
-            $st = $this->pdo->prepare("SELECT reg_no FROM sltb_buses WHERE sltb_depot_id=:d ORDER BY reg_no");
+            $st = $this->pdo->prepare("SELECT reg_no FROM sltb_buses WHERE sltb_depot_id=:d AND reg_no NOT IN ('PA-1001', 'PB-1002') ORDER BY reg_no");
             $st->bindValue(':d', $this->depotId(), PDO::PARAM_INT);
             $st->execute();
             return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -348,6 +351,7 @@ class FleetModel extends BaseModel
     public function getBusByReg(string $regNo): array
     {
         if (!$this->hasDepot()) return [];
+        if (in_array($regNo, ['PA-1001', 'PB-1002'], true)) return [];
         try {
             $sql = "
                 SELECT

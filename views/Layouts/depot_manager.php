@@ -32,6 +32,9 @@ $name    = $displayName !== '' ? $displayName : 'Depot Manager';
     <link rel="stylesheet" href="/assets/css/owner.css">
     <script defer src="/assets/js/bus_owner.js"></script>
   <?php endif; ?>
+  <?php if ($page === 'earnings'): ?>
+    <script defer src="/assets/js/earnings.js"></script>
+  <?php endif; ?>
 
   <style>
     .topbar {

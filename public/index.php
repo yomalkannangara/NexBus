@@ -97,6 +97,7 @@ $routes = [
     '/M/performance/details' => ['DepotManagerController','performanceDetails'],
     '/M/live'             => ['DepotManagerController','depotLive'],
     '/M/earnings'     => ['DepotManagerController','earnings'],     // NEW
+    '/M/earnings/export' => ['DepotManagerController','exportEarnings'],
     '/M/profile'      => ['DepotManagerController','profile'],      // NEW
 
 

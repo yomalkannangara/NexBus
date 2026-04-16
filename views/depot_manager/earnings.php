@@ -12,6 +12,7 @@ $busRanking = is_array($busRanking ?? null) ? $busRanking : ['top' => [], 'botto
 $dailyDistribution = is_array($dailyDistribution ?? null) ? $dailyDistribution : ['labels' => [], 'values' => []];
 $busMetrics = is_array($busMetrics ?? null) ? $busMetrics : [];
 $allBuses = is_array($allBuses ?? null) ? $allBuses : [];
+$selectBuses = is_array($selectBuses ?? null) ? $selectBuses : [];
 $comparisonData = $comparisonData ?? null;
 $compareB1 = $compareB1 ?? null;
 $compareB2 = $compareB2 ?? null;
@@ -40,6 +41,71 @@ function rupeesMini(float $v): string {
 .earnings-header { padding-bottom: 2rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 2rem; }
 .earnings-header h1 { margin: 0; font-size: 2rem; color: var(--clr-primary); }
 .earnings-header p { margin: 0.25rem 0 0 0; color: #6b7280; }
+.earnings-header__row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.export-report-btn-alt,
+.add-income-btn {
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.85rem 1.5rem;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+}
+.export-report-btn-alt {
+  background: #fff;
+  color: #80143c;
+  border-color: #80143c;
+}
+.add-income-btn {
+  background: #e9b23a;
+  color: #80143c;
+  border-color: #e9b23a;
+}
+
+.earning-modal[hidden] { display: none; }
+.earning-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.earning-modal .modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+.earning-modal__panel {
+  position: relative;
+  width: min(560px, 95vw);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+  padding: 1.25rem;
+}
+.earning-modal__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.earning-modal__title { margin: 0; color: var(--clr-primary); }
+.earning-modal__close { border: 0; background: transparent; font-size: 1.6rem; cursor: pointer; }
+.earning-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.earning-modal__field { display: flex; flex-direction: column; gap: 0.35rem; }
+.earning-modal__field label { font-size: 0.85rem; color: #4b5563; font-weight: 600; }
+.earning-modal__field input,
+.earning-modal__field select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.95rem;
+}
+.earning-modal__footer { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; }
+.earning-modal__btn { border: 0; border-radius: 8px; padding: 0.65rem 1rem; font-weight: 600; cursor: pointer; }
+.earning-modal__btn--cancel { background: #f3f4f6; color: #374151; }
+.earning-modal__btn--submit { background: #80143c; color: #fff; }
 
 /* KPI Grid */
 .kpi-grid {
@@ -251,15 +317,25 @@ function rupeesMini(float $v): string {
     .performance-grid { grid-template-columns: 1fr; }
     .kpi-grid { grid-template-columns: 1fr; }
     .earnings-header h1 { font-size: 1.5rem; }
+  .earnings-header__row { flex-direction: column; }
+  .earning-modal__grid { grid-template-columns: 1fr; }
 }
 </style>
 
-<div class="earnings-page">
+<section id="earningsPage" class="earnings-page" data-endpoint="/M/earnings">
   
   <!-- PAGE HEADER -->
   <div class="earnings-header">
-    <h1>Earnings & Revenue Analytics</h1>
-    <p>Comprehensive income analysis and performance tracking for your SLTB fleet</p>
+    <div class="earnings-header__row">
+      <div>
+        <h1>Earnings & Revenue Analytics</h1>
+        <p>Comprehensive income analysis and performance tracking for your SLTB fleet</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="export-report-btn-alt js-export" data-export-href="/M/earnings/export">Export Report</button>
+        <button type="button" id="btnAddEarning" class="add-income-btn">Add Income Record</button>
+      </div>
+    </div>
   </div>
 
   <!-- KPI CARDS SECTION -->
@@ -462,7 +538,7 @@ function rupeesMini(float $v): string {
             </div>
 
             <!-- Metrics -->
-            <div style="space-y: 1rem;">
+            <div>
               <!-- Total Income -->
               <div style="margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.2);">
                 <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.35rem;">Total Income</div>
@@ -631,7 +707,52 @@ function rupeesMini(float $v): string {
   </div>
   <?php endif; ?>
 
-</div>
+  <div id="earningModal" class="earning-modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="earning-modal__panel">
+      <div class="earning-modal__header">
+        <h2 id="earningModalTitle" class="earning-modal__title">Add Income Record</h2>
+        <button type="button" id="btnCloseEarning" class="earning-modal__close" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="earningForm" autocomplete="off">
+        <input type="hidden" id="f_e_id" name="earning_id" value="">
+        <div class="earning-modal__grid">
+          <div class="earning-modal__field">
+            <label for="f_e_date">Date</label>
+            <input type="date" id="f_e_date" name="date" required>
+          </div>
+
+          <div class="earning-modal__field">
+            <label for="f_e_bus">SLTB Bus (Depot)</label>
+            <select id="f_e_bus" name="bus_reg_no" required>
+              <option value="">-- Select Bus --</option>
+              <?php foreach ($selectBuses as $reg): ?>
+                <option value="<?= h($reg) ?>"><?= h($reg) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <div class="earning-modal__field">
+            <label for="f_e_amount">Amount (LKR)</label>
+            <input type="number" id="f_e_amount" name="amount" step="0.01" min="0" required>
+          </div>
+
+          <div class="earning-modal__field">
+            <label for="f_e_source">Source</label>
+            <input type="text" id="f_e_source" name="source" maxlength="120" placeholder="Ticket sales, online, cash, etc.">
+          </div>
+        </div>
+
+        <div class="earning-modal__footer">
+          <button type="button" id="btnCancelEarning" class="earning-modal__btn earning-modal__btn--cancel">Cancel</button>
+          <button type="submit" class="earning-modal__btn earning-modal__btn--submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>
 
 <!-- Bus Filter Script -->
 <script>
