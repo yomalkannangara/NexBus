@@ -105,6 +105,13 @@ rsort($yearsList);
 
           <div class="filter-control">
             <label>Bus Number</label>
+            <input
+              type="text"
+              id="fleetFilterBusSearch"
+              class="fleet-select fleet-select-search"
+              placeholder="Type to search buses"
+              autocomplete="off"
+            >
             <select name="bus" id="fleetFilterBus" class="fleet-select">
               <option value="">All Buses</option>
               <?php if (!empty($buses)): 
@@ -695,6 +702,12 @@ rsort($yearsList);
   color: #374151;
   cursor: pointer;
   transition: var(--transition);
+}
+
+.fleet-select-search {
+  margin-bottom: 8px;
+  text-align: left;
+  direction: ltr;
 }
 
 .fleet-select:hover { border-color: var(--brand-red); }

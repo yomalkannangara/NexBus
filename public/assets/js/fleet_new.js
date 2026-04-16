@@ -494,6 +494,81 @@
   const filtersPanel = $('#fleetFiltersPanel');
   const resetBtn = $('#fleetResetFilters');
   const applyBtn = $('#fleetApplyFilters');
+  const busFilterSelect = $('#fleetFilterBus');
+  const busFilterSearch = $('#fleetFilterBusSearch');
+  const busOptionCache = busFilterSelect
+    ? Array.from(busFilterSelect.options).map(option => ({
+        value: option.value,
+        label: String(option.textContent || option.value).trim(),
+      }))
+    : [];
+
+  function normalizeSearchTerm(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function renderBusOptions(searchTerm = '') {
+    if (!busFilterSelect || !busOptionCache.length) return;
+
+    const previousValue = busFilterSelect.value;
+    const term = normalizeSearchTerm(searchTerm);
+
+    const nextOptions = busOptionCache.filter((opt, index) => {
+      if (index === 0) return true;
+      if (!term) return true;
+
+      const valueText = normalizeSearchTerm(opt.value);
+      const labelText = normalizeSearchTerm(opt.label);
+      return valueText.includes(term) || labelText.includes(term);
+    });
+
+    busFilterSelect.innerHTML = '';
+    nextOptions.forEach(opt => {
+      const optionEl = document.createElement('option');
+      optionEl.value = opt.value;
+      optionEl.textContent = opt.label;
+      busFilterSelect.appendChild(optionEl);
+    });
+
+    const hasPrevious = nextOptions.some(opt => opt.value === previousValue);
+    busFilterSelect.value = hasPrevious ? previousValue : '';
+  }
+
+  function syncBusSearchWithSelection() {
+    if (!busFilterSelect || !busFilterSearch) return;
+    const selected = busFilterSelect.options[busFilterSelect.selectedIndex];
+    const selectedText = String(selected?.textContent || busFilterSelect.value || '').trim();
+    busFilterSearch.value = busFilterSelect.value ? selectedText : '';
+  }
+
+  function filterBusOptions() {
+    if (!busFilterSelect || !busFilterSearch) return;
+    renderBusOptions(busFilterSearch.value);
+  }
+
+  function applyBestBusMatchFromSearch(exactOnly = false) {
+    if (!busFilterSelect || !busFilterSearch) return;
+
+    const term = normalizeSearchTerm(busFilterSearch.value);
+    if (!term) return;
+
+    const exact = Array.from(busFilterSelect.options).find((option, index) => {
+      if (index === 0) return false;
+      return normalizeSearchTerm(option.value) === term || normalizeSearchTerm(option.textContent) === term;
+    });
+
+    if (exact) {
+      busFilterSelect.value = exact.value;
+      return;
+    }
+
+    if (exactOnly) return;
+
+    const firstMatch = Array.from(busFilterSelect.options).find((option, index) => index > 0);
+    if (firstMatch) {
+      busFilterSelect.value = firstMatch.value;
+    }
+  }
 
   if (filterToggle && filtersPanel) {
     filterToggle.addEventListener('click', () => {
@@ -506,11 +581,50 @@
   if (resetBtn) {
     resetBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      if (busFilterSearch) {
+        busFilterSearch.value = '';
+      }
+      renderBusOptions('');
       if (filterForm) {
         filterForm.reset();
         filterForm.submit();
       }
     });
+  }
+
+  if (busFilterSearch && busFilterSelect) {
+    renderBusOptions('');
+    syncBusSearchWithSelection();
+
+    busFilterSearch.addEventListener('input', () => {
+      filterBusOptions();
+      updateActiveFilterCount();
+    });
+
+    busFilterSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        busFilterSelect.focus();
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyBestBusMatchFromSearch(false);
+        renderBusOptions('');
+        syncBusSearchWithSelection();
+        updateActiveFilterCount();
+      }
+    });
+
+    busFilterSelect.addEventListener('change', () => {
+      renderBusOptions('');
+      syncBusSearchWithSelection();
+    });
+
+    if (filterForm) {
+      filterForm.addEventListener('submit', () => {
+        applyBestBusMatchFromSearch(false);
+      });
+    }
   }
 
   function updateActiveFilterCount() {
