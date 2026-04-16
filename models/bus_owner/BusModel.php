@@ -41,7 +41,12 @@ class BusModel extends BaseModel
      */
     public function all(): array
     {
-        $sql = "SELECT 
+        // ── Optimised query ─────────────────────────────────────────────
+        // Uses the composite index idx_tm_bus_snap (bus_reg_no, snapshot_at)
+        // The correlated subquery replaces the double GROUP-BY pattern and
+        // lets MySQL do a single index-range scan per bus instead of a full
+        // table sort, which was the source of the fleet-page delay.
+        $sql = "SELECT
                     b.reg_no AS bus_number,
                     b.private_operator_id,
                     b.chassis_no,
@@ -55,42 +60,31 @@ class BusModel extends BaseModel
                     b.conductor_id,
                     r.stops_json,
                     r.route_no AS route_number,
-                    d.full_name AS driver_name,
+                    d.full_name  AS driver_name,
                     d.license_no AS driver_license,
-                    c.full_name AS conductor_name,
-                    c.private_conductor_id AS conductor_id_display,
-                    -- Real location from latest tracking snapshot
-                    tm_latest.lat               AS live_lat,
-                    tm_latest.lng               AS live_lng,
-                    tm_latest.speed             AS live_speed,
-                    tm_latest.operational_status AS live_status,
-                    tm_latest.snapshot_at       AS live_snapshot_at
+                    c.full_name             AS conductor_name,
+                    c.private_conductor_id  AS conductor_id_display,
+                    tm.lat               AS live_lat,
+                    tm.lng               AS live_lng,
+                    tm.speed             AS live_speed,
+                    tm.operational_status AS live_status,
+                    tm.snapshot_at        AS live_snapshot_at
                 FROM private_buses b
-                LEFT JOIN timetables t 
-                    ON t.bus_reg_no = b.reg_no 
+                LEFT JOIN timetables t
+                    ON  t.bus_reg_no    = b.reg_no
                     AND t.operator_type = 'Private'
-                LEFT JOIN routes r 
-                    ON r.route_id = t.route_id
-                LEFT JOIN private_drivers d
-                    ON d.private_driver_id = b.driver_id
-                LEFT JOIN private_conductors c
-                    ON c.private_conductor_id = b.conductor_id
-                -- Latest tracking snapshot per bus (subquery avoids GROUP BY issues)
-                LEFT JOIN (
-                    SELECT tm.bus_reg_no,
-                           tm.lat,
-                           tm.lng,
-                           tm.speed,
-                           tm.operational_status,
-                           tm.snapshot_at
-                    FROM tracking_monitoring tm
-                    INNER JOIN (
-                        SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
-                        FROM   tracking_monitoring
-                        GROUP  BY bus_reg_no
-                    ) latest ON latest.bus_reg_no = tm.bus_reg_no
-                              AND latest.max_snap  = tm.snapshot_at
-                ) tm_latest ON tm_latest.bus_reg_no = b.reg_no";
+                LEFT JOIN routes r ON r.route_id = t.route_id
+                LEFT JOIN private_drivers   d ON d.private_driver_id    = b.driver_id
+                LEFT JOIN private_conductors c ON c.private_conductor_id = b.conductor_id
+                -- Correlated subquery: grabs only the single latest row per bus
+                -- and benefits from idx_tm_bus_snap (bus_reg_no, snapshot_at)
+                LEFT JOIN tracking_monitoring tm
+                    ON  tm.bus_reg_no  = b.reg_no
+                    AND tm.snapshot_at = (
+                        SELECT MAX(t2.snapshot_at)
+                        FROM   tracking_monitoring t2
+                        WHERE  t2.bus_reg_no = b.reg_no
+                    )";
 
         $params = [];
         if ($this->hasOperator()) {
@@ -106,20 +100,18 @@ class BusModel extends BaseModel
         foreach ($rows as &$r) {
             $r['route'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
 
-            // Build a human-readable current_location from real tracking data
-            $lat  = $r['live_lat']  !== null ? (float)$r['live_lat']  : null;
-            $lng  = $r['live_lng']  !== null ? (float)$r['live_lng']  : null;
+            $lat  = $r['live_lat']  !== null ? (float) $r['live_lat']  : null;
+            $lng  = $r['live_lng']  !== null ? (float) $r['live_lng']  : null;
             $snap = $r['live_snapshot_at'] ?? null;
 
             if ($lat !== null && $lng !== null) {
-                // Format: "6.9271° N, 79.8612° E  · 2 min ago"
                 $latStr = abs($lat) . '° ' . ($lat >= 0 ? 'N' : 'S');
                 $lngStr = abs($lng) . '° ' . ($lng >= 0 ? 'E' : 'W');
                 $age    = $snap ? $this->formatAge($snap) : '';
-                $r['current_location'] = $latStr . ',  ' . $lngStr . ($age ? '  · ' . $age : '');
+                $r['current_location']  = $latStr . ',  ' . $lngStr . ($age ? '  · ' . $age : '');
                 $r['has_live_location'] = true;
             } else {
-                $r['current_location']  = null; // view will show "No tracking data"
+                $r['current_location']  = null;
                 $r['has_live_location'] = false;
             }
         }
