@@ -1423,8 +1423,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function validatePhone(input) {
     const v = input.value.trim();
     if (v === '') { setError(input, ''); return true; } // optional
-    if (!/^[\d\s\+\-]{7,15}$/.test(v)) {
-      setError(input, 'Enter a valid phone number (7–15 digits).'); return false;
+    // Sri Lankan phone: 0XXXXXXXXX, +94XXXXXXXXX, or 94XXXXXXXXX (10 or 12 digits)
+    const clean = v.replace(/[\s\-]/g, '');
+    if (!/^(?:\+94|94|0)[1-9]\d{8}$/.test(clean)) {
+      setError(input, 'Enter a valid Sri Lankan phone number (e.g. 0771234567 or +94771234567).');
+      return false;
     }
     setError(input, ''); return true;
   }
