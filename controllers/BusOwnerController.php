@@ -12,7 +12,8 @@ use App\models\bus_owner\FeedbackModel;
 use App\models\bus_owner\ReportModel;
 use App\models\bus_owner\AttendanceModel;
 
-// Validation is now handled in JS (fleet.php / drivers.php modals)
+// Centralized validation
+use App\Support\Validator;
 
 class BusOwnerController extends BaseController
 {
@@ -52,6 +53,27 @@ class BusOwnerController extends BaseController
 
             // ── Create Bus ────────────────────────────────────────────────
             if ($act === 'create') {
+                $v = new Validator($_POST);
+                $v->required('reg_no', 'Registration Number')
+                    ->busRegistration('reg_no', 'Registration Number')
+                    ->required('model', 'Model')
+                    ->length('model', 'Model', 1, 80)
+                    ->required('bus_class', 'Bus Class')
+                    ->inList('bus_class', 'Bus Class', ['Normal', 'Semi-Luxury', 'Luxury'])
+                    ->required('capacity', 'Capacity')
+                    ->positiveInt('capacity', 'Capacity')
+                    ->required('status', 'Status')
+                    ->inList('status', 'Status', ['Active', 'Maintenance', 'Inactive'])
+                    ->chassisNo('chassis_no', 'Chassis Number')
+                    ->date('manufactured_date', 'Manufactured Date')
+                    ->manufacturedYear('manufactured_year', 'Manufactured Year');
+
+                if ($v->fails()) {
+                    $this->flashErrors($v->errors());
+                    $this->flashOldInput($_POST);
+                    return $this->redirect('/B/fleet?msg=validation_error');
+                }
+
                 $ok = $m->create($_POST);
                 if (!$ok) {
                     return $this->redirect('/B/fleet?msg=duplicate');
@@ -62,6 +84,27 @@ class BusOwnerController extends BaseController
             // ── Update Bus ────────────────────────────────────────────────
             if ($act === 'update') {
                 $reg = (string) ($_POST['reg_no'] ?? '');
+
+                $v = new Validator($_POST);
+                $v->required('reg_no', 'Registration Number')
+                    ->required('model', 'Model')
+                    ->length('model', 'Model', 1, 80)
+                    ->required('bus_class', 'Bus Class')
+                    ->inList('bus_class', 'Bus Class', ['Normal', 'Semi-Luxury', 'Luxury'])
+                    ->required('capacity', 'Capacity')
+                    ->positiveInt('capacity', 'Capacity')
+                    ->required('status', 'Status')
+                    ->inList('status', 'Status', ['Active', 'Maintenance', 'Inactive'])
+                    ->chassisNo('chassis_no', 'Chassis Number')
+                    ->date('manufactured_date', 'Manufactured Date')
+                    ->manufacturedYear('manufactured_year', 'Manufactured Year');
+
+                if ($v->fails()) {
+                    $this->flashErrors($v->errors());
+                    $this->flashOldInput($_POST);
+                    return $this->redirect('/B/fleet?msg=validation_error');
+                }
+
                 $m->update($reg, $_POST);
                 return $this->redirect('/B/fleet?msg=updated');
             }
@@ -137,6 +180,22 @@ class BusOwnerController extends BaseController
 
             // ── Create Driver ─────────────────────────────────────────────
             if ($act === 'create') {
+                $v = new Validator($_POST);
+                $v->required('full_name', 'Full Name')
+                    ->name('full_name', 'Full Name')
+                    ->length('full_name', 'Full Name', 2, 80)
+                    ->required('license_no', 'License Number')
+                    ->licenseNo('license_no', 'License Number')
+                    ->sriLankanPhone('phone', 'Phone Number')
+                    ->required('status', 'Status')
+                    ->inList('status', 'Status', ['Active', 'Suspended']);
+
+                if ($v->fails()) {
+                    $this->flashErrors($v->errors());
+                    $this->flashOldInput($_POST);
+                    return $this->redirect('/B/drivers?msg=validation_error');
+                }
+
                 if (!$m->create($_POST)) {
                     return $this->redirect('/B/drivers?msg=error');
                 }
@@ -146,6 +205,23 @@ class BusOwnerController extends BaseController
             // ── Update Driver ─────────────────────────────────────────────
             if ($act === 'update') {
                 $id = (int) ($_POST['private_driver_id'] ?? $_POST['driver_id'] ?? 0);
+
+                $v = new Validator($_POST);
+                $v->required('full_name', 'Full Name')
+                    ->name('full_name', 'Full Name')
+                    ->length('full_name', 'Full Name', 2, 80)
+                    ->required('license_no', 'License Number')
+                    ->licenseNo('license_no', 'License Number')
+                    ->sriLankanPhone('phone', 'Phone Number')
+                    ->required('status', 'Status')
+                    ->inList('status', 'Status', ['Active', 'Suspended']);
+
+                if ($v->fails()) {
+                    $this->flashErrors($v->errors());
+                    $this->flashOldInput($_POST);
+                    return $this->redirect('/B/drivers?msg=validation_error');
+                }
+
                 if (!$m->update($id, $_POST)) {
                     return $this->redirect('/B/drivers?msg=error');
                 }
@@ -160,6 +236,20 @@ class BusOwnerController extends BaseController
 
             // ── Create Conductor ──────────────────────────────────────────
             if ($act === 'create_conductor') {
+                $v = new Validator($_POST);
+                $v->required('full_name', 'Full Name')
+                    ->name('full_name', 'Full Name')
+                    ->length('full_name', 'Full Name', 2, 80)
+                    ->sriLankanPhone('phone', 'Phone Number')
+                    ->required('status', 'Status')
+                    ->inList('status', 'Status', ['Active', 'Suspended']);
+
+                if ($v->fails()) {
+                    $this->flashErrors($v->errors());
+                    $this->flashOldInput($_POST);
+                    return $this->redirect('/B/drivers?msg=validation_error');
+                }
+
                 if (empty($_POST['private_operator_id'])) {
                     $_POST['private_operator_id'] = $m->getResolvedOperatorId();
                 }
@@ -170,6 +260,21 @@ class BusOwnerController extends BaseController
             // ── Update Conductor ──────────────────────────────────────────
             if ($act === 'update_conductor') {
                 $cid = (int) ($_POST['private_conductor_id'] ?? $_POST['conductor_id'] ?? 0);
+
+                $v = new Validator($_POST);
+                $v->required('full_name', 'Full Name')
+                    ->name('full_name', 'Full Name')
+                    ->length('full_name', 'Full Name', 2, 80)
+                    ->sriLankanPhone('phone', 'Phone Number')
+                    ->required('status', 'Status')
+                    ->inList('status', 'Status', ['Active', 'Suspended']);
+
+                if ($v->fails()) {
+                    $this->flashErrors($v->errors());
+                    $this->flashOldInput($_POST);
+                    return $this->redirect('/B/drivers?msg=validation_error');
+                }
+
                 $m->updateConductor($cid, $_POST);
                 return $this->redirect('/B/drivers?msg=conductor_updated');
             }

@@ -1217,132 +1217,22 @@ document.addEventListener('DOMContentLoaded', function () {
   if (backdrop) backdrop.addEventListener('click', closeModal);
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal(); });
 
-  /* ── JS Validation helpers ─────────────────────────────────────── */
-  function showFieldError(input, msg) {
-    input.style.borderColor = '#DC2626';
-    input.style.boxShadow   = '0 0 0 3px rgba(220,38,38,.10)';
-    var errId = 'js-err-' + (input.id || input.name);
-    var existing = document.getElementById(errId);
-    if (existing) existing.remove();
-    var el = document.createElement('p');
-    el.id = errId;
-    el.style.cssText = 'color:#DC2626;font-size:12px;margin:3px 0 0;';
-    el.textContent = msg;
-    input.parentNode.appendChild(el);
-  }
-  function clearFieldError(input) {
-    input.style.borderColor = '';
-    input.style.boxShadow   = '';
-    var errId = 'js-err-' + (input.id || input.name);
-    var existing = document.getElementById(errId);
-    if (existing) existing.remove();
-  }
-  function getInputEl(id) { return document.getElementById(id); }
-
-  /* Live clear-on-fix */
-  ['bus_reg_no','bus_chassis_no','bus_capacity','bus_manufactured_year',
-   'bus_model','bus_class','bus_status'].forEach(function(id) {
-    var el = getInputEl(id);
-    if (el) el.addEventListener('input', function() { clearFieldError(this); });
-    if (el) el.addEventListener('change', function() { clearFieldError(this); });
-  });
-
-  /* ── Form submit — full JS validation ──────────────────────────── */
+  // Form submit - plain native submit, no fetch (session cookie sent automatically)
   if (form) {
     form.addEventListener('submit', function(e) {
-      // Sync visible reg_no to hidden field (create mode)
+      // Sync visible reg_no display field to hidden field (for create mode)
       if (actionInput.value === 'create') {
-        regNoHidden.value = regNoVisible.value.trim().toUpperCase();
+        regNoHidden.value = regNoVisible.value.trim();
       }
-
-      var isCreate = (actionInput.value === 'create');
-      var hasError = false;
-      var currentYear = new Date().getFullYear();
-
-      // ── 1. Registration Number (create only) ───────────────────
-      if (isCreate) {
-        var regVal = regNoHidden.value;
-        if (!regVal) {
-          showFieldError(regNoVisible, 'Registration Number is required.');
-          hasError = true;
-        } else if (!/^[A-Z]{2,3}-\d{1,6}$/.test(regVal)) {
-          showFieldError(regNoVisible, 'Use format XX-0000 or XXX-0000 (e.g. PB-1001).');
-          hasError = true;
-        } else {
-          clearFieldError(regNoVisible);
-        }
-      }
-
-      // ── 2. Model ───────────────────────────────────────────────
-      var modelEl  = getInputEl('bus_model');
-      var modelVal = modelEl ? modelEl.value.trim() : '';
-      if (!modelVal) {
-        showFieldError(modelEl, 'Model is required.');
-        hasError = true;
-      } else if (modelVal.length < 1 || modelVal.length > 80) {
-        showFieldError(modelEl, 'Model must be 1–80 characters.');
-        hasError = true;
-      } else {
-        clearFieldError(modelEl);
-      }
-
-      // ── 3. Bus Class ──────────────────────────────────────────
-      var busClassEl  = getInputEl('bus_class');
-      var classAllowed = ['Normal','Semi-Luxury','Luxury'];
-      if (busClassEl && classAllowed.indexOf(busClassEl.value) === -1) {
-        showFieldError(busClassEl, 'Select a valid Bus Class.');
-        hasError = true;
-      } else if (busClassEl) {
-        clearFieldError(busClassEl);
-      }
-
-      // ── 4. Capacity ───────────────────────────────────────────
-      var capEl  = getInputEl('bus_capacity');
-      var capVal = capEl ? capEl.value.trim() : '';
-      if (!capVal) {
-        showFieldError(capEl, 'Capacity is required.');
-        hasError = true;
-      } else if (!/^\d+$/.test(capVal) || parseInt(capVal, 10) <= 0) {
-        showFieldError(capEl, 'Capacity must be a positive whole number.');
-        hasError = true;
-      } else {
-        clearFieldError(capEl);
-      }
-
-      // ── 5. Manufactured Year ──────────────────────────────────
-      var yearEl  = getInputEl('bus_manufactured_year');
-      var yearVal = yearEl ? yearEl.value.trim() : '';
-      if (yearVal !== '') {
-        var y = parseInt(yearVal, 10);
-        if (!/^\d{4}$/.test(yearVal) || y < 1950 || y > currentYear) {
-          showFieldError(yearEl, 'Enter a valid 4-digit year between 1950 and ' + currentYear + '.');
-          hasError = true;
-        } else {
-          clearFieldError(yearEl);
-        }
-      }
-
-      // ── 6. Chassis Number ─────────────────────────────────────
-      var chassisEl  = getInputEl('bus_chassis_no');
-      var chassisVal = chassisEl ? chassisEl.value.trim() : '';
-      if (chassisVal !== '') {
-        if (!/^[A-Za-z0-9\-]{3,30}$/.test(chassisVal)) {
-          showFieldError(chassisEl, 'Chassis No must be 3–30 alphanumeric chars (hyphens allowed).');
-          hasError = true;
-        } else {
-          clearFieldError(chassisEl);
-        }
-      }
-
-      if (hasError) {
+      // Validate
+      if (!regNoHidden.value) {
         e.preventDefault();
-        // Scroll to first error
-        var firstErr = form.querySelector('[style*="DC2626"]');
-        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        regNoVisible.focus();
+        regNoVisible.style.borderColor = '#DC2626';
         return;
       }
-
-      // All good — let the browser submit normally
+      regNoVisible.style.borderColor = '';
+      // Let the browser submit the form normally - cookies included automatically
     });
   }
 })();
