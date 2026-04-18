@@ -126,6 +126,101 @@ public function depot(int $depotId): ?array {
     public function escalateMessage(int $messageId, int $userId): void { $this->msg->escalate($messageId, $userId); }
     public function archiveMessage(int $messageId, int $userId): void { $this->msg->archive($messageId, $userId); }
 
+    /**
+     * Reply to a trip-cancel alert by sending a notification back to the timekeeper who cancelled.
+     * The notification id is used to find the canceller via the trip_id embedded in the message text.
+     */
+    public function replyToAlert(int $notificationId, int $officerUserId, int $depotId, string $replyText): bool
+    {
+        // Fetch the original notification to get message text
+        try {
+            $stNotif = $this->pdo->prepare("SELECT message, type FROM notifications WHERE id=:nid LIMIT 1");
+            $stNotif->execute([':nid' => $notificationId]);
+            $notif = $stNotif->fetch(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            return false;
+        }
+        if (!$notif) {
+            return false;
+        }
+
+        // Extract trip_id from message text (e.g. "Trip #42 was cancelled")
+        $message = (string)($notif['message'] ?? '');
+        if (!preg_match('/Trip\s*#(\d+)/i', $message, $m)) {
+            return false;
+        }
+        $tripId = (int)$m[1];
+
+        // Look up who cancelled — try SLTB trips first, then private trips
+        $cancellerUserId = 0;
+        try {
+            $stSltb = $this->pdo->prepare("SELECT cancelled_by FROM sltb_trips WHERE sltb_trip_id=:id LIMIT 1");
+            $stSltb->execute([':id' => $tripId]);
+            $cancellerUserId = (int)($stSltb->fetchColumn() ?: 0);
+        } catch (\Throwable $e) { }
+
+        if ($cancellerUserId <= 0) {
+            try {
+                $stPriv = $this->pdo->prepare("SELECT cancelled_by FROM private_trips WHERE private_trip_id=:id LIMIT 1");
+                $stPriv->execute([':id' => $tripId]);
+                $cancellerUserId = (int)($stPriv->fetchColumn() ?: 0);
+            } catch (\Throwable $e) { }
+        }
+
+        if ($cancellerUserId <= 0) {
+            return false;
+        }
+
+        // Fetch the responding officer's name and depot name for context
+        $officerName = 'Depot Officer';
+        $depotName   = 'Depot';
+        try {
+            $stOff = $this->pdo->prepare("SELECT first_name, last_name FROM users WHERE user_id=:uid LIMIT 1");
+            $stOff->execute([':uid' => $officerUserId]);
+            $off = $stOff->fetch(PDO::FETCH_ASSOC);
+            if ($off) {
+                $officerName = trim(($off['first_name'] ?? '') . ' ' . ($off['last_name'] ?? '')) ?: 'Depot Officer';
+            }
+            $stDep = $this->pdo->prepare("SELECT name FROM sltb_depots WHERE sltb_depot_id=:did LIMIT 1");
+            $stDep->execute([':did' => $depotId]);
+            $depotName = (string)($stDep->fetchColumn() ?: 'Depot');
+        } catch (\Throwable $e) { }
+
+        $fullMessage = sprintf(
+            'HELP CONFIRMED from %s (%s) regarding Trip #%d: %s',
+            $officerName, $depotName, $tripId, $replyText
+        );
+
+        // Insert notification to the timekeeper
+        $hasPriority = $this->msg->columnExistsPublic('notifications', 'priority');
+        $hasMetadata = $this->msg->columnExistsPublic('notifications', 'metadata');
+
+        $columns = ['user_id', 'type', 'message', 'is_seen'];
+        $values  = [':uid', ':type', ':message', '0'];
+        if ($hasPriority) { $columns[] = 'priority'; $values[] = ':priority'; }
+        if ($hasMetadata) { $columns[] = 'metadata'; $values[] = ':metadata'; }
+        $columns[] = 'created_at';
+        $values[]  = 'NOW()';
+
+        $sql = 'INSERT INTO notifications (' . implode(',', $columns) . ') VALUES (' . implode(',', $values) . ')';
+        try {
+            $ins = $this->pdo->prepare($sql);
+            $params = [':uid' => $cancellerUserId, ':type' => 'Message', ':message' => $fullMessage];
+            if ($hasPriority) $params[':priority'] = 'normal';
+            if ($hasMetadata) $params[':metadata'] = json_encode([
+                'source' => 'depot_officer_reply',
+                'officer_user_id' => $officerUserId,
+                'depot_id' => $depotId,
+                'trip_id' => $tripId,
+                'original_notification_id' => $notificationId,
+            ]);
+            $ins->execute($params);
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     // Tracking
     public function trackingLogs(int $depotId, string $from, string $to): array { return $this->track->logs($from, $to); }
 
