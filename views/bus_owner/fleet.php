@@ -1265,8 +1265,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!regVal) {
           showFieldError(regNoVisible, 'Registration Number is required.');
           hasError = true;
-        } else if (!/^[A-Z]{2,3}-\d{1,6}$/.test(regVal)) {
-          showFieldError(regNoVisible, 'Use format XX-0000 or XXX-0000 (e.g. PB-1001).');
+        } else if (!/^[A-Z0-9][A-Z0-9 \-]{1,18}[A-Z0-9]$/.test(regVal)) {
+          showFieldError(regNoVisible, 'Invalid format. Examples: PB-1001, WP ABC-1234.');
           hasError = true;
         } else {
           clearFieldError(regNoVisible);
