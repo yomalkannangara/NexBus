@@ -116,18 +116,28 @@ class TurnModel extends BaseModel
         $recipientIds = array_map('intval', $stRecipients->fetchAll(PDO::FETCH_COLUMN));
         if (empty($recipientIds)) return;
 
-        $ins = $this->pdo->prepare(
-            "INSERT INTO notifications (user_id, type, message, is_seen, priority, metadata, created_at)
-             VALUES (:uid, :type, :message, 0, :priority, :metadata, NOW())"
-        );
+        $hasPriority = $this->columnExists('notifications', 'priority');
+        $hasMetadata = $this->columnExists('notifications', 'metadata');
+
+        $columns = ['user_id', 'type', 'message', 'is_seen'];
+        $values  = [':uid', ':type', ':message', '0'];
+        if ($hasPriority) { $columns[] = 'priority'; $values[] = ':priority'; }
+        if ($hasMetadata) { $columns[] = 'metadata'; $values[] = ':metadata'; }
+        $columns[] = 'created_at';
+        $values[]  = 'NOW()';
+
+        $sql = 'INSERT INTO notifications (' . implode(',', $columns) . ') VALUES (' . implode(',', $values) . ')';
+        $ins = $this->pdo->prepare($sql);
+
         foreach ($recipientIds as $rid) {
-            $ins->execute([
-                ':uid' => $rid,
-                ':type' => $event['type'],
-                ':message' => $message,
-                ':priority' => $event['priority'],
-                ':metadata' => $metadata,
-            ]);
+            $params = [':uid' => $rid, ':type' => $event['type'], ':message' => $message];
+            if ($hasPriority) $params[':priority'] = $event['priority'];
+            if ($hasMetadata) $params[':metadata'] = $metadata;
+            try {
+                $ins->execute($params);
+            } catch (\Throwable $e) {
+                // Do not let notification failure break the cancel operation
+            }
         }
     }
 

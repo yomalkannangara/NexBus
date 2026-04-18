@@ -322,18 +322,28 @@ class TripEntryModel extends BaseModel
             return;
         }
 
-        $ins = $this->pdo->prepare(
-            "INSERT INTO notifications (user_id, type, message, is_seen, priority, metadata, created_at)
-             VALUES (:uid, :type, :message, 0, :priority, :metadata, NOW())"
-        );
+        $hasPriority = $this->columnExists('notifications', 'priority');
+        $hasMetadata = $this->columnExists('notifications', 'metadata');
+
+        $columns = ['user_id', 'type', 'message', 'is_seen'];
+        $values  = [':uid', ':type', ':message', '0'];
+        if ($hasPriority) { $columns[] = 'priority'; $values[] = ':priority'; }
+        if ($hasMetadata) { $columns[] = 'metadata'; $values[] = ':metadata'; }
+        $columns[] = 'created_at';
+        $values[]  = 'NOW()';
+
+        $sql = 'INSERT INTO notifications (' . implode(',', $columns) . ') VALUES (' . implode(',', $values) . ')';
+        $ins = $this->pdo->prepare($sql);
+
         foreach ($recipientIds as $rid) {
-            $ins->execute([
-                ':uid' => $rid,
-                ':type' => $event['type'],
-                ':message' => $message,
-                ':priority' => $event['priority'],
-                ':metadata' => $metadata,
-            ]);
+            $params = [':uid' => $rid, ':type' => $event['type'], ':message' => $message];
+            if ($hasPriority) $params[':priority'] = $event['priority'];
+            if ($hasMetadata) $params[':metadata'] = $metadata;
+            try {
+                $ins->execute($params);
+            } catch (\Throwable $e) {
+                // Do not let notification failure break the cancel operation
+            }
         }
     }
 
@@ -362,14 +372,13 @@ class TripEntryModel extends BaseModel
                ON s.timetable_id = t.timetable_id AND s.trip_date = CURDATE()
                 WHERE t.operator_type='SLTB'
                     AND t.day_of_week = :dow
-                ORDER BY CASE
-                                     WHEN CURRENT_TIME() BETWEEN TIME(t.departure_time)
-                                                                                    AND IFNULL(TIME(t.arrival_time),'23:59:59') THEN 0
-                                     WHEN TIME(t.departure_time) >= CURRENT_TIME() THEN 1
-                                     ELSE 2
-                                 END,
-                                 ABS(TIME_TO_SEC(TIMEDIFF(TIME(t.departure_time), CURRENT_TIME()))),
-               TIME(t.departure_time), r.route_no+0, r.route_no
+                ORDER BY
+                    CASE
+                        WHEN s.arrival_time IS NULL AND s.status IN ('InProgress','Delayed') THEN 0
+                        WHEN s.sltb_trip_id IS NULL OR COALESCE(s.status,'Planned') = 'Planned' THEN 1
+                        ELSE 2
+                    END,
+                    TIME(t.departure_time), r.route_no+0, r.route_no
         SQL;
 
         $st = $this->pdo->prepare($sql);

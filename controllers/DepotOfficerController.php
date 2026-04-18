@@ -49,8 +49,7 @@ public function assignments()
                         'assigned_date' => (string)($_POST['assigned_date'] ?? date('Y-m-d')),
                         'shift' => (string)($_POST['shift'] ?? ''),
                         'bus_reg_no' => (string)($_POST['bus_reg_no'] ?? ''),
-                    ],
-                    [(int)($_POST['sltb_driver_id'] ?? 0), (int)($_POST['sltb_conductor_id'] ?? 0)]
+                    ]
                 );
                 $this->redirect('/O/assignments?msg=created');
                 return;
@@ -89,18 +88,12 @@ public function assignments()
             }
             if ($ok) {
                 $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
-                $recipients = [
-                    (int)($before['sltb_driver_id'] ?? 0),
-                    (int)($before['sltb_conductor_id'] ?? 0),
-                    (int)($after['sltb_driver_id'] ?? 0),
-                    (int)($after['sltb_conductor_id'] ?? 0),
-                ];
                 $ctx = [
                     'assigned_date' => (string)($after['assigned_date'] ?? $_POST['assigned_date'] ?? date('Y-m-d')),
                     'shift' => (string)($after['shift'] ?? $_POST['shift'] ?? ''),
                     'bus_reg_no' => (string)($after['bus_reg_no'] ?? $_POST['bus_reg_no'] ?? ''),
                 ];
-                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'updated', $ctx, $recipients);
+                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'updated', $ctx);
             }
             $this->redirect('/O/assignments?msg=' . ($ok ? 'updated' : 'error'));
             return;
@@ -117,18 +110,12 @@ public function assignments()
             );
             if ($ok) {
                 $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
-                $recipients = [
-                    (int)($before['sltb_driver_id'] ?? 0),
-                    (int)($before['sltb_conductor_id'] ?? 0),
-                    (int)($after['sltb_driver_id'] ?? 0),
-                    (int)($after['sltb_conductor_id'] ?? 0),
-                ];
                 $ctx = [
                     'assigned_date' => (string)($after['assigned_date'] ?? $before['assigned_date'] ?? date('Y-m-d')),
                     'shift' => (string)($after['shift'] ?? $_POST['shift'] ?? $before['shift'] ?? ''),
                     'bus_reg_no' => (string)($after['bus_reg_no'] ?? $before['bus_reg_no'] ?? ''),
                 ];
-                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'reassigned', $ctx, $recipients);
+                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'reassigned', $ctx);
             }
             $this->redirect('/O/assignments?msg=' . ($ok ? 'updated' : 'error'));
             return;
@@ -143,11 +130,7 @@ public function assignments()
                     'shift' => (string)($before['shift'] ?? ''),
                     'bus_reg_no' => (string)($before['bus_reg_no'] ?? ''),
                 ];
-                $recipients = [
-                    (int)($before['sltb_driver_id'] ?? 0),
-                    (int)($before['sltb_conductor_id'] ?? 0),
-                ];
-                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'deleted', $ctx, $recipients, 'urgent');
+                $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'deleted', $ctx, 'urgent');
             }
             $this->redirect('/O/assignments?msg=' . ($ok ? 'deleted' : 'error'));
             return;
@@ -227,15 +210,6 @@ public function assignmentShifts()
             return;
         }
 
-        $tab = in_array($_GET['tab'] ?? '', ['regular', 'special'], true)
-            ? (string)$_GET['tab']
-            : 'regular';
-
-        $date = (string)($_GET['date'] ?? date('Y-m-d'));
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            $date = date('Y-m-d');
-        }
-
         // listUsual returns ALL SLTB timetable rows for this depot.
         // Regular = open-ended schedules (no effective_to).
         // Special = time-bounded overrides (has effective_to).
@@ -247,8 +221,6 @@ public function assignmentShifts()
 
         $this->view('depot_officer', 'timetables', [
             'me'            => $u,
-            'tab'           => $tab,
-            'selected_date' => $date,
             'regular_rows'  => $regularRows,
             'special_rows'  => $specialRows,
             'count_regular' => count($regularRows),
@@ -382,6 +354,8 @@ public function assignmentShifts()
             // Fetch new messages since last_id
             $recent = $this->m->recentMessages($dep, $uid, 50, 'all');
             $recent = array_filter($recent, fn($n) => (int)($n['id'] ?? $n['notification_id'] ?? 0) > $lastId);
+            // Send oldest-first so the client's insertBefore(firstChild) stacks them newest-on-top
+            $recent = array_reverse(array_values($recent));
 
             if (!empty($recent)) {
                 foreach ($recent as $msg) {
@@ -1346,7 +1320,6 @@ public function trip_logs(): void{
         string $senderRole,
         string $event,
         array $context,
-        array $recipientIds,
         string $priority = 'normal'
     ): void {
         $bus = trim((string)($context['bus_reg_no'] ?? ''));
@@ -1354,10 +1327,10 @@ public function trip_logs(): void{
         $shift = trim((string)($context['shift'] ?? ''));
 
         $labels = [
-            'created' => 'Assignment created',
-            'updated' => 'Assignment updated',
+            'created'    => 'Assignment created',
+            'updated'    => 'Assignment updated',
             'reassigned' => 'Staff reassigned',
-            'deleted' => 'Assignment deleted',
+            'deleted'    => 'Assignment deleted',
         ];
         $label = $labels[$event] ?? 'Assignment updated';
 
@@ -1367,11 +1340,7 @@ public function trip_logs(): void{
         }
         $message .= '.';
 
-        $recipients = array_values(array_unique(array_filter(array_map('intval', $recipientIds), static fn($v) => $v > 0)));
-        if (!$recipients) {
-            return;
-        }
-
-        $this->m->sendMessage($depotId, $recipients, $message, $priority, 'individual', false, $senderUserId, $senderRole);
+        // Notify all SLTBTimekeepers at this depot — drivers/conductors are not system users.
+        $this->m->sendMessage($depotId, ['SLTBTimekeeper'], $message, $priority, 'role', false, $senderUserId, $senderRole);
     }
 }

@@ -250,6 +250,16 @@ class TimekeeperSltbController extends BaseController
             exit;
         }
 
+        // ── Manual send to Depot Officer ──────────────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'send') {
+            $text     = trim((string)($_POST['message'] ?? ''));
+            $priority = in_array($_POST['priority'] ?? '', ['normal','urgent','critical'], true)
+                        ? (string)$_POST['priority'] : 'normal';
+            $ok = ($text !== '') ? $model->sendToDepotOfficers($uid, $text, $priority) : false;
+            $this->redirect('/TS/messages?filter=' . rawurlencode($filter) . '&msg=' . ($ok ? 'sent' : 'send_error'));
+            return;
+        }
+
         $tripModel = new TripEntryModel();
         $this->view('timekeeper_sltb', 'messages', [
             'S'            => $tripModel->info(),

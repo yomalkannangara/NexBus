@@ -8,17 +8,6 @@ class AssignmentModel extends BaseModel
 {
     private array $columnCache = [];
 
-    private function columnExists(string $table, string $column): bool {
-        $key = $table . ':' . $column;
-        if (array_key_exists($key, $this->columnCache)) return $this->columnCache[$key];
-        $st = $this->pdo->prepare("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?");
-        $st->execute([$table, $column]);
-        $row = $st->fetch(PDO::FETCH_ASSOC);
-        $exists = !empty($row) && ((int)($row['c'] ?? 0) > 0);
-        $this->columnCache[$key] = $exists;
-        return $exists;
-    }
-
     private function tableExists(string $table): bool {
         $key = 'table:' . $table;
         if (array_key_exists($key, $this->columnCache)) return $this->columnCache[$key];

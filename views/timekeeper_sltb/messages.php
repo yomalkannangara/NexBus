@@ -6,9 +6,11 @@ $unreadCount = (int)($unread_count ?? 0);
 $msg        = $msg ?? null;
 
 $flashMap = [
-    'read'     => ['type'=>'ok',  'text'=>'Message marked as read.'],
-    'read_all' => ['type'=>'ok',  'text'=>'All messages marked as read.'],
-    'error'    => ['type'=>'err', 'text'=>'Unable to update message status.'],
+    'read'       => ['type'=>'ok',  'text'=>'Message marked as read.'],
+    'read_all'   => ['type'=>'ok',  'text'=>'All messages marked as read.'],
+    'sent'       => ['type'=>'ok',  'text'=>'Your message was sent to the Depot Officer.'],
+    'error'      => ['type'=>'err', 'text'=>'Unable to update message status.'],
+    'send_error' => ['type'=>'err', 'text'=>'Failed to send message. Please try again.'],
 ];
 
 $catMeta = [
@@ -73,6 +75,24 @@ function ts_time_ago(?string $ts): string {
 .tmsg-btn-ack  { border:none; background:var(--sltb); color:#fff; border-radius:7px; padding:5px 12px; font-size:.75rem; font-weight:700; cursor:pointer; }
 .tmsg-btn-ack:disabled { opacity:.5; cursor:default; }
 .tmsg-read-state { font-size:.72rem; color:#4b5563; background:#f3f4f6; border-radius:999px; padding:4px 10px; font-weight:700; }
+
+/* Compose card */
+.tmsg-compose { background:#fff; border:1.5px solid #f2e6d2; border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05); overflow:hidden; }
+.tmsg-compose-head { background:linear-gradient(90deg,var(--sltb),#a8274e); border-bottom:3px solid var(--gold); color:#fff; padding:12px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; }
+.tmsg-compose-head h3 { margin:0; font-size:.92rem; font-weight:800; display:flex; align-items:center; gap:8px; }
+.tmsg-compose-head .compose-toggle { font-size:.75rem; opacity:.8; }
+.tmsg-compose-body { padding:16px 18px; display:none; }
+.tmsg-compose-body.open { display:block; }
+.tmsg-compose textarea { width:100%; border:1.5px solid #e5e7eb; border-radius:9px; padding:10px 12px; font-size:.88rem; line-height:1.6; resize:vertical; min-height:90px; box-sizing:border-box; }
+.tmsg-compose textarea:focus { outline:none; border-color:var(--sltb); }
+.tmsg-priority-row { display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.tmsg-prio-label { font-size:.75rem; font-weight:800; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; }
+.tmsg-prio-btn { padding:5px 13px; border-radius:99px; border:1.5px solid #e5e7eb; background:#f9fafb; font-size:.75rem; font-weight:700; color:#6b7280; cursor:pointer; transition:all .15s; }
+.tmsg-prio-btn.sel-normal   { border-color:#6b7280; background:#f3f4f6; color:#374151; }
+.tmsg-prio-btn.sel-urgent   { border-color:#d97706; background:#fef3c7; color:#92400e; }
+.tmsg-prio-btn.sel-critical { border-color:#dc2626; background:#fee2e2; color:#991b1b; }
+.tmsg-send-btn { margin-top:12px; background:var(--sltb); color:#fff; border:none; border-radius:9px; padding:9px 22px; font-size:.88rem; font-weight:800; cursor:pointer; }
+.tmsg-send-btn:hover { background:#9b2550; }
 </style>
 
 <div class="tmsg-page">
@@ -101,6 +121,30 @@ function ts_time_ago(?string $ts): string {
                 <button type="submit" class="tmsg-mark-all">✓ Mark all read</button>
             </form>
         <?php endif; ?>
+    </div>
+
+    <!-- ── Compose: Send to Depot Officer ── -->
+    <div class="tmsg-compose">
+        <div class="tmsg-compose-head" onclick="toggleCompose()">
+            <h3>
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                Send Message to Depot Officer
+            </h3>
+            <span class="compose-toggle" id="composeToggleLabel">▼ Open</span>
+        </div>
+        <div class="tmsg-compose-body" id="composeBody">
+            <form method="post" action="/TS/messages?action=send&filter=<?= urlencode($filter) ?>">
+                <textarea name="message" id="composeText" placeholder="Type your message to the Depot Officer…" required></textarea>
+                <input type="hidden" name="priority" id="composePriority" value="normal">
+                <div class="tmsg-priority-row">
+                    <span class="tmsg-prio-label">Priority:</span>
+                    <button type="button" class="tmsg-prio-btn sel-normal"  onclick="setPrio('normal',this)">Normal</button>
+                    <button type="button" class="tmsg-prio-btn"             onclick="setPrio('urgent',this)">🟠 Urgent</button>
+                    <button type="button" class="tmsg-prio-btn"             onclick="setPrio('critical',this)">🔴 Critical</button>
+                </div>
+                <div><button type="submit" class="tmsg-send-btn">Send ➤</button></div>
+            </form>
+        </div>
     </div>
 
     <div class="tmsg-list">
@@ -176,5 +220,20 @@ function ackMsg(id, btn) {
             } else { btn.disabled=false; btn.textContent='✔ Acknowledge'; }
         })
         .catch(()=>{ btn.disabled=false; btn.textContent='✔ Acknowledge'; });
+}
+
+function toggleCompose() {
+    const body  = document.getElementById('composeBody');
+    const label = document.getElementById('composeToggleLabel');
+    const open  = body.classList.toggle('open');
+    label.textContent = open ? '▲ Close' : '▼ Open';
+}
+
+function setPrio(val, btn) {
+    document.getElementById('composePriority').value = val;
+    document.querySelectorAll('.tmsg-prio-btn').forEach(b => {
+        b.classList.remove('sel-normal','sel-urgent','sel-critical');
+    });
+    btn.classList.add('sel-' + val);
 }
 </script>

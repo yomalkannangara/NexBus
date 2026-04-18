@@ -5,33 +5,6 @@ use PDO;
 
 class TimekeeperMessageModel extends BaseModel
 {
-    private array $columnCache = [];
-
-    private function columnExists(string $table, string $column): bool
-    {
-        $key = $table . ':' . $column;
-        if (array_key_exists($key, $this->columnCache)) {
-            return $this->columnCache[$key];
-        }
-
-        try {
-            $st = $this->pdo->prepare(
-                "SELECT COUNT(*)
-                 FROM information_schema.COLUMNS
-                 WHERE TABLE_SCHEMA = DATABASE()
-                   AND TABLE_NAME = ?
-                   AND COLUMN_NAME = ?"
-            );
-            $st->execute([$table, $column]);
-            $exists = ((int)$st->fetchColumn() > 0);
-            $this->columnCache[$key] = $exists;
-            return $exists;
-        } catch (\Throwable $e) {
-            $this->columnCache[$key] = false;
-            return false;
-        }
-    }
-
     private function idColumn(): string
     {
         if ($this->columnExists('notifications', 'id')) {
@@ -195,5 +168,85 @@ class TimekeeperMessageModel extends BaseModel
             }
         }
         return $this->markRead($messageId, $userId);
+    }
+
+    /**
+     * Send a manual message from a timekeeper to all DepotOfficer users at the same depot.
+     * Supports both SLTB timekeeper (sltb_depot_id) and private timekeeper (private_operator_id).
+     */
+    public function sendToDepotOfficers(int $senderUserId, string $text, string $priority = 'normal'): bool
+    {
+        $text = trim($text);
+        if (!$text || $senderUserId <= 0) return false;
+
+        // Resolve sender info + their depot
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT user_id, first_name, last_name, role, sltb_depot_id, private_operator_id
+                 FROM users WHERE user_id = ? LIMIT 1"
+            );
+            $st->execute([$senderUserId]);
+            $sender = $st->fetch(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) { return false; }
+
+        if (!$sender) return false;
+
+        $senderName = trim(($sender['first_name'] ?? '') . ' ' . ($sender['last_name'] ?? ''));
+        if ($senderName === '') $senderName = 'Timekeeper';
+        $senderRole = (string)($sender['role'] ?? 'SLTBTimekeeper');
+
+        // Find recipient DepotOfficers: by sltb_depot_id for SLTB TK
+        $depotId = (int)($sender['sltb_depot_id'] ?? 0);
+        if ($depotId <= 0) return false;
+
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT user_id FROM users
+                 WHERE sltb_depot_id = ? AND role IN ('DepotOfficer','DepotManager')"
+            );
+            $st->execute([$depotId]);
+            $recipientIds = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        } catch (\Throwable $e) { return false; }
+
+        if (!$recipientIds) return false;
+
+        $hasPriority = $this->columnExists('notifications', 'priority');
+        $hasMetadata = $this->columnExists('notifications', 'metadata');
+        $hasCategory = $this->columnExists('notifications', 'category');
+
+        $metadata = json_encode([
+            'source'         => 'timekeeper_message',
+            'source_user_id' => $senderUserId,
+            'source_role'    => $senderRole,
+            'source_name'    => $senderName,
+            'scope'          => 'individual',
+            'category'       => null,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $columns = ['user_id', 'type', 'message', 'is_seen'];
+        $values  = ['?', '?', '?', '0'];
+        if ($hasPriority) { $columns[] = 'priority'; $values[] = '?'; }
+        if ($hasMetadata) { $columns[] = 'metadata'; $values[] = '?'; }
+        if ($hasCategory) { $columns[] = 'category'; $values[] = '?'; }
+        $columns[] = 'created_at';
+        $values[]  = 'NOW()';
+
+        try {
+            $ins = $this->pdo->prepare(
+                'INSERT INTO notifications(' . implode(',', $columns) . ') VALUES(' . implode(',', $values) . ')'
+            );
+            $this->pdo->beginTransaction();
+            foreach ($recipientIds as $uid) {
+                $params = [$uid, 'Message', $text];
+                if ($hasPriority) $params[] = $priority;
+                if ($hasMetadata) $params[] = $metadata;
+                if ($hasCategory) $params[] = null;
+                $ins->execute($params);
+            }
+            return $this->pdo->commit();
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            return false;
+        }
     }
 }

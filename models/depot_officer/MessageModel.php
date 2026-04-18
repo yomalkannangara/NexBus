@@ -6,33 +6,12 @@ use PDO;
 
 class MessageModel extends BaseModel
 {
-    private array $columnCache = [];
-
-    private function columnExists(string $table, string $column): bool {
-        $key = $table . ':' . $column;
-        if (array_key_exists($key, $this->columnCache)) {
-            return $this->columnCache[$key];
-        }
-
-        $st = $this->pdo->prepare(
-            "SELECT COUNT(*) AS c
-             FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = ?
-               AND COLUMN_NAME = ?"
-        );
-        $st->execute([$table, $column]);
-        $exists = ((int)$st->fetchColumn() > 0);
-        $this->columnCache[$key] = $exists;
-        return $exists;
-    }
-
     /**
      * Expand recipient IDs based on scope.
      * scope='individual': use provided userIds as-is.
      * scope='role': userIds are role names (DepotOfficer, Driver, Conductor, etc); expand to all users with that role in depot.
-     * scope='route': userIds are route_ids; expand to all drivers/conductors assigned to those routes.
-     * scope='bus': userIds are bus_ids; expand to all drivers/conductors assigned to those buses.
+     * scope='route': userIds are route_ids; expands to all SLTBTimekeepers at the depot.
+     * scope='bus': userIds are bus_ids; expands to all SLTBTimekeepers at the depot.
      */
     public function expandRecipients(int $depotId, array $userIds, string $scope='individual'): array {
         if (empty($userIds)) return [];
@@ -53,36 +32,13 @@ class MessageModel extends BaseModel
             $st->execute(array_merge([$depotId], $userIds));
             $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
 
-        } elseif ($scope === 'route') {
-            // userIds are route_ids; expand to drivers/conductors assigned to buses serving those routes
-            $routeIds = array_map('intval', $userIds);
-            $in = implode(',', array_fill(0, count($routeIds), '?'));
+        } elseif ($scope === 'route' || $scope === 'bus') {
+            // Drivers/conductors are not system users.
+            // Messages for a specific bus or route go to all SLTBTimekeepers at the depot.
             $st = $this->pdo->prepare(
-                "SELECT DISTINCT u.user_id FROM users u
-                 JOIN sltb_assignments a ON (a.sltb_driver_id=u.user_id OR a.sltb_conductor_id=u.user_id)
-                 JOIN timetables t ON t.bus_reg_no=a.bus_reg_no AND t.operator_type='SLTB'
-                 WHERE u.sltb_depot_id=?
-                   AND a.sltb_depot_id=?
-                   AND a.assigned_date=CURDATE()
-                   AND t.route_id IN ($in)"
+                "SELECT user_id FROM users WHERE sltb_depot_id=? AND role='SLTBTimekeeper'"
             );
-            $st->execute(array_merge([$depotId, $depotId], $routeIds));
-            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
-
-        } elseif ($scope === 'bus') {
-            // userIds are bus registration numbers
-            $busRegs = array_values(array_filter(array_map(static fn($v) => trim((string)$v), $userIds)));
-            if (!$busRegs) return [];
-            $in = implode(',', array_fill(0, count($busRegs), '?'));
-            $st = $this->pdo->prepare(
-                "SELECT DISTINCT u.user_id FROM users u
-                 JOIN sltb_assignments a ON (a.sltb_driver_id=u.user_id OR a.sltb_conductor_id=u.user_id)
-                 WHERE u.sltb_depot_id=?
-                   AND a.sltb_depot_id=?
-                   AND a.assigned_date=CURDATE()
-                   AND a.bus_reg_no IN ($in)"
-            );
-            $st->execute(array_merge([$depotId, $depotId], $busRegs));
+            $st->execute([$depotId]);
             $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
         }
 
@@ -208,7 +164,7 @@ class MessageModel extends BaseModel
             $sql .= " AND n.type='Message'";
         }
         
-        $sql .= " ORDER BY n.created_at DESC LIMIT {$limit}";
+        $sql .= " ORDER BY n.id DESC LIMIT {$limit}";
         $st=$this->pdo->prepare($sql);
         $st->execute([$depotId, $userId]);
         return $st->fetchAll(PDO::FETCH_ASSOC);

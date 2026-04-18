@@ -1,10 +1,7 @@
 ﻿<?php
-/* vars: tab, regular_rows, special_rows, count_regular, count_special,
-         selected_date, depot_name, msg */
-$tab          = $tab          ?? 'regular';
+/* vars: regular_rows, special_rows, count_regular, count_special, depot_name, msg */
 $regularRows  = $regular_rows ?? [];
 $specialRows  = $special_rows ?? [];
-$selectedDate = $selected_date ?? date('Y-m-d');
 $depotName    = $depot_name   ?? 'Colombo Depot';
 $msg          = $msg          ?? null;
 
@@ -50,10 +47,21 @@ function groupTimetableRows(array $rows, string $typeLabel, array $dayMap): arra
 }
 
 $regularGroups = groupTimetableRows($regularRows, 'Regular', $dayMap);
-$specialGroups = groupTimetableRows($specialRows, 'Special',  $dayMap);
-$groups = ($tab === 'special') ? $specialGroups : $regularGroups;
-$isSpecialTab = ($tab === 'special');
+$specialGroups = groupTimetableRows($specialRows, 'Special', $dayMap);
+$allGroups = array_merge($regularGroups, $specialGroups);
+
+// Collect unique routes for the route filter dropdown
+$routeOptions = [];
+foreach ($allGroups as $g) {
+    $rk = (string)($g['route_no'] ?? '');
+    if ($rk !== '' && !isset($routeOptions[$rk])) {
+        $routeOptions[$rk] = $rk;
+    }
+}
+ksort($routeOptions, SORT_NATURAL);
 ?>
+
+
 <style>
 /* ── Timetables Page ──────────────────────────────── */
 .tt2-page { display: grid; gap: 20px; }
@@ -75,46 +83,80 @@ $isSpecialTab = ($tab === 'special');
     display: flex; align-items: center; gap: 8px;
 }
 
-/* Tabs */
-.tt2-tabs {
+/* Filter bar */
+.tt2-filters {
     background: #fff; border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(17,24,39,.07); padding: 14px 18px;
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    box-shadow: 0 4px 16px rgba(17,24,39,.07);
+    padding: 16px 20px; display: flex; flex-direction: column; gap: 14px;
 }
-.tt2-tab {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 9px 18px; border-radius: 99px;
+.tt2-filter-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.tt2-filter-label {
+    font-size: .72rem; font-weight: 800; color: #7B1C3E;
+    text-transform: uppercase; letter-spacing: .06em;
+    white-space: nowrap; min-width: 70px;
+}
+/* Type radio pills */
+.tt2-type-group { display:flex; gap:6px; flex-wrap:wrap; }
+.tt2-type-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 99px; cursor: pointer;
     border: 2px solid #e5e7eb; background: #f9fafb;
-    text-decoration: none; font-weight: 700; font-size: .88rem; color: #6b7280;
-    transition: border-color .18s, background .18s, color .18s;
+    font-size: .82rem; font-weight: 700; color: #6b7280;
+    transition: all .15s; user-select: none;
 }
-.tt2-tab:hover { border-color: #f3b944; color: #7B1C3E; background: #fffdf6; }
-.tt2-tab.active-regular { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
-.tt2-tab.active-special { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
-.tt2-tab-count {
-    min-width: 22px; height: 22px; border-radius: 99px; padding: 0 7px;
-    font-size: .72rem; font-weight: 800; display: grid; place-items: center;
-    background: rgba(0,0,0,.08);
+.tt2-type-pill:hover { border-color: #f3b944; color: #7B1C3E; }
+.tt2-type-pill input[type=radio] { display: none; }
+.tt2-type-pill.sel-all   { border-color: #7B1C3E; background: #fce8ef; color: #7B1C3E; }
+.tt2-type-pill.sel-regular { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.tt2-type-pill.sel-special { border-color: #7c3aed; background: #f5f3ff; color: #5b21b6; }
+/* Route select */
+.tt2-route-select {
+    border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 7px 30px 7px 10px;
+    font-size: .82rem; font-weight: 600; color: #374151; background: #f9fafb;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 9px center;
+    cursor: pointer; min-width: 130px;
 }
-.tt2-tab.active-regular .tt2-tab-count { background: #bfdbfe; color: #1d4ed8; }
-.tt2-tab.active-special .tt2-tab-count { background: #ddd6fe; color: #5b21b6; }
+.tt2-route-select:focus { outline: none; border-color: #7B1C3E; }
+/* Day pills */
+.tt2-day-filters { display:flex; gap:5px; flex-wrap:wrap; }
+.tt2-day-toggle {
+    padding: 5px 10px; border-radius: 6px; cursor: pointer; user-select: none;
+    font-size: .75rem; font-weight: 700; border: 1.5px solid #e5e7eb;
+    background: #f9fafb; color: #6b7280; transition: all .15s;
+}
+.tt2-day-toggle:hover { border-color: #bbf7d0; color: #15803d; }
+.tt2-day-toggle.active { background: #f0fdf4; color: #15803d; border-color: #22c55e; }
+/* Date range */
+.tt2-period-wrap { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.tt2-period-wrap input[type=date] {
+    border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 7px 10px;
+    font-size: .82rem; color: #374151; background: #f9fafb;
+}
+.tt2-period-wrap input[type=date]:focus { outline: none; border-color: #7B1C3E; }
+.tt2-period-sep { font-size: .8rem; color: #9ca3af; font-weight: 600; }
+/* Clear btn */
+.tt2-clear-btn {
+    margin-left: auto; padding: 7px 16px; border-radius: 8px;
+    border: 1.5px solid #e5e7eb; background: #f9fafb;
+    font-size: .8rem; font-weight: 700; color: #6b7280; cursor: pointer;
+    transition: all .15s; display: flex; align-items: center; gap: 6px;
+}
+.tt2-clear-btn:hover { border-color: #f3b944; color: #7B1C3E; background: #fffdf6; }
 
-/* Special date filter bar */
-.tt2-date-bar {
-    background: #f5f3ff; border: 1.5px solid #ddd6fe; border-radius: 10px;
-    padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+/* Filter divider */
+.tt2-filter-divider { border: none; border-top: 1px solid #f3f4f6; margin: 0; }
+
+/* Result summary bar */
+.tt2-summary-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: .82rem; color: #6b7280;
 }
-.tt2-date-bar label { font-size: .82rem; font-weight: 700; color: #5b21b6; }
-.tt2-date-bar input[type=date] {
-    border: 1.5px solid #c4b5fd; border-radius: 7px; padding: 6px 10px;
-    font-size: .82rem; background: #fff; color: #2b2b2b;
-}
-.tt2-date-bar input[type=date]:focus { outline: none; border-color: #7c3aed; }
-.tt2-date-bar .go-btn {
-    background: #7c3aed; color: #fff; border: none; border-radius: 7px;
-    padding: 7px 16px; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s;
-}
-.tt2-date-bar .go-btn:hover { background: #5b21b6; }
+.tt2-summary-count { font-weight: 800; color: #7B1C3E; }
+.tt2-summary-badges { display:flex; gap:6px; flex-wrap:wrap; }
 
 /* Table card */
 .tt2-card {
@@ -132,12 +174,11 @@ $isSpecialTab = ($tab === 'special');
 
 /* Notice */
 .tt2-notice {
-    margin: 12px 20px 0;
     background: #fef3c7; border: 1px solid #f3b944; border-radius: 9px;
     padding: 10px 16px; font-size: .85rem; color: #7B1C3E; font-weight: 600;
 }
 
-/* Read-only notice for special */
+/* Read-only bar */
 .tt2-readonly-bar {
     display: flex; align-items: center; gap: 8px;
     margin: 12px 20px 0;
@@ -161,6 +202,7 @@ $isSpecialTab = ($tab === 'special');
 }
 .tt2-table tbody tr:last-child td { border-bottom: none; }
 .tt2-table tbody tr:hover td { background: #fffdf6; }
+.tt2-table tbody tr.tt2-hidden { display: none; }
 
 /* Bus number cell */
 .tt2-bus {
@@ -174,7 +216,7 @@ $isSpecialTab = ($tab === 'special');
 .tt2-route-no  { font-weight: 800; color: #1f2937; font-size: .92rem; }
 .tt2-route-sub { font-size: .74rem; color: #6b7280; margin-top: 2px; }
 
-/* Turn cells */
+/* Departure times */
 .tt2-turn {
     font-weight: 700; color: #1d4ed8; font-size: .85rem;
     background: #eff6ff; border-radius: 6px; padding: 3px 8px;
@@ -198,9 +240,15 @@ $isSpecialTab = ($tab === 'special');
 .type-regular { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .type-special { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
 
-/* Effective window */
+/* Effective period */
 .tt2-eff { font-size: .78rem; color: #6b7280; white-space: nowrap; }
+.tt2-eff-always { font-size: .78rem; color: #15803d; font-weight: 700; }
 .tt2-eff strong { color: #5b21b6; }
+
+/* No results row */
+.tt2-no-results td {
+    padding: 36px; text-align: center; color: #9ca3af; font-size: .9rem;
+}
 
 /* Empty state */
 .tt2-empty {
@@ -213,16 +261,16 @@ $isSpecialTab = ($tab === 'special');
 @media(max-width: 900px) {
     .tt2-table thead, .tt2-table tbody, .tt2-table th, .tt2-table td, .tt2-table tr { display: block; }
     .tt2-table thead tr { display: none; }
-    .tt2-table tbody tr {
-        border: 1.5px solid #e8d39a; border-radius: 10px; margin: 10px 16px;
-        padding: 12px; background: #fff;
-    }
+    .tt2-table tbody tr { border: 1.5px solid #e8d39a; border-radius: 10px; margin: 10px 16px; padding: 12px; background: #fff; }
+    .tt2-table tbody tr.tt2-hidden { display: none; }
     .tt2-table tbody td { border: none; padding: 5px 0; }
     .tt2-table tbody td::before {
         content: attr(data-label);
         display: block; font-size: .7rem; font-weight: 800;
         text-transform: uppercase; color: #7B1C3E; margin-bottom: 3px;
     }
+    .tt2-filter-row { flex-direction: column; align-items: flex-start; }
+    .tt2-clear-btn { margin-left: 0; }
 }
 </style>
 
@@ -240,106 +288,149 @@ $isSpecialTab = ($tab === 'special');
     </div>
 </section>
 
-<!-- Flash notice -->
 <?php if ($msg === 'readonly'): ?>
 <div class="tt2-notice">
     &#128274;&ensp;This page is read-only for Depot Officers. Schedules are managed by NTC Admin (regular) and Depot Manager (special).
 </div>
 <?php endif; ?>
 
-<!-- Tabs -->
-<div class="tt2-tabs">
-    <a href="/O/timetables?tab=regular"
-       class="tt2-tab <?= $tab === 'regular' ? 'active-regular' : '' ?>">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Regular Schedules
-        <span class="tt2-tab-count"><?= (int)($count_regular ?? count($regularGroups)) ?></span>
-    </a>
-    <a href="/O/timetables?tab=special"
-       class="tt2-tab <?= $tab === 'special' ? 'active-special' : '' ?>">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        Special Schedules
-        <span class="tt2-tab-count"><?= (int)($count_special ?? count($specialGroups)) ?></span>
-    </a>
-
-    <?php if ($isSpecialTab): ?>
-    <!-- Date reference filter for special tab -->
-    <form method="get" action="/O/timetables" style="display:contents;">
-        <input type="hidden" name="tab" value="special">
-        <div class="tt2-date-bar">
-            <label for="tt2-date">&#128198; Ref. Date:</label>
-            <input type="date" id="tt2-date" name="date"
-                   value="<?= htmlspecialchars($selectedDate) ?>"
-                   max="<?= date('Y-m-d', strtotime('+2 years')) ?>">
-            <button type="submit" class="go-btn">Apply</button>
+<!-- ── Filter Bar ── -->
+<div class="tt2-filters" id="tt2Filters">
+    <!-- Row 1: Type -->
+    <div class="tt2-filter-row">
+        <span class="tt2-filter-label">Type</span>
+        <div class="tt2-type-group" id="typeGroup">
+            <label class="tt2-type-pill sel-all"><input type="radio" name="tt2type" value="all" checked> All</label>
+            <label class="tt2-type-pill"><input type="radio" name="tt2type" value="regular">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Regular
+            </label>
+            <label class="tt2-type-pill"><input type="radio" name="tt2type" value="special">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Special
+            </label>
         </div>
-    </form>
-    <?php endif; ?>
-</div>
+    </div>
 
-<!-- Main table card -->
-<div class="tt2-card">
-    <div class="tt2-card-head">
-        <h2>
-            <?php if ($isSpecialTab): ?>
-                <svg width="16" height="16" fill="none" stroke="#f3b944" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                Special Schedules <span style="font-weight:400;opacity:.7;">(Manager-Imposed)</span>
-            <?php else: ?>
-                <svg width="16" height="16" fill="none" stroke="#f3b944" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Regular Schedules <span style="font-weight:400;opacity:.7;">(Always Active)</span>
-            <?php endif; ?>
-        </h2>
-        <span class="meta">
-            <?= htmlspecialchars($depotName) ?> &bull;
-            <?= count($groups) ?> bus<?= count($groups) !== 1 ? 'es' : '' ?>
-            <?= $isSpecialTab ? '&bull; Ref: ' . htmlspecialchars($selectedDate) : '' ?>
+    <hr class="tt2-filter-divider">
+
+    <!-- Row 2: Route -->
+    <div class="tt2-filter-row">
+        <span class="tt2-filter-label">Route</span>
+        <select class="tt2-route-select" id="routeFilter">
+            <option value="">All Routes</option>
+            <?php foreach ($routeOptions as $rk => $rl): ?>
+            <option value="<?= htmlspecialchars($rk) ?>">Route <?= htmlspecialchars($rl) ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <button class="tt2-clear-btn" id="tt2ClearBtn" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Clear Filters
+        </button>
+    </div>
+
+    <hr class="tt2-filter-divider">
+
+    <!-- Row 2: Days Active -->
+    <div class="tt2-filter-row">
+        <span class="tt2-filter-label">Days Active</span>
+        <div class="tt2-day-filters" id="dayFilters">
+            <?php foreach ($dayMap as $di => $dl): ?>
+            <span class="tt2-day-toggle" data-day="<?= $di ?>"><?= $dl ?></span>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <hr class="tt2-filter-divider">
+
+    <!-- Row 3: Active During Period -->
+    <div class="tt2-filter-row">
+        <span class="tt2-filter-label">Active During</span>
+        <div class="tt2-period-wrap">
+            <input type="date" id="periodFrom" placeholder="From">
+            <span class="tt2-period-sep">→</span>
+            <input type="date" id="periodTo" placeholder="To">
+        </div>
+        <span style="font-size:.75rem;color:#9ca3af;font-style:italic;">
+            &nbsp;Regular schedules are always active. Special schedules are filtered by their effective date window.
         </span>
     </div>
 
-    <?php if ($isSpecialTab): ?>
+    <hr class="tt2-filter-divider">
+
+    <!-- Summary -->
+    <div class="tt2-summary-bar">
+        Showing <span class="tt2-summary-count" id="visibleCount"><?= count($allGroups) ?></span>
+        of <?= count($allGroups) ?> schedules
+        <span class="tt2-summary-badges">
+            <span class="type-badge type-regular"><?= count($regularGroups) ?> Regular</span>
+            <span class="type-badge type-special"><?= count($specialGroups) ?> Special</span>
+        </span>
+    </div>
+</div>
+
+<!-- ── Table Card ── -->
+<div class="tt2-card">
+    <div class="tt2-card-head">
+        <h2>
+            <svg width="16" height="16" fill="none" stroke="#f3b944" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            All Schedules
+            <span style="font-weight:400;opacity:.7;">(Regular &amp; Special)</span>
+        </h2>
+        <span class="meta"><?= htmlspecialchars($depotName) ?> &bull; <?= count($allGroups) ?> total</span>
+    </div>
+
     <div class="tt2-readonly-bar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        Special schedules are read-only — managed exclusively by the Depot Manager.
+        Read-only — regular schedules managed by NTC Admin; special schedules by Depot Manager.
     </div>
-    <?php endif; ?>
 
-    <?php if (empty($groups)): ?>
+    <?php if (empty($allGroups)): ?>
     <div class="tt2-empty">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <p>No <?= $isSpecialTab ? 'special' : 'regular' ?> schedules found for <?= htmlspecialchars($depotName) ?>.</p>
+        <p>No schedules found for <?= htmlspecialchars($depotName) ?>.</p>
     </div>
     <?php else: ?>
-    <div style="overflow-x:auto;padding-bottom:4px;">
-    <table class="tt2-table">
+    <div style="overflow-x:auto;padding-bottom:4px;margin-top:12px;">
+    <table class="tt2-table" id="tt2Table">
         <thead>
             <tr>
                 <th>Bus Number</th>
                 <th>Route</th>
                 <th>Departure Times</th>
                 <th>Days Active</th>
-                <?php if ($isSpecialTab): ?><th>Effective Period</th><?php endif; ?>
+                <th>Effective Period</th>
                 <th>Type</th>
                 <th>Trips / Week</th>
             </tr>
         </thead>
         <tbody>
-        <?php foreach ($groups as $g):
-            $deps = $g['departures'];
-            $t1   = $deps[0] ?? null;
-            $t2   = $deps[1] ?? null;
-            $t3   = $deps[2] ?? null;
+        <?php foreach ($allGroups as $g):
+            $deps        = $g['departures'];
             $isSpecialRow = ($g['type'] === 'Special');
+            $effFrom     = trim((string)($g['effective_from'] ?? ''));
+            $effTo       = trim((string)($g['effective_to']   ?? ''));
+            $tripsPerWeek = count($deps) * count($g['days']);
+            $daysAttr    = implode(',', $g['days']);
         ?>
-        <tr>
+        <tr data-type="<?= $isSpecialRow ? 'special' : 'regular' ?>"
+            data-days="<?= htmlspecialchars($daysAttr) ?>"
+            data-route="<?= htmlspecialchars((string)($g['route_no'] ?? '')) ?>"
+            data-eff-from="<?= htmlspecialchars($effFrom) ?>"
+            data-eff-to="<?= htmlspecialchars($effTo) ?>">
+
             <td data-label="Bus Number">
                 <span class="tt2-bus"><?= htmlspecialchars($g['bus_reg_no']) ?></span>
             </td>
+
             <td data-label="Route">
                 <div class="tt2-route-no"><?= htmlspecialchars($g['route_no']) ?></div>
                 <?php if (!empty($g['route_name']) && $g['route_name'] !== $g['route_no']): ?>
                 <div class="tt2-route-sub"><?= htmlspecialchars($g['route_name']) ?></div>
                 <?php endif; ?>
             </td>
+
             <td data-label="Departure Times">
                 <?php if (!empty($deps)): ?>
                 <div class="tt2-turns-wrap">
@@ -348,9 +439,10 @@ $isSpecialTab = ($tab === 'special');
                     <?php endforeach; ?>
                 </div>
                 <?php else: ?>
-                    <span class="tt2-turn-empty">—</span>
+                <span class="tt2-turn-empty">—</span>
                 <?php endif; ?>
             </td>
+
             <td data-label="Days Active">
                 <?php if (!empty($g['day_labels'])): ?>
                 <div class="tt2-days">
@@ -362,18 +454,16 @@ $isSpecialTab = ($tab === 'special');
                 <span style="color:#9ca3af;font-size:.8rem;">—</span>
                 <?php endif; ?>
             </td>
-            <?php if ($isSpecialTab): ?>
+
             <td data-label="Effective Period">
-                <?php
-                $ef  = trim((string)($g['effective_from'] ?? ''));
-                $et  = trim((string)($g['effective_to']   ?? ''));
-                $efFmt = $ef ? date('d M Y', strtotime($ef)) : '...';
-                $etFmt = $et ? date('d M Y', strtotime($et)) : 'ongoing';
-                ?>
-                <div class="tt2-eff"><strong><?= htmlspecialchars($efFmt) ?></strong></div>
-                <div class="tt2-eff" style="margin-top:2px;">→ <?= htmlspecialchars($etFmt) ?></div>
+                <?php if ($isSpecialRow && ($effFrom || $effTo)): ?>
+                <div class="tt2-eff"><strong><?= $effFrom ? date('d M Y', strtotime($effFrom)) : '...' ?></strong></div>
+                <div class="tt2-eff" style="margin-top:2px;">→ <?= $effTo ? date('d M Y', strtotime($effTo)) : 'ongoing' ?></div>
+                <?php else: ?>
+                <span class="tt2-eff-always">&#10003; Always Active</span>
+                <?php endif; ?>
             </td>
-            <?php endif; ?>
+
             <td data-label="Type">
                 <?php if ($isSpecialRow): ?>
                 <span class="type-badge type-special">Special</span>
@@ -381,19 +471,139 @@ $isSpecialTab = ($tab === 'special');
                 <span class="type-badge type-regular">Regular</span>
                 <?php endif; ?>
             </td>
+
             <td data-label="Trips / Week">
-                <?php
-                $tripsPerWeek = count($g['departures']) * count($g['days']);
-                ?>
                 <span style="font-size:.9rem;font-weight:800;color:#7B1C3E;"><?= $tripsPerWeek ?></span>
                 <span style="font-size:.72rem;color:#9ca3af;margin-left:2px;">trip<?= $tripsPerWeek !== 1 ? 's' : '' ?></span>
             </td>
         </tr>
         <?php endforeach; ?>
+        <tr class="tt2-no-results tt2-hidden" id="tt2NoResults">
+            <td colspan="7">No schedules match the selected filters.</td>
+        </tr>
         </tbody>
     </table>
     </div>
     <?php endif; ?>
-</div><!-- /.tt2-card -->
+</div>
 
 </div><!-- /.tt2-page -->
+
+<script>
+(function () {
+    'use strict';
+
+    const table       = document.getElementById('tt2Table');
+    if (!table) return;
+
+    const rows        = Array.from(table.querySelectorAll('tbody tr:not(#tt2NoResults)'));
+    const noResults   = document.getElementById('tt2NoResults');
+    const countEl     = document.getElementById('visibleCount');
+    const clearBtn    = document.getElementById('tt2ClearBtn');
+    const dayToggles  = Array.from(document.querySelectorAll('.tt2-day-toggle'));
+    const routeSel    = document.getElementById('routeFilter');
+    const periodFrom  = document.getElementById('periodFrom');
+    const periodTo    = document.getElementById('periodTo');
+    const typePills   = Array.from(document.querySelectorAll('.tt2-type-pill'));
+    const typeGroup   = document.getElementById('typeGroup');
+
+    // ── Highlight active type pill ──────────────────────────────
+    function syncTypePills() {
+        const val = document.querySelector('input[name="tt2type"]:checked')?.value ?? 'all';
+        typePills.forEach(p => {
+            p.classList.remove('sel-all','sel-regular','sel-special');
+            if (p.querySelector('input').value === val) {
+                p.classList.add('sel-' + val);
+            }
+        });
+    }
+
+    // ── Core filter ─────────────────────────────────────────────
+    function applyFilters() {
+        const selType   = document.querySelector('input[name="tt2type"]:checked')?.value ?? 'all';
+        const selRoute  = routeSel.value;
+        const selDays   = dayToggles.filter(d => d.classList.contains('active')).map(d => d.dataset.day);
+        const fromVal   = periodFrom.value;   // 'YYYY-MM-DD' or ''
+        const toVal     = periodTo.value;
+
+        let visible = 0;
+
+        rows.forEach(row => {
+            const rType    = row.dataset.type;       // 'regular' | 'special'
+            const rRoute   = row.dataset.route;
+            const rDays    = row.dataset.days.split(',').filter(Boolean);
+            const rEffFrom = row.dataset.effFrom;    // '' for regular
+            const rEffTo   = row.dataset.effTo;      // '' for regular
+
+            // 1. Type filter
+            if (selType !== 'all' && rType !== selType) {
+                hide(row); return;
+            }
+
+            // 2. Route filter
+            if (selRoute && rRoute !== selRoute) {
+                hide(row); return;
+            }
+
+            // 3. Day filter (any selected day must be in row's days)
+            if (selDays.length > 0 && !selDays.some(d => rDays.includes(d))) {
+                hide(row); return;
+            }
+
+            // 4. Period filter
+            if (fromVal || toVal) {
+                if (rType === 'special') {
+                    // Must overlap: effFrom <= toVal AND effTo >= fromVal
+                    if (fromVal && rEffTo && rEffTo < fromVal) { hide(row); return; }
+                    if (toVal   && rEffFrom && rEffFrom > toVal) { hide(row); return; }
+                }
+                // Regular schedules always pass the period filter
+            }
+
+            show(row);
+            visible++;
+        });
+
+        if (countEl) countEl.textContent = visible;
+        if (noResults) noResults.classList.toggle('tt2-hidden', visible > 0);
+    }
+
+    function hide(row) { row.classList.add('tt2-hidden'); }
+    function show(row) { row.classList.remove('tt2-hidden'); }
+
+    // ── Day toggle pill clicks ───────────────────────────────────
+    dayToggles.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+            applyFilters();
+        });
+    });
+
+    // ── Type radio changes ───────────────────────────────────────
+    typeGroup.addEventListener('change', () => {
+        syncTypePills();
+        applyFilters();
+    });
+
+    // ── Route + period inputs ────────────────────────────────────
+    routeSel.addEventListener('change', applyFilters);
+    periodFrom.addEventListener('change', applyFilters);
+    periodTo.addEventListener('change',  applyFilters);
+
+    // ── Clear all filters ────────────────────────────────────────
+    clearBtn.addEventListener('click', () => {
+        document.querySelector('input[name="tt2type"][value="all"]').checked = true;
+        syncTypePills();
+        dayToggles.forEach(d => d.classList.remove('active'));
+        routeSel.value    = '';
+        periodFrom.value  = '';
+        periodTo.value    = '';
+        applyFilters();
+    });
+
+    // Init
+    syncTypePills();
+    applyFilters();
+}());
+</script>
+

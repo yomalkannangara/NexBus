@@ -52,7 +52,11 @@ VALUES
   (CURDATE(), 'Morning', 'NB-3102',  8,    8,    1),
   (CURDATE(), 'Morning', 'NB-3103', 11,   11,    1),
   (CURDATE(), 'Evening', 'NB-3104', 1001, 2001,  1),
-  (CURDATE(), 'Evening', 'NB-5667',  2,    1,    1);
+  (CURDATE(), 'Evening', 'NB-5667',  2,    1,    1)
+ON DUPLICATE KEY UPDATE
+  sltb_driver_id    = VALUES(sltb_driver_id),
+  sltb_conductor_id = VALUES(sltb_conductor_id),
+  sltb_depot_id     = VALUES(sltb_depot_id);
 
 -- ---------------------------------------------------------------
 -- 4. SLTB trips for today (depot 1) - reference the new Thursday timetables
@@ -169,3 +173,115 @@ INSERT INTO notifications (user_id, type, message, priority, is_seen, created_at
 -- For Private Timekeeper
 (10002, 'Message', 'Driver notice: Mr. Kasun Perera (Driver ID 1) will be operating an additional evening shift today on Route PB-12002. Ensure trip logs are completed by 20:00.', 'normal', 0, NOW() - INTERVAL 1 HOUR),
 (10002, 'Alert',   'Passenger complaint received for Bus PA-1002 on morning route. Please verify trip log and contact depot manager for resolution.', 'urgent', 0, NOW() - INTERVAL 20 MINUTE);
+
+-- ---------------------------------------------------------------
+-- 8. Demo messaging notifications (covers all message system types)
+--    user 53 = DepotOfficer, user 54 = SLTBTimekeeper, user 56 = DepotManager
+--    All at sltb_depot_id = 1 (Colombo)
+-- ---------------------------------------------------------------
+
+-- 8a. One cancelled afternoon trip to power the emergency notification below
+INSERT INTO sltb_trips
+  (timetable_id, bus_reg_no, trip_date, scheduled_departure_time, scheduled_arrival_time,
+   route_id, sltb_driver_id, sltb_conductor_id, sltb_depot_id, turn_no,
+   departure_time, start_delay_seconds, status, cancelled_by, cancel_reason, cancelled_at)
+SELECT
+  tt.timetable_id, tt.bus_reg_no, CURDATE(), tt.departure_time, tt.arrival_time,
+  tt.route_id, 1, 1, 1, 2,
+  tt.departure_time, 0, 'Cancelled', 54, 'Engine failure on route.', NOW() - INTERVAL 35 MINUTE
+FROM timetables tt
+JOIN sltb_buses b ON b.reg_no = tt.bus_reg_no
+WHERE tt.operator_type = 'SLTB'
+  AND b.sltb_depot_id = 1
+  AND tt.day_of_week = 4
+  AND tt.departure_time >= '12:00:00'
+  AND NOT EXISTS (
+      SELECT 1 FROM sltb_trips st2
+      WHERE st2.timetable_id = tt.timetable_id AND st2.trip_date = CURDATE()
+  )
+ORDER BY tt.departure_time
+LIMIT 1;
+
+SET @cancelled_trip_id = LAST_INSERT_ID();
+SET @cancelled_bus     = COALESCE((SELECT bus_reg_no FROM sltb_trips WHERE sltb_trip_id = @cancelled_trip_id LIMIT 1), 'NB-1001');
+SET @cancelled_route   = COALESCE((SELECT route_id   FROM sltb_trips WHERE sltb_trip_id = @cancelled_trip_id LIMIT 1), 1);
+
+-- 8b. Automated: assignment lifecycle → SLTBTimekeeper (user 54)
+--     Source: DepotOfficer (user 53) via sendAssignmentAutomation()
+INSERT INTO notifications (user_id, type, message, priority, metadata, is_seen, created_at) VALUES
+-- Assignment Updated (normal)
+(54, 'Message',
+ 'OPERATION UPDATE: Assignment updated for bus NB-1001 on 2026-04-16 (Morning shift).',
+ 'normal',
+ JSON_OBJECT('source','depot_message','source_user_id',53,'source_role','DepotOfficer','source_name','depotofficer','scope','role','category',NULL),
+ 0, NOW() - INTERVAL 90 MINUTE),
+-- Staff Reassigned (normal)
+(54, 'Message',
+ 'OPERATION UPDATE: Staff reassigned for bus NB-1002 on 2026-04-16 (Morning shift).',
+ 'normal',
+ JSON_OBJECT('source','depot_message','source_user_id',53,'source_role','DepotOfficer','source_name','depotofficer','scope','role','category',NULL),
+ 0, NOW() - INTERVAL 60 MINUTE),
+-- Assignment Deleted (urgent)
+(54, 'Message',
+ 'OPERATION UPDATE: Assignment deleted for bus NB-3104 on 2026-04-16 (Evening shift).',
+ 'urgent',
+ JSON_OBJECT('source','depot_message','source_user_id',53,'source_role','DepotOfficer','source_name','depotofficer','scope','role','category',NULL),
+ 0, NOW() - INTERVAL 15 MINUTE);
+
+-- 8c. Automated: trip cancelled → DepotOfficer + DepotManager (users 53, 56)
+--     Source: SLTBTimekeeper (user 54) via TripEntryModel::notifyDepotEmergency()
+--     Type=Breakdown + priority=critical because reason contains "engine"
+INSERT INTO notifications (user_id, type, message, priority, metadata, is_seen, created_at)
+SELECT
+  u.user_id,
+  'Breakdown',
+  CONCAT('EMERGENCY UPDATE: Trip #', IFNULL(@cancelled_trip_id, 0),
+         ' was cancelled by sltbtimekeeper. Bus: ', @cancelled_bus,
+         ', Route ID: ', @cancelled_route, '. Reason: Engine failure on route.'),
+  'critical',
+  JSON_OBJECT(
+    'source',         'sltb_timekeeper_emergency',
+    'source_role',    'SLTBTimekeeper',
+    'source_user_id', 54,
+    'source_name',    'sltbtimekeeper',
+    'event_kind',     'trip_cancelled',
+    'trip_id',        @cancelled_trip_id,
+    'bus_reg_no',     @cancelled_bus,
+    'route_id',       @cancelled_route,
+    'depot_id',       1,
+    'reason',         'Engine failure on route.'
+  ),
+  0,
+  NOW() - INTERVAL 30 MINUTE
+FROM users u
+WHERE u.sltb_depot_id = 1 AND u.role IN ('DepotOfficer', 'DepotManager');
+
+-- 8d. Manual: DepotOfficer (53) → SLTBTimekeeper (54)
+--     Sent via Messages compose form (scope=individual)
+INSERT INTO notifications (user_id, type, message, priority, metadata, is_seen, created_at) VALUES
+(54, 'Message',
+ 'Reminder: Afternoon shift handover should be completed by 14:30. Ensure all InProgress trips from the morning are logged before the long weekend.',
+ 'normal',
+ JSON_OBJECT('source','depot_message','source_user_id',53,'source_role','DepotOfficer','source_name','depotofficer','scope','individual','category',NULL),
+ 0, NOW() - INTERVAL 25 MINUTE);
+
+-- 8e. Manual: SLTBTimekeeper (54) → DepotOfficer + DepotManager (users 53, 56)
+--     Sent via timekeeper compose card via TimekeeperMessageModel::sendToDepotOfficers()
+INSERT INTO notifications (user_id, type, message, priority, metadata, is_seen, created_at)
+SELECT
+  u.user_id,
+  'Message',
+  'Bus NB-1001 returned with a minor windshield crack. Parked and logged. Please arrange inspection before the next scheduled run.',
+  'urgent',
+  JSON_OBJECT(
+    'source',         'timekeeper_message',
+    'source_user_id', 54,
+    'source_role',    'SLTBTimekeeper',
+    'source_name',    'sltbtimekeeper',
+    'scope',          'individual',
+    'category',       NULL
+  ),
+  0,
+  NOW() - INTERVAL 10 MINUTE
+FROM users u
+WHERE u.sltb_depot_id = 1 AND u.role IN ('DepotOfficer', 'DepotManager');

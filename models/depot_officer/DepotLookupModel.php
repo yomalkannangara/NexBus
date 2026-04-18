@@ -32,14 +32,29 @@ class DepotLookupModel extends BaseModel
     }
 
     public function depotStaff(int $depotId): array {
-        // FIXED: users table has first_name + last_name, not full_name
-        $st = $this->pdo->prepare("SELECT user_id, 
-                                          CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name,
-                                          role, email, phone
-                                   FROM users
-                                   WHERE sltb_depot_id=? AND role IN ('DepotManager','DepotOfficer','SLTBTimekeeper')
-                                   ORDER BY role, first_name");
-        $st->execute([$depotId]);
+        // Show all DepotOfficers and SLTBTimekeepers, but only the primary
+        // DepotManager (lowest user_id) — a depot normally has one manager.
+        $st = $this->pdo->prepare("
+            SELECT user_id,
+                   CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name,
+                   role, email, phone
+            FROM users
+            WHERE sltb_depot_id = ?
+              AND role IN ('DepotOfficer', 'SLTBTimekeeper')
+            UNION ALL
+            SELECT user_id,
+                   CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name,
+                   role, email, phone
+            FROM users
+            WHERE sltb_depot_id = ?
+              AND role = 'DepotManager'
+              AND user_id = (
+                  SELECT MIN(user_id) FROM users
+                  WHERE sltb_depot_id = ? AND role = 'DepotManager'
+              )
+            ORDER BY role, full_name
+        ");
+        $st->execute([$depotId, $depotId, $depotId]);
         return $st->fetchAll();
     }
 
