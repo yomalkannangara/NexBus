@@ -278,12 +278,13 @@ function tke_delay_text(int $seconds): string {
             <th>Turn</th>
             <th>Scheduled Dep</th>
             <th>Start Delay</th>
+            <th>Crew</th>
             <th>Status</th>
             <th>Actions</th>
         </tr></thead>
         <tbody>
         <?php if (empty($rows)): ?>
-        <tr><td colspan="7" class="tke-empty">
+        <tr><td colspan="8" class="tke-empty">
             <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
             <p>No trips scheduled for today.</p>
         </td></tr>
@@ -307,6 +308,35 @@ function tke_delay_text(int $seconds): string {
             <td class="mono"><?= $turn > 0 ? "Turn $turn" : '—' ?></td>
             <td class="mono"><?= htmlspecialchars(substr($r['sched_dep'] ?? '—', 0, 5)) ?></td>
             <td class="mono"><?= $startDelaySec > 0 ? htmlspecialchars(tke_delay_text($startDelaySec)) : '—' ?></td>
+            <td>
+                <?php
+                $dName  = trim((string)($r['driver_name']    ?? ''));
+                $dPhone = trim((string)($r['driver_phone']   ?? ''));
+                $cName  = trim((string)($r['conductor_name'] ?? ''));
+                $cPhone = trim((string)($r['conductor_phone'] ?? ''));
+                if ($dName !== '' || $cName !== ''):?>
+                <div style="font-size:.77rem;line-height:1.55;">
+                    <?php if ($dName !== ''): ?>
+                    <div>
+                        <span style="font-weight:700;color:#374151;">🚗 <?= htmlspecialchars($dName) ?></span>
+                        <?php if ($dPhone !== ''): ?>
+                        <a href="tel:<?= htmlspecialchars($dPhone) ?>" style="margin-left:5px;color:#1d4ed8;font-size:.72rem;text-decoration:none;" title="Call driver">📞 <?= htmlspecialchars($dPhone) ?></a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($cName !== ''): ?>
+                    <div>
+                        <span style="font-weight:700;color:#374151;">🎫 <?= htmlspecialchars($cName) ?></span>
+                        <?php if ($cPhone !== ''): ?>
+                        <a href="tel:<?= htmlspecialchars($cPhone) ?>" style="margin-left:5px;color:#1d4ed8;font-size:.72rem;text-decoration:none;" title="Call conductor">📞 <?= htmlspecialchars($cPhone) ?></a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php else: ?>
+                <span style="color:#9ca3af;font-size:.78rem;">—</span>
+                <?php endif; ?>
+            </td>
             <td>
                 <?= tke_badge($status) ?>
                 <?php if ($isCurrentSchedule): ?>

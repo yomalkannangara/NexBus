@@ -147,7 +147,12 @@ function tke_hist_delay_text(int $seconds): string {
 <div class="tke-card">
     <div class="tke-card-head">
         <h2>Trip History</h2>
-        <span class="meta"><?= count($histRows) ?> record<?= count($histRows) !== 1 ? 's' : '' ?></span>
+        <span class="meta">
+            <?= count($histRows) ?> record<?= count($histRows) !== 1 ? 's' : '' ?>
+            <?php if (($h_from ?? date('Y-m-d')) === date('Y-m-d') && ($h_to ?? date('Y-m-d')) === date('Y-m-d')): ?>
+            &nbsp;·&nbsp;<span id="tkeAutoRefreshLabel" style="font-size:.7rem;opacity:.75;">Auto-refresh in <span id="tkeCountdown">30</span>s</span>
+            <?php endif; ?>
+        </span>
     </div>
     <div class="tke-wrap">
     <table class="tke-table">
@@ -197,3 +202,31 @@ function tke_hist_delay_text(int $seconds): string {
     </table>
     </div>
 </div>
+
+<?php
+$isViewingToday = (($h_from ?? date('Y-m-d')) === date('Y-m-d')) && (($h_to ?? date('Y-m-d')) === date('Y-m-d'));
+if ($isViewingToday):
+?>
+<script>
+(function () {
+    var remaining = 30;
+    var countdownEl = document.getElementById('tkeCountdown');
+
+    var timer = setInterval(function () {
+        remaining--;
+        if (countdownEl) countdownEl.textContent = String(remaining);
+        if (remaining <= 0) {
+            clearInterval(timer);
+            // Preserve current filter params on reload
+            location.reload();
+        }
+    }, 1000);
+
+    // Stop countdown if user is hovering the filter form (about to change dates)
+    var filterForm = document.querySelector('.tke-hist-filter form');
+    if (filterForm) {
+        filterForm.addEventListener('mouseenter', function () { clearInterval(timer); if (countdownEl) countdownEl.parentElement.textContent = 'Auto-refresh paused'; });
+    }
+})();
+</script>
+<?php endif; ?>
