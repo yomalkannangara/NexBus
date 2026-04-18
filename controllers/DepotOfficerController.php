@@ -142,7 +142,7 @@ public function assignments()
         'buses'       => $m->buses($depotId),
         'drivers'     => $m->drivers($depotId),
         'conductors'  => $m->conductors($depotId),
-        'routes'      => $m->routes(),
+        'routes'      => $m->routes($depotId),
         'today'       => date('Y-m-d'),
         'msg'         => $_GET['msg'] ?? null,
         'availability'=> $m->availability($depotId),
@@ -415,7 +415,7 @@ public function trip_logs(): void{
     $this->view('depot_officer', 'trip_logs', [
         'rows'      => $rows,
         'date'      => $date,
-        'routes'    => $this->m->routes(),
+        'routes'    => $this->m->routes($dep),
         'buses'     => $this->m->depotBuses($dep),
         'filters'   => $filters,
         'last_sync' => date('H:i:s'),
@@ -622,7 +622,7 @@ public function trip_logs(): void{
                 JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK |
                 JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
             ),
-            'routes'       => $this->m->routes(),
+            'routes'       => $this->m->routes($dep),
             'buses'        => $this->m->depotBuses($dep),
             'filters'      => $filters,
         ]);
@@ -766,7 +766,7 @@ public function trip_logs(): void{
         }
 
         $routeOptions = [];
-        foreach (($this->m->routes() ?? []) as $r) {
+        foreach (($this->m->routes($dep) ?? []) as $r) {
             if (!empty($r['route_no'])) {
                 $routeOptions[] = ['route_no' => $r['route_no']];
             }
@@ -1300,9 +1300,19 @@ public function trip_logs(): void{
             return $this->redirect('/O/dashboard');
         }
 
+        $u   = $this->m->me();
+        $dep = $this->m->myDepotId($u);
+
         $m = new \App\models\depot_officer\BusProfileModel();
         $bus = $m->getBusByReg($busReg);
         if (empty($bus)) {
+            return $this->redirect('/O/dashboard');
+        }
+
+        // Ensure the bus belongs to this officer's depot
+        $depotBuses = $this->m->depotBuses($dep);
+        $allowed = array_column($depotBuses, 'reg_no');
+        if (!in_array($bus['bus_reg_no'], $allowed, true)) {
             return $this->redirect('/O/dashboard');
         }
 

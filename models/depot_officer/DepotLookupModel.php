@@ -89,16 +89,22 @@ class DepotLookupModel extends BaseModel
                 return $st->fetchAll();
     }
 
-    public function routes(): array {
-        $rows = $this->pdo->query("SELECT route_id, route_no, stops_json
-                                  FROM routes
-                                  WHERE is_active=1
-                                  ORDER BY route_no+0, route_no")->fetchAll();
-        
+    public function routes(int $depotId): array {
+        $st = $this->pdo->prepare(
+            "SELECT DISTINCT r.route_id, r.route_no, r.stops_json
+               FROM routes r
+               JOIN timetables tt ON tt.route_id = r.route_id AND tt.operator_type = 'SLTB'
+               JOIN sltb_buses sb ON sb.reg_no = tt.bus_reg_no AND sb.sltb_depot_id = :depot
+              WHERE r.is_active = 1
+           ORDER BY r.route_no+0, r.route_no"
+        );
+        $st->execute([':depot' => $depotId]);
+        $rows = $st->fetchAll();
+
         foreach ($rows as &$r) {
             $r['name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
         }
-        
+
         return $rows;
     }
 }

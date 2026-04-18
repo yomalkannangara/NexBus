@@ -177,6 +177,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+<!-- ══ GLOBAL TOAST CONTAINER (outside .app-shell so z-index works) ══ -->
+<div id="dop-toast-container" aria-live="polite" aria-atomic="true" style="position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
 </body>
   <?php if (in_array($module, ['TP', 'TS'], true)): ?>
   <script src="/assets/js/timekeeper.js"></script>

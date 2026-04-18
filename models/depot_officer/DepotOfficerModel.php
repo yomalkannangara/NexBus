@@ -96,7 +96,7 @@ public function depot(int $depotId): ?array {
     public function depotDrivers(int $depotId): array { return $this->lookup->depotDrivers($depotId); }
     public function depotStaff(int $depotId): array { return $this->lookup->depotStaff($depotId); }
     public function driversAndConductors(int $depotId): array { return $this->lookup->depotDriversAndConductors($depotId); }
-    public function routes(): array { return $this->lookup->routes(); }
+    public function routes(int $depotId): array { return $this->lookup->routes($depotId); }
 
     // Dashboard
     public function dashboardCounts(int $depotId): array { return $this->dash->counts($depotId); }
@@ -166,20 +166,17 @@ public function depot(int $depotId): ?array {
     public function depotRoutesForMessaging(int $depotId): array {
         try {
             $st = $this->pdo->prepare(
-                "SELECT route_id, route_name FROM sltb_routes WHERE sltb_depot_id=? ORDER BY route_name"
+                "SELECT DISTINCT r.route_id, r.route_no AS route_name
+                   FROM routes r
+                   JOIN timetables tt ON tt.route_id = r.route_id AND tt.operator_type = 'SLTB'
+                   JOIN sltb_buses sb ON sb.reg_no = tt.bus_reg_no AND sb.sltb_depot_id = ?
+                  WHERE r.is_active = 1
+                  ORDER BY r.route_no+0, r.route_no"
             );
             $st->execute([$depotId]);
             return $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
-            try {
-                $st = $this->pdo->prepare(
-                    "SELECT route_id, route_no AS route_name FROM routes WHERE is_active=1 ORDER BY route_no+0, route_no"
-                );
-                $st->execute();
-                return $st->fetchAll(PDO::FETCH_ASSOC);
-            } catch (\Throwable $e2) {
-                return [];
-            }
+            return [];
         }
     }
 
