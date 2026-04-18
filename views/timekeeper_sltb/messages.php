@@ -1,9 +1,12 @@
-<?php
-$S          = $S ?? [];
-$recent     = $recent ?? [];
-$filter     = in_array(($filter ?? 'all'), ['all','unread','message','alert'], true) ? $filter : 'all';
-$unreadCount = (int)($unread_count ?? 0);
-$msg        = $msg ?? null;
+﻿<?php
+$S              = $S ?? [];
+$recent         = $recent ?? [];
+$filter         = in_array(($filter ?? 'all'), ['all','unread','message','alert'], true) ? $filter : 'all';
+$unreadCount    = (int)($unread_count ?? 0);
+$msg            = $msg ?? null;
+$chatThread     = $chat_thread ?? [];
+$myUserId       = (int)($my_user_id ?? 0);
+$hasDepotOfficer= (bool)($has_depot_officer ?? false);
 
 $flashMap = [
     'read'       => ['type'=>'ok',  'text'=>'Message marked as read.'],
@@ -13,227 +16,414 @@ $flashMap = [
     'send_error' => ['type'=>'err', 'text'=>'Failed to send message. Please try again.'],
 ];
 
-$catMeta = [
-    'schedule_change'     => ['icon'=>'📅', 'label'=>'Schedule Change',     'color'=>'#0369a1','bg'=>'#e0f2fe'],
-    'route_deviation'     => ['icon'=>'🔀', 'label'=>'Route Deviation',     'color'=>'#b45309','bg'=>'#fef3c7'],
-    'breakdown_alert'     => ['icon'=>'🔧', 'label'=>'Breakdown Alert',     'color'=>'#b91c1c','bg'=>'#fee2e2'],
-    'strike_notice'       => ['icon'=>'✊', 'label'=>'Strike / Union Notice','color'=>'#7c3aed','bg'=>'#ede9fe'],
-    'poya_schedule'       => ['icon'=>'🌕', 'label'=>'Poya Day Schedule',   'color'=>'#065f46','bg'=>'#d1fae5'],
-    'passenger_complaint' => ['icon'=>'😠', 'label'=>'Passenger Complaint', 'color'=>'#9a3412','bg'=>'#ffedd5'],
-    'general_update'      => ['icon'=>'📢', 'label'=>'General Update',      'color'=>'#374151','bg'=>'#f3f4f6'],
-];
-
 function ts_time_ago(?string $ts): string {
     if (!$ts) return '';
     $at   = strtotime($ts);
     if ($at === false) return $ts;
     $diff = time() - $at;
     if ($diff < 60)    return 'Just now';
-    if ($diff < 3600)  return intdiv($diff, 60) . ' min ago';
-    if ($diff < 86400) return intdiv($diff, 3600) . ' hr ago';
-    return date('d M Y', $at);
+    if ($diff < 3600)  return intdiv($diff, 60) . 'm ago';
+    if ($diff < 86400) return intdiv($diff, 3600) . 'h ago';
+    return date('d M', $at);
 }
 ?>
 <style>
 :root { --sltb:#7B1C3E; --gold:#f3b944; }
-.tmsg-page { color:#111827; display:flex; flex-direction:column; gap:16px; }
-.tmsg-hero { background:linear-gradient(135deg,var(--sltb) 0%,#a8274e 100%); border-bottom:4px solid var(--gold); border-radius:14px; color:#fff; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.tmsg-hero h1 { margin:0; font-size:1.3rem; font-weight:800; }
-.tmsg-hero p  { margin:3px 0 0; font-size:.84rem; opacity:.9; }
-.tmsg-badge { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:6px 16px; font-size:.8rem; font-weight:800; }
-.tmsg-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-.tmsg-filters { display:flex; gap:8px; flex-wrap:wrap; }
-.tmsg-filter { text-decoration:none; color:var(--sltb); border:1px solid #e8d39a; border-radius:999px; padding:6px 14px; font-size:.78rem; font-weight:700; background:#fffdf6; }
-.tmsg-filter.active { background:var(--sltb); color:#fff; border-color:var(--sltb); }
-.tmsg-mark-all { border:none; border-radius:8px; background:var(--sltb); color:#fff; padding:8px 14px; font-size:.78rem; font-weight:700; cursor:pointer; }
-.tmsg-flash { border-radius:10px; padding:10px 14px; font-size:.86rem; font-weight:700; }
-.tmsg-flash.ok  { background:#dcfce7; color:#14532d; border:1px solid #86efac; }
-.tmsg-flash.err { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
-.tmsg-empty { padding:40px 16px; border:1px dashed #d1d5db; border-radius:12px; text-align:center; color:#6b7280; background:#fff; }
-.tmsg-list { display:grid; gap:14px; }
-.tmsg-card { background:#fff; border:1px solid #f2e6d2; border-left:4px solid #d1d5db; border-radius:12px; padding:16px 18px; box-shadow:0 2px 10px rgba(0,0,0,.05); transition:box-shadow .15s; }
-.tmsg-card:hover { box-shadow:0 4px 18px rgba(0,0,0,.09); }
-.tmsg-card.unread { border-left-color:var(--sltb); }
-.tmsg-card.priority-urgent   { border-left-color:#d97706; }
-.tmsg-card.priority-critical { border-left-color:#dc2626; }
-.tmsg-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
-.tmsg-sender-name { font-size:1rem; font-weight:800; color:#111827; margin:0; }
-.tmsg-sender-role { font-size:.75rem; color:#6b7280; margin-top:3px; }
-.tmsg-badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-.tbadge { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:3px 9px; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
-.tbadge-msg   { background:#e0f2fe; color:#075985; }
+.ts-msg-page { display:flex; flex-direction:column; gap:0; height:calc(100vh - 80px); min-height:0; color:#111827; }
+.ts-msg-header {
+    background:linear-gradient(135deg,var(--sltb) 0%,#a8274e 100%);
+    border-bottom:4px solid var(--gold); border-radius:14px 14px 0 0;
+    color:#fff; padding:16px 22px 0; flex-shrink:0;
+}
+.ts-msg-title { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.ts-msg-title h1 { margin:0; font-size:1.2rem; font-weight:800; }
+.ts-msg-title p  { margin:3px 0 0; font-size:.8rem; opacity:.85; }
+.ts-msg-badge { margin-left:auto; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3); border-radius:999px; padding:5px 14px; font-size:.78rem; font-weight:800; white-space:nowrap; }
+.ts-tabs { display:flex; gap:0; }
+.ts-tab { padding:9px 22px; font-size:.82rem; font-weight:800; cursor:pointer; border:none; background:rgba(255,255,255,.12); color:rgba(255,255,255,.75); border-radius:10px 10px 0 0; margin-right:4px; transition:all .15s; }
+.ts-tab.active { background:#fff; color:var(--sltb); }
+.ts-tab .tab-badge { display:inline-flex; align-items:center; justify-content:center; background:#dc2626; color:#fff; border-radius:999px; height:16px; min-width:16px; padding:0 4px; font-size:.65rem; font-weight:900; margin-left:5px; }
+.ts-panel { display:none; flex:1; min-height:0; background:#fff; border:1px solid #e5e7eb; border-top:none; border-radius:0 0 14px 14px; overflow:hidden; }
+.ts-panel.active { display:flex; flex-direction:column; }
+.ts-alerts-inner { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.ts-alert-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid #f0e8de; background:#fffaf5; flex-shrink:0; }
+.ts-filter-group { display:flex; gap:6px; flex-wrap:wrap; }
+.ts-filter-a { text-decoration:none; color:var(--sltb); border:1px solid #e8d39a; border-radius:999px; padding:5px 12px; font-size:.75rem; font-weight:700; background:#fffdf6; }
+.ts-filter-a.active { background:var(--sltb); color:#fff; border-color:var(--sltb); }
+.ts-mark-all { border:none; border-radius:8px; background:var(--sltb); color:#fff; padding:7px 12px; font-size:.75rem; font-weight:700; cursor:pointer; }
+.ts-flash { border-radius:10px; padding:10px 14px; font-size:.84rem; font-weight:700; }
+.ts-flash.ok  { background:#dcfce7; color:#14532d; border:1px solid #86efac; }
+.ts-flash.err { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+.ts-empty { padding:40px 16px; border:1px dashed #d1d5db; border-radius:12px; text-align:center; color:#6b7280; background:#fff; }
+.ts-card { background:#fff; border:1px solid #f2e6d2; border-left:4px solid #d1d5db; border-radius:12px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+.ts-card.unread { border-left-color:var(--sltb); background:#fffdf9; }
+.ts-card.priority-urgent { border-left-color:#d97706; }
+.ts-card.priority-critical { border-left-color:#dc2626; }
+.ts-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+.ts-sender { font-size:.95rem; font-weight:800; color:#111; margin:0; }
+.ts-sender-sub { font-size:.72rem; color:#6b7280; margin-top:2px; }
+.ts-badges { display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+.tbadge { display:inline-flex; align-items:center; gap:3px; border-radius:999px; padding:3px 8px; font-size:.67rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.tbadge-msg { background:#e0f2fe; color:#075985; }
 .tbadge-alert { background:#ffedd5; color:#9a3412; }
-.tbadge-unread   { background:#fde8e8; color:#7f1d1d; }
-.tbadge-urgent   { background:#fef9c3; color:#854d0e; }
+.tbadge-unread { background:#fde8e8; color:#7f1d1d; }
+.tbadge-urgent { background:#fef9c3; color:#854d0e; }
 .tbadge-critical { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; animation:blink 2s infinite; }
 @keyframes blink {0%,100%{opacity:1}50%{opacity:.7}}
-.tmsg-cat-chip { display:inline-flex; align-items:center; gap:5px; border-radius:8px; padding:5px 10px; font-size:.78rem; font-weight:700; margin-bottom:10px; }
-.tmsg-body { font-size:.9rem; color:#1f2937; line-height:1.65; margin:0 0 12px; }
-.tmsg-card-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
-.tmsg-time { font-size:.72rem; color:#9ca3af; }
-.tmsg-btn-read { border:1px solid var(--sltb); background:#fff; color:var(--sltb); border-radius:7px; padding:5px 12px; font-size:.75rem; font-weight:700; cursor:pointer; }
-.tmsg-btn-ack  { border:none; background:var(--sltb); color:#fff; border-radius:7px; padding:5px 12px; font-size:.75rem; font-weight:700; cursor:pointer; }
-.tmsg-btn-ack:disabled { opacity:.5; cursor:default; }
-.tmsg-read-state { font-size:.72rem; color:#4b5563; background:#f3f4f6; border-radius:999px; padding:4px 10px; font-weight:700; }
-
-/* Compose card */
-.tmsg-compose { background:#fff; border:1.5px solid #f2e6d2; border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05); overflow:hidden; }
-.tmsg-compose-head { background:linear-gradient(90deg,var(--sltb),#a8274e); border-bottom:3px solid var(--gold); color:#fff; padding:12px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; }
-.tmsg-compose-head h3 { margin:0; font-size:.92rem; font-weight:800; display:flex; align-items:center; gap:8px; }
-.tmsg-compose-head .compose-toggle { font-size:.75rem; opacity:.8; }
-.tmsg-compose-body { padding:16px 18px; display:none; }
-.tmsg-compose-body.open { display:block; }
-.tmsg-compose textarea { width:100%; border:1.5px solid #e5e7eb; border-radius:9px; padding:10px 12px; font-size:.88rem; line-height:1.6; resize:vertical; min-height:90px; box-sizing:border-box; }
-.tmsg-compose textarea:focus { outline:none; border-color:var(--sltb); }
-.tmsg-priority-row { display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
-.tmsg-prio-label { font-size:.75rem; font-weight:800; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; }
-.tmsg-prio-btn { padding:5px 13px; border-radius:99px; border:1.5px solid #e5e7eb; background:#f9fafb; font-size:.75rem; font-weight:700; color:#6b7280; cursor:pointer; transition:all .15s; }
-.tmsg-prio-btn.sel-normal   { border-color:#6b7280; background:#f3f4f6; color:#374151; }
-.tmsg-prio-btn.sel-urgent   { border-color:#d97706; background:#fef3c7; color:#92400e; }
-.tmsg-prio-btn.sel-critical { border-color:#dc2626; background:#fee2e2; color:#991b1b; }
-.tmsg-send-btn { margin-top:12px; background:var(--sltb); color:#fff; border:none; border-radius:9px; padding:9px 22px; font-size:.88rem; font-weight:800; cursor:pointer; }
-.tmsg-send-btn:hover { background:#9b2550; }
+.ts-body { font-size:.88rem; color:#1f2937; line-height:1.65; margin:0 0 10px; }
+.ts-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.ts-time { font-size:.7rem; color:#9ca3af; }
+.ts-btn-read { border:1px solid var(--sltb); background:#fff; color:var(--sltb); border-radius:7px; padding:5px 10px; font-size:.72rem; font-weight:700; cursor:pointer; }
+.ts-read-state { font-size:.7rem; color:#4b5563; background:#f3f4f6; border-radius:999px; padding:3px 9px; font-weight:700; }
+.ts-chat-inner { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:10px; scroll-behavior:smooth; }
+.ts-chat-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#9ca3af; }
+.ts-chat-compose { padding:12px 16px; border-top:1px solid #f0e8de; background:#fffaf5; flex-shrink:0; }
+.ts-chat-compose-row { display:flex; gap:8px; align-items:flex-end; }
+.ts-chat-textarea { flex:1; resize:none; border:1.5px solid #e5e7eb; border-radius:12px; padding:10px 14px; font-size:.88rem; line-height:1.5; font-family:inherit; outline:none; background:#fff; min-height:44px; max-height:110px; transition:border-color .15s; }
+.ts-chat-textarea:focus { border-color:var(--sltb); }
+.ts-chat-send { background:linear-gradient(135deg,var(--sltb),#a8274e); color:#fff; border:none; border-radius:12px; padding:11px 18px; font-size:.88rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:6px; transition:opacity .15s, transform .1s; white-space:nowrap; }
+.ts-chat-send:hover { opacity:.9; }
+.ts-chat-send:active { transform:scale(.97); }
+.ts-chat-send:disabled { opacity:.4; cursor:not-allowed; }
+.ts-chat-hint { font-size:.72rem; color:#9ca3af; margin-top:6px; }
+.ts-bubble-row { display:flex; gap:9px; align-items:flex-end; max-width:82%; }
+.ts-bubble-row.mine   { align-self:flex-end; flex-direction:row-reverse; }
+.ts-bubble-row.theirs { align-self:flex-start; }
+.ts-avatar { width:30px; height:30px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:11px; font-weight:800; color:#fff; }
+.ts-bubble-row.mine   .ts-avatar { background:linear-gradient(135deg,var(--sltb),#a8274e); }
+.ts-bubble-row.theirs .ts-avatar { background:linear-gradient(135deg,#1d4ed8,#1e3a8a); }
+.ts-bubble { padding:9px 14px; border-radius:14px; font-size:.88rem; line-height:1.55; word-break:break-word; }
+.ts-bubble-row.mine   .ts-bubble { background:linear-gradient(135deg,var(--sltb),#a8274e); color:#fff; border-radius:14px 4px 14px 14px; }
+.ts-bubble-row.theirs .ts-bubble { background:#f3f4f6; color:#111827; border-radius:4px 14px 14px 14px; }
+.ts-bubble-meta { font-size:.68rem; opacity:.6; margin-top:4px; }
+.ts-bubble-row.mine   .ts-bubble-meta { text-align:right; color:#fff; }
+.ts-bubble-row.theirs .ts-bubble-meta { text-align:left; color:#6b7280; }
+.ts-chat-date-sep { text-align:center; font-size:.7rem; color:#9ca3af; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin:6px 0; }
+.ts-no-do-warning { background:#fef9c3; border:1px solid #fde047; border-radius:10px; padding:14px 16px; font-size:.84rem; color:#78350f; font-weight:600; margin:12px; }
 </style>
 
-<div class="tmsg-page">
-
-    <div class="tmsg-hero">
-        <div>
-            <h1>📨 Messages</h1>
-            <p><?= htmlspecialchars($S['depot_name'] ?? 'Depot') ?> — operational notices from Depot Officer</p>
-        </div>
-        <div class="tmsg-badge">Unread: <?= $unreadCount ?></div>
+<div class="ts-msg-page" id="tsMsgPage">
+  <div class="ts-msg-header">
+    <div class="ts-msg-title">
+      <div>
+        <h1>Messages</h1>
+        <p><?= htmlspecialchars($S['depot_name'] ?? 'Depot') ?> &mdash; SLTB Operations</p>
+      </div>
+      <div class="ts-msg-badge">Unread: <?= $unreadCount ?></div>
     </div>
+    <div class="ts-tabs">
+      <button class="ts-tab active" onclick="tsSwitchTab('alerts',this)" id="tabAlerts">
+        Alerts &amp; Notices
+        <?php if ($unreadCount > 0): ?><span class="tab-badge"><?= min($unreadCount,99) ?></span><?php endif; ?>
+      </button>
+      <button class="ts-tab" onclick="tsSwitchTab('chat',this)" id="tabChat">
+        Chat with Depot
+        <span class="tab-badge" id="chatTabBadge" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
 
+  <!-- ALERTS PANEL -->
+  <div class="ts-panel active" id="panelAlerts">
+    <div class="ts-alert-toolbar">
+      <div class="ts-filter-group">
+        <a class="ts-filter-a <?= $filter==='all'     ?'active':'' ?>" href="/TS/messages?filter=all">All</a>
+        <a class="ts-filter-a <?= $filter==='unread'  ?'active':'' ?>" href="/TS/messages?filter=unread">Unread</a>
+        <a class="ts-filter-a <?= $filter==='message' ?'active':'' ?>" href="/TS/messages?filter=message">Messages</a>
+        <a class="ts-filter-a <?= $filter==='alert'   ?'active':'' ?>" href="/TS/messages?filter=alert">Alerts</a>
+      </div>
+      <?php if ($unreadCount > 0): ?>
+        <form method="post" action="/TS/messages?action=read_all&filter=<?= urlencode($filter) ?>">
+          <button type="submit" class="ts-mark-all">Mark all read</button>
+        </form>
+      <?php endif; ?>
+    </div>
     <?php if (!empty($msg) && isset($flashMap[$msg])): ?>
-        <div class="tmsg-flash <?= $flashMap[$msg]['type'] ?>"><?= htmlspecialchars($flashMap[$msg]['text']) ?></div>
+      <div style="margin:10px 16px 0"><div class="ts-flash <?= $flashMap[$msg]['type'] ?>"><?= htmlspecialchars($flashMap[$msg]['text']) ?></div></div>
     <?php endif; ?>
+    <div class="ts-alerts-inner" id="alertsList">
+      <?php if (empty($recent)): ?>
+        <div class="ts-empty"><div style="font-size:36px;margin-bottom:8px">No alerts for this filter.</div></div>
+      <?php else: ?>
+        <?php foreach ($recent as $row):
+          $id       = (int)($row['id'] ?? 0);
+          $type     = (string)($row['type'] ?? 'Message');
+          $isUnread = ((int)($row['is_seen'] ?? 0) === 0);
+          $priority = strtolower(trim((string)($row['priority'] ?? 'normal')));
+          $srcName  = trim((string)($row['source_name'] ?? ''));
+          $isAlert  = in_array($type, ['Delay','Alert','Breakdown','Timetable']);
+          $cls      = 'ts-card'.($isUnread?' unread':'').($priority==='urgent'?' priority-urgent':'').($priority==='critical'?' priority-critical':'');
+        ?>
+        <article class="<?= $cls ?>" id="alert-<?= $id ?>">
+          <div class="ts-card-head">
+            <div>
+              <p class="ts-sender"><?= htmlspecialchars($srcName ?: ($isAlert ? 'System Alert' : 'Depot Officer')) ?></p>
+              <div class="ts-sender-sub"><?= htmlspecialchars(ts_time_ago((string)($row['created_at'] ?? ''))) ?></div>
+            </div>
+            <div class="ts-badges">
+              <?php if ($isUnread): ?><span class="tbadge tbadge-unread">New</span><?php endif; ?>
+              <?php if ($priority==='urgent'):   ?><span class="tbadge tbadge-urgent">Urgent</span><?php endif; ?>
+              <?php if ($priority==='critical'): ?><span class="tbadge tbadge-critical">Critical</span><?php endif; ?>
+              <span class="tbadge <?= $isAlert?'tbadge-alert':'tbadge-msg' ?>"><?= htmlspecialchars($type) ?></span>
+            </div>
+          </div>
+          <p class="ts-body"><?= nl2br(htmlspecialchars((string)($row['message'] ?? ''))) ?></p>
+          <div class="ts-foot">
+            <span class="ts-time"><?= htmlspecialchars(date('d M Y H:i', strtotime((string)($row['created_at'] ?? 'now')))) ?></span>
+            <?php if ($isUnread && $id > 0): ?>
+              <form method="post" action="/TS/messages?action=read&id=<?= $id ?>&filter=<?= urlencode($filter) ?>" style="display:inline">
+                <button type="submit" class="ts-btn-read">Mark read</button>
+              </form>
+            <?php else: ?>
+              <span class="ts-read-state">Read</span>
+            <?php endif; ?>
+          </div>
+        </article>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+  </div><!-- /panelAlerts -->
 
-    <div class="tmsg-toolbar">
-        <div class="tmsg-filters">
-            <a class="tmsg-filter <?= $filter==='all'     ?'active':'' ?>" href="/TS/messages?filter=all">All</a>
-            <a class="tmsg-filter <?= $filter==='unread'  ?'active':'' ?>" href="/TS/messages?filter=unread">Unread</a>
-            <a class="tmsg-filter <?= $filter==='message' ?'active':'' ?>" href="/TS/messages?filter=message">Messages</a>
-            <a class="tmsg-filter <?= $filter==='alert'   ?'active':'' ?>" href="/TS/messages?filter=alert">Alerts</a>
+  <!-- CHAT PANEL -->
+  <div class="ts-panel" id="panelChat">
+    <?php if (!$hasDepotOfficer): ?>
+      <div class="ts-no-do-warning">No Depot Officer is currently assigned to your depot. Direct chat will be available once one is assigned.</div>
+    <?php endif; ?>
+    <div class="ts-chat-inner" id="chatInner">
+      <?php if (empty($chatThread) && $hasDepotOfficer): ?>
+        <div class="ts-chat-empty">
+          <div style="font-size:48px">No messages yet</div>
+          <div style="font-size:.82rem">Start a conversation with your Depot Officer below</div>
         </div>
-        <?php if ($unreadCount > 0): ?>
-            <form method="post" action="/TS/messages?action=read_all&filter=<?= urlencode($filter) ?>">
-                <button type="submit" class="tmsg-mark-all">✓ Mark all read</button>
-            </form>
+      <?php else: ?>
+        <?php $prevDate = null; foreach ($chatThread as $m):
+          $isMe    = (int)$m['from_user_id'] === $myUserId;
+          $side    = $isMe ? 'mine' : 'theirs';
+          $fullN   = trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? ''));
+          $init    = strtoupper(substr($fullN ?: ($isMe ? 'Y' : 'D'), 0, 1));
+          $time    = $m['created_at'] ?? '';
+          $dateStr = $time ? date('Y-m-d', strtotime($time)) : '';
+          $timeDisp= $time ? date('H:i', strtotime($time)) : '';
+          if ($dateStr && $dateStr !== $prevDate): $prevDate = $dateStr; ?>
+          <div class="ts-chat-date-sep"><?= htmlspecialchars(date('d F Y', strtotime($time))) ?></div>
         <?php endif; ?>
-    </div>
-
-    <!-- ── Compose: Send to Depot Officer ── -->
-    <div class="tmsg-compose">
-        <div class="tmsg-compose-head" onclick="toggleCompose()">
-            <h3>
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                Send Message to Depot Officer
-            </h3>
-            <span class="compose-toggle" id="composeToggleLabel">▼ Open</span>
+        <div class="ts-bubble-row <?= $side ?>" data-dm-id="<?= (int)($m['id'] ?? 0) ?>">
+          <div class="ts-avatar"><?= htmlspecialchars($init) ?></div>
+          <div>
+            <div class="ts-bubble"><?= nl2br(htmlspecialchars((string)($m['message'] ?? ''))) ?></div>
+            <div class="ts-bubble-meta">
+              <?= $isMe ? 'You' : htmlspecialchars($fullN ?: 'Depot') ?>
+              <?= (!$isMe && ($m['role'] ?? '')) ? ' &middot; ' . htmlspecialchars($m['role']) : '' ?>
+              &middot; <?= htmlspecialchars($timeDisp) ?>
+            </div>
+          </div>
         </div>
-        <div class="tmsg-compose-body" id="composeBody">
-            <form method="post" action="/TS/messages?action=send&filter=<?= urlencode($filter) ?>">
-                <textarea name="message" id="composeText" placeholder="Type your message to the Depot Officer…" required></textarea>
-                <input type="hidden" name="priority" id="composePriority" value="normal">
-                <div class="tmsg-priority-row">
-                    <span class="tmsg-prio-label">Priority:</span>
-                    <button type="button" class="tmsg-prio-btn sel-normal"  onclick="setPrio('normal',this)">Normal</button>
-                    <button type="button" class="tmsg-prio-btn"             onclick="setPrio('urgent',this)">🟠 Urgent</button>
-                    <button type="button" class="tmsg-prio-btn"             onclick="setPrio('critical',this)">🔴 Critical</button>
-                </div>
-                <div><button type="submit" class="tmsg-send-btn">Send ➤</button></div>
-            </form>
-        </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
     </div>
-
-    <div class="tmsg-list">
-        <?php if (empty($recent)): ?>
-            <div class="tmsg-empty"><div style="font-size:36px;margin-bottom:8px">📭</div>No messages for this filter.</div>
-        <?php else: ?>
-            <?php foreach ($recent as $row):
-                $id       = (int)($row['id'] ?? 0);
-                $type     = (string)($row['type'] ?? 'Message');
-                $isUnread = ((int)($row['is_seen'] ?? 0) === 0);
-                $priority = strtolower(trim((string)($row['priority'] ?? 'normal')));
-                $catKey   = trim((string)($row['category'] ?? ''));
-                $catInfo  = $catMeta[$catKey] ?? null;
-                $srcName  = trim((string)($row['source_name'] ?? ''));
-                $srcRole  = trim((string)($row['source_role'] ?? ''));
-                $isAlert  = in_array($type, ['Delay','Alert','Breakdown','Timetable']);
-                $cardCls  = 'tmsg-card' . ($isUnread?' unread':'') . ($priority==='urgent'?' priority-urgent':'') . ($priority==='critical'?' priority-critical':'');
-            ?>
-            <article class="<?= $cardCls ?>" id="msg-<?= $id ?>">
-                <div class="tmsg-card-head">
-                    <div>
-                        <p class="tmsg-sender-name"><?= htmlspecialchars($srcName ?: 'Depot Officer') ?></p>
-                        <div class="tmsg-sender-role">
-                            <?= htmlspecialchars($srcRole ?: 'Depot Officer') ?>
-                            · <?= htmlspecialchars(ts_time_ago((string)($row['created_at'] ?? ''))) ?>
-                        </div>
-                    </div>
-                    <div class="tmsg-badges">
-                        <?php if ($isUnread): ?><span class="tbadge tbadge-unread">New</span><?php endif; ?>
-                        <?php if ($priority==='urgent'):   ?><span class="tbadge tbadge-urgent">🟠 Urgent</span><?php endif; ?>
-                        <?php if ($priority==='critical'): ?><span class="tbadge tbadge-critical">🔴 Critical</span><?php endif; ?>
-                        <span class="tbadge <?= $isAlert?'tbadge-alert':'tbadge-msg' ?>"><?= htmlspecialchars($type) ?></span>
-                    </div>
-                </div>
-
-                <?php if ($catInfo): ?>
-                    <div class="tmsg-cat-chip" style="background:<?= htmlspecialchars($catInfo['bg']) ?>;color:<?= htmlspecialchars($catInfo['color']) ?>">
-                        <?= $catInfo['icon'] ?> <?= htmlspecialchars($catInfo['label']) ?>
-                    </div>
-                <?php endif; ?>
-
-                <p class="tmsg-body"><?= nl2br(htmlspecialchars((string)($row['message'] ?? ''))) ?></p>
-
-                <div class="tmsg-card-foot">
-                    <span class="tmsg-time"><?= htmlspecialchars(date('d M Y H:i', strtotime((string)($row['created_at'] ?? 'now')))) ?></span>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <?php if ($isUnread && $id > 0): ?>
-                            <form method="post" action="/TS/messages?action=read&id=<?= $id ?>&filter=<?= urlencode($filter) ?>" style="display:inline">
-                                <button type="submit" class="tmsg-btn-read">Mark read</button>
-                            </form>
-                        <?php else: ?>
-                            <span class="tmsg-read-state">✓ Read</span>
-                        <?php endif; ?>
-                        <?php if (in_array($priority,['urgent','critical']) && $id > 0): ?>
-                            <button class="tmsg-btn-ack" id="ack-<?= $id ?>" onclick="ackMsg(<?= $id ?>,this)">✔ Acknowledge</button>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </article>
-            <?php endforeach; ?>
-        <?php endif; ?>
+    <?php if ($hasDepotOfficer): ?>
+    <div class="ts-chat-compose">
+      <div class="ts-chat-compose-row">
+        <textarea class="ts-chat-textarea" id="chatInput" rows="1"
+          placeholder="Message your Depot Officer..."
+          onkeydown="tsChatKeySubmit(event)"></textarea>
+        <button class="ts-chat-send" id="chatSendBtn" onclick="tsSendChat()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send
+        </button>
+      </div>
+      <div class="ts-chat-hint">Enter to send &middot; Shift+Enter for new line</div>
     </div>
+    <?php endif; ?>
+  </div><!-- /panelChat -->
 </div>
-
 <script>
-function ackMsg(id, btn) {
-    btn.disabled = true; btn.textContent = 'Acknowledging…';
-    fetch('/TS/messages?action=ack&id='+id, {method:'POST'})
-        .then(r=>r.json())
-        .then(d=>{
-            if(d.ok){ btn.textContent='✔ Acknowledged'; btn.style.background='#059669';
-                const c=document.getElementById('msg-'+id); if(c) c.classList.remove('unread');
-            } else { btn.disabled=false; btn.textContent='✔ Acknowledge'; }
-        })
-        .catch(()=>{ btn.disabled=false; btn.textContent='✔ Acknowledge'; });
+(function(){
+'use strict';
+
+var myUserId = <?php echo (int)$myUserId; ?>;
+var lastDmId = 0;
+var chatUnread = 0;
+
+// Seed lastDmId from server-rendered bubbles
+document.querySelectorAll('.ts-bubble-row[data-dm-id]').forEach(function(el){
+    var n = parseInt(el.dataset.dmId, 10);
+    if (!isNaN(n) && n > lastDmId) lastDmId = n;
+});
+
+// Tab switching
+window.tsSwitchTab = function(name, btn) {
+    document.querySelectorAll('.ts-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.ts-panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    var panelId = 'panel' + name.charAt(0).toUpperCase() + name.slice(1);
+    var panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+    if (name === 'chat') { scrollChat(); resetChatBadge(); }
+};
+
+function scrollChat() {
+    var el = document.getElementById('chatInner');
+    if (el) el.scrollTop = el.scrollHeight;
+}
+scrollChat();
+
+function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
 }
 
-function toggleCompose() {
-    const body  = document.getElementById('composeBody');
-    const label = document.getElementById('composeToggleLabel');
-    const open  = body.classList.toggle('open');
-    label.textContent = open ? '▲ Close' : '▼ Open';
-}
-
-function setPrio(val, btn) {
-    document.getElementById('composePriority').value = val;
-    document.querySelectorAll('.tmsg-prio-btn').forEach(b => {
-        b.classList.remove('sel-normal','sel-urgent','sel-critical');
+// Auto-grow textarea
+var chatInput = document.getElementById('chatInput');
+if (chatInput) {
+    chatInput.addEventListener('input', function(){
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 110) + 'px';
     });
-    btn.classList.add('sel-' + val);
 }
+
+// Send chat
+window.tsChatKeySubmit = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); tsSendChat(); }
+};
+
+window.tsSendChat = function() {
+    var input = document.getElementById('chatInput');
+    var btn   = document.getElementById('chatSendBtn');
+    if (!input || !btn) return;
+    var text  = input.value.trim();
+    if (!text) return;
+    btn.disabled = true;
+    var fd = new FormData();
+    fd.append('message', text);
+    fetch('/TS/messages?action=chat_send', { method:'POST', body:fd })
+        .then(function(r){ return r.json(); })
+        .then(function(d) {
+            if (d.ok) {
+                var now = new Date();
+                var nowStr = now.getFullYear() + '-' +
+                    String(now.getMonth()+1).padStart(2,'0') + '-' +
+                    String(now.getDate()).padStart(2,'0') + ' ' +
+                    String(now.getHours()).padStart(2,'0') + ':' +
+                    String(now.getMinutes()).padStart(2,'0') + ':00';
+                appendBubble({ from_user_id: myUserId, message: text, created_at: nowStr }, true);
+                input.value = '';
+                input.style.height = 'auto';
+                removeEmpty();
+                scrollChat();
+            } else {
+                alert('Failed to send. Please try again.');
+            }
+        })
+        .catch(function(){ alert('Network error.'); })
+        .finally(function(){ btn.disabled = false; });
+};
+
+function appendBubble(m, isMe) {
+    var mid = parseInt(m.id || 0, 10);
+    if (mid > 0 && document.querySelector('[data-dm-id="'+mid+'"]')) return;
+    var inner = document.getElementById('chatInner');
+    if (!inner) return;
+    var side  = isMe ? 'mine' : 'theirs';
+    var fn    = (m.first_name || '');
+    var ln    = (m.last_name  || '');
+    var fullN = (fn + ' ' + ln).trim();
+    var init  = isMe ? '<?php echo htmlspecialchars(strtoupper(substr((string)($_SESSION['user']['first_name'] ?? 'Y'), 0, 1))); ?>'
+                     : (fullN ? fullN.charAt(0).toUpperCase() : 'D');
+    var nameDisp = isMe ? 'You' : esc(fullN || 'Depot');
+    var role  = (!isMe && m.role) ? ' &middot; ' + esc(m.role) : '';
+    var timeDisp = m.created_at ? m.created_at.substring(11,16) : '';
+    var row   = document.createElement('div');
+    row.className = 'ts-bubble-row ' + side;
+    if (mid > 0) { row.dataset.dmId = mid; if (mid > lastDmId) lastDmId = mid; }
+    row.innerHTML =
+        '<div class="ts-avatar">' + esc(init) + '</div>' +
+        '<div>' +
+        '<div class="ts-bubble">' + esc(m.message || '').replace(/\n/g,'<br>') + '</div>' +
+        '<div class="ts-bubble-meta">' + nameDisp + role + ' &middot; ' + esc(timeDisp) + '</div>' +
+        '</div>';
+    inner.appendChild(row);
+}
+
+function removeEmpty() {
+    var e = document.querySelector('#chatInner .ts-chat-empty');
+    if (e) e.remove();
+}
+
+function incrementChatBadge() {
+    chatUnread++;
+    var b = document.getElementById('chatTabBadge');
+    if (b) { b.textContent = chatUnread > 99 ? '99+' : String(chatUnread); b.style.display = ''; }
+}
+function resetChatBadge() {
+    chatUnread = 0;
+    var b = document.getElementById('chatTabBadge');
+    if (b) b.style.display = 'none';
+}
+
+// Poll chat
+function pollChat() {
+    fetch('/TS/messages?action=chat_poll&since_id=' + lastDmId)
+        .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+        .then(function(msgs) {
+            if (!Array.isArray(msgs) || !msgs.length) return;
+            var panel = document.getElementById('panelChat');
+            var active = panel && panel.classList.contains('active');
+            msgs.forEach(function(m) {
+                var mid   = parseInt(m.id || 0, 10);
+                var isMe  = m.from_user_id == myUserId;
+                if (mid > lastDmId) lastDmId = mid;
+                appendBubble(m, isMe);
+                if (!isMe && !active) incrementChatBadge();
+            });
+            removeEmpty();
+            if (active) { scrollChat(); resetChatBadge(); }
+        })
+        .catch(function(){});
+}
+setTimeout(pollChat, 3000);
+setInterval(pollChat, 15000);
+
+// Poll alerts
+var lastAlertId = 0;
+document.querySelectorAll('#alertsList .ts-card[id]').forEach(function(el){
+    var n = parseInt(el.id.replace('alert-',''), 10);
+    if (!isNaN(n) && n > lastAlertId) lastAlertId = n;
+});
+function pollAlerts() {
+    fetch('/TS/messages?action=poll&since_id=' + lastAlertId)
+        .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+        .then(function(data) {
+            if (!Array.isArray(data)) return;
+            data.forEach(function(n){
+                var nid = parseInt(n.id || 0, 10);
+                if (nid > 0 && document.getElementById('alert-' + nid)) return;
+                var list = document.getElementById('alertsList');
+                if (!list) return;
+                var empty = list.querySelector('.ts-empty');
+                if (empty) empty.remove();
+                var isAlert = ['Delay','Alert','Breakdown','Timetable'].indexOf(n.type || '') >= 0;
+                var art = document.createElement('article');
+                art.id        = 'alert-' + nid;
+                art.className = 'ts-card unread';
+                art.innerHTML =
+                    '<div class="ts-card-head"><div>' +
+                    '<p class="ts-sender">' + esc(n.source_name || (isAlert ? 'System Alert' : 'Depot Officer')) + '</p>' +
+                    '<div class="ts-sender-sub">Just now</div></div>' +
+                    '<div class="ts-badges"><span class="tbadge tbadge-unread">New</span>' +
+                    '<span class="tbadge ' + (isAlert ? 'tbadge-alert' : 'tbadge-msg') + '">' + esc(n.type || 'Message') + '</span>' +
+                    '</div></div>' +
+                    '<p class="ts-body">' + esc(n.message || '').replace(/\n/g,'<br>') + '</p>' +
+                    '<div class="ts-foot"><span class="ts-time">Just now</span></div>';
+                list.insertBefore(art, list.firstChild);
+                if (nid > lastAlertId) lastAlertId = nid;
+            });
+        })
+        .catch(function(){});
+}
+setTimeout(pollAlerts, 5000);
+setInterval(pollAlerts, 20000);
+
+})();
 </script>

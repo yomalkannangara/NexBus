@@ -236,11 +236,85 @@ public function assignmentShifts()
         $dep = $this->m->myDepotId($u);
         $uid = (int)($u['user_id'] ?? 0);
 
+        // ── AJAX poll for new messages (SSE fallback) ─────────────────────
+        // Route: GET /O/messages?action=poll&since_id=123
+        if (($_GET['action'] ?? '') === 'poll') {
+            $sinceId = (int)($_GET['since_id'] ?? 0);
+            $all = $this->m->recentMessages($dep, $uid, 50, 'all');
+            $new = array_values(array_filter($all, fn($n) => (int)($n['id'] ?? $n['notification_id'] ?? 0) > $sinceId));
+            $this->json($new);
+            exit;
+        }
+
+        // ── Direct chat: load thread between DO and specific TK ────────────
+        // Route: GET /O/messages?action=chat_load&with=TK_USER_ID[&since_id=X]
+        if (($_GET['action'] ?? '') === 'chat_load' && isset($_GET['with'])) {
+            $partnerId = (int)$_GET['with'];
+            $sinceId   = (int)($_GET['since_id'] ?? 0);
+            $dm        = new \App\models\common\DirectMessageModel();
+            $thread    = $dm->threadBetween($uid, $partnerId, 100, $sinceId);
+            $dm->markReadFrom($uid, $partnerId);
+            $this->json($thread);
+            exit;
+        }
+
+        // ── Direct chat: DO sends a message to a specific TK ──────────────
+        // Route: POST /O/messages?action=chat_send
+        if (($_GET['action'] ?? '') === 'chat_send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $toId = (int)($_POST['to_user_id'] ?? 0);
+            $text = trim((string)($_POST['message'] ?? ''));
+            $dm   = new \App\models\common\DirectMessageModel();
+            $id   = ($toId > 0 && $text !== '') ? $dm->send($uid, $toId, $text) : null;
+            $this->json(['ok' => $id !== null, 'id' => $id]);
+            exit;
+        }
+
+        // ── Direct chat: DO polls for new messages across all TK chats ─────
+        // Route: GET /O/messages?action=chat_poll&since_id=X
+        if (($_GET['action'] ?? '') === 'chat_poll') {
+            $sinceId = (int)($_GET['since_id'] ?? 0);
+            $dm      = new \App\models\common\DirectMessageModel();
+            $convs   = $dm->conversationsForUser($uid, ['SLTBTimekeeper', 'PrivateTimekeeper']);
+            // Return any thread with new messages
+            $result  = [];
+            foreach ($convs as $c) {
+                $pid = (int)($c['partner_id'] ?? 0);
+                if ($pid <= 0) continue;
+                $newMsgs = $dm->threadBetween($uid, $pid, 20, $sinceId);
+                foreach ($newMsgs as $m) { $result[] = $m; }
+            }
+            $this->json($result);
+            exit;
+        }
+
+        // ── Direct chat: list all TK conversations ─────────────────────────
+        // Route: GET /O/messages?action=chat_convs
+        if (($_GET['action'] ?? '') === 'chat_convs') {
+            $dm    = new \App\models\common\DirectMessageModel();
+            $convs = $dm->conversationsForUser($uid, ['SLTBTimekeeper', 'PrivateTimekeeper']);
+            $this->json($convs);
+            exit;
+        }
+
         // ── Mark-read (silent AJAX call from the view) ────────────────────
         // Route: POST /O/messages?action=read&id=123
         if (($_GET['action'] ?? '') === 'read' && isset($_GET['id'])) {
             $this->m->markMessageRead((int)$_GET['id'], $uid);
             http_response_code(204);
+            exit;
+        }
+
+        // ── Reply to a trip-cancel alert → notifies the timekeeper ──────────
+        // Route: POST /O/messages?action=reply&id=123
+        if (($_GET['action'] ?? '') === 'reply' && isset($_GET['id']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $nid     = (int)$_GET['id'];
+            $replyText = trim($_POST['reply_text'] ?? '');
+            if ($replyText === '') {
+                $this->json(['status' => 'error', 'msg' => 'Empty reply']);
+                exit;
+            }
+            $ok = $this->m->replyToAlert($nid, $uid, $dep, $replyText);
+            $this->json(['status' => $ok ? 'ok' : 'error']);
             exit;
         }
 
@@ -310,6 +384,9 @@ public function assignmentShifts()
             'routes'     => $this->m->depotRoutesForMessaging($dep),
             'recent'     => $this->m->recentMessages($dep, $uid, 50, $filter),
             'msg'        => $_GET['msg'] ?? null,
+            'my_user_id' => $uid,
+            'dm_conversations' => (new \App\models\common\DirectMessageModel())
+                                    ->conversationsForUser($uid, ['SLTBTimekeeper', 'PrivateTimekeeper']),
         ]);
     }
 

@@ -51,6 +51,8 @@ main#content {
   flex-direction: column;
   overflow-y: auto;
   background: var(--bg);
+  padding: 20px 24px;
+  min-height: 0; /* grid item: allow shrink so overflow-y scrollbar activates */
 }
 
 /* Desktop styles (default) */
@@ -77,6 +79,7 @@ main#content {
     inset: auto;
     grid-template-columns: 1fr;
     min-height: auto;
+    margin-top: 64px;
   }
   .sidebar { 
     position: fixed; 
@@ -114,7 +117,7 @@ main#content {
   main#content {
     width: 100%;
     min-height: auto;
-    overflow-y: auto;
+    overflow-y: visible;
     padding: 16px;
   }
 }

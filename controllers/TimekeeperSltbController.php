@@ -260,6 +260,48 @@ class TimekeeperSltbController extends BaseController
             return;
         }
 
+        // ── Poll: new notifications since a given id ──────────────────────
+        if ($action === 'poll') {
+            $sinceId = (int)($_GET['since_id'] ?? 0);
+            $all = $model->recentForUser($uid, 80, 'all');
+            $new = array_values(array_filter($all, fn($n) => (int)($n['id'] ?? 0) > $sinceId));
+            header('Content-Type: application/json');
+            echo json_encode($new);
+            exit;
+        }
+
+        // ── Direct chat: send message to depot officers ────────────────────
+        if ($action === 'chat_send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $text    = trim((string)($_POST['message'] ?? ''));
+            $depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
+            $dm      = new \App\models\common\DirectMessageModel();
+            $doIds   = $dm->depotOfficerIds($depotId);
+            $ids     = ($text !== '' && !empty($doIds)) ? $dm->sendToMultiple($uid, $doIds, $text) : [];
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => !empty($ids)]);
+            exit;
+        }
+
+        // ── Direct chat: poll for new chat messages ────────────────────────
+        if ($action === 'chat_poll') {
+            $sinceId = (int)($_GET['since_id'] ?? 0);
+            $depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
+            $dm      = new \App\models\common\DirectMessageModel();
+            $doIds   = $dm->depotOfficerIds($depotId);
+            $msgs    = $dm->threadWithDepot($uid, $doIds, 50, $sinceId);
+            header('Content-Type: application/json');
+            echo json_encode($msgs);
+            exit;
+        }
+
+        // ── Render ─────────────────────────────────────────────────────────
+        $depotId  = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
+        $dm       = new \App\models\common\DirectMessageModel();
+        $doIds    = $dm->depotOfficerIds($depotId);
+        $chatThread = $dm->threadWithDepot($uid, $doIds, 100);
+        // Mark DO→TK messages as read on page load
+        $dm->markReadFromMultiple($uid, $doIds);
+
         $tripModel = new TripEntryModel();
         $this->view('timekeeper_sltb', 'messages', [
             'S'            => $tripModel->info(),
@@ -267,6 +309,10 @@ class TimekeeperSltbController extends BaseController
             'filter'       => $filter,
             'unread_count' => $model->unreadCount($uid),
             'msg'          => $_GET['msg'] ?? null,
+            'chat_thread'  => $chatThread,
+            'chat_unread'  => $dm->unreadCount($uid),
+            'my_user_id'   => $uid,
+            'has_depot_officer' => !empty($doIds),
         ]);
     }
 

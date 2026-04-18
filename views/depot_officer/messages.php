@@ -16,7 +16,27 @@ $staff  = $staff  ?? [];
 $recent = $recent ?? [];
 $msg    = $msg    ?? null;
 
-$myId   = (int)($me['user_id'] ?? 0);
+$myId            = (int)($me['user_id'] ?? 0);
+$myUserId        = (int)($my_user_id ?? $myId);
+$dmConversations = $dm_conversations ?? [];
+
+/*
+ * Build a unified inbox: merge notifications ($recent) and DM conversations
+ * ($dmConversations) into one list sorted newest-first by timestamp.
+ * Each item gets a '_kind' key: 'notification' or 'direct_chat'.
+ */
+$inboxItems = [];
+foreach ($recent as $n) {
+    $n['_kind'] = 'notification';
+    $n['_ts']   = $n['created_at'] ?? '';
+    $inboxItems[] = $n;
+}
+foreach ($dmConversations as $c) {
+    $c['_kind'] = 'direct_chat';
+    $c['_ts']   = $c['last_time'] ?? '';
+    $inboxItems[] = $c;
+}
+usort($inboxItems, fn($a, $b) => strcmp($b['_ts'], $a['_ts']));
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 function msgDisplayName(array $p): string {
@@ -458,6 +478,21 @@ $flashMessages = [
     .msg-inbox, .msg-compose-panel { max-height:260px; }
     .msg-stat { flex:1 1 calc(50% - 8px); min-width:140px; }
 }
+
+/* ── chat bubble mode ────────────────────────────────────────────────── */
+.do-chat-body { display:flex;flex-direction:column;gap:10px;padding:14px 16px; }
+.do-bubble-row { display:flex;align-items:flex-end;gap:8px; }
+.do-bubble-row.mine  { flex-direction:row-reverse; }
+.do-bubble-avatar { width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff; }
+.do-bubble-row.mine  .do-bubble-avatar { background:linear-gradient(135deg,#b91c1c,#7f1d1d); }
+.do-bubble-row.theirs .do-bubble-avatar { background:#6b7280; }
+.do-bubble-text { max-width:70%; }
+.do-bubble-msg { padding:9px 13px;border-radius:16px;font-size:13px;line-height:1.5;word-break:break-word; }
+.do-bubble-row.mine   .do-bubble-msg { border-radius:16px 4px 16px 16px;background:linear-gradient(135deg,#b91c1c,#7f1d1d);color:#fff; }
+.do-bubble-row.theirs .do-bubble-msg { border-radius:4px 16px 16px 16px;background:#f3f4f6;color:#111827; }
+.do-bubble-meta { font-size:10px;color:#9ca3af;margin-top:3px; }
+.do-bubble-row.mine   .do-bubble-meta { text-align:right; }
+.do-chat-empty { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#d1c4b0;gap:8px;font-size:13px; }
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -485,9 +520,13 @@ $flashMessages = [
     <!-- STATS ROW -->
     <div class="msg-stats" style="background:#fff;border-left:1px solid #e9e3da;border-right:1px solid #e9e3da;padding-top:10px;padding-bottom:10px;">
         <?php
-            $total  = count($recent);
-            $unread = count(array_filter($recent, fn($n) => !($n['is_seen'] ?? $n['read_at'] ?? false)));
-            $alerts = count(array_filter($recent, fn($n) => in_array($n['type'] ?? '', ['Delay','Alert','Breakdown'])));
+            $total  = count($inboxItems);
+            $unread = count(array_filter($inboxItems, fn($n) =>
+                $n['_kind'] === 'direct_chat'
+                    ? (int)($n['unread_count'] ?? 0) > 0
+                    : !($n['is_seen'] ?? $n['read_at'] ?? false)
+            ));
+            $alerts = count(array_filter($inboxItems, fn($n) => in_array($n['type'] ?? '', ['Delay','Alert','Breakdown'])));
         ?>
         <div class="msg-stat">
             <div class="msg-stat-val" id="statTotalVal"><?= $total ?></div>
@@ -531,31 +570,71 @@ $flashMessages = [
             </div>
 
             <div class="msg-list" id="msgList">
-                <?php if (empty($recent)): ?>
+
+                <?php if (empty($inboxItems)): ?>
                     <div class="msg-empty">
                         <div style="font-size:32px;margin-bottom:8px">📭</div>
                         No messages yet.<br>Send the first one!
                     </div>
                 <?php else: ?>
-                    <?php foreach ($recent as $n):
-                        $nid     = (int)($n['notification_id'] ?? $n['id'] ?? 0);
-                        $isUnread = !($n['is_seen'] ?? $n['read_at'] ?? false);
-                        $type    = $n['type'] ?? 'Message';
-                        $text    = $n['message'] ?? '';
-                        $preview = mb_strimwidth($text, 0, 60, '…');
-                        $name    = msgDisplayName($n);
-                        $init    = strtoupper(substr($name,0,1));
-                        $avatarCls = in_array($type,['Delay','Alert','Breakdown']) ? 'alert' : (str_contains(strtolower($name),'system') ? 'sys' : '');
-                        $timeStr = '';
-                        if (!empty($n['created_at'])) {
-                            $ts = strtotime($n['created_at']);
-                            $diff = time() - $ts;
-                            if ($diff < 3600)      $timeStr = round($diff/60).'m ago';
-                            elseif ($diff < 86400) $timeStr = round($diff/3600).'h ago';
-                            else $timeStr = date('d M', $ts);
-                        }
-                        $typeIcons = ['Delay'=>'⏱️','Breakdown'=>'🔧','Alert'=>'🚨','Timetable'=>'📅','Message'=>'💬'];
-                        $typeIcon  = $typeIcons[$type] ?? '📩';
+                    <?php foreach ($inboxItems as $item):
+                        if ($item['_kind'] === 'direct_chat'):
+                            $pid        = (int)($item['partner_id'] ?? 0);
+                            $pname      = trim(($item['first_name'] ?? '') . ' ' . ($item['last_name'] ?? ''));
+                            if ($pname === '') $pname = 'Timekeeper';
+                            $pRole      = $item['role'] ?? '';
+                            $lastMsg    = mb_strimwidth($item['last_message'] ?? '', 0, 60, '…');
+                            $convUnread = (int)($item['unread_count'] ?? 0);
+                            $convTime   = '';
+                            if (!empty($item['last_time'])) {
+                                $ts   = strtotime($item['last_time']);
+                                $diff = time() - $ts;
+                                if ($diff < 0)          $convTime = date('d M, H:i', $ts);
+                                elseif ($diff < 3600)   $convTime = round($diff/60).'m ago';
+                                elseif ($diff < 86400)  $convTime = round($diff/3600).'h ago';
+                                else                    $convTime = date('d M', $ts);
+                            }
+                            $roleLabel = str_contains($pRole,'SLTB') ? 'SLTB TK' : (str_contains($pRole,'Private') ? 'Pvt TK' : $pRole);
+                    ?>
+                    <div class="msg-item <?= $convUnread > 0 ? 'unread' : '' ?>"
+                         data-id="dm_<?= $pid ?>"
+                         data-type="direct_chat"
+                         data-partner-id="<?= $pid ?>"
+                         data-unread="<?= $convUnread > 0 ? '1' : '0' ?>"
+                         data-text="<?= htmlspecialchars($item['last_message'] ?? '') ?>"
+                         data-name="<?= htmlspecialchars($pname) ?>"
+                         data-time="<?= htmlspecialchars($item['last_time'] ?? '') ?>"
+                         onclick="openThread(this)">
+                        <div class="msg-item-avatar" style="background:linear-gradient(135deg,#be185d,#9d174d)">💬</div>
+                        <div class="msg-item-meta">
+                            <div class="msg-item-subject"><?= htmlspecialchars($pname) ?></div>
+                            <div class="msg-item-preview"><?= htmlspecialchars($lastMsg) ?></div>
+                            <div class="msg-item-time"><?= $roleLabel ?> · <?= $convTime ?></div>
+                        </div>
+                        <?php if ($convUnread > 0): ?>
+                            <div class="msg-unread-dot"></div>
+                            <div class="msg-unread-badge"><?= $convUnread ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <?php else:
+                            $nid      = (int)($item['notification_id'] ?? $item['id'] ?? 0);
+                            $isUnread = !($item['is_seen'] ?? $item['read_at'] ?? false);
+                            $type     = $item['type'] ?? 'Message';
+                            $text     = $item['message'] ?? '';
+                            $preview  = mb_strimwidth($text, 0, 60, '…');
+                            $name     = msgDisplayName($item);
+                            $avatarCls = in_array($type,['Delay','Alert','Breakdown']) ? 'alert' : (str_contains(strtolower($name),'system') ? 'sys' : '');
+                            $timeStr  = '';
+                            if (!empty($item['created_at'])) {
+                                $ts   = strtotime($item['created_at']);
+                                $diff = time() - $ts;
+                                if ($diff < 0)         $timeStr = date('d M, H:i', $ts);
+                                elseif ($diff < 3600)  $timeStr = round($diff/60).'m ago';
+                                elseif ($diff < 86400) $timeStr = round($diff/3600).'h ago';
+                                else                   $timeStr = date('d M', $ts);
+                            }
+                            $typeIcons = ['Delay'=>'⏱️','Breakdown'=>'🔧','Alert'=>'🚨','Timetable'=>'📅','Message'=>'💬'];
+                            $typeIcon  = $typeIcons[$type] ?? '📩';
                     ?>
                     <div class="msg-item <?= $isUnread ? 'unread' : '' ?>"
                          data-id="<?= $nid ?>"
@@ -563,7 +642,7 @@ $flashMessages = [
                          data-unread="<?= $isUnread ? '1' : '0' ?>"
                          data-text="<?= htmlspecialchars($text) ?>"
                          data-name="<?= htmlspecialchars($name) ?>"
-                         data-time="<?= htmlspecialchars($n['created_at'] ?? '') ?>"
+                         data-time="<?= htmlspecialchars($item['created_at'] ?? '') ?>"
                          onclick="openThread(this)">
                         <div class="msg-item-avatar <?= $avatarCls ?>"><?= $typeIcon ?></div>
                         <div class="msg-item-meta">
@@ -576,6 +655,7 @@ $flashMessages = [
                             <div class="msg-unread-badge">Unread</div>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
@@ -601,19 +681,14 @@ $flashMessages = [
                 </div>
             </div>
 
-            <div class="msg-compose-bar" id="quickReplyBar" style="display:none">
-                <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Quick Reply</div>
+            <div id="chatBar" style="display:none;padding:12px 16px;border-top:1px solid #e9e3da;background:#fff;flex-shrink:0;">
+                <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Reply</div>
                 <div class="msg-compose-inner">
-                    <textarea class="msg-compose-textarea" id="quickReplyText" rows="2" placeholder="Type a reply…"></textarea>
-                    <button class="msg-send-btn" id="quickReplySend">
+                    <textarea class="msg-compose-textarea" id="chatBarInput" rows="2" placeholder="Type a reply to timekeeper…"></textarea>
+                    <button class="msg-send-btn" id="chatBarSend">
                         <span>Send</span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                     </button>
-                </div>
-                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="quickActions">
-                    <button class="msg-filter-btn" onclick="ackMessage()">✔ Acknowledge</button>
-                    <button class="msg-filter-btn" onclick="escalateMessage()">⬆ Escalate</button>
-                    <button class="msg-filter-btn" onclick="archiveMessage()">📁 Archive</button>
                 </div>
             </div>
         </div><!-- /thread -->
@@ -806,67 +881,137 @@ $flashMessages = [
 (function () {
 'use strict';
 
-/* ─── Server-Sent Events (Real-time message delivery) ──────────────── */
-let sseConnection = null;
+/* ─── Identity ───────────────────────────────────────────────────────── */
+const myUserId = <?= (int)($my_user_id ?? $myId) ?>;
+
+/* ─── Chat state ─────────────────────────────────────────────────────── */
+let currentChatPartnerId = null;
+let chatLastMsgId        = 0;
+let chatPollTimer        = null;
 let lastMessageId = 0;
 
-function connectSSE() {
-    if (sseConnection) sseConnection.close();
-    
-    sseConnection = new EventSource('/O/messages/stream?last_id=' + lastMessageId);
-    
-    sseConnection.addEventListener('message', function(event) {
-        try {
-            const msg = JSON.parse(event.data);
-            lastMessageId = msg.id;
-            
-            // Add new message to inbox dynamically
+// Seed lastMessageId from already-rendered items so we only fetch truly new ones
+document.querySelectorAll('#msgList .msg-item[data-id]').forEach(el => {
+    const id = parseInt(el.dataset.id) || 0;
+    if (id > lastMessageId) lastMessageId = id;
+});
+
+function addMessageToInbox(msg) {
+    const msgId   = msg.id ?? msg.notification_id ?? 0;
+    const msgType = (msg.type ?? 'Message').toLowerCase();
+    const msgText = msg.message ?? '';
+    const msgName = msg.full_name ?? msg.from ?? 'System';
+    const msgTime = msg.created_at ?? '';
+
+    const msgList = document.getElementById('msgList');
+    if (!msgList) return;
+
+    // Skip if already rendered
+    if (document.querySelector(`[data-id="${msgId}"]`)) return;
+
+    // Remove empty-state placeholder if present
+    const empty = msgList.querySelector('.msg-empty');
+    if (empty) empty.remove();
+
+    const typeIcon = {delay:'⏱️',breakdown:'🔧',alert:'🚨',timetable:'📅',message:'💬'}[msgType] || '📩';
+    const avatarCls = ['delay','alert','breakdown'].includes(msgType) ? 'alert' : '';
+
+    const item = document.createElement('div');
+    item.className = 'msg-item unread';
+    item.dataset.id     = msgId;
+    item.dataset.type   = msgType;
+    item.dataset.unread = '1';
+    item.dataset.name   = msgName;
+    item.dataset.text   = msgText;
+    item.dataset.time   = msgTime;
+    item.onclick = function() { openThread(this); };
+
+    item.innerHTML =
+        `<div class="msg-item-avatar ${avatarCls}">${typeIcon}</div>` +
+        `<div class="msg-item-meta">` +
+            `<div class="msg-item-subject">${esc(msgName)}</div>` +
+            `<div class="msg-item-preview">${esc(msgText.substring(0,60))}…</div>` +
+            `<div class="msg-item-time">just now</div>` +
+        `</div>` +
+        `<div class="msg-unread-dot"></div>` +
+        `<div class="msg-unread-badge">Unread</div>`;
+
+    msgList.insertBefore(item, msgList.firstChild);
+    if (lastMessageId < msgId) lastMessageId = msgId;
+    updateStatsBadges();
+}
+
+function pollMessages() {
+    fetch('/O/messages?action=poll&since_id=' + lastMessageId)
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(msgs => {
+            if (!Array.isArray(msgs)) return;
+            // Oldest-first so insertBefore keeps newest at top
+            msgs.slice().reverse().forEach(addMessageToInbox);
+        })
+        .catch(() => { /* silent — will retry on next interval */ });
+}
+
+// Poll immediately on load (catches messages that arrived between PHP render and JS init)
+setTimeout(pollMessages, 2000);
+// Then poll every 20 seconds
+setInterval(pollMessages, 20000);
+
+/* ─── Poll DM conversations (TK chat items in inbox) ───────────────── */
+function pollDmConversations() {
+    fetch('/O/messages?action=chat_convs')
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(convs => {
+            if (!Array.isArray(convs)) return;
             const msgList = document.getElementById('msgList');
             if (!msgList) return;
-            
-            // Check if message already exists (avoid duplicates)
-            if (document.querySelector(`[data-id="${msg.id}"]`)) return;
-            
-            // Create new message item
-            const item = document.createElement('div');
-            item.className = 'msg-item unread';
-            item.dataset.id = msg.id;
-            item.dataset.type = msg.type.toLowerCase();
-            item.dataset.unread = '1';
-            item.dataset.name = msg.from;
-            item.dataset.text = msg.message;
-            item.dataset.time = msg.created_at;
-            item.onclick = function() { openThread(this); };
-            
-            const typeIcon = {delay:'⏱️',breakdown:'🔧',alert:'🚨',timetable:'📅',message:'💬'}[msg.type.toLowerCase()] || '📩';
-            const avatarCls = ['Delay','Alert','Breakdown'].includes(msg.type) ? 'alert' : '';
-            const init = msg.from.charAt(0).toUpperCase();
-            
-            item.innerHTML = `
-                <div class="msg-item-avatar ${avatarCls}">${init}</div>
-                <div class="msg-item-meta">
-                    <div class="msg-item-subject">${esc(msg.from)}</div>
-                    <div class="msg-item-preview">${esc(msg.message.substring(0,60))}…</div>
-                    <div class="msg-item-time">just now</div>
-                </div>
-                <div class="msg-unread-dot"></div>
-                <div class="msg-unread-badge">Unread</div>
-            `;
-            
-            msgList.insertBefore(item, msgList.firstChild);
-            
-            // Update unread count badge
+            convs.forEach(conv => {
+                const pid    = parseInt(conv.partner_id || 0);
+                if (!pid) return;
+                const itemId = 'dm_' + pid;
+                let item     = msgList.querySelector('[data-id="' + itemId + '"]');
+                const name   = ((conv.first_name || '') + ' ' + (conv.last_name || '')).trim() || 'Timekeeper';
+                const role   = conv.role || '';
+                const roleLabel = role.includes('SLTB') ? 'SLTB TK' : (role.includes('Private') ? 'Pvt TK' : role);
+                const preview = (conv.last_message || '').substring(0, 60);
+                const unread  = parseInt(conv.unread_count || 0);
+
+                if (!item) {
+                    // New conversation — add at top of inbox (before first non-DM item)
+                    const empty = msgList.querySelector('.msg-empty');
+                    if (empty) empty.remove();
+                    item = document.createElement('div');
+                    item.dataset.id        = itemId;
+                    item.dataset.type      = 'direct_chat';
+                    item.dataset.partnerId = String(pid);
+                    item.dataset.name      = name;
+                    item.onclick = function() { openThread(this); };
+                    // Insert before the first notification item (after any existing DM items)
+                    const firstNotif = msgList.querySelector('.msg-item:not([data-type="direct_chat"])');
+                    if (firstNotif) msgList.insertBefore(item, firstNotif);
+                    else msgList.appendChild(item);
+                }
+
+                // Update content and unread state
+                item.dataset.text   = conv.last_message || '';
+                item.dataset.unread = unread > 0 ? '1' : '0';
+                item.classList.toggle('unread', unread > 0);
+                item.innerHTML =
+                    '<div class="msg-item-avatar" style="background:linear-gradient(135deg,#be185d,#9d174d)">💬</div>' +
+                    '<div class="msg-item-meta">' +
+                        '<div class="msg-item-subject">' + esc(name) + '</div>' +
+                        '<div class="msg-item-preview">' + esc(preview) + '</div>' +
+                        '<div class="msg-item-time">' + esc(roleLabel) + ' · just now</div>' +
+                    '</div>' +
+                    (unread > 0 ? '<div class="msg-unread-dot"></div><div class="msg-unread-badge">' + unread + '</div>' : '');
+                item.onclick = function() { openThread(this); };
+            });
             updateStatsBadges();
-        } catch(e) {
-            console.error('SSE parse error:', e);
-        }
-    });
-    
-    sseConnection.addEventListener('error', function() {
-        console.warn('SSE connection lost, reconnecting in 3s...');
-        setTimeout(connectSSE, 3000);
-    });
+        })
+        .catch(() => {});
 }
+setTimeout(pollDmConversations, 3000);
+setInterval(pollDmConversations, 15000);
 
 // Update stat badges (unread, alerts, etc)
 function updateStatsBadges() {
@@ -874,15 +1019,15 @@ function updateStatsBadges() {
     const total = msgItems.length;
     const unread = Array.from(msgItems).filter(el => el.classList.contains('unread')).length;
     const alerts = Array.from(msgItems).filter(el => ['delay','alert','breakdown'].includes(el.dataset.type)).length;
-    
-    const totalEl = document.getElementById('statTotalVal');
-    const unreadCountEl = document.getElementById('statUnreadCount');
-    const unreadBadgeEl = document.getElementById('statUnreadBadge');
-    const alertsEl = document.getElementById('statAlertsVal');
 
-    if (totalEl) totalEl.textContent = String(total);
+    const totalEl      = document.getElementById('statTotalVal');
+    const unreadCountEl= document.getElementById('statUnreadCount');
+    const unreadBadgeEl= document.getElementById('statUnreadBadge');
+    const alertsEl     = document.getElementById('statAlertsVal');
+
+    if (totalEl)       totalEl.textContent = String(total);
     if (unreadCountEl) unreadCountEl.textContent = String(unread);
-    if (alertsEl) alertsEl.textContent = String(alerts);
+    if (alertsEl)      alertsEl.textContent = String(alerts);
 
     if (unreadBadgeEl) {
         if (unread > 0) {
@@ -895,10 +1040,7 @@ function updateStatsBadges() {
     }
 }
 
-// Connect to SSE on page load
-connectSSE();
-
-// Utility function to escape HTML
+// Utility: escape HTML for safe innerHTML injection
 function esc(s) {
     const div = document.createElement('div');
     div.textContent = s;
@@ -940,6 +1082,17 @@ function applyInboxFilter() {
 let currentItem = null;
 
 window.openThread = function(el) {
+    // Direct chat thread (TK ↔ DO)
+    if (el.dataset.type === 'direct_chat') {
+        openChatThread(parseInt(el.dataset.partnerId), el);
+        return;
+    }
+
+    // Stop any active chat poll when switching back to notifications
+    if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
+    currentChatPartnerId = null;
+    document.getElementById('chatBar').style.display = 'none';
+
     if (currentItem) currentItem.classList.remove('active');
     el.classList.add('active');
     const unreadDot = el.querySelector('.msg-unread-dot');
@@ -970,7 +1123,6 @@ window.openThread = function(el) {
 
     const body = document.getElementById('threadBody');
     body.innerHTML = buildBubble(init, name, text, time, type);
-    document.getElementById('quickReplyBar').style.display = '';
 
     // Mark read via background fetch (best-effort)
     if (nid) {
@@ -1301,16 +1453,13 @@ window.submitCompose = function() {
     form.submit();
 };
 
-/* ─── Quick Reply ───────────────────────────────────────────────────── */
-document.getElementById('quickReplySend').addEventListener('click', function() {
-    const text = document.getElementById('quickReplyText').value.trim();
-    if (!text) return;
-    // Populate compose panel and submit
-    document.getElementById('messageBody').value = text;
-    updateCharCount(document.getElementById('messageBody'));
-    // Target same recipient (best effort: use scope all depot if we can't determine)
-    // Submit through common validation path
-    submitCompose();
+/* ─── Chat bar send button ──────────────────────────────────────────── */
+document.getElementById('chatBarSend').addEventListener('click', function() {
+    const text = document.getElementById('chatBarInput').value.trim();
+    if (text) sendChatReply(text);
+});
+document.getElementById('chatBarInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const text = this.value.trim(); if (text) sendChatReply(text); }
 });
 
 /* ─── Refresh ───────────────────────────────────────────────────────── */
@@ -1325,51 +1474,151 @@ function formatRelTime(ts) {
     const d = new Date(ts.replace(' ','T'));
     if (isNaN(d)) return ts;
     const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 0)    return d.toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     if (diff < 60)   return 'just now';
     if (diff < 3600) return Math.floor(diff/60) + 'm ago';
     if (diff < 86400)return Math.floor(diff/3600) + 'h ago';
     return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
 
-/* ─── Quick Actions (Acknowledge, Escalate, Archive) ────────────────── */
 let currentMessageId = null;
-
-window.ackMessage = function() {
-    if (!currentMessageId) { alert('No message selected'); return; }
-    fetch('/O/messages?action=ack&id=' + currentMessageId, {method:'POST'})
-        .then(() => {
-            alert('Message acknowledged.');
-            if (currentItem) currentItem.classList.add('archived');
-        })
-        .catch(e => alert('Action failed: ' + e));
-};
-
-window.escalateMessage = function() {
-    if (!currentMessageId) { alert('No message selected'); return; }
-    fetch('/O/messages?action=escalate&id=' + currentMessageId, {method:'POST'})
-        .then(() => {
-            alert('Message escalated.');
-            if (currentItem) currentItem.style.borderLeftColor = '#dc2626';
-        })
-        .catch(e => alert('Action failed: ' + e));
-};
-
-window.archiveMessage = function() {
-    if (!currentMessageId) { alert('No message selected'); return; }
-    fetch('/O/messages?action=archive&id=' + currentMessageId, {method:'POST'})
-        .then(() => {
-            alert('Message archived.');
-            if (currentItem) currentItem.remove();
-            currentMessageId = null;
-        })
-        .catch(e => alert('Action failed: ' + e));
-};
 
 /* ─── Auto-resize compose textarea ─────────────────────────────────── */
 document.getElementById('messageBody').addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = this.scrollHeight + 'px';
 });
+
+/* ─── Direct Chat: open a TK conversation thread ───────────────────── */
+window.openChatThread = function(partnerId, el) {
+    if (currentItem) currentItem.classList.remove('active');
+    el.classList.add('active');
+    el.classList.remove('unread');
+    el.dataset.unread = '0';
+    const dot = el.querySelector('.msg-unread-dot');
+    if (dot) dot.remove();
+    const badge = el.querySelector('.msg-unread-badge');
+    if (badge) badge.remove();
+    updateStatsBadges();
+    currentItem = el;
+    currentChatPartnerId = partnerId;
+    currentMessageId = null;
+
+    if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
+    chatLastMsgId = 0;
+
+    const name = el.dataset.name || 'Timekeeper';
+    document.getElementById('threadTitle').textContent = name;
+    document.getElementById('threadSub').textContent   = 'Direct Chat · Loading…';
+    const statEl = document.getElementById('threadStatus');
+    statEl.style.display = '';
+    statEl.textContent = 'Chat';
+
+    const body = document.getElementById('threadBody');
+    body.innerHTML = '<div class="do-chat-empty"><div style="font-size:36px">💬</div><div>Loading conversation…</div></div>';
+
+    // Show the chat compose bar
+    document.getElementById('chatBar').style.display = '';
+
+    fetch('/O/messages?action=chat_load&with=' + partnerId)
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(msgs => {
+            document.getElementById('threadSub').textContent = 'Direct Chat · ' + name;
+            body.innerHTML = '';
+            if (!msgs || msgs.length === 0) {
+                body.innerHTML = '<div class="do-chat-empty"><div style="font-size:36px">💬</div><div>No messages yet — send the first one!</div></div>';
+            } else {
+                msgs.forEach(m => appendDoChatBubble(m, body));
+                body.scrollTop = body.scrollHeight;
+                chatLastMsgId = Math.max(...msgs.map(m => parseInt(m.id) || 0));
+            }
+            chatPollTimer = setInterval(pollChatMessages, 10000);
+        })
+        .catch(() => {
+            body.innerHTML = '<div class="do-chat-empty" style="color:#dc2626">Failed to load conversation.</div>';
+        });
+};
+
+function appendDoChatBubble(m, bodyEl) {
+    if (!m || !m.id) return;
+    bodyEl = bodyEl || document.getElementById('threadBody');
+    if (!bodyEl) return;
+    if (bodyEl.querySelector('[data-do-dm-id="' + m.id + '"]')) return;
+
+    // Remove empty placeholder
+    const empty = bodyEl.querySelector('.do-chat-empty');
+    if (empty) empty.remove();
+
+    const isMe    = (parseInt(m.from_user_id) === myUserId);
+    const fname   = (m.first_name || '') + (m.last_name ? ' ' + m.last_name : '');
+    const initial = (isMe ? 'D' : (fname || 'T')).charAt(0).toUpperCase();
+    const timeStr = formatRelTime(m.created_at || '');
+
+    const row = document.createElement('div');
+    row.dataset.doDmId = m.id;
+    row.className = 'do-bubble-row ' + (isMe ? 'mine' : 'theirs');
+
+    row.innerHTML =
+        '<div class="do-bubble-avatar">' + esc(initial) + '</div>' +
+        '<div class="do-bubble-text">' +
+            '<div class="do-bubble-msg">' + esc(m.message || '') + '</div>' +
+            '<div class="do-bubble-meta">' + esc(isMe ? 'You' : fname) + ' · ' + esc(timeStr) + '</div>' +
+        '</div>';
+
+    bodyEl.appendChild(row);
+    bodyEl.scrollTop = bodyEl.scrollHeight;
+}
+
+function pollChatMessages() {
+    if (!currentChatPartnerId) return;
+    fetch('/O/messages?action=chat_poll&since_id=' + chatLastMsgId)
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(data => {
+            if (!Array.isArray(data)) return;
+            const body = document.getElementById('threadBody');
+            data.forEach(m => {
+                const pid = parseInt(m.from_user_id) === myUserId
+                    ? parseInt(m.to_user_id)
+                    : parseInt(m.from_user_id);
+                if (pid === currentChatPartnerId) {
+                    appendDoChatBubble(m, body);
+                    if (parseInt(m.id) > chatLastMsgId) chatLastMsgId = parseInt(m.id);
+                }
+            });
+        })
+        .catch(() => {});
+}
+
+function sendChatReply(text) {
+    if (!currentChatPartnerId || !text) return;
+    const ta  = document.getElementById('chatBarInput');
+    const btn = document.getElementById('chatBarSend');
+    btn.disabled = true;
+    const fd = new FormData();
+    fd.append('to_user_id', String(currentChatPartnerId));
+    fd.append('message', text);
+    fetch('/O/messages?action=chat_send', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(res => {
+            btn.disabled = false;
+            if (res.ok) {
+                ta.value = '';
+                // Append own bubble immediately
+                const fakeMsg = {
+                    id:           res.id,
+                    from_user_id: myUserId,
+                    to_user_id:   currentChatPartnerId,
+                    message:      text,
+                    created_at:   new Date().toISOString().replace('T',' ').slice(0,19),
+                    first_name:   '',
+                    last_name:    '',
+                };
+                appendDoChatBubble(fakeMsg, document.getElementById('threadBody'));
+                if (res.id > chatLastMsgId) chatLastMsgId = res.id;
+            }
+        })
+        .catch(() => { btn.disabled = false; });
+}
 
 })();
 </script>

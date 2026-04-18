@@ -138,7 +138,7 @@ class MessageModel extends BaseModel
                            ) AS full_name,
                            JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_role')) AS source_role
                     FROM notifications n
-                    JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
+                    JOIN users ru ON ru.user_id = n.user_id
                     LEFT JOIN users su
                         ON su.user_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.source_user_id')) AS UNSIGNED)
                     WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')
@@ -151,11 +151,11 @@ class MessageModel extends BaseModel
                            CASE WHEN n.type='Message' THEN 'Depot Messaging' ELSE 'System Alert' END AS full_name,
                            NULL AS source_role
                     FROM notifications n
-                    JOIN users ru ON ru.user_id=n.user_id AND ru.sltb_depot_id=?
+                    JOIN users ru ON ru.user_id = n.user_id
                     WHERE n.type IN ('Message','Delay','Timetable','Alert','Breakdown')
                       AND n.user_id = ?";
         }
-        
+
         if ($filter === 'unread') {
             $sql .= " AND n.is_seen=0";
         } elseif ($filter === 'alert') {
@@ -163,10 +163,10 @@ class MessageModel extends BaseModel
         } elseif ($filter === 'message') {
             $sql .= " AND n.type='Message'";
         }
-        
+
         $sql .= " ORDER BY n.id DESC LIMIT {$limit}";
-        $st=$this->pdo->prepare($sql);
-        $st->execute([$depotId, $userId]);
+        $st = $this->pdo->prepare($sql);
+        $st->execute([$userId]);
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -216,5 +216,11 @@ class MessageModel extends BaseModel
              WHERE id=? AND user_id=?"
         );
         $st->execute([$userId, date('Y-m-d H:i:s'), $messageId, $userId]);
+    }
+
+    /** Public proxy so DepotOfficerModel can check optional columns without duplicating logic */
+    public function columnExistsPublic(string $table, string $column): bool
+    {
+        return $this->columnExists($table, $column);
     }
 }

@@ -275,53 +275,11 @@ class TripEntryModel extends BaseModel
             : ['type' => 'Alert', 'priority' => 'urgent'];
     }
 
-    private function notifyDepotEmergency(int $depotId, int $tripId, array $trip, string $reason): void
+    private function insertNotifications(array $recipientIds, string $type, string $message, string $priority, string $metadata): void
     {
-        if ($depotId <= 0) {
-            return;
-        }
-
-        $event = $this->emergencyTypeAndPriority($reason);
-        $u = $_SESSION['user'] ?? [];
-        $sourceUserId = (int)($u['user_id'] ?? $u['id'] ?? 0);
-        $sourceRole = (string)($u['role'] ?? 'SLTBTimekeeper');
-        $sourceName = trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''));
-        if ($sourceName === '') {
-            $sourceName = (string)($u['name'] ?? 'SLTB Timekeeper');
-        }
-
-        $message = sprintf(
-            'EMERGENCY UPDATE: Trip #%d was cancelled by %s. Bus: %s, Route ID: %d. Reason: %s',
-            $tripId,
-            $sourceName,
-            (string)($trip['bus_reg_no'] ?? 'N/A'),
-            (int)($trip['route_id'] ?? 0),
-            $reason
-        );
-
-        $metadata = json_encode([
-            'source' => 'sltb_timekeeper_emergency',
-            'source_role' => $sourceRole,
-            'source_user_id' => $sourceUserId,
-            'source_name' => $sourceName,
-            'event_kind' => 'trip_cancelled',
-            'trip_id' => $tripId,
-            'timetable_id' => (int)($trip['timetable_id'] ?? 0),
-            'route_id' => (int)($trip['route_id'] ?? 0),
-            'bus_reg_no' => (string)($trip['bus_reg_no'] ?? ''),
-            'depot_id' => $depotId,
-            'reason' => $reason,
-        ], JSON_UNESCAPED_UNICODE);
-
-        $stRecipients = $this->pdo->prepare(
-            "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
-        );
-        $stRecipients->execute([':depot' => $depotId]);
-        $recipientIds = array_map('intval', $stRecipients->fetchAll(PDO::FETCH_COLUMN));
         if (empty($recipientIds)) {
             return;
         }
-
         $hasPriority = $this->columnExists('notifications', 'priority');
         $hasMetadata = $this->columnExists('notifications', 'metadata');
 
@@ -336,13 +294,135 @@ class TripEntryModel extends BaseModel
         $ins = $this->pdo->prepare($sql);
 
         foreach ($recipientIds as $rid) {
-            $params = [':uid' => $rid, ':type' => $event['type'], ':message' => $message];
-            if ($hasPriority) $params[':priority'] = $event['priority'];
+            $params = [':uid' => $rid, ':type' => $type, ':message' => $message];
+            if ($hasPriority) $params[':priority'] = $priority;
             if ($hasMetadata) $params[':metadata'] = $metadata;
             try {
                 $ins->execute($params);
             } catch (\Throwable $e) {
                 // Do not let notification failure break the cancel operation
+            }
+        }
+    }
+
+    private function nearbyDepotIds(int $ownDepotId, int $routeId): array
+    {
+        if ($routeId <= 0) {
+            return [];
+        }
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT sb.sltb_depot_id
+                 FROM timetables t
+                 JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                 WHERE t.route_id = :rid
+                   AND sb.sltb_depot_id != :own
+                   AND sb.sltb_depot_id > 0"
+            );
+            $st->execute([':rid' => $routeId, ':own' => $ownDepotId]);
+            return array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    private function notifyDepotEmergency(int $depotId, int $tripId, array $trip, string $reason): void
+    {
+        $event = $this->emergencyTypeAndPriority($reason);
+        $u = $_SESSION['user'] ?? [];
+        $sourceUserId = (int)($u['user_id'] ?? $u['id'] ?? 0);
+        $sourceRole = (string)($u['role'] ?? 'SLTBTimekeeper');
+        $sourceName = trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''));
+        if ($sourceName === '') {
+            $sourceName = (string)($u['name'] ?? 'SLTB Timekeeper');
+        }
+
+        // The timekeeper's OWN depot (from session) — always gets notified,
+        // because this is the depot whose officers actually need to respond.
+        $tkDepotId = (int)($u['sltb_depot_id'] ?? 0);
+
+        $routeId = (int)($trip['route_id'] ?? 0);
+        $busNo   = (string)($trip['bus_reg_no'] ?? 'N/A');
+
+        $message = sprintf(
+            'EMERGENCY UPDATE: Trip #%d was cancelled by %s. Bus: %s, Route ID: %d. Reason: %s',
+            $tripId, $sourceName, $busNo, $routeId, $reason
+        );
+        $metadata = json_encode([
+            'source' => 'sltb_timekeeper_emergency',
+            'source_role' => $sourceRole,
+            'source_user_id' => $sourceUserId,
+            'source_name' => $sourceName,
+            'event_kind' => 'trip_cancelled',
+            'trip_id' => $tripId,
+            'timetable_id' => (int)($trip['timetable_id'] ?? 0),
+            'route_id' => $routeId,
+            'bus_reg_no' => $busNo,
+            'depot_id' => $depotId,
+            'reason' => $reason,
+        ], JSON_UNESCAPED_UNICODE);
+
+        // Collect all depot IDs to notify (deduplicated)
+        $depotsToNotify = array_unique(array_filter([$depotId, $tkDepotId]));
+
+        // ── Notify bus's depot + timekeeper's depot ───────────────────────
+        $notifiedUserIds = [];
+        foreach ($depotsToNotify as $did) {
+            $stRecipients = $this->pdo->prepare(
+                "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+            );
+            $stRecipients->execute([':depot' => $did]);
+            $recipientIds = array_diff(
+                array_map('intval', $stRecipients->fetchAll(PDO::FETCH_COLUMN)),
+                $notifiedUserIds
+            );
+            if ($recipientIds) {
+                $this->insertNotifications(array_values($recipientIds), $event['type'], $message, $event['priority'], $metadata);
+                $notifiedUserIds = array_merge($notifiedUserIds, $recipientIds);
+            }
+        }
+
+        // ── Notify nearby depots that serve the same route ────────────────
+        $nearbyDepots = $this->nearbyDepotIds($depotId, $routeId);
+        foreach ($nearbyDepots as $nearDepotId) {
+            if (in_array($nearDepotId, $depotsToNotify, true)) {
+                continue; // already notified above
+            }
+            try {
+                $depotName = (string)($this->pdo->query(
+                    "SELECT name FROM sltb_depots WHERE sltb_depot_id=" . (int)$nearDepotId . " LIMIT 1"
+                )->fetchColumn() ?: 'Nearby Depot');
+            } catch (\Throwable $e) {
+                $depotName = 'Nearby Depot';
+            }
+
+            $nearMessage = sprintf(
+                'NEARBY ROUTE ALERT: Trip #%d on Bus %s (Route ID: %d) was cancelled near your route. Originating depot: %s. Reason: %s. Passengers may need re-routing.',
+                $tripId, $busNo, $routeId, $depotName, $reason
+            );
+            $nearMetadata = json_encode([
+                'source' => 'sltb_timekeeper_emergency',
+                'source_role' => $sourceRole,
+                'source_user_id' => $sourceUserId,
+                'source_name' => $sourceName,
+                'event_kind' => 'nearby_trip_cancelled',
+                'trip_id' => $tripId,
+                'route_id' => $routeId,
+                'bus_reg_no' => $busNo,
+                'originating_depot_id' => $depotId,
+                'reason' => $reason,
+            ], JSON_UNESCAPED_UNICODE);
+
+            $stNearby = $this->pdo->prepare(
+                "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+            );
+            $stNearby->execute([':depot' => $nearDepotId]);
+            $nearRecipients = array_diff(
+                array_map('intval', $stNearby->fetchAll(PDO::FETCH_COLUMN)),
+                $notifiedUserIds
+            );
+            if ($nearRecipients) {
+                $this->insertNotifications(array_values($nearRecipients), $event['type'], $nearMessage, 'urgent', $nearMetadata);
             }
         }
     }
@@ -365,11 +445,17 @@ class TripEntryModel extends BaseModel
             TIME(s.arrival_time)         AS actual_arr,
             COALESCE(s.start_delay_seconds, 0) AS start_delay_seconds,
             COALESCE(s.end_delay_seconds, 0)   AS end_delay_seconds,
-            (s.sltb_trip_id IS NOT NULL) AS already_today
+            (s.sltb_trip_id IS NOT NULL) AS already_today,
+            d.full_name  AS driver_name,
+            d.phone      AS driver_phone,
+            c.full_name  AS conductor_name,
+            c.phone      AS conductor_phone
         FROM timetables t
         JOIN routes r ON r.route_id = t.route_id
         LEFT JOIN sltb_trips s
                ON s.timetable_id = t.timetable_id AND s.trip_date = CURDATE()
+        LEFT JOIN sltb_drivers d ON d.sltb_driver_id = s.sltb_driver_id
+        LEFT JOIN sltb_conductors c ON c.sltb_conductor_id = s.sltb_conductor_id
                 WHERE t.operator_type='SLTB'
                     AND t.day_of_week = :dow
                 ORDER BY

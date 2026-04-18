@@ -267,23 +267,29 @@ class TripEntryModel extends BaseModel
             TIME(p.arrival_time)      AS actual_arr,
             COALESCE(p.start_delay_seconds, 0) AS start_delay_seconds,
             COALESCE(p.end_delay_seconds, 0)   AS end_delay_seconds,
-            (p.private_trip_id IS NOT NULL) AS already_today
+            (p.private_trip_id IS NOT NULL) AS already_today,
+            d.full_name  AS driver_name,
+            d.phone      AS driver_phone,
+            c.full_name  AS conductor_name,
+            c.phone      AS conductor_phone
         FROM timetables tt
         JOIN private_buses pb ON pb.reg_no = tt.bus_reg_no
                               {$operatorJoin}
         JOIN routes r ON r.route_id = tt.route_id
         LEFT JOIN private_trips p
                ON p.timetable_id = tt.timetable_id AND p.trip_date = CURDATE()
+        LEFT JOIN private_drivers d ON d.private_driver_id = p.private_driver_id
+        LEFT JOIN private_conductors c ON c.private_conductor_id = p.private_conductor_id
                 WHERE tt.operator_type = 'Private'
                     AND tt.day_of_week = :dow
-                ORDER BY CASE
-                                     WHEN CURRENT_TIME() BETWEEN TIME(tt.departure_time)
-                                                                                    AND IFNULL(TIME(tt.arrival_time),'23:59:59') THEN 0
-                                     WHEN TIME(tt.departure_time) >= CURRENT_TIME() THEN 1
-                                     ELSE 2
-                                 END,
-                                 ABS(TIME_TO_SEC(TIMEDIFF(TIME(tt.departure_time), CURRENT_TIME()))),
-               TIME(tt.departure_time), r.route_no+0, r.route_no";
+                ORDER BY
+                    CASE
+                        WHEN p.arrival_time IS NULL AND p.status IN ('InProgress','Delayed') THEN 0
+                        WHEN p.private_trip_id IS NULL OR COALESCE(p.status,'Planned') = 'Planned' THEN 1
+                        WHEN p.status NOT IN ('Cancelled','Completed') THEN 1
+                        ELSE 2
+                    END,
+                    TIME(tt.departure_time), r.route_no+0, r.route_no";
 
         $st = $this->pdo->prepare($sql);
                 $params = [':dow' => (int)date('w')];
@@ -678,7 +684,7 @@ class TripEntryModel extends BaseModel
         $stopsExpr = $this->routeStopsExpr('r');
 
         $trip = $this->pdo->prepare(
-            "SELECT p.private_trip_id, p.status, p.private_operator_id, {$stopsExpr} AS stops_json
+            "SELECT p.private_trip_id, p.route_id, p.bus_reg_no, p.status, p.private_operator_id, {$stopsExpr} AS stops_json
              FROM private_trips p
              LEFT JOIN routes r ON r.route_id = p.route_id
              WHERE p.private_trip_id=:id AND p.trip_date=CURDATE()"
@@ -701,6 +707,111 @@ class TripEntryModel extends BaseModel
         );
         $upd->execute([':user' => $uid ?: null, ':reason' => $reasonText, ':id' => $tripId]);
         $ok = $upd->rowCount() > 0;
+
+        if ($ok) {
+            $this->notifySltbDepotsOnRoute($tripId, $t, $reasonText, $uid);
+        }
         return ['ok' => $ok, 'msg' => $ok ? null : 'update_failed'];
+    }
+
+    private function notifySltbDepotsOnRoute(int $tripId, array $trip, string $reason, int $cancellerUid): void
+    {
+        $routeId = (int)($trip['route_id'] ?? 0);
+        $busNo   = (string)($trip['bus_reg_no'] ?? 'N/A');
+        if ($routeId <= 0) {
+            return;
+        }
+
+        $u = $_SESSION['user'] ?? [];
+        $sourceName = trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''));
+        if ($sourceName === '') {
+            $sourceName = (string)($u['name'] ?? 'Private Timekeeper');
+        }
+
+        // Find all SLTB depots that serve this route
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT sb.sltb_depot_id
+                 FROM timetables t
+                 JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                 WHERE t.route_id = :rid AND sb.sltb_depot_id > 0"
+            );
+            $st->execute([':rid' => $routeId]);
+            $depotIds = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        // Check which optional columns exist in notifications
+        $hasPriority = false;
+        $hasMetadata = false;
+        try {
+            $cols = $this->pdo->query('SHOW COLUMNS FROM notifications')->fetchAll(PDO::FETCH_COLUMN);
+            $hasPriority = in_array('priority', $cols, true);
+            $hasMetadata = in_array('metadata', $cols, true);
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        $columns = ['user_id', 'type', 'message', 'is_seen'];
+        $values  = [':uid', ':type', ':message', '0'];
+        if ($hasPriority) { $columns[] = 'priority'; $values[] = ':priority'; }
+        if ($hasMetadata) { $columns[] = 'metadata'; $values[] = ':metadata'; }
+        $columns[] = 'created_at';
+        $values[]  = 'NOW()';
+        $sql = 'INSERT INTO notifications (' . implode(',', $columns) . ') VALUES (' . implode(',', $values) . ')';
+        $ins = $this->pdo->prepare($sql);
+
+        $metadata = json_encode([
+            'source' => 'private_timekeeper_emergency',
+            'source_role' => 'PrivateTimekeeper',
+            'source_user_id' => $cancellerUid,
+            'source_name' => $sourceName,
+            'event_kind' => 'private_trip_cancelled',
+            'trip_id' => $tripId,
+            'route_id' => $routeId,
+            'bus_reg_no' => $busNo,
+            'reason' => $reason,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $message = sprintf(
+            'PRIVATE BUS ALERT: Private Trip #%d on Bus %s (Route ID: %d) was cancelled by %s. Passengers may need SLTB coverage. Reason: %s',
+            $tripId, $busNo, $routeId, $sourceName, $reason
+        );
+
+        if (empty($depotIds)) {
+            // No SLTB depot identified on this route — notify all DepotOfficer/DepotManager users
+            try {
+                $stAll = $this->pdo->query(
+                    "SELECT user_id FROM users WHERE role IN ('DepotOfficer','DepotManager')"
+                );
+                $allUsers = array_map('intval', $stAll->fetchAll(PDO::FETCH_COLUMN));
+                foreach ($allUsers as $rid) {
+                    $params = [':uid' => $rid, ':type' => 'Alert', ':message' => $message];
+                    if ($hasPriority) $params[':priority'] = 'urgent';
+                    if ($hasMetadata) $params[':metadata'] = $metadata;
+                    $ins->execute($params);
+                }
+            } catch (\Throwable $e) { }
+            return;
+        }
+
+        foreach ($depotIds as $depotId) {
+            try {
+                $stUsers = $this->pdo->prepare(
+                    "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+                );
+                $stUsers->execute([':depot' => $depotId]);
+                $recipients = array_map('intval', $stUsers->fetchAll(PDO::FETCH_COLUMN));
+                foreach ($recipients as $rid) {
+                    $params = [':uid' => $rid, ':type' => 'Alert', ':message' => $message];
+                    if ($hasPriority) $params[':priority'] = 'urgent';
+                    if ($hasMetadata) $params[':metadata'] = $metadata;
+                    $ins->execute($params);
+                }
+            } catch (\Throwable $e) {
+                // Do not let notification failure break the cancel operation
+            }
+        }
     }
 }
