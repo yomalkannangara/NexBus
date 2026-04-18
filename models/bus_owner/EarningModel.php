@@ -3,121 +3,120 @@ namespace App\models\bus_owner;
 
 use PDO;
 
+// EarningModel handles all database operations for the Earnings page.
+// It extends BaseModel, which already gives us $this->pdo (database connection)
+// and $this->operatorId (the logged-in bus owner's ID).
+
 class EarningModel extends BaseModel
 {
-    private function getRouteDisplayName(string $stopsJson): string {
-        $stops = json_decode($stopsJson, true) ?: [];
-        if (empty($stops)) return 'Unknown';
-        $first = is_array($stops[0]) ? ($stops[0]['stop'] ?? $stops[0]['name'] ?? 'Start') : $stops[0];
-        $last = is_array($stops[count($stops)-1]) ? ($stops[count($stops)-1]['stop'] ?? $stops[count($stops)-1]['name'] ?? 'End') : $stops[count($stops)-1];
-        return "$first - $last";
-    }
-
-    /** Resolve operator ID */
-    private function operatorId(): ?int
-    {
-        if (!empty($this->operatorId)) return (int)$this->operatorId;
-        $u = $_SESSION['user'] ?? [];
-        $op = $u['private_operator_id'] ?? null;
-        if ($op) return $this->operatorId = (int)$op;
-
-        $uid = $u['user_id'] ?? ($u['id'] ?? null);
-        if ($uid) {
-            $st = $this->pdo->prepare("SELECT private_operator_id FROM users WHERE user_id=? LIMIT 1");
-            $st->execute([$uid]);
-            $op = (int)$st->fetchColumn();
-            if ($op > 0) return $this->operatorId = $op;
-        }
-        return null;
-    }
-
-    /** Check if bus belongs to logged owner */
+    // ─────────────────────────────────────────────────────────────
+    // HELPER: Check if a bus belongs to the logged-in owner
+    // We use this before saving or deleting, as a security check.
+    // ─────────────────────────────────────────────────────────────
     private function busBelongsToMe(string $regNo): bool
     {
-        $op = $this->operatorId();
-        if (!$op) return false;
-        $st = $this->pdo->prepare("SELECT 1 FROM private_buses WHERE reg_no=:bus AND private_operator_id=:op LIMIT 1");
-        $st->execute([':bus' => $regNo, ':op' => $op]);
-        return (bool)$st->fetchColumn();
+        $st = $this->pdo->prepare(
+            "SELECT 1 FROM private_buses
+              WHERE reg_no = :bus
+                AND private_operator_id = :op
+              LIMIT 1"
+        );
+        $st->execute([':bus' => $regNo, ':op' => $this->operatorId]);
+        return (bool) $st->fetchColumn();
     }
 
-    /** Create new earning */
+    // ─────────────────────────────────────────────────────────────
+    // CREATE: Insert a new earning record into the database
+    // ─────────────────────────────────────────────────────────────
     public function create(array $d): bool
     {
-        $op = $this->operatorId();
-        if (!$op) return false;
+        // Safety check: make sure the owner is logged in
+        if (!$this->operatorId) return false;
 
         $bus = trim($d['bus_reg_no'] ?? '');
+
+        // Safety check: make sure the bus belongs to this owner
         if ($bus === '' || !$this->busBelongsToMe($bus)) return false;
 
         $sql = "INSERT INTO earnings (operator_type, bus_reg_no, date, amount, source)
                 VALUES ('Private', :bus, :date, :amount, :source)";
+
         $st = $this->pdo->prepare($sql);
         return $st->execute([
             ':bus'    => $bus,
-            ':date'   => $d['date'] ?? date('Y-m-d'),
-            ':amount' => (float)($d['amount'] ?? 0),
-            ':source' => $d['source'] ?? null
+            ':date'   => $d['date']   ?? date('Y-m-d'),
+            ':amount' => (float) ($d['amount'] ?? 0),
+            ':source' => $d['source'] ?? null,
         ]);
     }
 
-    /** Update existing earning */
+    // ─────────────────────────────────────────────────────────────
+    // UPDATE: Edit an existing earning record
+    // ─────────────────────────────────────────────────────────────
     public function update(int $id, array $d): bool
     {
-        $op = $this->operatorId();
-        if (!$op) return false;
+        if (!$this->operatorId) return false;
 
         $bus = trim($d['bus_reg_no'] ?? '');
         if ($bus === '' || !$this->busBelongsToMe($bus)) return false;
 
+        // JOIN with private_buses ensures the owner can only edit their own records
         $sql = "UPDATE earnings e
                    JOIN private_buses b ON b.reg_no = e.bus_reg_no
-                SET e.bus_reg_no=:bus, e.date=:date, e.amount=:amount, e.source=:source
-              WHERE e.earning_id=:id
-                AND b.private_operator_id=:op
-                AND e.operator_type='Private'";
+                SET e.bus_reg_no = :bus,
+                    e.date       = :date,
+                    e.amount     = :amount,
+                    e.source     = :source
+              WHERE e.earning_id        = :id
+                AND b.private_operator_id = :op
+                AND e.operator_type     = 'Private'";
+
         $st = $this->pdo->prepare($sql);
         return $st->execute([
             ':bus'    => $bus,
-            ':date'   => $d['date'] ?? date('Y-m-d'),
-            ':amount' => (float)($d['amount'] ?? 0),
+            ':date'   => $d['date']   ?? date('Y-m-d'),
+            ':amount' => (float) ($d['amount'] ?? 0),
             ':source' => $d['source'] ?? null,
             ':id'     => $id,
-            ':op'     => $op
+            ':op'     => $this->operatorId,
         ]);
     }
 
-    /** Delete earning */
+    // ─────────────────────────────────────────────────────────────
+    // DELETE: Remove an earning record
+    // ─────────────────────────────────────────────────────────────
     public function delete(int $id): bool
     {
-        $op = $this->operatorId();
-        if (!$op) return false;
+        if (!$this->operatorId) return false;
+
+        // JOIN ensures owner can only delete their own records
         $sql = "DELETE e FROM earnings e
-                 JOIN private_buses b ON b.reg_no = e.bus_reg_no
-                WHERE e.earning_id=:id
-                  AND b.private_operator_id=:op
-                  AND e.operator_type='Private'";
+                  JOIN private_buses b ON b.reg_no = e.bus_reg_no
+                WHERE e.earning_id          = :id
+                  AND b.private_operator_id = :op
+                  AND e.operator_type       = 'Private'";
+
         $st = $this->pdo->prepare($sql);
-        return $st->execute([':id' => $id, ':op' => $op]);
+        return $st->execute([':id' => $id, ':op' => $this->operatorId]);
     }
 
-    /** Fetch all earnings (with route info) */
+    // ─────────────────────────────────────────────────────────────
+    // GET ALL: Fetch all earning records for the logged-in owner
+    // ─────────────────────────────────────────────────────────────
     public function getAll(): array
     {
-        $op = $this->operatorId();
-        if (!$op) return [];
+        if (!$this->operatorId) return [];
 
-        $sql = "SELECT 
+        $sql = "SELECT
                     e.earning_id,
                     e.date,
                     e.bus_reg_no,
                     e.amount,
                     e.source,
-                    r.route_no AS route_number,
-                    r.stops_json
+                    r.route_no AS route_number
                 FROM earnings e
                 JOIN private_buses b ON b.reg_no = e.bus_reg_no
-                LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no
+                LEFT JOIN timetables t ON t.bus_reg_no = e.bus_reg_no AND t.operator_type = 'Private'
                 LEFT JOIN routes r ON r.route_id = t.route_id
                 WHERE b.private_operator_id = :op
                   AND e.operator_type = 'Private'
@@ -125,57 +124,55 @@ class EarningModel extends BaseModel
                 ORDER BY e.date DESC, e.earning_id DESC";
 
         $st = $this->pdo->prepare($sql);
-        $st->execute([':op' => $op]);
-        $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-        
-        foreach ($rows as &$r) {
-            $r['route_name'] = $this->getRouteDisplayName($r['stops_json'] ?? '[]');
-        }
-        
-        return $rows;
-    }
-
-    /** Get buses owned by this operator (active only or all) */
-    public function getMyBuses(bool $activeOnly = true): array
-    {
-        $op = $this->operatorId();
-        if (!$op) return [];
-        $sql = "SELECT reg_no FROM private_buses WHERE private_operator_id=:op";
-        if ($activeOnly) $sql .= " AND status='Active'";
-        $sql .= " ORDER BY reg_no";
-        $st = $this->pdo->prepare($sql);
-        $st->execute([':op' => $op]);
+        $st->execute([':op' => $this->operatorId]);
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * KPI summary: total revenue, top route, active bus count.
-     * Expenses are not stored separately, so we derive an expense estimate
-     * (or just show 0 until an expenses table is added).
-     */
+    // ─────────────────────────────────────────────────────────────
+    // GET MY BUSES: List buses owned by this operator (for dropdown)
+    // ─────────────────────────────────────────────────────────────
+    public function getMyBuses(bool $activeOnly = true): array
+    {
+        if (!$this->operatorId) return [];
+
+        $sql = "SELECT reg_no FROM private_buses WHERE private_operator_id = :op";
+        if ($activeOnly) $sql .= " AND status = 'Active'";
+        $sql .= " ORDER BY reg_no";
+
+        $st = $this->pdo->prepare($sql);
+        $st->execute([':op' => $this->operatorId]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // KPI STATS: Summary numbers shown at the top of the earnings page
+    // Returns: total revenue, active bus count, top route
+    // ─────────────────────────────────────────────────────────────
     public function getKpiStats(): array
     {
-        $op = $this->operatorId();
-        if (!$op) return ['total_revenue' => 0, 'total_expenses' => 0, 'top_route' => 'N/A', 'active_buses' => 0];
+        if (!$this->operatorId) {
+            return ['total_revenue' => 0, 'total_expenses' => 0, 'top_route' => 'N/A', 'active_buses' => 0];
+        }
 
-        // Total revenue
+        // Total revenue (sum of all earnings)
         $st = $this->pdo->prepare(
             "SELECT COALESCE(SUM(e.amount), 0)
                FROM earnings e
                JOIN private_buses b ON b.reg_no = e.bus_reg_no
               WHERE e.operator_type = 'Private' AND b.private_operator_id = :op"
         );
-        $st->execute([':op' => $op]);
-        $totalRevenue = (float)$st->fetchColumn();
+        $st->execute([':op' => $this->operatorId]);
+        $totalRevenue = (float) $st->fetchColumn();
 
-        // Active buses
+        // Count active buses
         $st = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM private_buses WHERE private_operator_id = :op AND status = 'Active'"
+            "SELECT COUNT(*) FROM private_buses
+              WHERE private_operator_id = :op AND status = 'Active'"
         );
-        $st->execute([':op' => $op]);
-        $activeBuses = (int)$st->fetchColumn();
+        $st->execute([':op' => $this->operatorId]);
+        $activeBuses = (int) $st->fetchColumn();
 
-        // Top route (by total earnings)
+        // Top route by total earnings
         $st = $this->pdo->prepare(
             "SELECT r.route_no, SUM(e.amount) AS total
                FROM earnings e
@@ -187,32 +184,30 @@ class EarningModel extends BaseModel
               ORDER BY total DESC
               LIMIT 1"
         );
-        $st->execute([':op' => $op]);
-        $row = $st->fetch(PDO::FETCH_ASSOC);
-        $topRoute = $row && $row['route_no'] ? 'Route ' . $row['route_no'] : 'N/A';
+        $st->execute([':op' => $this->operatorId]);
+        $row      = $st->fetch(PDO::FETCH_ASSOC);
+        $topRoute = ($row && $row['route_no']) ? 'Route ' . $row['route_no'] : 'N/A';
 
         return [
             'total_revenue'  => $totalRevenue,
-            'total_expenses' => 0,   // placeholder until expense tracking table is added
+            'total_expenses' => 0,        // no expense table yet
             'top_route'      => $topRoute,
             'active_buses'   => $activeBuses,
         ];
     }
 
-    /**
-     * Revenue for each of the last N days — for the line chart.
-     * Returns ['labels' => [...], 'values' => [...]]
-     *
-     * NOTE: $days is cast to int at the signature level — safe to embed directly.
-     * PDO named params do not work inside MySQL INTERVAL syntax.
-     */
+    // ─────────────────────────────────────────────────────────────
+    // REVENUE TREND: Daily revenue for the last N days (line chart)
+    // Returns: ['labels' => ['01 Apr', ...], 'values' => [1200, ...]]
+    // ─────────────────────────────────────────────────────────────
     public function getRevenueTrend(int $days = 7): array
     {
-        $op = $this->operatorId();
-        if (!$op) return ['labels' => [], 'values' => []];
+        if (!$this->operatorId) return ['labels' => [], 'values' => []];
 
-        $days = max(1, (int)$days); // extra safety guard
+        $days = max(1, $days); // must be at least 1
 
+        // NOTE: $days is cast to int above, so it's safe to put directly in SQL.
+        // PDO named params don't work inside MySQL INTERVAL syntax.
         $st = $this->pdo->prepare(
             "SELECT DATE(e.date) AS day, COALESCE(SUM(e.amount), 0) AS total
                FROM earnings e
@@ -223,31 +218,34 @@ class EarningModel extends BaseModel
               GROUP BY DATE(e.date)
               ORDER BY day ASC"
         );
-        $st->execute([':op' => $op]);
+        $st->execute([':op' => $this->operatorId]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 
-        // Ensure all N days appear even if no data
+        // Build a lookup map: date string => total amount
         $map = [];
-        foreach ($rows as $r) $map[$r['day']] = (float)$r['total'];
+        foreach ($rows as $r) {
+            $map[$r['day']] = (float) $r['total'];
+        }
 
+        // Build labels and values for every day, even days with no earnings (show 0)
         $labels = [];
         $values = [];
         for ($i = $days - 1; $i >= 0; $i--) {
-            $d = date('Y-m-d', strtotime("-{$i} days"));
-            $labels[] = date('d M', strtotime($d));
-            $values[] = $map[$d] ?? 0;
+            $date     = date('Y-m-d', strtotime("-{$i} days"));
+            $labels[] = date('d M', strtotime($date));
+            $values[] = $map[$date] ?? 0;
         }
+
         return ['labels' => $labels, 'values' => $values];
     }
 
-    /**
-     * Revenue grouped by route — for the doughnut chart.
-     * Returns ['labels' => [...], 'values' => [...]]
-     */
+    // ─────────────────────────────────────────────────────────────
+    // REVENUE BY ROUTE: Earnings grouped by route (doughnut chart)
+    // Returns: ['labels' => ['Route 1', ...], 'values' => [5000, ...]]
+    // ─────────────────────────────────────────────────────────────
     public function getRevenueByRoute(): array
     {
-        $op = $this->operatorId();
-        if (!$op) return ['labels' => [], 'values' => []];
+        if (!$this->operatorId) return ['labels' => [], 'values' => []];
 
         $st = $this->pdo->prepare(
             "SELECT COALESCE(r.route_no, 'Unassigned') AS route_no,
@@ -261,20 +259,22 @@ class EarningModel extends BaseModel
               ORDER BY total DESC
               LIMIT 8"
         );
-        $st->execute([':op' => $op]);
+        $st->execute([':op' => $this->operatorId]);
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 
         return [
             'labels' => array_map(fn($r) => 'Route ' . $r['route_no'], $rows),
-            'values' => array_map(fn($r) => (float)$r['total'], $rows),
+            'values' => array_map(fn($r) => (float) $r['total'], $rows),
         ];
     }
 
-    /** Unique route numbers for filter dropdown */
+    // ─────────────────────────────────────────────────────────────
+    // UNIQUE ROUTES: For the filter dropdown on the earnings table
+    // ─────────────────────────────────────────────────────────────
     public function getUniqueRoutes(): array
     {
-        $op = $this->operatorId();
-        if (!$op) return [];
+        if (!$this->operatorId) return [];
+
         $st = $this->pdo->prepare(
             "SELECT DISTINCT r.route_no
                FROM earnings e
@@ -285,7 +285,8 @@ class EarningModel extends BaseModel
                 AND r.route_no IS NOT NULL
               ORDER BY r.route_no"
         );
-        $st->execute([':op' => $op]);
+        $st->execute([':op' => $this->operatorId]);
         return $st->fetchAll(PDO::FETCH_COLUMN);
     }
 }
+?>
