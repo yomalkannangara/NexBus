@@ -205,16 +205,6 @@ class TimekeeperPrivateController extends BaseController
             exit;
         }
 
-        // ── Poll: new messages since a given id ────────────────────────────
-        if ($action === 'poll') {
-            $sinceId = (int)($_GET['since_id'] ?? 0);
-            $all = $model->recentForUser($uid, 80, 'all');
-            $new = array_values(array_filter($all, fn($n) => (int)($n['id'] ?? 0) > $sinceId));
-            header('Content-Type: application/json');
-            echo json_encode($new);
-            exit;
-        }
-
         $opId = $this->myOpId();
         $dash = new DashboardModel($opId);
 
