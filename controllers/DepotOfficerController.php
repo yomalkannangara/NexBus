@@ -1201,6 +1201,18 @@ public function trip_logs(): void{
                 $date = date('Y-m-d');
             }
 
+            // Enforce 24-hour edit window for already-saved attendance
+            $existingSavedAt = $this->m->attendanceSavedAt($dep, $date);
+            if ($existingSavedAt && (time() - strtotime($existingSavedAt)) > 86400) {
+                $this->redirect('/O/attendance?date=' . urlencode($date) . '&msg=expired');
+                return;
+            }
+            // Also block marking for dates older than yesterday (no prior save)
+            if (!$existingSavedAt && $date < date('Y-m-d', strtotime('-1 day'))) {
+                $this->redirect('/O/attendance?date=' . urlencode($date) . '&msg=expired');
+                return;
+            }
+
             $attendancePost = (array)($_POST['attendance'] ?? []);
             $notesPost = (array)($_POST['notes'] ?? []);
 
@@ -1263,6 +1275,7 @@ public function trip_logs(): void{
             'drivers'=>$drivers,
             'conductors'=>$conductors,
             'records'=>$this->m->attendanceForDate($dep, $date),
+            'savedAt'=>$this->m->attendanceSavedAt($dep, $date),
             'summary'=>$this->m->attendanceSummary($dep, 30),
             'history'=>$history,
             'history_error'=>$historyError,

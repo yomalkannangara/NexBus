@@ -1,12 +1,18 @@
 ﻿<?php
 /* vars from DepotOfficerController::attendance()
    $drivers, $conductors, $records, $history,
-   $date, $histFrom, $histTo, $msg
+   $date, $histFrom, $histTo, $msg, $savedAt
 */
 $today   = date('Y-m-d');
 $prevDay = date('Y-m-d', strtotime($date . ' -1 day'));
 $nextDay = date('Y-m-d', strtotime($date . ' +1 day'));
 $canNext = ($date < $today);
+
+/* Edit-mode / lock state for the marking form */
+$savedAt     = $savedAt ?? null;
+$hasSaved    = !empty($records) && $savedAt !== null;
+$isLocked    = $hasSaved && (time() - strtotime($savedAt)) > 86400;
+$isEditMode  = $hasSaved && !$isLocked;
 
 /* Merge all staff into one list for the unified table */
 $allStaff = [];
@@ -268,6 +274,15 @@ function buildTrendSvg(array $data): string {
     padding: 12px 20px; color: #7B1C3E; font-weight: 600; margin-bottom: 20px;
     display: flex; align-items: center; gap: 10px;
 }
+/* History edit button */
+.hist-edit-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #7B1C3E; color: #fff; border-radius: 7px;
+    padding: 4px 12px; font-size: .78rem; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    transition: background .18s;
+}
+.hist-edit-btn:hover { background: #a8274e; color: #fff; }
 
 /* ── Unified Attendance Table Card ── */
 .att-table-card {
@@ -438,6 +453,11 @@ function buildTrendSvg(array $data): string {
 <div class="att-toast">
     <svg width="18" height="18" fill="none" stroke="#7B1C3E" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
     Attendance saved successfully for <?= date('d M Y', strtotime($date)) ?>.
+</div>
+<?php elseif (!empty($msg) && $msg === 'expired'): ?>
+<div class="att-toast" style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;">
+    <svg width="18" height="18" fill="none" stroke="#991b1b" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    This attendance record is older than 24 hours and can no longer be edited.
 </div>
 <?php endif; ?>
 
@@ -652,8 +672,12 @@ function buildTrendSvg(array $data): string {
     </div>
 
     <div class="att-save-bar">
-        <span style="font-size:.82rem;color:#64748b;">Marking for <?= date('d M Y', strtotime($date)) ?></span>
-        <button type="submit" class="btn-save">&#10003;&nbsp;Save Attendance</button>
+        <?php if ($isLocked): ?>
+        <span style="color:#991b1b;font-size:.82rem;font-weight:600;">&#128274; Attendance locked — edit window has expired (24 h limit).</span>
+        <?php else: ?>
+        <span style="font-size:.82rem;color:#64748b;"><?= $isEditMode ? '&#9998; Editing saved attendance for ' : 'Marking for ' ?><?= date('d M Y', strtotime($date)) ?></span>
+        <button type="submit" class="btn-save">&#10003;&nbsp;<?= $isEditMode ? 'Update Attendance' : 'Save Attendance' ?></button>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 </div>
@@ -722,13 +746,21 @@ function buildTrendSvg(array $data): string {
                 <th>Name</th>
                 <th>Status</th>
                 <th>Notes</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="hist-tbody">
-        <?php foreach ($history as $h):
+        <?php
+        $shownEditDates = [];
+        foreach ($history as $h):
             $st        = strtolower(str_replace(' ','_',(string)($h['status'] ?? 'Present')));
             $pillCls   = 'pill-' . $st;
             $typeLower = strtolower((string)($h['staff_type'] ?? 'driver'));
+            $hDate     = (string)($h['work_date'] ?? '');
+            $updatedAt = (string)($h['updated_at'] ?? '');
+            $canEditRow = $updatedAt && (time() - strtotime($updatedAt)) <= 86400;
+            $showEditBtn = $canEditRow && !in_array($hDate, $shownEditDates, true);
+            if ($showEditBtn) { $shownEditDates[] = $hDate; }
         ?>
         <tr data-name="<?= strtolower(htmlspecialchars((string)($h['full_name'] ?? ''))) ?>"
             data-type="<?= $typeLower ?>"
@@ -738,6 +770,9 @@ function buildTrendSvg(array $data): string {
             <td style="font-weight:600;"><?= htmlspecialchars((string)($h['full_name'] ?? '—')) ?></td>
             <td><span class="status-pill <?= $pillCls ?>"><?= htmlspecialchars(str_replace('_',' ',(string)($h['status'] ?? 'Present'))) ?></span></td>
             <td style="color:#64748b;"><?= htmlspecialchars((string)($h['notes'] ?? '')) ?: '—' ?></td>
+            <td><?php if ($showEditBtn): ?>
+                <a href="/O/attendance?date=<?= urlencode($hDate) ?>" class="hist-edit-btn" title="Edit attendance for this date">&#9998; Edit</a>
+            <?php endif; ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
@@ -747,6 +782,20 @@ function buildTrendSvg(array $data): string {
 </section>
 
 <script>
+/* ── Disable all inputs when attendance is locked ── */
+(function () {
+    var form = document.getElementById('attendanceForm');
+    if (form && form.dataset.locked === '1') {
+        form.querySelectorAll('input, select, textarea, button[type=submit]').forEach(function (el) {
+            el.disabled = true;
+        });
+        form.querySelectorAll('.status-toggle-btn').forEach(function (el) {
+            el.disabled = true;
+            el.style.cursor = 'not-allowed';
+        });
+    }
+})();
+
 /* ── Status toggle pill buttons ── */
 document.querySelectorAll('.status-toggle').forEach(function(group) {
     var akey   = group.dataset.akey;
