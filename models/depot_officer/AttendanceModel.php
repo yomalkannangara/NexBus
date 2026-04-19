@@ -272,6 +272,20 @@ class AttendanceModel extends BaseModel
         }
     }
 
+    public function savedAt(int $depotId, string $date): ?string
+    {
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT MAX(updated_at) FROM depot_attendance WHERE sltb_depot_id=? AND work_date=?"
+            );
+            $st->execute([$depotId, $date]);
+            $val = $st->fetchColumn();
+            return ($val && $val !== '0000-00-00 00:00:00') ? (string)$val : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function history(int $depotId, string $from, string $to): array
     {
         try {
@@ -280,6 +294,7 @@ class AttendanceModel extends BaseModel
                         a.attendance_key,
                         a.mark_absent,
                         a.notes" . ($this->hasDepotStatusColumn() ? ", a.status" : "") . ",
+                        a.updated_at,
                         d.full_name AS driver_name,
                         c.full_name AS conductor_name,
                         CONCAT(COALESCE(u.first_name,''), ' ', COALESCE(u.last_name,'')) AS user_name,
@@ -326,6 +341,7 @@ class AttendanceModel extends BaseModel
                     'full_name' => $fullName !== '' ? $fullName : 'Unknown',
                     'status' => $status,
                     'notes' => $this->cleanNotes($row),
+                    'updated_at' => $row['updated_at'] ?? null,
                 ];
             }
 
