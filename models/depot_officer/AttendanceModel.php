@@ -206,6 +206,72 @@ class AttendanceModel extends BaseModel
         ];
     }
 
+    public function trendByDay(int $depotId, string $from, string $to, ?string $akey = null, ?string $role = null): array
+    {
+        $params = [$depotId, $from, $to];
+        $where  = '';
+        if ($akey !== null && $akey !== '') {
+            $where   .= ' AND a.attendance_key = ?';
+            $params[] = $akey;
+        } elseif ($role !== null && $role !== '' && $role !== 'all') {
+            $prefix   = ($role === 'conductor') ? 'conductor:' : 'driver:';
+            $where   .= ' AND a.attendance_key LIKE ?';
+            $params[] = $prefix . '%';
+        }
+
+        try {
+            if ($this->hasDepotStatusColumn()) {
+                $sql = "SELECT a.work_date,
+                    SUM(CASE WHEN a.status='Present'  THEN 1 ELSE 0 END) AS present,
+                    SUM(CASE WHEN a.status='Absent'   THEN 1 ELSE 0 END) AS absent,
+                    SUM(CASE WHEN a.status='Late'     THEN 1 ELSE 0 END) AS late,
+                    SUM(CASE WHEN a.status='Half_Day' THEN 1 ELSE 0 END) AS half_day,
+                    COUNT(*) AS total
+                FROM depot_attendance a
+                WHERE a.sltb_depot_id=? AND a.work_date BETWEEN ? AND ?" . $where . "
+                GROUP BY a.work_date ORDER BY a.work_date";
+                $st = $this->pdo->prepare($sql);
+                $st->execute($params);
+                return array_map(fn($r) => [
+                    'date'     => $r['work_date'],
+                    'present'  => (int)$r['present'],
+                    'absent'   => (int)$r['absent'],
+                    'late'     => (int)$r['late'],
+                    'half_day' => (int)$r['half_day'],
+                    'total'    => (int)$r['total'],
+                ], $st->fetchAll());
+            }
+
+            // Legacy: fetch raw rows, aggregate in PHP
+            $sql = "SELECT a.work_date, a.mark_absent, a.notes
+                FROM depot_attendance a
+                WHERE a.sltb_depot_id=? AND a.work_date BETWEEN ? AND ?" . $where . "
+                ORDER BY a.work_date";
+            $st = $this->pdo->prepare($sql);
+            $st->execute($params);
+            $byDay = [];
+            foreach ($st->fetchAll() as $r) {
+                $d = $r['work_date'];
+                if (!isset($byDay[$d])) {
+                    $byDay[$d] = ['date' => $d, 'present' => 0, 'absent' => 0, 'late' => 0, 'half_day' => 0, 'total' => 0];
+                }
+                $status = $this->statusFromLegacy($r);
+                $key = match ($status) {
+                    'Absent'   => 'absent',
+                    'Late'     => 'late',
+                    'Half_Day' => 'half_day',
+                    default    => 'present',
+                };
+                $byDay[$d][$key]++;
+                $byDay[$d]['total']++;
+            }
+            return array_values($byDay);
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '42S02') return [];
+            throw $e;
+        }
+    }
+
     public function history(int $depotId, string $from, string $to): array
     {
         try {

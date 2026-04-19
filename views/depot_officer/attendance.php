@@ -1,6 +1,6 @@
 ﻿<?php
 /* vars from DepotOfficerController::attendance()
-   $drivers, $conductors, $records, $summary, $history,
+   $drivers, $conductors, $records, $history,
    $date, $histFrom, $histTo, $msg
 */
 $today   = date('Y-m-d');
@@ -28,12 +28,102 @@ function attNoteDO(array $records, string $key): string {
     return htmlspecialchars($records[$key]['notes'] ?? '');
 }
 
-$summary  = $summary  ?? ['present'=>0,'absent'=>0,'late'=>0,'half'=>0,'total'=>0];
-$total    = max(1, (int)$summary['total']);
-$pct      = round(($summary['present'] / $total) * 100);
+/**
+ * Build a standalone SVG trend chart from PHP data.
+ * Used for initial server-side render — no JS/width dependency.
+ */
+function buildTrendSvg(array $data): string {
+    if (empty($data)) return '';
+    $W = 800; $H = 300;
+    $pL = 48; $pR = 24; $pT = 18; $pB = 52;
+    $cW = $W - $pL - $pR;  // 728
+    $cH = $H - $pT - $pB;  // 230
+    $n  = count($data);
+    $months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    $cx = fn(int $i): float => $pL + ($n < 2 ? $cW / 2.0 : $i / ($n - 1) * $cW);
+    $cy = fn(float $v): float => $pT + $cH - ($v / 100.0 * $cH);
+    $pct = fn(array $d, string $k): float => $d['total'] > 0 ? round($d[$k] / $d['total'] * 100, 1) : 0.0;
+    $f   = fn(float $v): string => number_format($v, 2, '.', '');
+
+    $series = [
+        ['key'=>'present',  'color'=>'#16a34a', 'op'=>'.12'],
+        ['key'=>'absent',   'color'=>'#dc2626', 'op'=>'.08'],
+        ['key'=>'late',     'color'=>'#d97706', 'op'=>'.08'],
+        ['key'=>'half_day', 'color'=>'#7c3aed', 'op'=>'.08'],
+    ];
+
+    $o = '<svg xmlns="http://www.w3.org/2000/svg"'
+       . " viewBox=\"0 0 $W $H\" width=\"$W\" height=\"$H\""
+       . ' style="display:block;width:100%;height:300px;">' . "\n";
+
+    // Grid + Y labels
+    for ($g = 0; $g <= 5; $g++) {
+        $v  = $g * 20;
+        $gy = $f($cy((float)$v));
+        $sw = $g === 0 ? '1.5' : '0.7';
+        $o .= "  <line x1=\"$pL\" x2=\"" . ($pL+$cW) . "\" y1=\"$gy\" y2=\"$gy\" stroke=\"#e8d39a\" stroke-width=\"$sw\"/>\n";
+        $o .= "  <text x=\"" . ($pL-6) . "\" y=\"" . $f($cy((float)$v)+4) . '" text-anchor="end" font-size="11" fill="#9ca3af">' . $v . "%</text>\n";
+    }
+
+    // X labels
+    $step = max(1, (int)ceil($n / 14));
+    for ($i = 0; $i < $n; $i++) {
+        if ($i % $step !== 0 && $i !== $n - 1) continue;
+        $xp  = $f($cx($i));
+        $yp  = $H - $pB + 16;
+        $pts = explode('-', $data[$i]['date']);
+        $lbl = htmlspecialchars((int)$pts[2] . ' ' . $months[(int)$pts[1]]);
+        $o  .= "  <text x=\"$xp\" y=\"$yp\" text-anchor=\"middle\" font-size=\"11\" fill=\"#6b7280\" transform=\"rotate(-35 $xp $yp)\">$lbl</text>\n";
+    }
+
+    // Series: compute points for all series
+    $allPts = [];
+    foreach ($series as $s) {
+        $key = $s['key'];
+        $pts2 = [];
+        for ($i = 0; $i < $n; $i++) {
+            $v = $pct($data[$i], $key);
+            // nudge 0%-lines 1px above x-axis border so they don't vanish under it
+            $pts2[] = ['x' => $cx($i), 'y' => $v <= 0.0 ? $cy(0.0) - 1.0 : $cy($v)];
+        }
+        $allPts[$key] = $pts2;
+    }
+
+    // Pass 1: all fills
+    $aB = $f($cy(0.0));
+    foreach ($series as $s) {
+        $key = $s['key']; $color = $s['color']; $op = $s['op'];
+        $pts2 = $allPts[$key];
+        $fp = "M{$pL},{$aB}";
+        foreach ($pts2 as $p) { $fp .= ' L' . $f($p['x']) . ',' . $f($p['y']); }
+        $fp .= ' L' . ($pL+$cW) . ",{$aB} Z";
+        $o .= "  <path d=\"$fp\" fill=\"$color\" fill-opacity=\"$op\" stroke=\"none\"/>\n";
+    }
+
+    // Pass 2: all polylines (drawn on top of all fills)
+    foreach ($series as $s) {
+        $key = $s['key']; $color = $s['color'];
+        $pts2 = $allPts[$key];
+        $poly = implode(' ', array_map(fn($p) => $f($p['x']).',' . $f($p['y']), $pts2));
+        $o .= "  <polyline points=\"$poly\" fill=\"none\" stroke=\"$color\" stroke-width=\"2.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>\n";
+    }
+
+    // Pass 3: all dots (on top of everything)
+    if ($n <= 60) {
+        foreach ($series as $s) {
+            $key = $s['key']; $color = $s['color'];
+            $pts2 = $allPts[$key];
+            foreach ($pts2 as $p) {
+                $o .= "  <circle cx=\"" . $f($p['x']) . "\" cy=\"" . $f($p['y']) . "\" r=\"3.5\" fill=\"#fff\" stroke=\"$color\" stroke-width=\"2\"/>\n";
+            }
+        }
+    }
+    $o .= '</svg>';
+    return $o;
+}
 ?>
 <style>
-/* ═══ Attendance Page – NexBus maroon/gold theme ═══════════════════════════ */
 .att-hero {
     background: linear-gradient(135deg,#7B1C3E 0%,#a8274e 100%);
     border-bottom: 4px solid #f3b944;
@@ -46,6 +136,7 @@ $pct      = round(($summary['present'] / $total) * 100);
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
+    flex-shrink: 0;
 }
 .att-hero h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
 .att-hero p  { margin: 4px 0 0; opacity: .8; font-size: .95rem; }
@@ -79,30 +170,95 @@ $pct      = round(($summary['present'] / $total) * 100);
 .pct-bar-wrap { background: #f1f5f9; border-radius: 99px; height: 8px; margin-top: 8px; overflow: hidden; }
 .pct-bar      { height: 100%; border-radius: 99px; background: var(--color); width: 0; transition: width .8s cubic-bezier(.22,.68,0,1.2); }
 
+/* ── Trend Section ── */
+.trend-section {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(17,24,39,.08); overflow: hidden; margin-bottom: 28px;
+    flex-shrink: 0;
+}
+.trend-head {
+    background: linear-gradient(90deg, #7B1C3E, #a8274e);
+    border-bottom: 3px solid #f3b944;
+    color: #fff; padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.trend-head h3 { margin: 0; font-size: 1rem; font-weight: 700; flex: 1; }
+.trend-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.trend-preset-btn {
+    background: rgba(255,255,255,.18); color: #fff;
+    border: 1.5px solid rgba(255,255,255,.35);
+    border-radius: 7px; padding: 5px 13px; font-size: .78rem; font-weight: 700;
+    cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap;
+}
+.trend-preset-btn:hover { background: rgba(255,255,255,.32); }
+.trend-preset-btn.active { background: #f3b944; color: #7B1C3E; border-color: #f3b944; }
+.trend-filter-bar {
+    display: flex; flex-direction: row; align-items: center; gap: 6px 16px; flex-wrap: wrap;
+    padding: 12px 20px; background: #fffdf6; border-bottom: 1px solid #e8d39a;
+    flex-shrink: 0;
+}
+.trend-filter-group {
+    display: inline-flex; flex-direction: row; align-items: center;
+    gap: 7px; flex-shrink: 0;
+}
+.trend-filter-label {
+    font-size: .78rem; font-weight: 700; color: #7B1C3E;
+    white-space: nowrap; display: inline; flex-shrink: 0;
+}
+.trend-filter-input, .trend-filter-select {
+    border: 1.5px solid #e8d39a; border-radius: 8px; padding: 6px 10px;
+    font-size: .82rem; background: #fff; color: #2b2b2b; flex-shrink: 0;
+}
+.trend-filter-input:focus, .trend-filter-select:focus {
+    outline: none; border-color: #f3b944; box-shadow: 0 0 0 3px rgba(243,185,68,.2);
+}
+.trend-custom-range { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-wrap: nowrap; flex-shrink: 0; }
+.trend-custom-range[hidden] { display: none !important; }
+.trend-apply-btn {
+    background: #7B1C3E; color: #fff; border: none; border-radius: 7px;
+    padding: 6px 14px; font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .2s;
+}
+.trend-apply-btn:hover { background: #a8274e; }
+.trend-bar-divider { width: 1px; height: 22px; background: #e8d39a; flex-shrink: 0; align-self: center; margin: 0 4px; }
+.trend-line-toggles { display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.trend-line-toggle {
+    display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+    font-size: .78rem; font-weight: 700; white-space: nowrap;
+}
+.trend-line-toggle input[type=checkbox] { cursor: pointer; accent-color: var(--tc); width: 14px; height: 14px; }
+.trend-chart-wrap { padding: 20px 20px 12px; position: relative; flex-shrink: 0; }
+#trend-svg-wrap { min-height: 300px; position: relative; overflow: visible; }
+.trend-chart-wrap svg { display: block; width: 100%; height: 300px; overflow: visible; }
+.trend-no-data { text-align:center; padding:48px; color:#9ca3af; font-size:.9rem; font-style:italic; }
+
 /* ── Top filter bar ── */
 .att-filter-bar {
     background: #fff;
     border-radius: 12px;
     padding: 14px 20px;
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    display: flex; flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap;
     box-shadow: 0 10px 28px rgba(17,24,39,.08);
     border-left: 4px solid #f3b944;
     margin-bottom: 22px;
+    flex-shrink: 0;
 }
-.att-filter-bar label { font-weight: 700; font-size: .85rem; color: #7B1C3E; white-space: nowrap; }
+.att-filter-bar label { font-weight: 700; font-size: .85rem; color: #7B1C3E; white-space: nowrap; display: inline; flex-shrink: 0; }
 .att-filter-bar input[type=date],
 .att-filter-bar input[type=text],
 .att-filter-bar select {
     border: 1.5px solid #e8d39a; border-radius: 8px; padding: 7px 12px;
     font-size: .88rem; color: #2b2b2b; background: #fffdf6;
     transition: border-color .18s, box-shadow .18s;
+    flex-shrink: 0; width: auto;
 }
-.att-filter-bar input[type=text] { min-width: 180px; }
+.att-filter-bar input[type=text] { min-width: 160px; max-width: 200px; }
+.att-filter-bar input[type=date] { width: auto; }
+.att-filter-bar select { min-width: 110px; }
 .att-filter-bar input:focus, .att-filter-bar select:focus { outline: none; border-color: #f3b944; box-shadow: 0 0 0 3px rgba(243,185,68,.2); }
-.att-filter-divider { width: 1px; height: 26px; background: #e8d39a; flex-shrink: 0; }
+.att-filter-divider { width: 1px; height: 26px; background: #e8d39a; flex-shrink: 0; align-self: center; }
 .att-filter-bar .go-btn {
     background: #7B1C3E; color: #fff; border: none; border-radius: 8px;
-    padding: 8px 18px; font-size: .88rem; font-weight: 700; cursor: pointer; transition: background .2s;
+    padding: 8px 18px; font-size: .88rem; font-weight: 700; cursor: pointer; transition: background .2s; flex-shrink: 0;
 }
 .att-filter-bar .go-btn:hover { background: #a8274e; }
 
@@ -309,47 +465,88 @@ $pct      = round(($summary['present'] / $total) * 100);
     </div>
 </section>
 
-<!-- Summary Stats -->
-<div class="att-stats">
-    <div class="att-stat-card" style="--color:#16a34a">
-        <div class="val"><?= (int)$summary['present'] ?></div>
-        <div class="lbl">Present</div>
-        <div class="sub">Last 30 days</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $total>0?round($summary['present']/$total*100):0 ?>%"></div></div>
+<!-- Trend Chart Section -->
+<section class="trend-section">
+    <div class="trend-head">
+        <h3>&#128200; Attendance Trend</h3>
+        <div class="trend-presets">
+            <button class="trend-preset-btn" data-days="7">7 Days</button>
+            <button class="trend-preset-btn" data-days="14">14 Days</button>
+            <button class="trend-preset-btn active" data-days="30">30 Days</button>
+            <button class="trend-preset-btn" data-days="90">90 Days</button>
+            <button class="trend-preset-btn" data-days="0">Custom</button>
+        </div>
     </div>
-    <div class="att-stat-card" style="--color:#dc2626">
-        <div class="val"><?= (int)$summary['absent'] ?></div>
-        <div class="lbl">Absent</div>
-        <div class="sub">Last 30 days</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $total>0?round($summary['absent']/$total*100):0 ?>%"></div></div>
+
+    <div class="trend-filter-bar">
+        <!-- Custom date range -->
+        <div class="trend-custom-range" id="trend-custom-wrap" hidden>
+            <label class="trend-filter-label">From</label>
+            <input type="date" id="trend-from" class="trend-filter-input" max="<?= $today ?>">
+            <label class="trend-filter-label">To</label>
+            <input type="date" id="trend-to" class="trend-filter-input" max="<?= $today ?>">
+            <button type="button" id="trend-apply-btn" class="trend-apply-btn">Apply</button>
+        </div>
+
+        <!-- Person filter -->
+        <div class="trend-filter-group">
+            <label class="trend-filter-label" for="trend-person-input">Person</label>
+            <input type="text" id="trend-person-input" class="trend-filter-input"
+                   list="trend-person-list" placeholder="All staff&hellip;"
+                   autocomplete="off" style="width:160px;">
+            <datalist id="trend-person-list">
+                <?php foreach ($allStaff as $_ts): ?>
+                <option value="<?= htmlspecialchars($_ts['full_name']) ?>">
+                <?php endforeach; ?>
+            </datalist>
+        </div>
+
+        <span class="trend-bar-divider"></span>
+
+        <!-- Role filter -->
+        <div class="trend-filter-group">
+            <label class="trend-filter-label" for="trend-role-select">Role</label>
+            <select id="trend-role-select" class="trend-filter-select">
+                <option value="all">All Roles</option>
+                <option value="driver">Driver</option>
+                <option value="conductor">Conductor</option>
+            </select>
+        </div>
+
+        <span class="trend-bar-divider"></span>
+
+        <!-- Status lines to show -->
+        <div class="trend-filter-group" style="flex-wrap:wrap;gap:6px;">
+            <label class="trend-filter-label" style="align-self:center;">Show</label>
+            <div class="trend-line-toggles">
+                <label class="trend-line-toggle" style="--tc:#16a34a">
+                    <input type="checkbox" name="trend-line" value="present" checked> Present
+                </label>
+                <label class="trend-line-toggle" style="--tc:#dc2626">
+                    <input type="checkbox" name="trend-line" value="absent" checked> Absent
+                </label>
+                <label class="trend-line-toggle" style="--tc:#d97706">
+                    <input type="checkbox" name="trend-line" value="late" checked> Late
+                </label>
+                <label class="trend-line-toggle" style="--tc:#7c3aed">
+                    <input type="checkbox" name="trend-line" value="half_day"> Half Day
+                </label>
+            </div>
+        </div>
     </div>
-    <div class="att-stat-card" style="--color:#d97706">
-        <div class="val"><?= (int)$summary['late'] ?></div>
-        <div class="lbl">Late</div>
-        <div class="sub">Last 30 days</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $total>0?round($summary['late']/$total*100):0 ?>%"></div></div>
+
+    <div class="trend-chart-wrap">
+        <div id="trend-svg-wrap"><?php if (!empty($trendData)) { echo buildTrendSvg($trendData); } ?></div>
+        <div id="trend-no-data" class="trend-no-data"<?php if (!empty($trendData)): ?> hidden<?php endif; ?>>No attendance records found for the selected period.</div>
     </div>
-    <div class="att-stat-card" style="--color:#7c3aed">
-        <div class="val"><?= (int)$summary['half'] ?></div>
-        <div class="lbl">Half Day</div>
-        <div class="sub">Last 30 days</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $total>0?round($summary['half']/$total*100):0 ?>%"></div></div>
-    </div>
-    <div class="att-stat-card" style="--color:#7B1C3E">
-        <div class="val"><?= $pct ?>%</div>
-        <div class="lbl">Attendance Rate</div>
-        <div class="sub"><?= $summary['total'] ?> total records</div>
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:<?= $pct ?>%"></div></div>
-    </div>
-</div>
+</section>
 
 <!-- Top Filter Bar -->
 <div class="att-filter-bar">
     <label>&#128197; Date:</label>
-    <form method="get" action="/O/attendance" style="display:contents;">
-        <input type="date" name="date" value="<?= htmlspecialchars($date) ?>" max="<?= $today ?>" id="att-date-pick">
-        <button type="submit" class="go-btn">View &amp; Mark</button>
-    </form>
+    <input form="att-date-form" type="date" name="date" value="<?= htmlspecialchars($date) ?>" max="<?= $today ?>" id="att-date-pick">
+    <button form="att-date-form" type="submit" class="go-btn">View &amp; Mark</button>
+    <form id="att-date-form" method="get" action="/O/attendance" style="display:none;"></form>
     <span class="att-filter-divider"></span>
     <label for="att-name-search">&#128269; Name:</label>
     <input type="text" id="att-name-search" placeholder="Search staff name…" autocomplete="off">
@@ -626,30 +823,327 @@ document.querySelectorAll('.status-toggle').forEach(function(group) {
     filterRows();
 })();
 
-/* ── Entrance animations ── */
+</script>
+<script>
+/* ── Attendance Trend Chart — pure SVG, zero dependencies ── */
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.att-stat-card .val').forEach(function(el) {
-        var raw    = el.textContent.trim();
-        var isPct  = raw.endsWith('%');
-        var target = parseInt(raw, 10);
-        if (isNaN(target) || target === 0) return;
-        el.textContent = isPct ? '0%' : '0';
-        var delay = (parseFloat(getComputedStyle(el.closest('.att-stat-card')).animationDelay) || 0) * 1000 + 100;
-        setTimeout(function() {
-            var dur = 700, start = performance.now();
-            requestAnimationFrame(function step(now) {
-                var t = Math.min((now - start) / dur, 1);
-                var v = Math.round((1 - Math.pow(1 - t, 3)) * target);
-                el.textContent = isPct ? v + '%' : v;
-                if (t < 1) requestAnimationFrame(step);
+  try {
+
+    var today     = '<?= $today ?>';
+    var trendFrom = '<?= date('Y-m-d', strtotime('-29 days')) ?>';
+    var trendTo   = today;
+    var trendAkey = '';
+    var trendRole = 'all';
+    var lastData  = [];
+
+    /* Staff map: name → akey */
+    var trendStaffMap = {};
+    <?php foreach ($allStaff as $_sm): ?>
+    trendStaffMap[<?= json_encode(htmlspecialchars_decode($_sm['full_name']), JSON_UNESCAPED_UNICODE) ?>] = <?= json_encode($_sm['_akey']) ?>;
+    <?php endforeach; ?>
+
+    var SERIES = [
+        { key: 'present',  label: 'Present',  color: '#16a34a', fillAlpha: '.12' },
+        { key: 'absent',   label: 'Absent',   color: '#dc2626', fillAlpha: '.08' },
+        { key: 'late',     label: 'Late',     color: '#d97706', fillAlpha: '.08' },
+        { key: 'half_day', label: 'Half Day', color: '#7c3aed', fillAlpha: '.08', dash: '6 4' }
+    ];
+
+    var svgWrap    = document.getElementById('trend-svg-wrap');
+    var noDataEl   = document.getElementById('trend-no-data');
+    var presetBtns = document.querySelectorAll('.trend-preset-btn');
+    var customWrap = document.getElementById('trend-custom-wrap');
+    var fromEl     = document.getElementById('trend-from');
+    var toEl       = document.getElementById('trend-to');
+    var applyBtn   = document.getElementById('trend-apply-btn');
+    var personInp  = document.getElementById('trend-person-input');
+    var roleSelect = document.getElementById('trend-role-select');
+    var lineChecks = document.querySelectorAll('input[name="trend-line"]');
+
+    if (fromEl) fromEl.value = trendFrom;
+    if (toEl)   toEl.value   = trendTo;
+
+    /* ── Preset buttons ── */
+    presetBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            presetBtns.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var days = parseInt(btn.dataset.days, 10);
+            if (days === 0) {
+                customWrap.removeAttribute('hidden');
+            } else {
+                customWrap.setAttribute('hidden', '');
+                trendTo   = today;
+                trendFrom = isoDate(new Date(Date.now() - (days - 1) * 86400000));
+                if (fromEl) fromEl.value = trendFrom;
+                if (toEl)   toEl.value   = trendTo;
+                fetchTrend();
+            }
+        });
+    });
+
+    if (applyBtn) applyBtn.addEventListener('click', function() {
+        if (!fromEl.value || !toEl.value) return;
+        trendFrom = fromEl.value; trendTo = toEl.value; fetchTrend();
+    });
+
+    if (personInp) {
+        personInp.addEventListener('change', function() {
+            var n = personInp.value.trim();
+            trendAkey = trendStaffMap.hasOwnProperty(n) ? trendStaffMap[n] : '';
+            fetchTrend();
+        });
+        personInp.addEventListener('input', function() {
+            if (!personInp.value.trim()) { trendAkey = ''; fetchTrend(); }
+        });
+    }
+    if (roleSelect) roleSelect.addEventListener('change', function() { trendRole = roleSelect.value; fetchTrend(); });
+    lineChecks.forEach(function(cb) { cb.addEventListener('change', function() { drawSvg(lastData); }); });
+
+    /* ── Fetch ── */
+    function fetchTrend() {
+        noDataEl.hidden = true;
+        svgWrap.style.opacity = '0.4';
+        var url = '/O/attendance?action=trend&from=' + trendFrom + '&to=' + trendTo;
+        if (trendAkey) url += '&akey=' + encodeURIComponent(trendAkey);
+        if (trendRole && trendRole !== 'all') url += '&role=' + encodeURIComponent(trendRole);
+        fetch(url, { credentials: 'same-origin' })
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function(data) {
+                svgWrap.style.opacity = '';
+                if (data && data.error) { showMsg(data.error); return; }
+                lastData = Array.isArray(data) ? data : [];
+                drawSvg(lastData);
+            })
+            .catch(function(e) { svgWrap.style.opacity = ''; showMsg('Could not load: ' + e.message); });
+    }
+
+    function showMsg(msg) {
+        svgWrap.innerHTML = '';
+        noDataEl.textContent = msg;
+        noDataEl.hidden = false;
+    }
+
+    /* ── SVG renderer ── */
+    function drawSvg(data) {
+        svgWrap.innerHTML = '';
+        if (!data || data.length === 0) { showMsg('No attendance records found for the selected period.'); return; }
+        noDataEl.hidden = true;
+
+        /* which series are visible */
+        var vis = {};
+        if (lineChecks.length > 0) {
+            lineChecks.forEach(function(cb) { vis[cb.value] = cb.checked; });
+        } else {
+            SERIES.forEach(function(s) { vis[s.key] = true; });
+        }
+
+        var W = svgWrap.clientWidth || svgWrap.offsetWidth
+               || (svgWrap.parentElement ? svgWrap.parentElement.clientWidth : 0)
+               || 800;
+        var H = 300;
+        var PAD = { top: 18, right: 24, bottom: 52, left: 48 };
+        var cW = W - PAD.left - PAD.right;
+        var cH = H - PAD.top  - PAD.bottom;
+        var n  = data.length;
+        var ns = 'http://www.w3.org/2000/svg';
+
+        function pct(d, key) {
+            return d.total > 0 ? Math.round(d[key] / d.total * 100) : 0;
+        }
+        function cx(i) { return PAD.left + (n < 2 ? cW / 2 : i / (n - 1) * cW); }
+        function cy(v) { return PAD.top + cH - (v / 100 * cH); }
+
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('width', W);
+        svg.setAttribute('height', H);
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+        svg.style.display = 'block'; svg.style.overflow = 'visible';
+
+        /* grid lines + Y labels */
+        for (var g = 0; g <= 5; g++) {
+            var v = g * 20;
+            var gy = cy(v);
+            var gl = document.createElementNS(ns, 'line');
+            gl.setAttribute('x1', PAD.left); gl.setAttribute('x2', PAD.left + cW);
+            gl.setAttribute('y1', gy); gl.setAttribute('y2', gy);
+            gl.setAttribute('stroke', '#e8d39a'); gl.setAttribute('stroke-width', g === 0 ? '1.5' : '0.7');
+            svg.appendChild(gl);
+            var yt = document.createElementNS(ns, 'text');
+            yt.setAttribute('x', PAD.left - 6); yt.setAttribute('y', gy + 4);
+            yt.setAttribute('text-anchor', 'end');
+            yt.setAttribute('font-size', '11'); yt.setAttribute('fill', '#9ca3af');
+            yt.textContent = v + '%';
+            svg.appendChild(yt);
+        }
+
+        /* X axis labels — show at most 14 */
+        var step = Math.ceil(n / 14);
+        for (var i = 0; i < n; i++) {
+            if (i % step !== 0 && i !== n - 1) continue;
+            var xl = document.createElementNS(ns, 'text');
+            xl.setAttribute('x', cx(i)); xl.setAttribute('y', H - PAD.bottom + 16);
+            xl.setAttribute('text-anchor', 'middle');
+            xl.setAttribute('font-size', '11'); xl.setAttribute('fill', '#6b7280');
+            xl.setAttribute('transform', 'rotate(-35 ' + cx(i) + ' ' + (H - PAD.bottom + 16) + ')');
+            xl.textContent = dispDate(data[i].date);
+            svg.appendChild(xl);
+        }
+
+        /* tooltip crosshair group */
+        var tipGroup = document.createElementNS(ns, 'g');
+        tipGroup.style.display = 'none';
+        var tipLine = document.createElementNS(ns, 'line');
+        tipLine.setAttribute('stroke', '#cbd5e1'); tipLine.setAttribute('stroke-width', '1.5');
+        tipLine.setAttribute('stroke-dasharray', '4 3');
+        tipGroup.appendChild(tipLine);
+        svg.appendChild(tipGroup);
+
+        /* pre-compute points for all visible series */
+        var visSeries = SERIES.filter(function(s) { return vis[s.key]; });
+        var allPts = {};
+        visSeries.forEach(function(s) {
+            allPts[s.key] = data.map(function(d, i) {
+                var v = pct(d, s.key);
+                return { x: cx(i), y: v <= 0 ? cy(0) - 1 : cy(v) };
             });
-        }, delay);
+        });
+
+        /* Pass 1: fills */
+        var areaBottom = cy(0);
+        visSeries.forEach(function(s) {
+            var pts = allPts[s.key];
+            var fillPath = 'M' + PAD.left + ',' + areaBottom;
+            pts.forEach(function(p) { fillPath += ' L' + p.x + ',' + p.y; });
+            fillPath += ' L' + (PAD.left + cW) + ',' + areaBottom + ' Z';
+            var fill = document.createElementNS(ns, 'path');
+            fill.setAttribute('d', fillPath);
+            fill.setAttribute('fill', s.color);
+            fill.setAttribute('fill-opacity', s.fillAlpha);
+            fill.setAttribute('stroke', 'none');
+            svg.appendChild(fill);
+        });
+
+        /* Pass 2: lines (on top of all fills) */
+        visSeries.forEach(function(s) {
+            var pts = allPts[s.key];
+            var polyline = document.createElementNS(ns, 'polyline');
+            polyline.setAttribute('points', pts.map(function(p) { return p.x + ',' + p.y; }).join(' '));
+            polyline.setAttribute('fill', 'none');
+            polyline.setAttribute('stroke', s.color);
+            polyline.setAttribute('stroke-width', '2.5');
+            if (s.dash) polyline.setAttribute('stroke-dasharray', s.dash);
+            polyline.setAttribute('stroke-linejoin', 'round');
+            polyline.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(polyline);
+        });
+
+        /* Pass 3: dots (on top of everything) */
+        if (n <= 60) {
+            visSeries.forEach(function(s) {
+                allPts[s.key].forEach(function(p) {
+                    var dot = document.createElementNS(ns, 'circle');
+                    dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.setAttribute('r', '3.5');
+                    dot.setAttribute('fill', '#fff'); dot.setAttribute('stroke', s.color); dot.setAttribute('stroke-width', '2');
+                    svg.appendChild(dot);
+                });
+            });
+        }
+
+        /* invisible hover zones + tooltip */
+        var tooltip = document.createElement('div');
+        tooltip.style.cssText = 'position:absolute;background:#1f2937;color:#fff;border-radius:8px;padding:9px 13px;font-size:.78rem;pointer-events:none;display:none;z-index:9;min-width:120px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.22);';
+        svgWrap.style.position = 'relative';
+        svgWrap.appendChild(tooltip);
+
+        for (var hi = 0; hi < n; hi++) {
+            (function(idx) {
+                var hx = cx(idx);
+                var zone = document.createElementNS(ns, 'rect');
+                var zw = n < 2 ? cW : (n < 3 ? cW / 2 : cW / (n - 1));
+                zone.setAttribute('x', hx - zw / 2); zone.setAttribute('y', PAD.top);
+                zone.setAttribute('width', zw); zone.setAttribute('height', cH);
+                zone.setAttribute('fill', 'transparent');
+                zone.style.cursor = 'crosshair';
+                zone.addEventListener('mouseenter', function() {
+                    tipLine.setAttribute('x1', hx); tipLine.setAttribute('x2', hx);
+                    tipLine.setAttribute('y1', PAD.top); tipLine.setAttribute('y2', PAD.top + cH);
+                    tipGroup.style.display = '';
+                    var d = data[idx];
+                    var html = '<div style="font-weight:700;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:4px;">' + dispDate(d.date) + '</div>';
+                    SERIES.forEach(function(s) {
+                        if (!vis[s.key]) return;
+                        var v = pct(d, s.key);
+                        html += '<div style="display:flex;align-items:center;gap:7px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + s.color + ';"></span>' + s.label + ': <b>' + v + '%</b></div>';
+                    });
+                    tooltip.innerHTML = html;
+                    tooltip.style.display = 'block';
+                    var svgRect  = svg.getBoundingClientRect();
+                    var wrapRect = svgWrap.getBoundingClientRect();
+                    var tx = hx * W / (svgRect.width || W) - (wrapRect.left - svgRect.left);
+                    var tipW = tooltip.offsetWidth || 140;
+                    tooltip.style.left  = Math.min(tx + 14, W - tipW - 10) + 'px';
+                    tooltip.style.top   = (PAD.top + 10) + 'px';
+                });
+                zone.addEventListener('mouseleave', function() {
+                    tipGroup.style.display = 'none';
+                    tooltip.style.display  = 'none';
+                });
+                svg.appendChild(zone);
+            })(hi);
+        }
+
+        svgWrap.appendChild(svg);
+    }
+
+    /* ── Legend below chart ── */
+    function buildLegend() {
+        var leg = document.createElement('div');
+        leg.style.cssText = 'display:flex;gap:18px;flex-wrap:wrap;padding:0 24px 16px;justify-content:center;';
+        SERIES.forEach(function(s) {
+            var item = document.createElement('label');
+            item.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;cursor:pointer;color:#374151;';
+            var swatch = document.createElement('span');
+            swatch.style.cssText = 'display:inline-block;width:22px;height:3px;border-radius:2px;background:' + s.color + ';';
+            if (s.dash) swatch.style.background = 'repeating-linear-gradient(90deg,' + s.color + ' 0,' + s.color + ' 5px,transparent 5px,transparent 8px)';
+            item.appendChild(swatch);
+            item.appendChild(document.createTextNode(s.label));
+            leg.appendChild(item);
+        });
+        return leg;
+    }
+
+    /* insert legend once after svg-wrap */
+    var legEl = buildLegend();
+    svgWrap.parentNode.insertBefore(legEl, svgWrap.nextSibling);
+
+    /* redraw on resize */
+    var resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() { if (lastData.length) drawSvg(lastData); }, 120);
     });
-    document.querySelectorAll('.pct-bar').forEach(function(bar) {
-        var w = bar.style.width; bar.style.width = '0';
-        var d = (parseFloat(getComputedStyle(bar.closest('.att-stat-card')).animationDelay) || 0) * 1000 + 200;
-        setTimeout(function() { bar.style.width = w; }, d);
-    });
+
+    function isoDate(d) {
+        var mm = d.getMonth() + 1, dd = d.getDate();
+        return d.getFullYear() + '-' + (mm < 10 ? '0' + mm : mm) + '-' + (dd < 10 ? '0' + dd : dd);
+    }
+    function dispDate(s) {
+        var p = s.split('-');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return parseInt(p[2], 10) + ' ' + months[parseInt(p[1], 10) - 1];
+    }
+
+    /* PHP already rendered the initial chart server-side.
+       JS takes over only for filter changes and resize. */
+    var initialData = <?= json_encode($trendData ?? [], JSON_UNESCAPED_UNICODE) ?>;
+    lastData = initialData;
+
+  } catch(e) {
+    var _nd = document.getElementById('trend-no-data');
+    if (_nd) { _nd.textContent = 'Setup error: ' + e.message; _nd.hidden = false; _nd.style.color = '#dc2626'; }
+    console.error('[Trend] Setup error:', e);
+  }
 });
 </script>
 

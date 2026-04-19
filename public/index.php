@@ -106,22 +106,24 @@ $routes = [
 
 
   // Private Timekeeper
-    '/TP/dashboard'   => ['TimekeeperPrivateController','dashboard'],
-    '/TP/trip_entry'  => ['TimekeeperPrivateController','trip_entry'],
-    '/TP/history'     => ['TimekeeperPrivateController','history'],
-    '/TP/live'        => ['TimekeeperPrivateController','live'],
-    '/TP/messages'    => ['TimekeeperPrivateController','messages'],
-    '/TP'             => ['TimekeeperPrivateController','dashboard'],
-    '/TP/profile'     => ['TimekeeperPrivateController','profile'],
+    '/TP/dashboard'        => ['TimekeeperPrivateController','dashboard'],
+    '/TP/trip_entry'       => ['TimekeeperPrivateController','trip_entry'],
+    '/TP/history'          => ['TimekeeperPrivateController','history'],
+    '/TP/turn_management'  => ['TimekeeperPrivateController','turn_management'],
+    '/TP/live'             => ['TimekeeperPrivateController','live'],
+    '/TP/messages'         => ['TimekeeperPrivateController','messages'],
+    '/TP'                  => ['TimekeeperPrivateController','dashboard'],
+    '/TP/profile'          => ['TimekeeperPrivateController','profile'],
 
     // SLTB Timekeeper
-    '/TS/dashboard'  => ['TimekeeperSltbController','dashboard'],
-    '/TS/history'  => ['TimekeeperSltbController','history'],
-    '/TS/trip_entry'    => ['TimekeeperSltbController','entry'],
-    '/TS/live'          => ['TimekeeperSltbController','live'],
-    '/TS/messages'      => ['TimekeeperSltbController','messages'],
-    '/TS/profile' => ['TimekeeperSltbController','profile'],
-    '/TS'            => ['TimekeeperSltbController','dashboard'],
+    '/TS/dashboard'        => ['TimekeeperSltbController','dashboard'],
+    '/TS/history'          => ['TimekeeperSltbController','history'],
+    '/TS/trip_entry'       => ['TimekeeperSltbController','entry'],
+    '/TS/turn_management'  => ['TimekeeperSltbController','turn_management'],
+    '/TS/live'             => ['TimekeeperSltbController','live'],
+    '/TS/messages'         => ['TimekeeperSltbController','messages'],
+    '/TS/profile'          => ['TimekeeperSltbController','profile'],
+    '/TS'                  => ['TimekeeperSltbController','dashboard'],
 
     // Other roles
     
@@ -219,8 +221,14 @@ if (isset($routes[$path])) {
     exit;
 }
 
+// Silence browser/devtools auto-discovery requests quietly
+if (str_starts_with($path, '/.well-known/') || $path === '/favicon.ico') {
+    http_response_code(204);
+    exit;
+}
+
 http_response_code(404);
 echo "<h1>404</h1><p>No route for <code>".htmlspecialchars($path)."</code></p>";
-    exit;
+exit;
 
 
