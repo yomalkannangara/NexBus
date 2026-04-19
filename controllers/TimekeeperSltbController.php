@@ -320,41 +320,6 @@ class TimekeeperSltbController extends BaseController
         ]);
     }
 
-    public function turn_management(): void
-    {
-        $m = new \App\models\timekeeper_sltb\TurnModel();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            header('Content-Type: application/json');
-            if (!$this->csrfValid($_POST['csrf'] ?? '')) {
-                echo json_encode(['ok' => false, 'msg' => 'csrf_error']); return;
-            }
-            try {
-                $action = $_POST['action'] ?? '';
-                $id     = (int)($_POST['trip_id'] ?? 0);
-                if ($action === 'complete') {
-                    $ok = $m->complete($id);
-                    echo json_encode(['ok' => $ok, 'msg' => $ok ? null : 'not_authorized_or_not_found']);
-                } elseif ($action === 'cancel') {
-                    $reason = trim((string)($_POST['reason'] ?? ''));
-                    echo json_encode($m->cancel($id, $reason ?: null));
-                } else {
-                    echo json_encode(['ok' => false, 'msg' => 'unknown_action']);
-                }
-            } catch (\Throwable $e) {
-                error_log('[TS turn_management] ' . $e->getMessage());
-                echo json_encode(['ok' => false, 'msg' => 'server_error']);
-            }
-            return;
-        }
-
-        $this->view('timekeeper_sltb', 'turn_management', [
-            'S'         => $m->info(),
-            'rows'      => $m->running(),
-            'csrfToken' => $this->csrfEnsure(),
-        ]);
-    }
-
    public function profile(){
     // Require login
     $me = $_SESSION['user'] ?? null;
