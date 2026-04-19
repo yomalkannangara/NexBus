@@ -402,7 +402,8 @@ public function fleet()
         $special_tt = array_values($special_tt);
 
         $this->view('depot_manager', 'timetables', [
-            'routes' => $off->routes(),
+            // Use the same depot-scoped route list as the rest of this page.
+            'routes' => $off->routes($dep),
             'buses'  => $off->depotBuses($dep),
             'special_tt' => $special_tt,
             'filters' => $filters,
