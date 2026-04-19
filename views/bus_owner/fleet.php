@@ -448,7 +448,6 @@ if (!empty($buses)) {
           data-has-live="<?= !empty($b['has_live_location']) ? '1' : '0'; ?>"
           data-capacity="<?= (int)($b['capacity'] ?? 0); ?>"
           data-bus-class="<?= htmlspecialchars($busClass); ?>"
-          data-manufactured-date="<?= htmlspecialchars($b['manufactured_date'] ?? ''); ?>"
           data-manufactured-year="<?= htmlspecialchars((string)($b['manufactured_year'] ?? '')); ?>"
           data-model="<?= htmlspecialchars($b['model'] ?? ''); ?>"
           data-chassis-no="<?= htmlspecialchars($b['chassis_no'] ?? ''); ?>"
