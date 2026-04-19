@@ -213,50 +213,30 @@ class BusOwnerController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $act = $_POST['action'] ?? '';
 
+            // ── Create Earning ────────────────────────────────────────────
             if ($act === 'create') {
                 $success = $m->create($_POST);
-                header('Content-Type: application/json');
-                if ($success) {
-                    // Return success for AJAX
-                    http_response_code(200);
-                    echo json_encode(['success' => true, 'message' => 'Record created successfully']);
-                    exit;
-                } else {
-                    // Return error for AJAX
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'Failed to create record. Please check the bus ownership.']);
-                    exit;
+                if (!$success) {
+                    return $this->redirect('/B/earnings?msg=error');
                 }
+                return $this->redirect('/B/earnings?msg=created');
             }
 
+            // ── Update Earning ─────────────────────────────────────────────
             if ($act === 'update') {
                 $id = (int) ($_POST['earning_id'] ?? 0);
                 $success = $m->update($id, $_POST);
-                header('Content-Type: application/json');
-                if ($success) {
-                    http_response_code(200);
-                    echo json_encode(['success' => true, 'message' => 'Record updated successfully']);
-                    exit;
-                } else {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'Failed to update record.']);
-                    exit;
+                if (!$success) {
+                    return $this->redirect('/B/earnings?msg=error');
                 }
+                return $this->redirect('/B/earnings?msg=updated');
             }
 
+            // ── Delete Earning ─────────────────────────────────────────────
             if ($act === 'delete') {
                 $id = (int) ($_POST['earning_id'] ?? 0);
-                $success = $m->delete($id);
-                header('Content-Type: application/json');
-                if ($success) {
-                    http_response_code(200);
-                    echo json_encode(['success' => true, 'message' => 'Record deleted successfully']);
-                    exit;
-                } else {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'message' => 'Failed to delete record.']);
-                    exit;
-                }
+                $m->delete($id);
+                return $this->redirect('/B/earnings?msg=deleted');
             }
         }
 

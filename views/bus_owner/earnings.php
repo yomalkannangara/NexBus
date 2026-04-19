@@ -9,7 +9,29 @@ $filterRoutes = $filterRoutes ?? [];
 // Safe JSON for JS
 $trendJson = json_encode($revenueTrend, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+
+// ── Flash message map (same pattern as drivers.php) ────────────────
+$_flashMsgs = [
+    'created' => ['Income record added successfully.',   true],
+    'updated' => ['Income record updated successfully.', true],
+    'deleted' => ['Income record deleted successfully.', true],
+    'error'   => ['An error occurred. Please try again.', false],
+];
+$_flashKey  = $_GET['msg'] ?? '';
+$_flashData = $_flashMsgs[$_flashKey] ?? null;
 ?>
+<?php if ($_flashData): ?>
+<div id="page-flash" style="
+  position:fixed;top:20px;right:20px;z-index:9999;
+  background:<?= $_flashData[1] ? '#059669' : '#DC2626'; ?>;
+  color:#fff;padding:12px 20px;border-radius:8px;
+  font-size:14px;font-weight:600;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);
+  animation:flashIn .25s ease;
+"><?= htmlspecialchars($_flashData[0]); ?></div>
+<style>@keyframes flashIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}</style>
+<script>setTimeout(function(){var e=document.getElementById('page-flash');if(e){e.style.transition='opacity .4s';e.style.opacity='0';setTimeout(function(){e.remove();},400);}},2800);</script>
+<?php endif; ?>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -309,7 +331,11 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
         <button type="button" class="enrg-modal__close" id="btnCloseEarning" aria-label="Close">&times;</button>
       </div>
 
-      <form id="earningForm" autocomplete="off">
+      <!-- app.js / earnings.php reads data-operator-id to avoid relying on JS fetch -->
+      <form id="earningForm" action="" method="post" autocomplete="off">
+        <!-- action: 'create' or 'update' — set by JS before submit -->
+        <input type="hidden" name="action" id="f_e_action" value="create">
+        <!-- earning_id: empty for create, filled for update -->
         <input type="hidden" id="f_e_id" name="earning_id" value="">
 
         <div class="enrg-modal__grid">
@@ -923,6 +949,25 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
+    /* ── Toast on URL ?msg= param (set by controller after redirect) ───
+       The controller redirects to /B/earnings?msg=created etc.
+       We map those to friendly messages and show the toast.
+    ───────────────────────────────────────────────── */
+    const _urlParams = new URLSearchParams(window.location.search);
+    const _msgKey    = _urlParams.get('msg');
+    const _msgMap = {
+      'created': ['Income record added successfully.',   'success'],
+      'updated': ['Income record updated successfully.', 'success'],
+      'deleted': ['Income record deleted successfully.', 'success'],
+      'error':   ['An error occurred. Please try again.', 'error'],
+    };
+    if (_msgKey && _msgMap[_msgKey]) {
+      // showToast is defined later — call after DOMContentLoaded tick
+      // (it's already inside DOMContentLoaded so it’s safe)
+      showToast(_msgMap[_msgKey][0], _msgMap[_msgKey][1]);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     /* ── Chart.js colours ────────────────────────────────── */
     const MAROON = '#7F0032';
     const GOLD = '#F5A623';
@@ -1165,7 +1210,6 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
     });
 
     /* ── Add / Edit Modal ────────────────────────────────── */
-    const endpoint = document.getElementById('earningsPage')?.dataset?.endpoint || '<?= BASE_URL ?>/earnings';
     const modal = document.getElementById('earningModal');
     const form = document.getElementById('earningForm');
     const btnAdd = document.getElementById('btnAddEarning');
@@ -1179,6 +1223,7 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
       modalTitle.textContent = 'Add Income Record';
       form.reset();
       document.getElementById('f_e_id').value = '';
+      document.getElementById('f_e_action').value = 'create';
       modal.removeAttribute('hidden');
     });
     if (btnClose) btnClose.addEventListener('click', closeModal);
@@ -1189,6 +1234,7 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
       btn.addEventListener('click', function () {
         const data = JSON.parse(this.dataset.earning || '{}');
         document.getElementById('f_e_id').value = data.id || '';
+        document.getElementById('f_e_action').value = 'update';
         document.getElementById('f_e_date').value = data.date || '';
         document.getElementById('f_e_bus').value = data.bus_reg_no || '';
         document.getElementById('f_e_amount').value = data.amount || '';
@@ -1198,26 +1244,10 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
       });
     });
 
-    if (form) {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const fd = new FormData(this);
-        const earningId = document.getElementById('f_e_id').value;
-        fd.append('action', earningId ? 'update' : 'create');
-        fetch(endpoint, { method: 'POST', body: fd })
-          .then(async r => {
-            const ct = r.headers.get('content-type');
-            let result;
-            try { result = ct && ct.includes('application/json') ? await r.json() : { success: false, message: 'Server error.' }; }
-            catch (e) { result = { success: false, message: 'Invalid response.' }; }
-            if (r.ok && result.success !== false) {
-              showToast(result.message || 'Record saved!', 'success');
-              setTimeout(() => location.reload(), 1500);
-            } else { showToast(result.message || 'Error saving record.', 'error'); }
-          })
-          .catch(err => showToast('Network error: ' + err.message, 'error'));
-      });
-    }
+    // ── The form has method="post" action="" so submitting it
+    // sends action=create or action=update in $_POST to the controller.
+    // The controller then redirects back with ?msg=created / ?msg=updated.
+    // No extra JS submit listener needed — the browser handles it.
 
     /* ── Delete Modal ────────────────────────────────────── */
     let deleteId = null;
@@ -1243,25 +1273,26 @@ $routeJson = json_encode($revenueByRoute, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX
     if (btnConfirmDel) {
       btnConfirmDel.addEventListener('click', function () {
         if (!deleteId) return;
-        const orig = this.textContent;
-        this.textContent = 'Deleting…'; this.disabled = true;
-        const fd = new FormData();
-        fd.append('action', 'delete');
-        fd.append('earning_id', deleteId);
-        fetch(endpoint, { method: 'POST', body: fd })
-          .then(async r => {
-            if (r.ok) {
-              const res = await r.json();
-              closeDeleteModal();
-              showToast(res.message || 'Deleted!', 'success');
-              setTimeout(() => location.reload(), 1500);
-            } else {
-              const err = await r.json();
-              showToast(err.message || 'Error deleting record.', 'error');
-              this.textContent = orig; this.disabled = false;
-            }
-          })
-          .catch(err => { showToast('Network error: ' + err.message, 'error'); this.textContent = orig; this.disabled = false; });
+
+        btnConfirmDel.textContent = 'Deleting…';
+        btnConfirmDel.disabled = true;
+
+        // Build a hidden form and POST it — same as drivers.php delete
+        const f = document.createElement('form');
+        f.method = 'POST';
+        f.action = '';
+
+        const addField = (name, value) => {
+          const i = document.createElement('input');
+          i.type = 'hidden'; i.name = name; i.value = String(value);
+          f.appendChild(i);
+        };
+
+        addField('action',     'delete');
+        addField('earning_id', deleteId);
+
+        document.body.appendChild(f);
+        f.submit();
       });
     }
 
