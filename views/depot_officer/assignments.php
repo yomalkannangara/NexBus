@@ -62,6 +62,10 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
   cursor:pointer; transition:background .15s; white-space:nowrap;
 }
 .btn-asgn-add:hover { background:#60102e; }
+/* ── Since badge ─────────────────────────────────────── */
+.since-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; }
+.since-today { background:#dcfce7; color:#166534; }
+.since-past  { background:#fef9c3; color:#92400e; }
 /* ── Row action buttons ──────────────────────────────── */
 .btn-sm { padding:4px 12px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid; }
 .btn-sm-edit   { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
@@ -157,7 +161,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 <section class="section">
   <div class="title-card">
     <h1 class="title-heading">SLTB Daily Bus Assignments</h1>
-    <p class="title-sub">Manage today’s driver and conductor allocations</p>
+    <p class="title-sub">Current driver and conductor allocations per bus</p>
   </div>
 
   <?php if(!empty($msg) && $msg === 'created'): ?>
@@ -247,6 +251,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
             <th>Route&nbsp;No</th>
             <th>Status</th>
             <th>Capacity</th>
+            <th>Assigned On</th>
             <th>Driver</th>
             <th>Conductor</th>
             <th>Actions</th>
@@ -277,6 +282,15 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
                 <span class="abadge <?= $st==='active'?'abadge-green':($st==='maintenance'?'abadge-amber':'abadge-red') ?>"><?= htmlspecialchars($r['bus_status'] ?? 'Active') ?></span>
               </td>
               <td><?= htmlspecialchars(($r['capacity'] ?? '0').' seats') ?></td>
+              <td>
+                <?php
+                  $aDate   = $r['assigned_date'] ?? '';
+                  $isToday = ($aDate === date('Y-m-d'));
+                  $sinceClass = $isToday ? 'since-today' : 'since-past';
+                  $sinceLabel = $aDate ? date('M j', strtotime($aDate)) : '—';
+                ?>
+                <span class="since-badge <?= $sinceClass ?>"><?= $sinceLabel ?></span>
+              </td>
               <td><?= $r['driver_name'] ? htmlspecialchars($r['driver_name']) : '<span class="muted">Unassigned</span>' ?></td>
               <td><?= $r['conductor_name'] ? htmlspecialchars($r['conductor_name']) : '<span class="muted">Unassigned</span>' ?></td>
               <td style="white-space:nowrap;">
@@ -290,7 +304,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
             </tr>
           <?php endforeach; ?>
           <?php if(empty($rows)): ?>
-            <tr><td colspan="9" style="text-align:center;padding:28px;color:#9ca3af;">No assignments for today yet.</td></tr>
+            <tr><td colspan="10" style="text-align:center;padding:28px;color:#9ca3af;">No active assignments found.</td></tr>
           <?php endif; ?>
         </tbody>
       </table>

@@ -349,7 +349,7 @@ function tke_delay_text(int $seconds): string {
             <td>
                 <div class="tke-actions">
                 <?php if ($status === 'Scheduled'): ?>
-                    <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>)">
+                    <button class="tke-btn tke-btn-start" onclick="tkeStart(<?= $ttId ?>, this)">
                         &#9654; Start Journey
                     </button>
                 <?php elseif ($canManage): ?>
@@ -430,8 +430,7 @@ function tke_delay_text(int $seconds): string {
             });
     }
 
-    window.tkeStart = function (ttId) {
-        var btn = event.target;
+    window.tkeStart = function (ttId, btn) {
         btn.disabled = true;
         btn.textContent = 'Starting\u2026';
         postAction({ action: 'start', timetable_id: ttId }, function (res) {

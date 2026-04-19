@@ -609,7 +609,7 @@ $flashMessages = [
                         <div class="msg-item-meta">
                             <div class="msg-item-subject"><?= htmlspecialchars($pname) ?></div>
                             <div class="msg-item-preview"><?= htmlspecialchars($lastMsg) ?></div>
-                            <div class="msg-item-time"><?= $roleLabel ?> · <?= $convTime ?></div>
+                            <div class="msg-item-time" data-prefix="<?= htmlspecialchars($roleLabel) ?>" data-ts="<?= htmlspecialchars($item['last_time'] ?? '') ?>"><?= $roleLabel ?> · <?= $convTime ?></div>
                         </div>
                         <?php if ($convUnread > 0): ?>
                             <div class="msg-unread-dot"></div>
@@ -648,7 +648,7 @@ $flashMessages = [
                         <div class="msg-item-meta">
                             <div class="msg-item-subject"><?= htmlspecialchars($name) ?></div>
                             <div class="msg-item-preview"><?= htmlspecialchars($preview) ?></div>
-                            <div class="msg-item-time"><?= htmlspecialchars($type) ?> · <?= $timeStr ?></div>
+                            <div class="msg-item-time" data-prefix="<?= htmlspecialchars($type) ?>" data-ts="<?= htmlspecialchars($item['created_at'] ?? '') ?>"><?= htmlspecialchars($type) ?> · <?= $timeStr ?></div>
                         </div>
                         <?php if ($isUnread): ?>
                             <div class="msg-unread-dot"></div>
@@ -931,7 +931,7 @@ function addMessageToInbox(msg) {
         `<div class="msg-item-meta">` +
             `<div class="msg-item-subject">${esc(msgName)}</div>` +
             `<div class="msg-item-preview">${esc(msgText.substring(0,60))}…</div>` +
-            `<div class="msg-item-time">just now</div>` +
+            `<div class="msg-item-time" data-ts="${esc(msgTime)}">just now</div>` +
         `</div>` +
         `<div class="msg-unread-dot"></div>` +
         `<div class="msg-unread-badge">Unread</div>`;
@@ -1001,7 +1001,7 @@ function pollDmConversations() {
                     '<div class="msg-item-meta">' +
                         '<div class="msg-item-subject">' + esc(name) + '</div>' +
                         '<div class="msg-item-preview">' + esc(preview) + '</div>' +
-                        '<div class="msg-item-time">' + esc(roleLabel) + ' · just now</div>' +
+                        '<div class="msg-item-time" data-prefix="' + esc(roleLabel) + '" data-ts="' + esc(conv.last_time || '') + '">' + esc(roleLabel) + ' · ' + esc(formatRelTime(conv.last_time || '')) + '</div>' +
                     '</div>' +
                     (unread > 0 ? '<div class="msg-unread-dot"></div><div class="msg-unread-badge">' + unread + '</div>' : '');
                 item.onclick = function() { openThread(this); };
@@ -1115,7 +1115,10 @@ window.openThread = function(el) {
     currentMessageId = parseInt(nid) || null;
 
     document.getElementById('threadTitle').textContent = name;
-    document.getElementById('threadSub').textContent   = type + (time ? ' · ' + formatRelTime(time) : '');
+    const threadSubEl = document.getElementById('threadSub');
+    threadSubEl.dataset.prefix = type;
+    threadSubEl.dataset.ts     = time;
+    threadSubEl.textContent    = type + (time ? ' · ' + formatRelTime(time) : '');
 
     const statEl = document.getElementById('threadStatus');
     statEl.style.display = '';
@@ -1142,7 +1145,7 @@ function buildBubble(init, name, text, time, type) {
         <div class="msg-bubble-avatar ${avCls}">${isSystem ? icon : esc(init)}</div>
         <div>
             <div class="msg-bubble">${esc(text)}</div>
-            <div class="msg-bubble-time">${esc(name)} · ${timeStr}</div>
+            <div class="msg-bubble-time" data-prefix="${esc(name)}" data-ts="${esc(time)}">${esc(name)} · ${timeStr}</div>
         </div>
     </div>`;
 }
@@ -1481,6 +1484,17 @@ function formatRelTime(ts) {
     return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
 
+function tickRelTimes() {
+    document.querySelectorAll('[data-ts]').forEach(el => {
+        const ts  = el.dataset.ts  || '';
+        const pre = el.dataset.prefix || '';
+        if (!ts) return;
+        const rel = formatRelTime(ts);
+        el.textContent = pre ? pre + ' · ' + rel : rel;
+    });
+}
+setInterval(tickRelTimes, 30000);
+
 let currentMessageId = null;
 
 /* ─── Auto-resize compose textarea ─────────────────────────────────── */
@@ -1562,7 +1576,7 @@ function appendDoChatBubble(m, bodyEl) {
         '<div class="do-bubble-avatar">' + esc(initial) + '</div>' +
         '<div class="do-bubble-text">' +
             '<div class="do-bubble-msg">' + esc(m.message || '') + '</div>' +
-            '<div class="do-bubble-meta">' + esc(isMe ? 'You' : fname) + ' · ' + esc(timeStr) + '</div>' +
+            '<div class="do-bubble-meta" data-prefix="' + esc(isMe ? 'You' : fname) + '" data-ts="' + esc(m.created_at || '') + '">' + esc(isMe ? 'You' : fname) + ' · ' + esc(timeStr) + '</div>' +
         '</div>';
 
     bodyEl.appendChild(row);

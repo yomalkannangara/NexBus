@@ -26,10 +26,13 @@ class TrackingModel extends BaseModel
             COALESCE(t.trip_date, CURDATE())                            AS trip_date,
             r.route_no                                                  AS route,
             COALESCE(t.turn_no,
-                     ROW_NUMBER() OVER (
-                        PARTITION BY t.bus_reg_no, COALESCE(t.trip_date, CURDATE())
-                        ORDER BY COALESCE(t.scheduled_departure_time, t.departure_time)
-                     )
+                     /* MySQL 5.7-compatible turn counter: count earlier trips for same bus+date */
+                     (SELECT COUNT(*) + 1
+                      FROM sltb_trips t2
+                      WHERE t2.bus_reg_no = t.bus_reg_no
+                        AND COALESCE(t2.trip_date, CURDATE()) = COALESCE(t.trip_date, CURDATE())
+                        AND COALESCE(t2.scheduled_departure_time, t2.departure_time)
+                          < COALESCE(t.scheduled_departure_time, t.departure_time))
             )                                                           AS turn_number,
             t.bus_reg_no                                                AS bus_id,
             COALESCE(sd.full_name, '—')                                 AS driver,

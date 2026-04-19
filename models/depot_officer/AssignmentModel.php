@@ -51,11 +51,11 @@ public function allToday(int $depotId): array {
                 tm.lng,
                 tm.snapshot_at
             FROM sltb_assignments a
-            /* --- ensure one row per BUS for today (latest assignment row) --- */
+            /* --- ensure one row per BUS (latest assignment ever, up to today) --- */
             JOIN (
                 SELECT bus_reg_no, MAX(assignment_id) AS assignment_id
                 FROM sltb_assignments
-                WHERE assigned_date = CURDATE() AND sltb_depot_id = ?
+                WHERE assigned_date <= CURDATE() AND sltb_depot_id = ?
                 GROUP BY bus_reg_no
             ) pick ON pick.assignment_id = a.assignment_id
 

@@ -1169,6 +1169,27 @@ public function trip_logs(): void{
 
     public function attendance() {
         $u = $this->m->me(); $dep = $this->m->myDepotId($u);
+
+        // AJAX: trend data endpoint
+        if (isset($_GET['action']) && $_GET['action'] === 'trend' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            while (ob_get_level()) ob_end_clean();
+            try {
+                $from = $_GET['from'] ?? date('Y-m-d', strtotime('-29 days'));
+                $to   = $_GET['to']   ?? date('Y-m-d');
+                if ($to > date('Y-m-d')) $to = date('Y-m-d');
+                if ($from > $to) $from = $to;
+                $akey = (isset($_GET['akey']) && $_GET['akey'] !== '') ? $_GET['akey'] : null;
+                $role = (isset($_GET['role']) && $_GET['role'] !== 'all' && $_GET['role'] !== '') ? $_GET['role'] : null;
+                $data = $this->m->attendanceTrend($dep, $from, $to, $akey, $role);
+                header('Content-Type: application/json');
+                echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            } catch (\Throwable $e) {
+                header('Content-Type: application/json', true, 500);
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+            exit;
+        }
+
         $date = $_GET['date'] ?? date('Y-m-d');
         if ($date > date('Y-m-d')) {
             $date = date('Y-m-d');
@@ -1229,6 +1250,13 @@ public function trip_logs(): void{
             $history = [];
         }
 
+        $trendData = [];
+        try {
+            $trendData = $this->m->attendanceTrend($dep, date('Y-m-d', strtotime('-29 days')), date('Y-m-d'));
+        } catch (\Throwable $e) {
+            // chart will show empty state
+        }
+
         $this->view('depot_officer','attendance',[
             'me'=>$u,
             'date'=>$date,
@@ -1241,6 +1269,7 @@ public function trip_logs(): void{
             'histFrom'=>$histFrom,
             'histTo'=>$histTo,
             'msg'=>$_GET['msg'] ?? null,
+            'trendData'=>$trendData,
         ]);
     }
 

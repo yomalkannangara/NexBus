@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/assets/css/alert.css">
+  <script src="/assets/js/alert.js"></script>
+</head>
+<body>
+  <script>
+    // will WAIT until user presses OK
+    alert("Please log in to continue").then(function () {
+      window.location.href = "\/login";
+    });
+  </script>
+  <noscript>
+    <!-- JS off fallback -->
+    <meta http-equiv="refresh" content="0;url=/login">
+  </noscript>
+</body>
+</html>

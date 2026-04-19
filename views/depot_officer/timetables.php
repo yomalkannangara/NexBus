@@ -86,8 +86,16 @@ ksort($routeOptions, SORT_NATURAL);
 /* Filter bar */
 .tt2-filters {
     background: #fff; border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(17,24,39,.07);
-    padding: 16px 20px; display: flex; flex-direction: column; gap: 14px;
+    box-shadow: 0 4px 20px rgba(17,24,39,.09);
+    border-left: 4px solid #f3b944;
+    overflow: hidden;
+}
+.tt2-filter-section {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 13px 20px;
+}
+.tt2-filter-section + .tt2-filter-section {
+    border-top: 1px solid #f3f4f6;
 }
 .tt2-filter-row {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -131,10 +139,11 @@ ksort($routeOptions, SORT_NATURAL);
 .tt2-day-toggle:hover { border-color: #bbf7d0; color: #15803d; }
 .tt2-day-toggle.active { background: #f0fdf4; color: #15803d; border-color: #22c55e; }
 /* Date range */
-.tt2-period-wrap { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.tt2-period-wrap { display:flex; align-items:center; gap:8px; flex-wrap:nowrap; }
 .tt2-period-wrap input[type=date] {
     border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 7px 10px;
     font-size: .82rem; color: #374151; background: #f9fafb;
+    max-width: 160px; min-width: 120px;
 }
 .tt2-period-wrap input[type=date]:focus { outline: none; border-color: #7B1C3E; }
 .tt2-period-sep { font-size: .8rem; color: #9ca3af; font-weight: 600; }
@@ -148,14 +157,17 @@ ksort($routeOptions, SORT_NATURAL);
 .tt2-clear-btn:hover { border-color: #f3b944; color: #7B1C3E; background: #fffdf6; }
 
 /* Filter divider */
-.tt2-filter-divider { border: none; border-top: 1px solid #f3f4f6; margin: 0; }
+.tt2-filter-divider { display: none; }
 
 /* Result summary bar */
 .tt2-summary-bar {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     font-size: .82rem; color: #6b7280;
+    padding: 11px 20px;
+    background: #fffdf6;
+    border-top: 1px solid #f3f4f6;
 }
-.tt2-summary-count { font-weight: 800; color: #7B1C3E; }
+.tt2-summary-count { font-weight: 800; color: #7B1C3E; font-size: 1rem; }
 .tt2-summary-badges { display:flex; gap:6px; flex-wrap:wrap; }
 
 /* Table card */
@@ -169,7 +181,7 @@ ksort($routeOptions, SORT_NATURAL);
     color: #fff; padding: 14px 20px;
     display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
 }
-.tt2-card-head h2 { margin: 0; font-size: 1rem; font-weight: 800; }
+.tt2-card-head h2 { margin: 0; font-size: 1rem; font-weight: 800; display:flex; align-items:center; gap:8px; }
 .tt2-card-head .meta { font-size: .78rem; opacity: .8; }
 
 /* Notice */
@@ -181,35 +193,38 @@ ksort($routeOptions, SORT_NATURAL);
 /* Read-only bar */
 .tt2-readonly-bar {
     display: flex; align-items: center; gap: 8px;
-    margin: 12px 20px 0;
-    background: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 9px;
-    padding: 9px 14px; font-size: .82rem; color: #5b21b6; font-weight: 600;
+    margin: 0;
+    background: #f5f3ff; border-bottom: 1px solid #e0d9fb;
+    padding: 8px 20px; font-size: .8rem; color: #5b21b6; font-weight: 600;
 }
 
 /* Table */
 .tt2-table { width: 100%; border-collapse: collapse; }
 .tt2-table thead th {
-    background: #7B1C3E; color: #fff;
-    padding: 11px 16px; font-size: .76rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: .06em;
+    background: #fce8ef; color: #7B1C3E;
+    padding: 10px 16px; font-size: .73rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .07em;
     text-align: left; white-space: nowrap;
-    border-right: 1px solid rgba(255,255,255,.1);
+    border-bottom: 2px solid #f3b944;
+    border-right: 1px solid #fbd5e0;
 }
 .tt2-table thead th:last-child { border-right: none; }
 .tt2-table tbody td {
-    padding: 11px 16px; border-bottom: 1px solid #fdf3e3;
+    padding: 12px 16px; border-bottom: 1px solid #fdf3e3;
     vertical-align: middle; font-size: .88rem; color: #1f2937;
 }
 .tt2-table tbody tr:last-child td { border-bottom: none; }
-.tt2-table tbody tr:hover td { background: #fffdf6; }
+.tt2-table tbody tr:nth-child(even) td { background: #fdfaf5; }
+.tt2-table tbody tr:hover td { background: #fff8ee !important; }
 .tt2-table tbody tr.tt2-hidden { display: none; }
 
 /* Bus number cell */
 .tt2-bus {
     font-family: 'Courier New', monospace;
-    font-weight: 800; font-size: .9rem; color: #7B1C3E;
-    background: #fce8ef; border-radius: 6px; padding: 3px 8px;
-    display: inline-block; white-space: nowrap;
+    font-weight: 800; font-size: .88rem; color: #7B1C3E;
+    background: linear-gradient(135deg,#fce8ef,#fbd5e0); border-radius: 6px; padding: 4px 9px;
+    display: inline-block; white-space: nowrap; border: 1px solid #f5c0cc;
+    letter-spacing: .03em;
 }
 
 /* Route cell */
@@ -218,9 +233,9 @@ ksort($routeOptions, SORT_NATURAL);
 
 /* Departure times */
 .tt2-turn {
-    font-weight: 700; color: #1d4ed8; font-size: .85rem;
-    background: #eff6ff; border-radius: 6px; padding: 3px 8px;
-    display: inline-block; white-space: nowrap;
+    font-weight: 700; color: #1d4ed8; font-size: .83rem;
+    background: linear-gradient(135deg,#eff6ff,#dbeafe); border-radius: 6px; padding: 3px 9px;
+    display: inline-block; white-space: nowrap; border: 1px solid #bfdbfe;
 }
 .tt2-turns-wrap { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
 .tt2-turn-empty { color: #d1d5db; font-size: .8rem; }
@@ -228,8 +243,8 @@ ksort($routeOptions, SORT_NATURAL);
 /* Days active */
 .tt2-days { display: flex; gap: 3px; flex-wrap: wrap; }
 .tt2-day-pill {
-    background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;
-    border-radius: 5px; padding: 2px 6px; font-size: .72rem; font-weight: 700;
+    background: linear-gradient(135deg,#f0fdf4,#dcfce7); color: #15803d; border: 1px solid #bbf7d0;
+    border-radius: 5px; padding: 2px 7px; font-size: .72rem; font-weight: 800;
 }
 
 /* Type badges */
@@ -297,7 +312,7 @@ ksort($routeOptions, SORT_NATURAL);
 <!-- ── Filter Bar ── -->
 <div class="tt2-filters" id="tt2Filters">
     <!-- Row 1: Type -->
-    <div class="tt2-filter-row">
+    <div class="tt2-filter-section">
         <span class="tt2-filter-label">Type</span>
         <div class="tt2-type-group" id="typeGroup">
             <label class="tt2-type-pill sel-all"><input type="radio" name="tt2type" value="all" checked> All</label>
@@ -315,7 +330,7 @@ ksort($routeOptions, SORT_NATURAL);
     <hr class="tt2-filter-divider">
 
     <!-- Row 2: Route -->
-    <div class="tt2-filter-row">
+    <div class="tt2-filter-section">
         <span class="tt2-filter-label">Route</span>
         <select class="tt2-route-select" id="routeFilter">
             <option value="">All Routes</option>
@@ -333,7 +348,7 @@ ksort($routeOptions, SORT_NATURAL);
     <hr class="tt2-filter-divider">
 
     <!-- Row 2: Days Active -->
-    <div class="tt2-filter-row">
+    <div class="tt2-filter-section">
         <span class="tt2-filter-label">Days Active</span>
         <div class="tt2-day-filters" id="dayFilters">
             <?php foreach ($dayMap as $di => $dl): ?>
@@ -345,7 +360,7 @@ ksort($routeOptions, SORT_NATURAL);
     <hr class="tt2-filter-divider">
 
     <!-- Row 3: Active During Period -->
-    <div class="tt2-filter-row">
+    <div class="tt2-filter-section">
         <span class="tt2-filter-label">Active During</span>
         <div class="tt2-period-wrap">
             <input type="date" id="periodFrom" placeholder="From">
@@ -353,7 +368,7 @@ ksort($routeOptions, SORT_NATURAL);
             <input type="date" id="periodTo" placeholder="To">
         </div>
         <span style="font-size:.75rem;color:#9ca3af;font-style:italic;">
-            &nbsp;Regular schedules are always active. Special schedules are filtered by their effective date window.
+            Regular schedules are always active. Special schedules are filtered by their effective date window.
         </span>
     </div>
 
