@@ -90,10 +90,9 @@ function tp_time_ago(?string $ts): string {
 
     <div class="tmsg-toolbar">
         <div class="tmsg-filters">
-            <a class="tmsg-filter <?= $filter==='all'     ?'active':'' ?>" href="/TP/messages?filter=all">All</a>
-            <a class="tmsg-filter <?= $filter==='unread'  ?'active':'' ?>" href="/TP/messages?filter=unread">Unread</a>
-            <a class="tmsg-filter <?= $filter==='message' ?'active':'' ?>" href="/TP/messages?filter=message">Messages</a>
-            <a class="tmsg-filter <?= $filter==='alert'   ?'active':'' ?>" href="/TP/messages?filter=alert">Alerts</a>
+            <a class="tmsg-filter <?= $filter==='all'    ?'active':'' ?>" href="/TP/messages?filter=all">All</a>
+            <a class="tmsg-filter <?= $filter==='unread' ?'active':'' ?>" href="/TP/messages?filter=unread">Unread</a>
+            <a class="tmsg-filter <?= $filter==='alert'  ?'active':'' ?>" href="/TP/messages?filter=alert">Alerts</a>
         </div>
         <?php if ($unreadCount > 0): ?>
             <form method="post" action="/TP/messages?action=read_all&filter=<?= urlencode($filter) ?>">

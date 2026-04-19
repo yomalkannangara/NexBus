@@ -1,7 +1,7 @@
 ﻿<?php
 $S              = $S ?? [];
 $recent         = $recent ?? [];
-$filter         = in_array(($filter ?? 'all'), ['all','unread','message','alert'], true) ? $filter : 'all';
+$filter         = in_array(($filter ?? 'all'), ['all','unread','alert'], true) ? $filter : 'all';
 $unreadCount    = (int)($unread_count ?? 0);
 $msg            = $msg ?? null;
 $chatThread     = $chat_thread ?? [];
@@ -100,6 +100,21 @@ function ts_time_ago(?string $ts): string {
 .ts-bubble-row.theirs .ts-bubble-meta { text-align:left; color:#6b7280; }
 .ts-chat-date-sep { text-align:center; font-size:.7rem; color:#9ca3af; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin:6px 0; }
 .ts-no-do-warning { background:#fef9c3; border:1px solid #fde047; border-radius:10px; padding:14px 16px; font-size:.84rem; color:#78350f; font-weight:600; margin:12px; }
+/* bubble context menu */
+.ts-bub-ctx { position:fixed;z-index:2000;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:150px;overflow:hidden;display:none; }
+.ts-bub-ctx button { display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;font-size:13px;color:#374151;cursor:pointer;text-align:left; }
+.ts-bub-ctx button:hover { background:#f3f4f6; }
+.ts-bub-ctx button.danger { color:#dc2626; }
+.ts-bub-ctx button.danger:hover { background:#fef2f2; }
+.ts-bub-ctx hr { margin:2px 0;border:none;border-top:1px solid #f3f4f6; }
+/* inline edit */
+.ts-bub-edit-wrap { display:none;flex-direction:column;gap:6px;padding:4px 0; }
+.ts-bub-edit-wrap textarea { width:100%;border:1px solid #d1d5db;border-radius:8px;padding:7px 10px;font-size:.88rem;resize:vertical;min-height:48px;font-family:inherit; }
+.ts-bub-edit-actions { display:flex;gap:6px; }
+.ts-bub-edit-actions button { padding:4px 12px;border-radius:6px;border:none;font-size:12px;cursor:pointer;font-weight:600; }
+.ts-bub-edit-save { background:var(--sltb);color:#fff; }
+.ts-bub-edit-cancel { background:#f3f4f6;color:#374151; }
+.ts-bub-edited-tag { font-size:.62rem;opacity:.65;margin-left:4px; }
 </style>
 
 <div class="ts-msg-page" id="tsMsgPage">
@@ -127,10 +142,9 @@ function ts_time_ago(?string $ts): string {
   <div class="ts-panel active" id="panelAlerts">
     <div class="ts-alert-toolbar">
       <div class="ts-filter-group">
-        <a class="ts-filter-a <?= $filter==='all'     ?'active':'' ?>" href="/TS/messages?filter=all">All</a>
-        <a class="ts-filter-a <?= $filter==='unread'  ?'active':'' ?>" href="/TS/messages?filter=unread">Unread</a>
-        <a class="ts-filter-a <?= $filter==='message' ?'active':'' ?>" href="/TS/messages?filter=message">Messages</a>
-        <a class="ts-filter-a <?= $filter==='alert'   ?'active':'' ?>" href="/TS/messages?filter=alert">Alerts</a>
+        <a class="ts-filter-a <?= $filter==='all'    ?'active':'' ?>" href="/TS/messages?filter=all">All</a>
+        <a class="ts-filter-a <?= $filter==='unread' ?'active':'' ?>" href="/TS/messages?filter=unread">Unread</a>
+        <a class="ts-filter-a <?= $filter==='alert'  ?'active':'' ?>" href="/TS/messages?filter=alert">Alerts</a>
       </div>
       <?php if ($unreadCount > 0): ?>
         <form method="post" action="/TS/messages?action=read_all&filter=<?= urlencode($filter) ?>">
@@ -207,14 +221,24 @@ function ts_time_ago(?string $ts): string {
           if ($dateStr && $dateStr !== $prevDate): $prevDate = $dateStr; ?>
           <div class="ts-chat-date-sep"><?= htmlspecialchars(date('d F Y', strtotime($time))) ?></div>
         <?php endif; ?>
-        <div class="ts-bubble-row <?= $side ?>" data-dm-id="<?= (int)($m['id'] ?? 0) ?>">
+        <div class="ts-bubble-row <?= $side ?>" data-dm-id="<?= (int)($m['id'] ?? 0) ?>"<?= $isMe ? ' style="cursor:pointer"' : '' ?>>
           <div class="ts-avatar"><?= htmlspecialchars($init) ?></div>
           <div>
             <div class="ts-bubble"><?= nl2br(htmlspecialchars((string)($m['message'] ?? ''))) ?></div>
+            <?php if ($isMe): ?>
+            <div class="ts-bub-edit-wrap">
+              <textarea class="ts-bub-edit-ta"></textarea>
+              <div class="ts-bub-edit-actions">
+                <button type="button" class="ts-bub-edit-save" onclick="tsBubSaveEdit(this)">Save</button>
+                <button type="button" class="ts-bub-edit-cancel" onclick="tsBubCancelEdit(this)">Cancel</button>
+              </div>
+            </div>
+            <?php endif; ?>
             <div class="ts-bubble-meta">
               <?= $isMe ? 'You' : htmlspecialchars($fullN ?: 'Depot') ?>
               <?= (!$isMe && ($m['role'] ?? '')) ? ' &middot; ' . htmlspecialchars($m['role']) : '' ?>
               &middot; <?= htmlspecialchars($timeDisp) ?>
+              <?= !empty($m['edited_at']) ? '<span class="ts-bub-edited-tag">(edited)</span>' : '' ?>
             </div>
           </div>
         </div>
@@ -237,6 +261,25 @@ function ts_time_ago(?string $ts): string {
     <?php endif; ?>
   </div><!-- /panelChat -->
 </div>
+
+<!-- bubble context menu (TS) -->
+<div id="tsBubCtx" class="ts-bub-ctx" role="menu">
+    <button onclick="tsBubAction('copy')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+    </button>
+    <hr>
+    <button onclick="tsBubAction('edit')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+    </button>
+    <hr>
+    <button class="danger" onclick="tsBubAction('delete')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Delete
+    </button>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -245,10 +288,17 @@ var myUserId = <?php echo (int)$myUserId; ?>;
 var lastDmId = 0;
 var chatUnread = 0;
 
-// Seed lastDmId from server-rendered bubbles
+// Seed lastDmId from server-rendered bubbles and attach click handlers to mine bubbles
 document.querySelectorAll('.ts-bubble-row[data-dm-id]').forEach(function(el){
     var n = parseInt(el.dataset.dmId, 10);
     if (!isNaN(n) && n > lastDmId) lastDmId = n;
+    if (el.classList.contains('mine')) {
+        var bub = el.querySelector('.ts-bubble');
+        if (bub) bub.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showTsBubCtx(el, bub);
+        });
+    }
 });
 
 // Tab switching
@@ -307,7 +357,7 @@ window.tsSendChat = function() {
                     String(now.getDate()).padStart(2,'0') + ' ' +
                     String(now.getHours()).padStart(2,'0') + ':' +
                     String(now.getMinutes()).padStart(2,'0') + ':00';
-                appendBubble({ from_user_id: myUserId, message: text, created_at: nowStr }, true);
+                appendBubble({ id: d.id || null, from_user_id: myUserId, message: text, created_at: nowStr }, true);
                 input.value = '';
                 input.style.height = 'auto';
                 removeEmpty();
@@ -334,6 +384,16 @@ function appendBubble(m, isMe) {
     var nameDisp = isMe ? 'You' : esc(fullN || 'Depot');
     var role  = (!isMe && m.role) ? ' &middot; ' + esc(m.role) : '';
     var timeDisp = m.created_at ? m.created_at.substring(11,16) : '';
+    var editedTag = m.edited_at ? '<span class="ts-bub-edited-tag">(edited)</span>' : '';
+    var editWrap = isMe
+        ? '<div class="ts-bub-edit-wrap">' +
+              '<textarea class="ts-bub-edit-ta"></textarea>' +
+              '<div class="ts-bub-edit-actions">' +
+              '<button type="button" class="ts-bub-edit-save" onclick="tsBubSaveEdit(this)">Save</button>' +
+              '<button type="button" class="ts-bub-edit-cancel" onclick="tsBubCancelEdit(this)">Cancel</button>' +
+              '</div>' +
+          '</div>'
+        : '';
     var row   = document.createElement('div');
     row.className = 'ts-bubble-row ' + side;
     if (mid > 0) { row.dataset.dmId = mid; if (mid > lastDmId) lastDmId = mid; }
@@ -341,8 +401,15 @@ function appendBubble(m, isMe) {
         '<div class="ts-avatar">' + esc(init) + '</div>' +
         '<div>' +
         '<div class="ts-bubble">' + esc(m.message || '').replace(/\n/g,'<br>') + '</div>' +
-        '<div class="ts-bubble-meta">' + nameDisp + role + ' &middot; ' + esc(timeDisp) + '</div>' +
+        editWrap +
+        '<div class="ts-bubble-meta">' + nameDisp + role + ' &middot; ' + esc(timeDisp) + editedTag + '</div>' +
         '</div>';
+    if (isMe) {
+        row.querySelector('.ts-bubble').addEventListener('click', function(e) {
+            e.stopPropagation();
+            showTsBubCtx(row, this);
+        });
+    }
     inner.appendChild(row);
 }
 
@@ -424,6 +491,116 @@ function pollAlerts() {
 }
 setTimeout(pollAlerts, 5000);
 setInterval(pollAlerts, 20000);
+
+// ── Bubble context menu (own messages only) ──────────────────────────────
+var _tsBubCtxRow = null;
+
+function showTsBubCtx(row, bubbleEl) {
+    hideTsBubCtx();
+    _tsBubCtxRow = row;
+    var menu = document.getElementById('tsBubCtx');
+    var rect = bubbleEl.getBoundingClientRect();
+    menu.style.display = 'block';
+    var top  = rect.top + window.scrollY - menu.offsetHeight - 6;
+    if (top < 6) top = rect.bottom + window.scrollY + 6;
+    var left = rect.right + window.scrollX - menu.offsetWidth;
+    if (left < 6) left = 6;
+    menu.style.top  = top  + 'px';
+    menu.style.left = left + 'px';
+}
+
+function hideTsBubCtx() {
+    document.getElementById('tsBubCtx').style.display = 'none';
+    _tsBubCtxRow = null;
+}
+
+window.tsBubAction = function(action) {
+    var row = _tsBubCtxRow;
+    hideTsBubCtx();
+    if (!row) return;
+    var bubEl   = row.querySelector('.ts-bubble');
+    var editWr  = row.querySelector('.ts-bub-edit-wrap');
+    var dmId    = parseInt(row.dataset.dmId || '0', 10);
+
+    if (action === 'copy') {
+        var text = bubEl ? bubEl.textContent : '';
+        navigator.clipboard.writeText(text).catch(function(){});
+
+    } else if (action === 'edit') {
+        var ta = row.querySelector('.ts-bub-edit-ta');
+        ta.value = bubEl ? bubEl.textContent.replace(/<br\s*\/?>/gi, '\n') : '';
+        bubEl.style.display = 'none';
+        editWr.style.display = 'flex';
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+
+    } else if (action === 'delete') {
+        if (!confirm('Delete this message?')) return;
+        var fd = new FormData();
+        fd.append('id', String(dmId));
+        fetch('/TS/messages?action=chat_delete', { method: 'POST', body: fd })
+            .then(function(r){ return r.json(); })
+            .then(function(res){ if (res.ok) row.remove(); })
+            .catch(function(){});
+    }
+};
+
+window.tsBubSaveEdit = function(btn) {
+    var row    = btn.closest('.ts-bubble-row');
+    if (!row) return;
+    var ta     = row.querySelector('.ts-bub-edit-ta');
+    var newTxt = ta ? ta.value.trim() : '';
+    if (!newTxt) { if (ta) ta.focus(); return; }
+    var dmId   = parseInt(row.dataset.dmId || '0', 10);
+    if (!dmId) {
+        alert('Message not yet confirmed. Please wait a moment and try again.');
+        return;
+    }
+    btn.disabled = true;
+    var fd = new FormData();
+    fd.append('id', String(dmId));
+    fd.append('message', newTxt);
+    fetch('/TS/messages?action=chat_edit', { method: 'POST', body: fd })
+        .then(function(r){ return r.json(); })
+        .then(function(res) {
+            btn.disabled = false;
+            if (res.ok) {
+                var bubEl  = row.querySelector('.ts-bubble');
+                var editWr = row.querySelector('.ts-bub-edit-wrap');
+                var meta   = row.querySelector('.ts-bubble-meta');
+                bubEl.innerHTML = newTxt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+                bubEl.style.display = '';
+                editWr.style.display = 'none';
+                var tag = meta ? meta.querySelector('.ts-bub-edited-tag') : null;
+                if (meta && !tag) {
+                    tag = document.createElement('span');
+                    tag.className = 'ts-bub-edited-tag';
+                    tag.textContent = '(edited)';
+                    meta.appendChild(tag);
+                }
+            } else {
+                alert('Could not save the edit. Please try again.');
+            }
+        })
+        .catch(function(){ btn.disabled = false; alert('Network error. Please try again.'); });
+};
+
+window.tsBubCancelEdit = function(btn) {
+    var row = btn.closest('.ts-bubble-row');
+    if (!row) return;
+    row.querySelector('.ts-bubble').style.display = '';
+    row.querySelector('.ts-bub-edit-wrap').style.display = 'none';
+};
+
+document.addEventListener('click', function(e) {
+    var menu = document.getElementById('tsBubCtx');
+    if (menu && menu.style.display !== 'none' && !menu.contains(e.target)) {
+        hideTsBubCtx();
+    }
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideTsBubCtx();
+});
 
 })();
 </script>
