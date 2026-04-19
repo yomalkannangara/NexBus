@@ -165,6 +165,9 @@ class TimekeeperSltbController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
+            if (!$this->csrfValid($_POST['csrf'] ?? '')) {
+                echo json_encode(['ok' => false, 'msg' => 'csrf_error']); return;
+            }
             try {
                 $action = $_POST['action'] ?? '';
 
@@ -191,9 +194,10 @@ class TimekeeperSltbController extends BaseController
 
         // --- GET ---
         $this->view('timekeeper_sltb', 'trip_entry', [
-            'rows'     => $m->todayList(),
-            'location' => $m->myLocationLabel(),
-            'upcoming' => $m->upcoming(60),
+            'rows'      => $m->todayList(),
+            'location'  => $m->myLocationLabel(),
+            'upcoming'  => $m->upcoming(60),
+            'csrfToken' => $this->csrfEnsure(),
         ]);
     }
 
@@ -322,6 +326,9 @@ class TimekeeperSltbController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
+            if (!$this->csrfValid($_POST['csrf'] ?? '')) {
+                echo json_encode(['ok' => false, 'msg' => 'csrf_error']); return;
+            }
             try {
                 $action = $_POST['action'] ?? '';
                 $id     = (int)($_POST['trip_id'] ?? 0);
@@ -342,8 +349,9 @@ class TimekeeperSltbController extends BaseController
         }
 
         $this->view('timekeeper_sltb', 'turn_management', [
-            'S'    => $m->info(),
-            'rows' => $m->running(),
+            'S'         => $m->info(),
+            'rows'      => $m->running(),
+            'csrfToken' => $this->csrfEnsure(),
         ]);
     }
 

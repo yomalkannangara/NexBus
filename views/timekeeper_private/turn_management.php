@@ -79,6 +79,7 @@
 <script>
 (function () {
   var ENDPOINT = '/TP/turn_management';
+  var CSRF_TOKEN = '<?= htmlspecialchars($csrfToken ?? '') ?>';
   var pendingTripId = 0;
   var overlay   = document.getElementById('tm-cancel-overlay');
   var reasonEl  = document.getElementById('tm-cancel-reason');
@@ -98,6 +99,7 @@
   function postAction(data, onSuccess, btn) {
     var fd = new FormData();
     Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
+    fd.append('csrf', CSRF_TOKEN);
     fetch(ENDPOINT, { method: 'POST', body: fd })
       .then(function (r) { return r.json(); })
       .then(function (res) {

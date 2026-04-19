@@ -48,6 +48,16 @@ class TimekeeperPrivateController extends BaseController
         return (int)($u['user_id'] ?? $u['id'] ?? 0);
     }
 
+    private function csrfEnsure(): string {
+        if (empty($_SESSION['csrf_tp'])) {
+            $_SESSION['csrf_tp'] = bin2hex(random_bytes(16));
+        }
+        return $_SESSION['csrf_tp'];
+    }
+    private function csrfValid(?string $t): bool {
+        return is_string($t) && hash_equals($_SESSION['csrf_tp'] ?? '', $t);
+    }
+
     /** /TP/dashboard */
     public function dashboard()
     {
@@ -235,6 +245,9 @@ class TimekeeperPrivateController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
+            if (!$this->csrfValid($_POST['csrf'] ?? '')) {
+                echo json_encode(['ok' => false, 'msg' => 'csrf_error']); return;
+            }
             try {
                 $act = $_POST['action'] ?? '';
                 if ($act === 'start') {
@@ -262,10 +275,11 @@ class TimekeeperPrivateController extends BaseController
         }
 
         $this->view('timekeeper_private', 'trip_entry', [
-            'S'        => $m->info(),
-            'location' => $m->myLocationLabel(),
-            'rows'     => $m->todayList(),
-            'upcoming' => $m->upcoming(60),
+            'S'         => $m->info(),
+            'location'  => $m->myLocationLabel(),
+            'rows'      => $m->todayList(),
+            'upcoming'  => $m->upcoming(60),
+            'csrfToken' => $this->csrfEnsure(),
         ]);
     }
 
@@ -275,6 +289,9 @@ class TimekeeperPrivateController extends BaseController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
+            if (!$this->csrfValid($_POST['csrf'] ?? '')) {
+                echo json_encode(['ok' => false, 'msg' => 'csrf_error']); return;
+            }
             try {
                 $action = $_POST['action'] ?? '';
                 $id     = (int)($_POST['trip_id'] ?? 0);
@@ -295,8 +312,9 @@ class TimekeeperPrivateController extends BaseController
         }
 
         $this->view('timekeeper_private', 'turn_management', [
-            'S'    => $m->info(),
-            'rows' => $m->running(),
+            'S'         => $m->info(),
+            'rows'      => $m->running(),
+            'csrfToken' => $this->csrfEnsure(),
         ]);
     }
 

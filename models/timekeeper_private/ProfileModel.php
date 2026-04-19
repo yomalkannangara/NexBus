@@ -42,7 +42,7 @@ class ProfileModel extends BaseModel
         $st = $this->pdo->prepare("SELECT password_hash FROM users WHERE user_id=?");
         $st->execute([$userId]);
         $hash = (string)$st->fetchColumn();
-        if ($hash && !password_verify($current, $hash)) return false;
+        if (!$hash || !password_verify($current, $hash)) return false;
         $newHash = password_hash($new, PASSWORD_DEFAULT);
         $up = $this->pdo->prepare("UPDATE users SET password_hash=? WHERE user_id=?");
         return $up->execute([$newHash, $userId]);

@@ -415,10 +415,12 @@ function tke_delay_text(int $seconds): string {
     }
 
     /* ── POST helper ── */
+    var CSRF_TOKEN = '<?= htmlspecialchars($csrfToken ?? '') ?>';
     function postAction(data, onSuccess, btn) {
         if (btn) btn.disabled = true;
         var fd = new FormData();
         Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
+        fd.append('csrf', CSRF_TOKEN);
         fetch('/TS/trip_entry', { method: 'POST', body: fd })
             .then(function (r) { return r.json(); })
             .then(function (res) {
