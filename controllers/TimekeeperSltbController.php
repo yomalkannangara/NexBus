@@ -229,7 +229,7 @@ class TimekeeperSltbController extends BaseController
         }
 
         $model = new TimekeeperMessageModel();
-        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'message', 'alert'], true)
+        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'alert'], true)
             ? (string)$_GET['filter']
             : 'all';
 
@@ -282,7 +282,28 @@ class TimekeeperSltbController extends BaseController
             $doIds   = $dm->depotOfficerIds($depotId);
             $ids     = ($text !== '' && !empty($doIds)) ? $dm->sendToMultiple($uid, $doIds, $text) : [];
             header('Content-Type: application/json');
-            echo json_encode(['ok' => !empty($ids)]);
+            echo json_encode(['ok' => !empty($ids), 'id' => $ids[0] ?? null]);
+            exit;
+        }
+
+        // ── Direct chat: edit a sent message (broadcast to all DOs) ────────
+        if ($action === 'chat_edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id   = (int)($_POST['id'] ?? 0);
+            $text = trim((string)($_POST['message'] ?? ''));
+            $dm   = new \App\models\common\DirectMessageModel();
+            $ok   = ($id > 0 && $text !== '') ? $dm->editBroadcast($id, $uid, $text) : false;
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => $ok]);
+            exit;
+        }
+
+        // ── Direct chat: delete a sent message (broadcast to all DOs) ───────
+        if ($action === 'chat_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)($_POST['id'] ?? 0);
+            $dm  = new \App\models\common\DirectMessageModel();
+            $ok  = ($id > 0) ? $dm->deleteBroadcast($id, $uid) : false;
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => $ok]);
             exit;
         }
 

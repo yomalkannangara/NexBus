@@ -190,7 +190,7 @@ class TimekeeperPrivateController extends BaseController
         }
 
         $model = new TimekeeperMessageModel();
-        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'message', 'alert'], true)
+        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'alert'], true)
             ? (string)$_GET['filter']
             : 'all';
 

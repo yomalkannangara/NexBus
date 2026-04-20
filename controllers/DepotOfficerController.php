@@ -269,6 +269,37 @@ public function assignmentShifts()
             exit;
         }
 
+        // ── Direct chat: delete entire conversation with a partner ────────
+        // Route: POST /O/messages?action=chat_delete_conv
+        if (($_GET['action'] ?? '') === 'chat_delete_conv' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $partnerId = (int)($_POST['id'] ?? 0);
+            $dm  = new \App\models\common\DirectMessageModel();
+            $ok  = ($partnerId > 0) ? $dm->deleteConversation($uid, $partnerId) : false;
+            $this->json(['ok' => $ok]);
+            exit;
+        }
+
+        // ── Direct chat: edit a sent message ──────────────────────────────
+        // Route: POST /O/messages?action=chat_edit
+        if (($_GET['action'] ?? '') === 'chat_edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id   = (int)($_POST['id'] ?? 0);
+            $text = trim((string)($_POST['message'] ?? ''));
+            $dm   = new \App\models\common\DirectMessageModel();
+            $ok   = ($id > 0 && $text !== '') ? $dm->editMessage($id, $uid, $text) : false;
+            $this->json(['ok' => $ok]);
+            exit;
+        }
+
+        // ── Direct chat: delete a sent message ────────────────────────────
+        // Route: POST /O/messages?action=chat_delete
+        if (($_GET['action'] ?? '') === 'chat_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)($_POST['id'] ?? 0);
+            $dm  = new \App\models\common\DirectMessageModel();
+            $ok  = ($id > 0) ? $dm->deleteMessage($id, $uid) : false;
+            $this->json(['ok' => $ok]);
+            exit;
+        }
+
         // ── Direct chat: DO polls for new messages across all TK chats ─────
         // Route: GET /O/messages?action=chat_poll&since_id=X
         if (($_GET['action'] ?? '') === 'chat_poll') {

@@ -1,5 +1,5 @@
 <?php if(!empty($msg)): ?>
-  <div class="card notice success"><?= htmlspecialchars($msg) ?></div>
+  <div class="card notice <?= (stripos($msg,'fail') !== false || stripos($msg,'error') !== false) ? 'error' : 'success' ?>"><?= htmlspecialchars($msg) ?></div>
 <?php endif; ?>
 
 <section class="page-head">
@@ -7,7 +7,7 @@
   <p class="muted">Help us improve our service</p>
 </section>
 
-<form method="post" enctype="multipart/form-data" class="card form big">
+<form method="post" class="card form big">
   <input type="hidden" name="action" value="create">
 
   <!-- Type -->
@@ -29,7 +29,7 @@
     <div class="field">
       <label class="req">Select Route</label>
       <div class="select-wrap">
-        <select name="route_id" required>
+        <select name="route_id" id="routeSelect" required>
           <option value="">Choose a bus route</option>
           <?php foreach(($routes ?? []) as $r): ?>
             <option value="<?= (int)$r['route_id'] ?>">
@@ -41,10 +41,10 @@
     </div>
 
     <div class="field">
-      <label>Select Bus (Optional)</label>
+      <label>Select Bus <span class="muted" style="font-weight:400;font-size:12px">(Optional)</span></label>
       <div class="select-wrap">
         <select name="bus_id" id="busSelect">
-          <option value="">Choose a bus</option>
+          <option value="">Any bus</option>
         </select>
       </div>
     </div>
@@ -99,7 +99,6 @@
         <?php endfor; ?>
       </select>
     </div>
-    <p class="muted" style="margin:8px 0 0">Tip: Rating is mainly for feedback (not required for complaints).</p>
   </div>
 
   <div class="form-actions">
@@ -169,20 +168,24 @@
 <?php endif; ?>
 
 <script>
-  // Keep UI minimal: disable rating when "Complaint" is selected.
-  (function () {
-    const ratingSelect = document.getElementById('ratingSelect');
-    const typeRadios = document.querySelectorAll('input[name="type"]');
-    if (!ratingSelect || !typeRadios.length) return;
+/* Rating field — hide entirely when Complaint is selected, show for Feedback */
+(function () {
+  const ratingField  = document.getElementById('ratingField');
+  const ratingSelect = document.getElementById('ratingSelect');
+  const typeRadios   = document.querySelectorAll('input[name="type"]');
 
-    function sync() {
-      const selected = document.querySelector('input[name="type"]:checked');
-      const isComplaint = selected && selected.value === 'complaint';
-      ratingSelect.disabled = !!isComplaint;
-      if (isComplaint) ratingSelect.value = '';
+  function syncRating() {
+    const sel = document.querySelector('input[name="type"]:checked');
+    const isComplaint = sel && sel.value === 'complaint';
+    if (ratingField) {
+      ratingField.style.display = isComplaint ? 'none' : '';
     }
+    if (ratingSelect && isComplaint) {
+      ratingSelect.value = ''; // clear value so it's not submitted
+    }
+  }
 
-    typeRadios.forEach(r => r.addEventListener('change', sync));
-    sync();
-  })();
+  typeRadios.forEach(r => r.addEventListener('change', syncRating));
+  syncRating(); // run on load
+})();
 </script>

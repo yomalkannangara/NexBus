@@ -107,13 +107,20 @@ class PassengerController extends BaseController
     /** Feedback submission and listing (supports AJAX route->buses). */
     public function feedback()
     {
-        $m = new \App\models\Passenger\FeedbackModel();
+        $m = new FeedbackModel();
         $msg = null;
 
         // --- AJAX: bus list (public – no auth needed) ---
         if (isset($_GET['route_id']) && is_numeric($_GET['route_id'])) {
-            header('Content-Type: application/json');
-            echo json_encode($m->busesByRoute((int)$_GET['route_id']));
+            header('Content-Type: application/json; charset=UTF-8');
+            try {
+                echo json_encode($m->busesByRoute((int)$_GET['route_id']));
+            }
+            catch (\Throwable $e) {
+                http_response_code(500);
+                error_log('[Feedback busesByRoute] ' . $e->getMessage());
+                echo json_encode([]);
+            }
             return;
         }
 
@@ -126,11 +133,17 @@ class PassengerController extends BaseController
         // --- Handle form submission ---
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create') {
             try {
-                $m->addFeedback($_POST, $passengerId);
-                $msg = 'Thanks! Submitted.';
+                $newId = $m->addFeedback($_POST, $passengerId);
+                $msg = 'Thanks! Your feedback has been submitted. Ref #' . $newId;
             }
             catch (\Throwable $e) {
-                $msg = 'Submit failed.';
+                error_log('[Feedback] ' . $e->getMessage());
+                if ($e instanceof \PDOException || stripos($e->getMessage(), 'SQLSTATE') !== false) {
+                    $msg = 'Submit failed. Please try again.';
+                }
+                else {
+                    $msg = 'Submit failed: ' . $e->getMessage();
+                }
             }
         }
 

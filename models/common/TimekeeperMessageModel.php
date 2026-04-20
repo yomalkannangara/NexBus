@@ -18,7 +18,7 @@ class TimekeeperMessageModel extends BaseModel
 
     private function baseTypeFilter(): string
     {
-        return "n.type IN ('Message','Delay','Timetable','Alert','Breakdown')";
+        return "n.type IN ('Delay','Timetable','Alert','Breakdown')";
     }
 
     public function recentForUser(int $userId, int $limit = 50, string $filter = 'all'): array
@@ -74,10 +74,34 @@ class TimekeeperMessageModel extends BaseModel
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute([':uid' => $userId]);
-            return $st->fetchAll(PDO::FETCH_ASSOC);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             return [];
         }
+
+        // Deduplicate: same type + message + timestamp can appear multiple times
+        // when a broadcast was inserted more than once. Keep the row where
+        // is_seen=0 (so unread status is preserved), otherwise keep the latest id.
+        $seen = [];
+        $deduped = [];
+        foreach ($rows as $row) {
+            $key = $row['type'] . '|' . $row['message'] . '|' . $row['created_at'];
+            if (!isset($seen[$key])) {
+                $seen[$key] = true;
+                $deduped[] = $row;
+            } elseif ((int)($row['is_seen'] ?? 1) === 0) {
+                // Replace already-stored duplicate with unread version
+                foreach ($deduped as &$d) {
+                    $dk = $d['type'] . '|' . $d['message'] . '|' . $d['created_at'];
+                    if ($dk === $key && (int)($d['is_seen'] ?? 1) !== 0) {
+                        $d = $row;
+                        break;
+                    }
+                }
+                unset($d);
+            }
+        }
+        return $deduped;
     }
 
     public function unreadCount(int $userId): int
@@ -92,7 +116,7 @@ class TimekeeperMessageModel extends BaseModel
             $archiveClause = " AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(n.metadata, '$.archived')), 'false') <> 'true'";
         }
 
-        $sql = "SELECT COUNT(*)
+        $sql = "SELECT COUNT(DISTINCT CONCAT(n.type,'|',n.message,'|',n.created_at))
                 FROM notifications n
                 WHERE n.user_id = :uid
                   AND n.is_seen = 0

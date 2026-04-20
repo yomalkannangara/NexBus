@@ -25,6 +25,8 @@ class DirectMessageModel extends BaseModel
                     to_user_id   INT UNSIGNED NOT NULL,
                     message      TEXT         NOT NULL,
                     is_read      TINYINT(1)   NOT NULL DEFAULT 0,
+                    is_deleted   TINYINT(1)   NOT NULL DEFAULT 0,
+                    edited_at    DATETIME     NULL DEFAULT NULL,
                     created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     INDEX idx_pair_fwd  (from_user_id, to_user_id, created_at),
                     INDEX idx_pair_rev  (to_user_id, from_user_id, created_at),
@@ -34,6 +36,9 @@ class DirectMessageModel extends BaseModel
         } catch (\Throwable $e) {
             // Ignore — table may already exist
         }
+        // Add columns introduced in later versions (silently ignored if already present)
+        try { $this->pdo->exec("ALTER TABLE direct_messages ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0"); } catch (\Throwable $e) {}
+        try { $this->pdo->exec("ALTER TABLE direct_messages ADD COLUMN edited_at DATETIME NULL DEFAULT NULL"); } catch (\Throwable $e) {}
     }
 
     /** Return DepotOfficer/DepotManager user IDs for an SLTB depot. */
@@ -101,12 +106,13 @@ class DirectMessageModel extends BaseModel
         if ($userA <= 0 || $userB <= 0) return [];
         $params = [$userA, $userB, $userB, $userA];
         $sql = "
-            SELECT dm.id, dm.from_user_id, dm.to_user_id, dm.message, dm.is_read, dm.created_at,
+            SELECT dm.id, dm.from_user_id, dm.to_user_id, dm.message, dm.is_read, dm.created_at, dm.edited_at,
                    u.first_name, u.last_name, u.role
             FROM direct_messages dm
             JOIN users u ON u.user_id = dm.from_user_id
-            WHERE (dm.from_user_id = ? AND dm.to_user_id = ?)
-               OR (dm.from_user_id = ? AND dm.to_user_id = ?)
+            WHERE ((dm.from_user_id = ? AND dm.to_user_id = ?)
+               OR (dm.from_user_id = ? AND dm.to_user_id = ?))
+              AND dm.is_deleted = 0
         ";
         if ($sinceId > 0) { $sql .= " AND dm.id > ?"; $params[] = $sinceId; }
         $sql .= " ORDER BY dm.created_at ASC, dm.id ASC LIMIT " . min(200, max(1, $limit));
@@ -120,6 +126,8 @@ class DirectMessageModel extends BaseModel
     /**
      * Get all messages between a TK and any of the depot officer user IDs.
      * De-duplicates TK→DO messages that were broadcast (same text, same second).
+     * NOTE: sinceId filtering is applied AFTER dedup so duplicate copies with
+     * higher IDs never sneak through on subsequent polls.
      */
     public function threadWithDepot(int $tkId, array $doIds, int $limit = 150, int $sinceId = 0): array
     {
@@ -127,33 +135,44 @@ class DirectMessageModel extends BaseModel
         if ($tkId <= 0 || empty($doIds)) return [];
         $ph = implode(',', array_fill(0, count($doIds), '?'));
         $params = array_merge([$tkId], $doIds, [$tkId], $doIds);
+        // Fetch the full thread without sinceId — dedup must see all copies
         $sql = "
-            SELECT dm.id, dm.from_user_id, dm.to_user_id, dm.message, dm.is_read, dm.created_at,
+            SELECT dm.id, dm.from_user_id, dm.to_user_id, dm.message, dm.is_read, dm.created_at, dm.edited_at,
                    u.first_name, u.last_name, u.role
             FROM direct_messages dm
             JOIN users u ON u.user_id = dm.from_user_id
-            WHERE (dm.from_user_id = ? AND dm.to_user_id IN ({$ph}))
-               OR (dm.to_user_id = ? AND dm.from_user_id IN ({$ph}))
+            WHERE ((dm.from_user_id = ? AND dm.to_user_id IN ({$ph}))
+               OR (dm.to_user_id = ? AND dm.from_user_id IN ({$ph})))
+              AND dm.is_deleted = 0
+            ORDER BY dm.created_at ASC, dm.id ASC
         ";
-        if ($sinceId > 0) { $sql .= " AND dm.id > ?"; $params[] = $sinceId; }
-        $sql .= " ORDER BY dm.created_at ASC, dm.id ASC LIMIT " . min(200, max(1, $limit));
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
             $rows = $st->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) { return []; }
 
-        // De-duplicate: TK's broadcast messages (same text, same second) → keep only first row
+        // De-duplicate: same sender + same text + same timestamp → keep only first row
+        // This covers both TK's broadcast copies (TK→multiple DOs) and any duplicate DO replies
         $seen = [];
         $deduped = [];
         foreach ($rows as $row) {
-            if ((int)$row['from_user_id'] === $tkId) {
-                $key = $row['message'] . '|' . $row['created_at'];
-                if (isset($seen[$key])) continue;
-                $seen[$key] = true;
-            }
+            $key = $row['from_user_id'] . '|' . $row['message'] . '|' . $row['created_at'];
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
             $deduped[] = $row;
         }
+
+        // Apply sinceId AFTER dedup so duplicate copies with higher IDs don't slip through
+        if ($sinceId > 0) {
+            $deduped = array_values(array_filter($deduped, fn($r) => (int)$r['id'] > $sinceId));
+        }
+
+        // Apply limit (keep most recent)
+        if (count($deduped) > $limit) {
+            $deduped = array_slice($deduped, -$limit);
+        }
+
         return $deduped;
     }
 
@@ -249,10 +268,105 @@ class DirectMessageModel extends BaseModel
         if ($userId <= 0) return 0;
         try {
             $st = $this->pdo->prepare(
-                "SELECT COUNT(*) FROM direct_messages WHERE to_user_id = ? AND is_read = 0"
+                "SELECT COUNT(*) FROM direct_messages WHERE to_user_id = ? AND is_read = 0 AND is_deleted = 0"
             );
             $st->execute([$userId]);
             return (int)$st->fetchColumn();
         } catch (\Throwable $e) { return 0; }
+    }
+
+    /**
+     * Soft-delete all messages in a conversation between two users.
+     * Used when a DO deletes a chat thread from their inbox.
+     */
+    public function deleteConversation(int $userA, int $userB): bool
+    {
+        if ($userA <= 0 || $userB <= 0) return false;
+        try {
+            $st = $this->pdo->prepare(
+                "UPDATE direct_messages SET is_deleted = 1
+                 WHERE (from_user_id = ? AND to_user_id = ?)
+                    OR (from_user_id = ? AND to_user_id = ?)"
+            );
+            $st->execute([$userA, $userB, $userB, $userA]);
+            return true;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** Edit a single direct message (1:1 chat, DO↔TK). Returns true if updated. */
+    public function editMessage(int $id, int $fromUserId, string $newText): bool
+    {
+        $newText = trim($newText);
+        if (!$newText || $id <= 0 || $fromUserId <= 0) return false;
+        try {
+            $st = $this->pdo->prepare(
+                "UPDATE direct_messages SET message = ?, edited_at = NOW()
+                 WHERE id = ? AND from_user_id = ? AND is_deleted = 0"
+            );
+            $st->execute([$newText, $id, $fromUserId]);
+            return $st->rowCount() > 0;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /** Soft-delete a single direct message (1:1 chat). Returns true if deleted. */
+    public function deleteMessage(int $id, int $fromUserId): bool
+    {
+        if ($id <= 0 || $fromUserId <= 0) return false;
+        try {
+            $st = $this->pdo->prepare(
+                "UPDATE direct_messages SET is_deleted = 1 WHERE id = ? AND from_user_id = ?"
+            );
+            $st->execute([$id, $fromUserId]);
+            return $st->rowCount() > 0;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * Edit a broadcast message and all its copies (TK→multiple DOs).
+     * Matches all rows with the same sender, message text, and timestamp.
+     */
+    public function editBroadcast(int $id, int $fromUserId, string $newText): bool
+    {
+        $newText = trim($newText);
+        if (!$newText || $id <= 0 || $fromUserId <= 0) return false;
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT message, created_at FROM direct_messages
+                 WHERE id = ? AND from_user_id = ? AND is_deleted = 0 LIMIT 1"
+            );
+            $st->execute([$id, $fromUserId]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return false;
+            $st2 = $this->pdo->prepare(
+                "UPDATE direct_messages SET message = ?, edited_at = NOW()
+                 WHERE from_user_id = ? AND message = ? AND created_at = ? AND is_deleted = 0"
+            );
+            $st2->execute([$newText, $fromUserId, $row['message'], $row['created_at']]);
+            return $st2->rowCount() > 0;
+        } catch (\Throwable $e) { return false; }
+    }
+
+    /**
+     * Soft-delete a broadcast message and all its copies (TK→multiple DOs).
+     * Matches all rows with the same sender, message text, and timestamp.
+     */
+    public function deleteBroadcast(int $id, int $fromUserId): bool
+    {
+        if ($id <= 0 || $fromUserId <= 0) return false;
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT message, created_at FROM direct_messages
+                 WHERE id = ? AND from_user_id = ? LIMIT 1"
+            );
+            $st->execute([$id, $fromUserId]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return false;
+            $st2 = $this->pdo->prepare(
+                "UPDATE direct_messages SET is_deleted = 1
+                 WHERE from_user_id = ? AND message = ? AND created_at = ?"
+            );
+            $st2->execute([$fromUserId, $row['message'], $row['created_at']]);
+            return $st2->rowCount() > 0;
+        } catch (\Throwable $e) { return false; }
     }
 }

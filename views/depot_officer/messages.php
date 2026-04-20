@@ -225,6 +225,15 @@ $flashMessages = [
 .msg-empty {
     padding:40px 20px; text-align:center; color:#9ca3af; font-size:13px;
 }
+/* inbox item delete button */
+.msg-item-del {
+    display:none; flex-shrink:0; align-self:center;
+    border:none; background:none; cursor:pointer;
+    padding:4px 6px; border-radius:6px; color:#9ca3af;
+    transition:color .12s, background .12s;
+}
+.msg-item-del:hover { color:#dc2626; background:#fee2e2; }
+.msg-item:hover .msg-item-del { display:flex; align-items:center; justify-content:center; }
 
 /* ── centre: thread / detail ───────────────────────────────────────────── */
 .msg-thread {
@@ -493,7 +502,40 @@ $flashMessages = [
 .do-bubble-meta { font-size:10px;color:#9ca3af;margin-top:3px; }
 .do-bubble-row.mine   .do-bubble-meta { text-align:right; }
 .do-chat-empty { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#d1c4b0;gap:8px;font-size:13px; }
+/* bubble context menu */
+.do-bub-ctx { position:fixed;z-index:2000;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:150px;overflow:hidden;display:none; }
+.do-bub-ctx button { display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;font-size:13px;color:#374151;cursor:pointer;text-align:left; }
+.do-bub-ctx button:hover { background:#f3f4f6; }
+.do-bub-ctx button.danger { color:#dc2626; }
+.do-bub-ctx button.danger:hover { background:#fef2f2; }
+.do-bub-ctx hr { margin:2px 0;border:none;border-top:1px solid #f3f4f6; }
+/* inline edit area */
+.do-bub-edit-wrap { display:none;flex-direction:column;gap:6px;padding:4px 0; }
+.do-bub-edit-wrap textarea { width:100%;border:1px solid #d1d5db;border-radius:8px;padding:7px 10px;font-size:13px;resize:vertical;min-height:48px;font-family:inherit; }
+.do-bub-edit-actions { display:flex;gap:6px; }
+.do-bub-edit-actions button { padding:4px 12px;border-radius:6px;border:none;font-size:12px;cursor:pointer;font-weight:600; }
+.do-bub-edit-save { background:#b91c1c;color:#fff; }
+.do-bub-edit-cancel { background:#f3f4f6;color:#374151; }
+.do-bub-edited-tag { font-size:10px;opacity:.65;margin-left:4px; }
 </style>
+
+<!-- bubble context menu (shared, repositioned by JS) -->
+<div id="doBubCtx" class="do-bub-ctx" role="menu">
+    <button id="doBubCopy" onclick="doBubAction('copy')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+    </button>
+    <hr>
+    <button id="doBubEdit" onclick="doBubAction('edit')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+    </button>
+    <hr>
+    <button id="doBubDelete" class="danger" onclick="doBubAction('delete')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Delete
+    </button>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
      PAGE HTML
@@ -615,6 +657,10 @@ $flashMessages = [
                             <div class="msg-unread-dot"></div>
                             <div class="msg-unread-badge"><?= $convUnread ?></div>
                         <?php endif; ?>
+                        <button type="button" class="msg-item-del" title="Delete conversation"
+                            onclick="inboxDeleteItem(event,this,'dm',<?= $pid ?>)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
                     </div>
                     <?php else:
                             $nid      = (int)($item['notification_id'] ?? $item['id'] ?? 0);
@@ -654,6 +700,10 @@ $flashMessages = [
                             <div class="msg-unread-dot"></div>
                             <div class="msg-unread-badge">Unread</div>
                         <?php endif; ?>
+                        <button type="button" class="msg-item-del" title="Delete"
+                            onclick="inboxDeleteItem(event,this,'notif',<?= $nid ?>)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
                     </div>
                     <?php endif; ?>
                     <?php endforeach; ?>
@@ -1567,6 +1617,7 @@ function appendDoChatBubble(m, bodyEl) {
     const fname   = (m.first_name || '') + (m.last_name ? ' ' + m.last_name : '');
     const initial = (isMe ? 'D' : (fname || 'T')).charAt(0).toUpperCase();
     const timeStr = formatRelTime(m.created_at || '');
+    const editedTag = m.edited_at ? '<span class="do-bub-edited-tag">(edited)</span>' : '';
 
     const row = document.createElement('div');
     row.dataset.doDmId = m.id;
@@ -1576,8 +1627,22 @@ function appendDoChatBubble(m, bodyEl) {
         '<div class="do-bubble-avatar">' + esc(initial) + '</div>' +
         '<div class="do-bubble-text">' +
             '<div class="do-bubble-msg">' + esc(m.message || '') + '</div>' +
-            '<div class="do-bubble-meta" data-prefix="' + esc(isMe ? 'You' : fname) + '" data-ts="' + esc(m.created_at || '') + '">' + esc(isMe ? 'You' : fname) + ' · ' + esc(timeStr) + '</div>' +
+            '<div class="do-bub-edit-wrap">' +
+                '<textarea class="do-bub-edit-ta"></textarea>' +
+                '<div class="do-bub-edit-actions">' +
+                    '<button class="do-bub-edit-save" onclick="doBubSaveEdit(this)">Save</button>' +
+                    '<button class="do-bub-edit-cancel" onclick="doBubCancelEdit(this)">Cancel</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="do-bubble-meta" data-prefix="' + esc(isMe ? 'You' : fname) + '" data-ts="' + esc(m.created_at || '') + '">' + esc(isMe ? 'You' : fname) + ' · ' + esc(timeStr) + editedTag + '</div>' +
         '</div>';
+
+    if (isMe) {
+        row.querySelector('.do-bubble-msg').addEventListener('click', function(e) {
+            e.stopPropagation();
+            showDoBubCtx(row, this);
+        });
+    }
 
     bodyEl.appendChild(row);
     bodyEl.scrollTop = bodyEl.scrollHeight;
@@ -1633,6 +1698,143 @@ function sendChatReply(text) {
         })
         .catch(() => { btn.disabled = false; });
 }
+
+// ── Bubble context menu (own messages only) ─────────────────────────────
+let _doBubCtxRow = null;
+
+function showDoBubCtx(row, bubbleEl) {
+    hideDoBubCtx();
+    _doBubCtxRow = row;
+    const menu = document.getElementById('doBubCtx');
+    const rect = bubbleEl.getBoundingClientRect();
+    menu.style.display = 'block';
+    // Position above the bubble, aligned to the right
+    let top = rect.top + window.scrollY - menu.offsetHeight - 6;
+    if (top < 6) top = rect.bottom + window.scrollY + 6;
+    let left = rect.right + window.scrollX - menu.offsetWidth;
+    if (left < 6) left = 6;
+    menu.style.top  = top  + 'px';
+    menu.style.left = left + 'px';
+}
+
+function hideDoBubCtx() {
+    document.getElementById('doBubCtx').style.display = 'none';
+    _doBubCtxRow = null;
+}
+
+window.doBubAction = function(action) {
+    const row = _doBubCtxRow;
+    hideDoBubCtx();
+    if (!row) return;
+    const msgEl  = row.querySelector('.do-bubble-msg');
+    const editWr = row.querySelector('.do-bub-edit-wrap');
+    const dmId   = parseInt(row.dataset.doDmId || '0', 10);
+
+    if (action === 'copy') {
+        const text = msgEl ? msgEl.textContent : '';
+        navigator.clipboard.writeText(text).catch(() => {});
+
+    } else if (action === 'edit') {
+        const ta = row.querySelector('.do-bub-edit-ta');
+        ta.value = msgEl ? msgEl.textContent : '';
+        msgEl.style.display = 'none';
+        editWr.style.display = 'flex';
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+
+    } else if (action === 'delete') {
+        if (!confirm('Delete this message?')) return;
+        const fd = new FormData();
+        fd.append('id', String(dmId));
+        fetch('/O/messages?action=chat_delete', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(res => { if (res.ok) row.remove(); })
+            .catch(() => {});
+    }
+};
+
+window.doBubSaveEdit = function(btn) {
+    const row   = btn.closest('.do-bubble-row');
+    if (!row) return;
+    const ta    = row.querySelector('.do-bub-edit-ta');
+    const newTxt = ta ? ta.value.trim() : '';
+    if (!newTxt) { if (ta) ta.focus(); return; }
+    const dmId  = parseInt(row.dataset.doDmId || '0', 10);
+    if (!dmId) {
+        alert('Message not yet confirmed. Please wait a moment and try again.');
+        return;
+    }
+    btn.disabled = true;
+    const fd = new FormData();
+    fd.append('id', String(dmId));
+    fd.append('message', newTxt);
+    fetch('/O/messages?action=chat_edit', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(res => {
+            btn.disabled = false;
+            if (res.ok) {
+                const msgEl  = row.querySelector('.do-bubble-msg');
+                const editWr = row.querySelector('.do-bub-edit-wrap');
+                const meta   = row.querySelector('.do-bubble-meta');
+                msgEl.textContent = newTxt;
+                msgEl.style.display = '';
+                editWr.style.display = 'none';
+                let tag = meta ? meta.querySelector('.do-bub-edited-tag') : null;
+                if (meta && !tag) {
+                    tag = document.createElement('span');
+                    tag.className = 'do-bub-edited-tag';
+                    tag.textContent = '(edited)';
+                    meta.appendChild(tag);
+                }
+            } else {
+                alert('Could not save the edit. Please try again.');
+            }
+        })
+        .catch(() => { btn.disabled = false; alert('Network error. Please try again.'); });
+};
+
+window.doBubCancelEdit = function(btn) {
+    const row = btn.closest('.do-bubble-row');
+    if (!row) return;
+    row.querySelector('.do-bubble-msg').style.display = '';
+    row.querySelector('.do-bub-edit-wrap').style.display = 'none';
+};
+
+// ── Inbox item delete ───────────────────────────────────────────────────
+window.inboxDeleteItem = function(e, btn, kind, id) {
+    e.stopPropagation();
+    if (!confirm('Delete this ' + (kind === 'dm' ? 'conversation' : 'alert') + '?')) return;
+    btn.disabled = true;
+    const item = btn.closest('.msg-item');
+    const fd = new FormData();
+    fd.append('id', String(id));
+    const url = kind === 'dm'
+        ? '/O/messages?action=chat_delete_conv'
+        : '/O/messages?action=archive&id=' + id;
+    fetch(url, { method: 'POST', body: kind === 'dm' ? fd : undefined })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok || res.status === 'ok') {
+                item.style.transition = 'opacity .2s';
+                item.style.opacity = '0';
+                setTimeout(() => { item.remove(); }, 200);
+            } else {
+                btn.disabled = false;
+            }
+        })
+        .catch(() => { btn.disabled = false; });
+};
+
+// Close context menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('doBubCtx');
+    if (menu && menu.style.display !== 'none' && !menu.contains(e.target)) {
+        hideDoBubCtx();
+    }
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideDoBubCtx();
+});
 
 })();
 </script>

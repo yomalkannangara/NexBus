@@ -50,7 +50,6 @@ class BusModel extends BaseModel
                     b.reg_no AS bus_number,
                     b.private_operator_id,
                     b.chassis_no,
-                    b.manufactured_date,
                     b.manufactured_year,
                     b.model,
                     b.bus_class,
@@ -133,15 +132,14 @@ class BusModel extends BaseModel
     public function create(array $d): bool
     {
         $sql = "INSERT INTO private_buses 
-                    (reg_no, private_operator_id, chassis_no, manufactured_date, manufactured_year, model, bus_class, capacity, status)
-                VALUES (:reg_no, :op, :chassis_no, :manufactured_date, :manufactured_year, :model, :bus_class, :capacity, :status)";
+                    (reg_no, private_operator_id, chassis_no, manufactured_year, model, bus_class, capacity, status)
+                VALUES (:reg_no, :op, :chassis_no, :manufactured_year, :model, :bus_class, :capacity, :status)";
         $st = $this->pdo->prepare($sql);
         try {
             return $st->execute([
                 ':reg_no'     => $d['reg_no'] ?? null,
                 ':op'         => $d['private_operator_id'] ?? $this->operatorId,
                 ':chassis_no' => $d['chassis_no'] ?? null,
-                ':manufactured_date' => $d['manufactured_date'] ?? null,
                 ':manufactured_year' => $this->normalizeYear($d['manufactured_year'] ?? null),
                 ':model'      => $d['model'] ?? null,
                 ':bus_class'  => $this->normalizeBusClass($d['bus_class'] ?? null),
@@ -169,7 +167,6 @@ class BusModel extends BaseModel
 
         $sql = "UPDATE private_buses
                    SET chassis_no        = :chassis_no,
-                       manufactured_date = :manufactured_date,
                        manufactured_year = :manufactured_year,
                        model      = :model,
                        bus_class  = :bus_class,
@@ -179,7 +176,6 @@ class BusModel extends BaseModel
 
         $params = [
             ':chassis_no'         => $d['chassis_no'] ?? null,
-            ':manufactured_date'  => $d['manufactured_date'] ?? null,
             ':manufactured_year'  => $this->normalizeYear($d['manufactured_year'] ?? null),
             ':model'              => $d['model'] ?? null,
             ':bus_class'          => $this->normalizeBusClass($d['bus_class'] ?? null),
