@@ -10,7 +10,154 @@ $filterFrom = htmlspecialchars($filters['from'] ?? '');
 $filterTo = htmlspecialchars($filters['to'] ?? '');
 $filterMonth = (int)($filters['month'] ?? 0);
 $filterYear = htmlspecialchars($filters['year'] ?? '');
+$flashMsg = trim((string)($_GET['msg'] ?? ''));
 ?>
+
+<?php if ($flashMsg === 'created'): ?>
+<style>
+.dm-success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10050;
+  padding: 16px;
+}
+.dm-success-modal {
+  width: min(460px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 46px rgba(17, 24, 39, 0.3);
+  overflow: hidden;
+  animation: dmSuccessPop 240ms ease-out;
+  border: 1px solid rgba(128, 20, 60, 0.18);
+}
+.dm-success-head {
+  background: linear-gradient(135deg, #7B1C3E, #9b2450);
+  color: #fff;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 3px solid #f3b944;
+}
+.dm-success-head h3 {
+  margin: 0;
+  font-size: 1.03rem;
+  font-weight: 800;
+}
+.dm-success-body {
+  padding: 18px;
+  color: #1f2937;
+  line-height: 1.45;
+}
+.dm-success-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dm-success-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border: 1px solid #86efac;
+  color: #15803d;
+  flex: 0 0 auto;
+}
+.dm-success-title {
+  margin: 0;
+  font-weight: 800;
+  color: #111827;
+}
+.dm-success-sub {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+.dm-success-foot {
+  padding: 14px 18px 16px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+}
+.dm-success-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #7B1C3E, #a8274e);
+  box-shadow: 0 6px 16px rgba(123, 28, 62, 0.28);
+}
+.dm-success-btn:hover { filter: brightness(1.05); }
+
+@keyframes dmSuccessPop {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+
+<div id="dmSuccessOverlay" class="dm-success-overlay" role="dialog" aria-modal="true" aria-labelledby="dmSuccessTitle">
+  <div class="dm-success-modal">
+    <div class="dm-success-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <h3 id="dmSuccessTitle">Depot Manager Notice</h3>
+    </div>
+    <div class="dm-success-body">
+      <div class="dm-success-row">
+        <span class="dm-success-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+        </span>
+        <div>
+          <p class="dm-success-title">Timetable Created Successfully</p>
+          <p class="dm-success-sub">Your new schedule has been saved and is now visible in the timetable snapshot.</p>
+        </div>
+      </div>
+    </div>
+    <div class="dm-success-foot">
+      <button type="button" id="dmSuccessOkBtn" class="dm-success-btn">Great</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  const overlay = document.getElementById('dmSuccessOverlay');
+  const okBtn = document.getElementById('dmSuccessOkBtn');
+
+  function closePopup() {
+    if (overlay) overlay.remove();
+  }
+
+  if (okBtn) okBtn.addEventListener('click', closePopup);
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closePopup();
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      closePopup();
+    }
+  });
+
+  // Remove msg from URL so popup does not reappear on page refresh.
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('msg');
+    window.history.replaceState({}, '', url.toString());
+  } catch (e) {}
+});
+</script>
+<?php endif; ?>
 
 <div class="container">
 <h1>Emergency / Seasonal Timetables</h1>
