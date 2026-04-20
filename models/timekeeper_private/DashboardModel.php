@@ -33,6 +33,89 @@ class DashboardModel extends BaseModel
         return $st->fetchColumn();
     }
 
+    private function statsForLocationScope(int $todayDow): array
+    {
+        $scope = $this->visiblePrivateTimetablesForDay($todayDow);
+        $rows = $scope['rows'] ?? [];
+        $timetableIds = $scope['timetable_ids'] ?? [];
+        $busRegs = $scope['bus_reg_nos'] ?? [];
+        $scopeName = $this->locationDisplayName();
+
+        $stats = [
+            'total_buses' => count($busRegs),
+            'total_trips_today' => count($rows),
+            'delayed_buses_total' => 0,
+            'completed_trips_today' => 0,
+            'trips_left_today' => count($rows),
+            'running_buses_now' => 0,
+            'scope_mode' => 'location',
+            'scope_name' => $scopeName,
+        ];
+
+        if (empty($timetableIds)) {
+            return $stats;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($timetableIds), '?'));
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT private_trip_id, timetable_id, bus_reg_no, status, arrival_time
+                 FROM private_trips
+                 WHERE trip_date = CURDATE()
+                   AND timetable_id IN ({$placeholders})
+                 ORDER BY private_trip_id DESC"
+            );
+            $st->execute($timetableIds);
+            $tripRows = $st->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return $stats;
+        }
+
+        $latestTripByTimetable = [];
+        foreach ($tripRows as $tripRow) {
+            $timetableId = (int)($tripRow['timetable_id'] ?? 0);
+            if ($timetableId > 0 && !isset($latestTripByTimetable[$timetableId])) {
+                $latestTripByTimetable[$timetableId] = $tripRow;
+            }
+        }
+
+        $delayedBusRegs = [];
+        $runningBusRegs = [];
+        $completedTrips = 0;
+        $tripsLeft = 0;
+
+        foreach ($timetableIds as $timetableId) {
+            $trip = $latestTripByTimetable[(int)$timetableId] ?? null;
+            if ($trip === null) {
+                $tripsLeft++;
+                continue;
+            }
+
+            $status = (string)($trip['status'] ?? '');
+            $busReg = trim((string)($trip['bus_reg_no'] ?? ''));
+            $hasArrival = trim((string)($trip['arrival_time'] ?? '')) !== '';
+
+            if ($status === 'Delayed' && $busReg !== '') {
+                $delayedBusRegs[$busReg] = true;
+            }
+            if ($status === 'Completed' || ($status === 'Delayed' && $hasArrival)) {
+                $completedTrips++;
+            }
+            if (($status === 'InProgress' || ($status === 'Delayed' && !$hasArrival)) && $busReg !== '') {
+                $runningBusRegs[$busReg] = true;
+            }
+            if ($status === 'Planned' || $status === 'InProgress' || ($status === 'Delayed' && !$hasArrival)) {
+                $tripsLeft++;
+            }
+        }
+
+        $stats['delayed_buses_total'] = count($delayedBusRegs);
+        $stats['completed_trips_today'] = $completedTrips;
+        $stats['trips_left_today'] = $tripsLeft;
+        $stats['running_buses_now'] = count($runningBusRegs);
+        return $stats;
+    }
+
     private function countAssignedBuses(int $opId, string $date): int
     {
         if ($opId > 0) {
@@ -235,6 +318,10 @@ class DashboardModel extends BaseModel
         $opId = $this->resolvedOperatorId();
         $todayDow = (int)date('w');
 
+        if ($opId <= 0) {
+            return $this->statsForLocationScope($todayDow);
+        }
+
         $busParams = [];
         $busScope = '1=1';
         if ($opId > 0) {
@@ -321,6 +408,8 @@ class DashboardModel extends BaseModel
             'completed_trips_today' => $completedTripsToday,
             'trips_left_today' => $tripsLeftToday,
             'running_buses_now' => $runningBusesNow,
+            'scope_mode' => 'operator',
+            'scope_name' => '',
         ];
     }
 }

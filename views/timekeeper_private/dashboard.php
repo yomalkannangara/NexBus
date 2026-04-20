@@ -1,4 +1,10 @@
-<?php $S = $S ?? []; $stats = $stats ?? []; ?>
+<?php
+$S = $S ?? [];
+$stats = $stats ?? [];
+$isLocationScope = ($stats['scope_mode'] ?? 'operator') === 'location';
+$scopeName = trim((string)($stats['scope_name'] ?? ''));
+$scopePhrase = $scopeName !== '' ? $scopeName : 'your visible area';
+?>
 <div class="title-banner">
   <h1>Private TimeKeeper Dashboard</h1>
   <p><?= htmlspecialchars($S['depot_name'] ?? 'My Operator') ?> - National Transport Commission</p>
@@ -6,39 +12,39 @@
 
 <div class="grid" style="display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:16px;margin:16px 0;">
   <div class="card accent-rose">
-    <div class="metric-title">Total Buses in Your Fleet</div>
+    <div class="metric-title"><?= $isLocationScope ? 'Relevant Buses Today' : 'Total Buses in Your Fleet' ?></div>
     <div class="metric-value"><?= (int)($stats['total_buses'] ?? 0) ?></div>
-    <div class="metric-sub">All buses linked to your operator</div>
+    <div class="metric-sub"><?= htmlspecialchars($isLocationScope ? 'Private buses on routes visible from ' . $scopePhrase : 'All buses linked to your operator') ?></div>
   </div>
 
   <div class="card accent-blue">
-    <div class="metric-title">Total Trips Today</div>
+    <div class="metric-title"><?= $isLocationScope ? 'Visible Trips Today' : 'Total Trips Today' ?></div>
     <div class="metric-value"><?= (int)($stats['total_trips_today'] ?? 0) ?></div>
-    <div class="metric-sub">All scheduled operator trips for today</div>
+    <div class="metric-sub"><?= htmlspecialchars($isLocationScope ? 'Scheduled private trips on routes visible from ' . $scopePhrase : 'All scheduled operator trips for today') ?></div>
   </div>
 
   <div class="card accent-amber">
     <div class="metric-title">Delayed Buses Today</div>
     <div class="metric-value"><?= (int)($stats['delayed_buses_total'] ?? 0) ?></div>
-    <div class="metric-sub">Buses currently marked delayed</div>
+    <div class="metric-sub"><?= htmlspecialchars($isLocationScope ? 'Visible-route buses currently marked delayed' : 'Buses currently marked delayed') ?></div>
   </div>
 
   <div class="card accent-green">
     <div class="metric-title">Completed Trips Today</div>
     <div class="metric-value"><?= (int)($stats['completed_trips_today'] ?? 0) ?></div>
-    <div class="metric-sub">Completed including delayed arrivals</div>
+    <div class="metric-sub"><?= htmlspecialchars($isLocationScope ? 'Completed visible-route trips including delayed arrivals' : 'Completed including delayed arrivals') ?></div>
   </div>
 
   <div class="card accent-indigo">
     <div class="metric-title">Trips Left Today</div>
     <div class="metric-value"><?= (int)($stats['trips_left_today'] ?? 0) ?></div>
-    <div class="metric-sub">Scheduled trips not finished yet</div>
+    <div class="metric-sub"><?= htmlspecialchars($isLocationScope ? 'Visible scheduled trips not finished yet' : 'Scheduled trips not finished yet') ?></div>
   </div>
 
   <div class="card accent-cyan">
     <div class="metric-title">Currently Running Buses</div>
     <div class="metric-value"><?= (int)($stats['running_buses_now'] ?? 0) ?></div>
-    <div class="metric-sub">Good for immediate dispatch awareness</div>
+    <div class="metric-sub"><?= htmlspecialchars($isLocationScope ? 'Visible-route buses currently in progress' : 'Good for immediate dispatch awareness') ?></div>
   </div>
 </div>
 

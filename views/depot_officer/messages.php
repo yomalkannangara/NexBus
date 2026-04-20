@@ -247,12 +247,23 @@ $flashMessages = [
     flex-shrink:0;
     display:flex; align-items:center; gap:12px;
 }
+.msg-thread-meta { min-width:0; }
 .msg-thread-head h2 { margin:0; font-size:15px; font-weight:800; color:#111; }
 .msg-thread-head .sub { font-size:12px; color:#9ca3af; }
+.msg-thread-actions { margin-left:auto; display:flex; align-items:center; gap:8px; }
 .msg-thread-status {
-    margin-left:auto; font-size:11px; font-weight:700; padding:4px 10px;
+    font-size:11px; font-weight:700; padding:4px 10px;
     border-radius:20px; background:#fef3c7; color:#92400e;
 }
+.msg-thread-reply-btn {
+    display:none; align-items:center; gap:6px;
+    border:none; border-radius:10px;
+    background:linear-gradient(135deg,#7f1d1d,#a01c2e);
+    color:#fff; padding:8px 12px;
+    font-size:12px; font-weight:800; cursor:pointer;
+    box-shadow:0 4px 12px rgba(127,29,29,.18);
+}
+.msg-thread-reply-btn:hover { opacity:.92; }
 .msg-thread-body {
     flex:1; overflow-y:auto; padding:20px;
     display:flex; flex-direction:column; gap:14px;
@@ -667,6 +678,15 @@ $flashMessages = [
                             $isUnread = !($item['is_seen'] ?? $item['read_at'] ?? false);
                             $type     = $item['type'] ?? 'Message';
                             $text     = $item['message'] ?? '';
+                            $metadata = [];
+                            if (!empty($item['metadata']) && is_string($item['metadata'])) {
+                                $decodedMeta = json_decode($item['metadata'], true);
+                                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedMeta)) {
+                                    $metadata = $decodedMeta;
+                                }
+                            }
+                            $sourceUserId = (int)($metadata['source_user_id'] ?? 0);
+                            $sourceRole   = (string)($item['source_role'] ?? ($metadata['source_role'] ?? ''));
                             $preview  = mb_strimwidth($text, 0, 60, '…');
                             $name     = msgDisplayName($item);
                             $avatarCls = in_array($type,['Delay','Alert','Breakdown']) ? 'alert' : (str_contains(strtolower($name),'system') ? 'sys' : '');
@@ -688,6 +708,8 @@ $flashMessages = [
                          data-unread="<?= $isUnread ? '1' : '0' ?>"
                          data-text="<?= htmlspecialchars($text) ?>"
                          data-name="<?= htmlspecialchars($name) ?>"
+                        data-source-user-id="<?= $sourceUserId ?>"
+                        data-source-role="<?= htmlspecialchars($sourceRole) ?>"
                          data-time="<?= htmlspecialchars($item['created_at'] ?? '') ?>"
                          onclick="openThread(this)">
                         <div class="msg-item-avatar <?= $avatarCls ?>"><?= $typeIcon ?></div>
@@ -715,11 +737,13 @@ $flashMessages = [
         <div class="msg-thread">
             <div class="msg-thread-head" id="threadHead">
                 <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#b91c1c,#7f1d1d);display:grid;place-items:center;color:#fff;font-size:16px;">💬</div>
-                <div>
+                <div class="msg-thread-meta">
                     <h2 id="threadTitle">Select a message</h2>
                     <div class="sub" id="threadSub">Click any message on the left to read it</div>
                 </div>
-                <div class="msg-thread-status" id="threadStatus" style="display:none"></div>
+                <div class="msg-thread-actions">
+                    <div class="msg-thread-status" id="threadStatus" style="display:none"></div>
+                </div>
             </div>
 
             <div class="msg-thread-body" id="threadBody">
@@ -732,13 +756,21 @@ $flashMessages = [
             </div>
 
             <div id="chatBar" style="display:none;padding:12px 16px;border-top:1px solid #e9e3da;background:#fff;flex-shrink:0;">
-                <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Reply</div>
-                <div class="msg-compose-inner">
-                    <textarea class="msg-compose-textarea" id="chatBarInput" rows="2" placeholder="Type a reply to timekeeper…"></textarea>
-                    <button class="msg-send-btn" id="chatBarSend">
-                        <span>Send</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <div id="chatReplyAction" style="display:none;justify-content:flex-end;">
+                    <button type="button" class="msg-thread-reply-btn" id="threadReplyBtn">
+                        <span>Reply</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 9l-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H5"/></svg>
                     </button>
+                </div>
+                <div id="chatComposeBlock" style="display:none;">
+                    <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Reply</div>
+                    <div class="msg-compose-inner">
+                        <textarea class="msg-compose-textarea" id="chatBarInput" rows="2" placeholder="Type a reply to timekeeper…"></textarea>
+                        <button class="msg-send-btn" id="chatBarSend">
+                            <span>Send</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div><!-- /thread -->
@@ -1000,7 +1032,33 @@ function addMessageToInbox(msg) {
 
     msgList.insertBefore(item, msgList.firstChild);
     if (lastMessageId < msgId) lastMessageId = msgId;
+    sortInboxItems();
     updateStatsBadges();
+    applyInboxFilter();
+}
+
+function inboxItemTimestamp(item) {
+    const raw = item?.dataset?.time || item?.querySelector?.('.msg-item-time')?.dataset?.ts || '';
+    if (!raw) return 0;
+    const ts = Date.parse(String(raw).replace(' ', 'T'));
+    return Number.isNaN(ts) ? 0 : ts;
+}
+
+function sortInboxItems() {
+    const msgList = document.getElementById('msgList');
+    if (!msgList) return;
+    const items = Array.from(msgList.querySelectorAll('.msg-item'));
+    items.sort((a, b) => {
+        const timeDiff = inboxItemTimestamp(b) - inboxItemTimestamp(a);
+        if (timeDiff !== 0) return timeDiff;
+
+        const aId = String(a.dataset.id || '');
+        const bId = String(b.dataset.id || '');
+        const aNum = parseInt(aId.replace(/^dm_/, ''), 10) || 0;
+        const bNum = parseInt(bId.replace(/^dm_/, ''), 10) || 0;
+        return bNum - aNum;
+    });
+    items.forEach(item => msgList.appendChild(item));
 }
 
 function pollMessages() {
@@ -1039,7 +1097,7 @@ function pollDmConversations() {
                 const unread  = parseInt(conv.unread_count || 0);
 
                 if (!item) {
-                    // New conversation — add at top of inbox (before first non-DM item)
+                    // New conversation — add and then sort globally by newest timestamp.
                     const empty = msgList.querySelector('.msg-empty');
                     if (empty) empty.remove();
                     item = document.createElement('div');
@@ -1048,15 +1106,14 @@ function pollDmConversations() {
                     item.dataset.partnerId = String(pid);
                     item.dataset.name      = name;
                     item.onclick = function() { openThread(this); };
-                    // Insert before the first notification item (after any existing DM items)
-                    const firstNotif = msgList.querySelector('.msg-item:not([data-type="direct_chat"])');
-                    if (firstNotif) msgList.insertBefore(item, firstNotif);
-                    else msgList.appendChild(item);
+                    msgList.appendChild(item);
                 }
 
                 // Update content and unread state
                 item.dataset.text   = conv.last_message || '';
                 item.dataset.unread = unread > 0 ? '1' : '0';
+                item.dataset.time   = conv.last_time || '';
+                item.dataset.name   = name;
                 item.classList.toggle('unread', unread > 0);
                 item.innerHTML =
                     '<div class="msg-item-avatar" style="background:linear-gradient(135deg,#be185d,#9d174d)">💬</div>' +
@@ -1068,7 +1125,9 @@ function pollDmConversations() {
                     (unread > 0 ? '<div class="msg-unread-dot"></div><div class="msg-unread-badge">' + unread + '</div>' : '');
                 item.onclick = function() { openThread(this); };
             });
+            sortInboxItems();
             updateStatsBadges();
+            applyInboxFilter();
         })
         .catch(() => {});
 }
@@ -1134,7 +1193,7 @@ function applyInboxFilter() {
         let show = true;
         if (activeFilter === 'unread')  show = unread;
         if (activeFilter === 'alert')   show = ['delay','alert','breakdown'].includes(type);
-        if (activeFilter === 'message') show = type === 'message';
+        if (activeFilter === 'message') show = type === 'message' || type === 'direct_chat';
         if (q) show = show && text.includes(q);
         item.style.display = show ? '' : 'none';
     });
@@ -1153,7 +1212,12 @@ window.openThread = function(el) {
     // Stop any active chat poll when switching back to notifications
     if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
     currentChatPartnerId = null;
-    document.getElementById('chatBar').style.display = 'none';
+    currentReplySourceUserId = parseInt(el.dataset.sourceUserId || '0', 10) || 0;
+    currentReplySourceRole = el.dataset.sourceRole || '';
+    setChatBarState(
+        canReplyToNotification(currentReplySourceRole, currentReplySourceUserId) ? 'notification-ready' : 'hidden',
+        el.dataset.name || 'timekeeper'
+    );
 
     if (currentItem) currentItem.classList.remove('active');
     el.classList.add('active');
@@ -1210,6 +1274,22 @@ function buildBubble(init, name, text, time, type) {
             <div class="msg-bubble-time" data-prefix="${esc(name)}" data-ts="${esc(time)}">${esc(name)} · ${timeStr}</div>
         </div>
     </div>`;
+}
+
+function appendNotificationReplyBubble(text, time) {
+    const body = document.getElementById('threadBody');
+    if (!body) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-bubble-wrap me';
+    wrap.innerHTML = `<div class="msg-bubble-avatar">D</div>
+        <div>
+            <div class="msg-bubble">${esc(text)}</div>
+            <div class="msg-bubble-time" data-prefix="You" data-ts="${esc(time)}">You · ${formatRelTime(time)}</div>
+        </div>`;
+
+    body.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
 }
 
 /* ─── Scope / targeting ─────────────────────────────────────────────── */
@@ -1558,6 +1638,49 @@ function tickRelTimes() {
 setInterval(tickRelTimes, 30000);
 
 let currentMessageId = null;
+let currentReplySourceUserId = 0;
+let currentReplySourceRole = '';
+let currentReplyMode = 'hidden';
+
+function canReplyToNotification(role, userId) {
+    const normalizedRole = String(role || '').trim();
+    return userId > 0 && (normalizedRole === 'SLTBTimekeeper' || normalizedRole === 'PrivateTimekeeper');
+}
+
+function setChatBarState(mode, partnerName = 'timekeeper') {
+    const bar = document.getElementById('chatBar');
+    const action = document.getElementById('chatReplyAction');
+    const compose = document.getElementById('chatComposeBlock');
+    const input = document.getElementById('chatBarInput');
+    if (!bar || !action || !compose || !input) return;
+
+    currentReplyMode = mode;
+    input.placeholder = mode === 'chat'
+        ? ('Message ' + partnerName + '…')
+        : ('Type a reply to ' + partnerName + '…');
+
+    if (mode !== 'notification-compose') {
+        input.value = '';
+    }
+
+    if (mode === 'hidden') {
+        bar.style.display = 'none';
+        action.style.display = 'none';
+        compose.style.display = 'none';
+        return;
+    }
+
+    bar.style.display = '';
+    action.style.display = mode === 'notification-ready' ? 'flex' : 'none';
+    compose.style.display = mode === 'chat' || mode === 'notification-compose' ? 'block' : 'none';
+}
+
+function startReplyFromNotification() {
+    if (!canReplyToNotification(currentReplySourceRole, currentReplySourceUserId) || !currentItem) return;
+    currentChatPartnerId = currentReplySourceUserId;
+    setChatBarState('notification-compose', currentItem.dataset.name || 'timekeeper');
+    document.getElementById('chatBarInput').focus();
+}
 
 /* ─── Auto-resize compose textarea ─────────────────────────────────── */
 document.getElementById('messageBody').addEventListener('input', function() {
@@ -1579,6 +1702,9 @@ window.openChatThread = function(partnerId, el) {
     currentItem = el;
     currentChatPartnerId = partnerId;
     currentMessageId = null;
+    currentReplySourceUserId = partnerId;
+    currentReplySourceRole = 'Timekeeper';
+    setChatBarState('chat', el.dataset.name || 'Timekeeper');
 
     if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
     chatLastMsgId = 0;
@@ -1592,9 +1718,6 @@ window.openChatThread = function(partnerId, el) {
 
     const body = document.getElementById('threadBody');
     body.innerHTML = '<div class="do-chat-empty"><div style="font-size:36px">💬</div><div>Loading conversation…</div></div>';
-
-    // Show the chat compose bar
-    document.getElementById('chatBar').style.display = '';
 
     fetch('/O/messages?action=chat_load&with=' + partnerId)
         .then(r => r.ok ? r.json() : Promise.reject(r.status))
@@ -1614,6 +1737,8 @@ window.openChatThread = function(partnerId, el) {
             body.innerHTML = '<div class="do-chat-empty" style="color:#dc2626">Failed to load conversation.</div>';
         });
 };
+
+document.getElementById('threadReplyBtn').addEventListener('click', startReplyFromNotification);
 
 function appendDoChatBubble(m, bodyEl) {
     if (!m || !m.id) return;
@@ -1694,18 +1819,22 @@ function sendChatReply(text) {
             btn.disabled = false;
             if (res.ok) {
                 ta.value = '';
-                // Append own bubble immediately
-                const fakeMsg = {
-                    id:           res.id,
-                    from_user_id: myUserId,
-                    to_user_id:   currentChatPartnerId,
-                    message:      text,
-                    created_at:   new Date().toISOString().replace('T',' ').slice(0,19),
-                    first_name:   '',
-                    last_name:    '',
-                };
-                appendDoChatBubble(fakeMsg, document.getElementById('threadBody'));
-                if (res.id > chatLastMsgId) chatLastMsgId = res.id;
+                const createdAt = new Date().toISOString().replace('T',' ').slice(0,19);
+                if (currentReplyMode === 'chat') {
+                    const fakeMsg = {
+                        id:           res.id,
+                        from_user_id: myUserId,
+                        to_user_id:   currentChatPartnerId,
+                        message:      text,
+                        created_at:   createdAt,
+                        first_name:   '',
+                        last_name:    '',
+                    };
+                    appendDoChatBubble(fakeMsg, document.getElementById('threadBody'));
+                    if (res.id > chatLastMsgId) chatLastMsgId = res.id;
+                } else {
+                    appendNotificationReplyBubble(text, createdAt);
+                }
             }
         })
         .catch(() => { btn.disabled = false; });

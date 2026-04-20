@@ -433,7 +433,10 @@ class TripEntryModel extends BaseModel
                                                             {$operatorJoin}
         LEFT JOIN routes r ON r.route_id = p.route_id
         WHERE p.trip_date BETWEEN :from AND :to
-                    AND p.status IN ('Completed','Cancelled','Delayed')
+                AND (
+                    p.status IN ('Completed', 'Cancelled')
+                    OR (p.status = 'Delayed' AND p.arrival_time IS NOT NULL)
+                )
           {$busCond}
         ORDER BY p.trip_date DESC, dep_time DESC";
 
@@ -454,6 +457,15 @@ class TripEntryModel extends BaseModel
         // Absent (today only): scheduled timetable entries with no trip, departure >30 min ago
         if ($from <= date('Y-m-d') && $to >= date('Y-m-d')) {
             $cutoff = date('H:i:s', strtotime('-30 minutes'));
+            $absBusCond = '';
+            $absParams = [':cutoff' => $cutoff, ':dow' => (int)date('w')];
+            if ($this->hasOperatorScope()) {
+                $absParams[':op'] = $this->opId;
+            }
+            if ($busNo !== null && $busNo !== '') {
+                $absBusCond = 'AND tt.bus_reg_no = :bus';
+                $absParams[':bus'] = $busNo;
+            }
             $absSql = "
             SELECT
                 CURDATE()               AS date,
@@ -472,15 +484,14 @@ class TripEntryModel extends BaseModel
             JOIN routes r ON r.route_id = tt.route_id
             LEFT JOIN private_trips p2
                    ON p2.timetable_id = tt.timetable_id AND p2.trip_date = CURDATE()
-            WHERE p2.private_trip_id IS NULL
+                        WHERE tt.operator_type = 'Private'
+                            AND tt.day_of_week = :dow
+                            AND p2.private_trip_id IS NULL
               AND TIME(tt.departure_time) < :cutoff
+                            {$absBusCond}
             ORDER BY TIME(tt.departure_time)";
             $absst = $this->pdo->prepare($absSql);
-                        $absParams = [':cutoff' => $cutoff];
-                        if ($this->hasOperatorScope()) {
-                                $absParams[':op'] = $this->opId;
-                        }
-                        $absst->execute($absParams);
+                                                $absst->execute($absParams);
             $absent = $absst->fetchAll(PDO::FETCH_ASSOC);
             $absFiltered = [];
             foreach ($absent as &$a) {
@@ -491,8 +502,25 @@ class TripEntryModel extends BaseModel
                 $absFiltered[] = $a;
             }
             unset($a);
-            $rows = array_merge($absFiltered, $rows);
+            $rows = array_merge($rows, $absFiltered);
         }
+
+        usort($rows, static function (array $a, array $b): int {
+            $dateCmp = strcmp((string)($b['date'] ?? ''), (string)($a['date'] ?? ''));
+            if ($dateCmp !== 0) {
+                return $dateCmp;
+            }
+
+            $depCmp = strcmp((string)($b['dep_time'] ?? ''), (string)($a['dep_time'] ?? ''));
+            if ($depCmp !== 0) {
+                return $depCmp;
+            }
+
+            $aAbsent = (($a['ui_status'] ?? '') === 'Absent') ? 1 : 0;
+            $bAbsent = (($b['ui_status'] ?? '') === 'Absent') ? 1 : 0;
+            return $aAbsent <=> $bAbsent;
+        });
+
         return $rows;
     }
 

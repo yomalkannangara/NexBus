@@ -240,25 +240,52 @@ class TimekeeperSltbController extends BaseController
 
         $action = (string)($_GET['action'] ?? '');
         $routeIds = array_values(array_unique(array_filter(array_map('intval', array_column($tripModel->todayList(), 'route_id')))));
-        $chatDepots = $dm->routeDepotOptions($routeIds, $this->myDepotId());
-        foreach ($chatDepots as &$chatDepot) {
-            $chatDepot = array_merge($chatDepot, $dm->conversationSummaryWithDepot($uid, $chatDepot['officer_ids'] ?? []));
+        $chatPartners = $dm->routeDepotOfficerOptions($routeIds, $this->myDepotId());
+        foreach ($chatPartners as &$chatPartner) {
+            $chatPartner = array_merge(
+                $chatPartner,
+                $dm->conversationSummaryWithUser($uid, (int)($chatPartner['user_id'] ?? 0))
+            );
         }
-        unset($chatDepot);
+        unset($chatPartner);
 
-        $activeChatDepotId = (int)($_POST['chat_depot_id'] ?? $_GET['chat_depot_id'] ?? 0);
-        $activeChatDepot = null;
-        foreach ($chatDepots as $chatDepot) {
-            if ((int)($chatDepot['depot_id'] ?? 0) === $activeChatDepotId) {
-                $activeChatDepot = $chatDepot;
+        usort($chatPartners, static function (array $a, array $b): int {
+            $aLast = (string)($a['last_time'] ?? '');
+            $bLast = (string)($b['last_time'] ?? '');
+            if ($aLast !== $bLast) {
+                if ($aLast === '') {
+                    return 1;
+                }
+                if ($bLast === '') {
+                    return -1;
+                }
+                $cmp = strcmp($bLast, $aLast);
+                if ($cmp !== 0) {
+                    return $cmp;
+                }
+            }
+
+            $cmp = strcasecmp((string)($a['depot_name'] ?? ''), (string)($b['depot_name'] ?? ''));
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+
+            return strcasecmp((string)($a['officer_name'] ?? ''), (string)($b['officer_name'] ?? ''));
+        });
+
+        $activeChatUserId = (int)($_POST['chat_user_id'] ?? $_GET['chat_user_id'] ?? 0);
+        $activeChatPartner = null;
+        foreach ($chatPartners as $chatPartner) {
+            if ((int)($chatPartner['user_id'] ?? 0) === $activeChatUserId) {
+                $activeChatPartner = $chatPartner;
                 break;
             }
         }
-        if ($activeChatDepot === null && !empty($chatDepots)) {
-            $activeChatDepot = $chatDepots[0];
-            $activeChatDepotId = (int)($activeChatDepot['depot_id'] ?? 0);
+        if ($activeChatPartner === null && !empty($chatPartners)) {
+            $activeChatPartner = $chatPartners[0];
+            $activeChatUserId = (int)($activeChatPartner['user_id'] ?? 0);
         }
-        $doIds = $activeChatDepot['officer_ids'] ?? [];
+        $chatPartnerId = (int)($activeChatPartner['user_id'] ?? 0);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'read' && isset($_GET['id'])) {
             $ok = $model->markRead((int)$_GET['id'], $uid);
@@ -302,28 +329,28 @@ class TimekeeperSltbController extends BaseController
         // ── Direct chat: send message to depot officers ────────────────────
         if ($action === 'chat_send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $text    = trim((string)($_POST['message'] ?? ''));
-            $ids     = ($text !== '' && !empty($doIds)) ? $dm->sendToMultiple($uid, $doIds, $text) : [];
+            $id      = ($text !== '' && $chatPartnerId > 0) ? $dm->send($uid, $chatPartnerId, $text) : null;
             header('Content-Type: application/json');
-            echo json_encode(['ok' => !empty($ids), 'id' => $ids[0] ?? null]);
+            echo json_encode(['ok' => $id !== null, 'id' => $id]);
             exit;
         }
 
-        // ── Direct chat: edit a sent message (broadcast to all DOs) ────────
+        // ── Direct chat: edit a sent message ────────────────────────────────
         if ($action === 'chat_edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $id   = (int)($_POST['id'] ?? 0);
             $text = trim((string)($_POST['message'] ?? ''));
             $dm   = new \App\models\common\DirectMessageModel();
-            $ok   = ($id > 0 && $text !== '') ? $dm->editBroadcast($id, $uid, $text) : false;
+            $ok   = ($id > 0 && $text !== '') ? $dm->editMessage($id, $uid, $text) : false;
             header('Content-Type: application/json');
             echo json_encode(['ok' => $ok]);
             exit;
         }
 
-        // ── Direct chat: delete a sent message (broadcast to all DOs) ───────
+        // ── Direct chat: delete a sent message ──────────────────────────────
         if ($action === 'chat_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)($_POST['id'] ?? 0);
             $dm  = new \App\models\common\DirectMessageModel();
-            $ok  = ($id > 0) ? $dm->deleteBroadcast($id, $uid) : false;
+            $ok  = ($id > 0) ? $dm->deleteMessage($id, $uid) : false;
             header('Content-Type: application/json');
             echo json_encode(['ok' => $ok]);
             exit;
@@ -332,16 +359,15 @@ class TimekeeperSltbController extends BaseController
         // ── Direct chat: poll for new chat messages ────────────────────────
         if ($action === 'chat_poll') {
             $sinceId = (int)($_GET['since_id'] ?? 0);
-            $msgs    = $dm->threadWithDepot($uid, $doIds, 50, $sinceId);
+            $msgs    = $chatPartnerId > 0 ? $dm->threadBetween($uid, $chatPartnerId, 50, $sinceId) : [];
             header('Content-Type: application/json');
             echo json_encode($msgs);
             exit;
         }
 
         // ── Render ─────────────────────────────────────────────────────────
-        $chatThread = $dm->threadWithDepot($uid, $doIds, 100);
-        // Mark DO→TK messages as read on page load
-        $dm->markReadFromMultiple($uid, $doIds);
+        $chatThread = $chatPartnerId > 0 ? $dm->threadBetween($uid, $chatPartnerId, 100) : [];
+        $dm->markReadFrom($uid, $chatPartnerId);
 
         $this->view('timekeeper_sltb', 'messages', [
             'S'            => $tripModel->info(),
@@ -351,11 +377,11 @@ class TimekeeperSltbController extends BaseController
             'msg'          => $_GET['msg'] ?? null,
             'chat_thread'  => $chatThread,
             'chat_unread'  => $dm->unreadCount($uid),
-            'chat_depots'  => $chatDepots,
-            'active_chat_depot_id' => $activeChatDepotId,
-            'active_chat_depot' => $activeChatDepot,
+            'chat_partners' => $chatPartners,
+            'active_chat_user_id' => $activeChatUserId,
+            'active_chat_partner' => $activeChatPartner,
             'my_user_id'   => $uid,
-            'has_depot_officer' => !empty($chatDepots),
+            'has_depot_officer' => !empty($chatPartners),
         ]);
     }
 

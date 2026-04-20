@@ -1,3 +1,0 @@
--- Practice migration placeholder.
--- The previous custom field example was removed.
--- Add a new study-only SQL example here when needed.

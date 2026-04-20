@@ -211,6 +211,20 @@ if ($isViewingToday):
 (function () {
     var remaining = 30;
     var countdownEl = document.getElementById('tkeCountdown');
+    var HISTORY_REFRESH_KEY = 'nexbus:ts:history:refresh';
+    var reloadTimer = null;
+
+    function reloadSoon() {
+        if (reloadTimer !== null) {
+            return;
+        }
+        if (countdownEl && countdownEl.parentElement) {
+            countdownEl.parentElement.textContent = 'Trip update received. Refreshing…';
+        }
+        reloadTimer = window.setTimeout(function () {
+            location.reload();
+        }, 250);
+    }
 
     var timer = setInterval(function () {
         remaining--;
@@ -227,6 +241,13 @@ if ($isViewingToday):
     if (filterForm) {
         filterForm.addEventListener('mouseenter', function () { clearInterval(timer); if (countdownEl) countdownEl.parentElement.textContent = 'Auto-refresh paused'; });
     }
+
+    window.addEventListener('storage', function (event) {
+        if (event.key !== HISTORY_REFRESH_KEY || !event.newValue) {
+            return;
+        }
+        reloadSoon();
+    });
 })();
 </script>
 <?php endif; ?>

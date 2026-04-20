@@ -69,7 +69,7 @@ class TripEntryModel extends BaseModel
         return $out;
     }
 
-    private function routeStopsExpr(string $alias = 'r'): string
+    protected function routeStopsExpr(string $alias = 'r'): string
     {
         $cols = $this->routeStopColumns();
         if ($cols['stops_json'] && $cols['stops']) {
@@ -84,7 +84,7 @@ class TripEntryModel extends BaseModel
         return "'[]'";
     }
 
-    private function collectStopNamesFromNode(mixed $node, array &$out): void
+    protected function collectStopNamesFromNode(mixed $node, array &$out): void
     {
         if (is_string($node)) {
             $v = trim($node);
@@ -240,6 +240,71 @@ class TripEntryModel extends BaseModel
         return "$first - $last";
     }
 
+    private function assignmentDepartureExpr(string $alias = 't'): string
+    {
+        return "TIME_FORMAT({$alias}.departure_time, '%H:%i')";
+    }
+
+    private function assignmentLegacyShiftExpr(string $alias = 't'): string
+    {
+        return "CASE
+                    WHEN HOUR({$alias}.departure_time) < 12 THEN 'Morning'
+                    WHEN HOUR({$alias}.departure_time) < 17 THEN 'Evening'
+                    ELSE 'Night'
+                END";
+    }
+
+    private function assignmentMatchSql(string $assignmentAlias = 'sa', string $timetableAlias = 't'): string
+    {
+        $departureExpr = $this->assignmentDepartureExpr($timetableAlias);
+        $legacyExpr = $this->assignmentLegacyShiftExpr($timetableAlias);
+
+        if ($this->columnExists('sltb_assignments', 'timetable_id')) {
+            return "{$assignmentAlias}.bus_reg_no = {$timetableAlias}.bus_reg_no
+                    AND {$assignmentAlias}.assigned_date <= CURDATE()
+                    AND (
+                        {$assignmentAlias}.timetable_id = {$timetableAlias}.timetable_id
+                        OR (
+                            {$assignmentAlias}.timetable_id IS NULL
+                            AND (
+                                {$assignmentAlias}.shift = {$departureExpr}
+                                OR {$assignmentAlias}.shift = {$legacyExpr}
+                            )
+                        )
+                    )";
+        }
+
+        return "{$assignmentAlias}.bus_reg_no = {$timetableAlias}.bus_reg_no
+                AND {$assignmentAlias}.assigned_date <= CURDATE()
+                AND (
+                    {$assignmentAlias}.shift = {$departureExpr}
+                    OR {$assignmentAlias}.shift = {$legacyExpr}
+                )";
+    }
+
+    private function assignmentOrderSql(string $assignmentAlias = 'sa', string $timetableAlias = 't'): string
+    {
+        $departureExpr = $this->assignmentDepartureExpr($timetableAlias);
+        $legacyExpr = $this->assignmentLegacyShiftExpr($timetableAlias);
+
+        if ($this->columnExists('sltb_assignments', 'timetable_id')) {
+            $matchRank = "CASE
+                            WHEN {$assignmentAlias}.timetable_id = {$timetableAlias}.timetable_id THEN 2
+                            WHEN {$assignmentAlias}.shift = {$departureExpr} THEN 1
+                            WHEN {$assignmentAlias}.shift = {$legacyExpr} THEN 0
+                            ELSE -1
+                          END";
+        } else {
+            $matchRank = "CASE
+                            WHEN {$assignmentAlias}.shift = {$departureExpr} THEN 1
+                            WHEN {$assignmentAlias}.shift = {$legacyExpr} THEN 0
+                            ELSE -1
+                          END";
+        }
+
+        return "{$assignmentAlias}.assigned_date DESC, {$matchRank} DESC, {$assignmentAlias}.assignment_id DESC";
+    }
+
     private function delaySeconds(string $scheduledTime, ?string $actualTime = null): int
     {
         $scheduled = trim($scheduledTime);
@@ -387,6 +452,16 @@ class TripEntryModel extends BaseModel
     public function todayList(): array
     {
         $stopsExpr = $this->routeStopsExpr('r');
+        $assignmentMatchSql = $this->assignmentMatchSql('sa', 't');
+        $assignmentOrderSql = $this->assignmentOrderSql('sa', 't');
+        $assignmentJoinSql = "LEFT JOIN sltb_assignments a
+                                   ON a.assignment_id = (
+                                       SELECT sa.assignment_id
+                                       FROM sltb_assignments sa
+                                       WHERE {$assignmentMatchSql}
+                                       ORDER BY {$assignmentOrderSql}
+                                       LIMIT 1
+                                   )";
         $sql = <<<SQL
         SELECT
             t.timetable_id,
@@ -404,6 +479,8 @@ class TripEntryModel extends BaseModel
             COALESCE(s.start_delay_seconds, 0) AS start_delay_seconds,
             COALESCE(s.end_delay_seconds, 0)   AS end_delay_seconds,
             (s.sltb_trip_id IS NOT NULL) AS already_today,
+            COALESCE(s.sltb_driver_id, a.sltb_driver_id) AS active_driver_id,
+            COALESCE(s.sltb_conductor_id, a.sltb_conductor_id) AS active_conductor_id,
             d.full_name  AS driver_name,
             d.phone      AS driver_phone,
             c.full_name  AS conductor_name,
@@ -412,8 +489,9 @@ class TripEntryModel extends BaseModel
         JOIN routes r ON r.route_id = t.route_id
         LEFT JOIN sltb_trips s
                ON s.timetable_id = t.timetable_id AND s.trip_date = CURDATE()
-        LEFT JOIN sltb_drivers d ON d.sltb_driver_id = s.sltb_driver_id
-        LEFT JOIN sltb_conductors c ON c.sltb_conductor_id = s.sltb_conductor_id
+        {$assignmentJoinSql}
+        LEFT JOIN sltb_drivers d ON d.sltb_driver_id = COALESCE(s.sltb_driver_id, a.sltb_driver_id)
+        LEFT JOIN sltb_conductors c ON c.sltb_conductor_id = COALESCE(s.sltb_conductor_id, a.sltb_conductor_id)
                 WHERE t.operator_type='SLTB'
                     AND t.day_of_week = :dow
                 ORDER BY
@@ -544,7 +622,10 @@ class TripEntryModel extends BaseModel
         FROM sltb_trips st
         JOIN routes r ON r.route_id = st.route_id
         WHERE st.trip_date BETWEEN :from AND :to
-                    AND st.status IN ('Completed','Cancelled','Delayed')
+                    AND (
+                            st.status IN ('Completed', 'Cancelled')
+                            OR (st.status = 'Delayed' AND st.arrival_time IS NOT NULL)
+                    )
           {$busCond}
         ORDER BY st.trip_date DESC, dep_time DESC
         SQL;
@@ -565,6 +646,15 @@ class TripEntryModel extends BaseModel
 
         if ($from <= date('Y-m-d') && $to >= date('Y-m-d')) {
             $cutoff = date('H:i:s', strtotime('-30 minutes'));
+            $absBusCond = '';
+            $absParams = [
+                ':cutoff' => $cutoff,
+                ':dow' => (int)date('w'),
+            ];
+            if ($busNo !== null && $busNo !== '') {
+                $absBusCond = 'AND t.bus_reg_no = :bus';
+                $absParams[':bus'] = $busNo;
+            }
             $absSql = <<<SQL
             SELECT
                 CURDATE()               AS date,
@@ -582,12 +672,14 @@ class TripEntryModel extends BaseModel
             LEFT JOIN sltb_trips s
                    ON s.timetable_id = t.timetable_id AND s.trip_date = CURDATE()
             WHERE t.operator_type = 'SLTB'
+                            AND t.day_of_week = :dow
               AND s.sltb_trip_id IS NULL
               AND TIME(t.departure_time) < :cutoff
+                            {$absBusCond}
             ORDER BY TIME(t.departure_time)
             SQL;
             $absst = $this->pdo->prepare($absSql);
-            $absst->execute([':cutoff' => $cutoff]);
+                        $absst->execute($absParams);
             $absent = $absst->fetchAll(PDO::FETCH_ASSOC);
 
             $absFiltered = [];
@@ -600,8 +692,24 @@ class TripEntryModel extends BaseModel
             }
             unset($a);
 
-            $filtered = array_merge($absFiltered, $filtered);
+            $filtered = array_merge($filtered, $absFiltered);
         }
+
+        usort($filtered, static function (array $a, array $b): int {
+            $dateCmp = strcmp((string)($b['date'] ?? ''), (string)($a['date'] ?? ''));
+            if ($dateCmp !== 0) {
+                return $dateCmp;
+            }
+
+            $depCmp = strcmp((string)($b['dep_time'] ?? ''), (string)($a['dep_time'] ?? ''));
+            if ($depCmp !== 0) {
+                return $depCmp;
+            }
+
+            $aAbsent = (($a['ui_status'] ?? '') === 'Absent') ? 1 : 0;
+            $bAbsent = (($b['ui_status'] ?? '') === 'Absent') ? 1 : 0;
+            return $aAbsent <=> $bAbsent;
+        });
 
         return $filtered;
     }
@@ -634,13 +742,21 @@ class TripEntryModel extends BaseModel
     public function start(int $timetableId): array
     {
         $stopsExpr = $this->routeStopsExpr('r');
+        $assignmentMatchSql = $this->assignmentMatchSql('sa', 't');
+        $assignmentOrderSql = $this->assignmentOrderSql('sa', 't');
         $q = "SELECT t.timetable_id, t.route_id, t.bus_reg_no, t.departure_time, t.arrival_time,
                      {$stopsExpr} AS stops_json, b.sltb_depot_id, a.sltb_driver_id, a.sltb_conductor_id
               FROM timetables t
               JOIN routes r ON r.route_id = t.route_id
               LEFT JOIN sltb_buses b ON b.reg_no = t.bus_reg_no
               LEFT JOIN sltb_assignments a
-                     ON a.assigned_date = CURDATE() AND a.bus_reg_no = t.bus_reg_no
+                     ON a.assignment_id = (
+                         SELECT sa.assignment_id
+                         FROM sltb_assignments sa
+                         WHERE {$assignmentMatchSql}
+                         ORDER BY {$assignmentOrderSql}
+                         LIMIT 1
+                     )
               WHERE t.timetable_id=:tt
                 AND t.operator_type='SLTB'
                 AND t.day_of_week=:dow";

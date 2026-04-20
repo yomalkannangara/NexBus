@@ -128,16 +128,18 @@ public function assignments()
         if ($act === 'create_assignment') {
             $res = $m->create($_POST, $depotId);
             if ($res === true || $res === 1 || $res === '1') {
+                    $ctx = $this->resolveAssignmentAutomationContext($m, [
+                        'assigned_date' => (string)($_POST['assigned_date'] ?? date('Y-m-d')),
+                        'shift' => (string)($_POST['shift'] ?? ''),
+                        'bus_reg_no' => (string)($_POST['bus_reg_no'] ?? ''),
+                        'timetable_id' => (int)($_POST['timetable_id'] ?? 0),
+                    ]);
                 $this->sendAssignmentAutomation(
                     $depotId,
                     $actorId,
                     $senderRole,
                     'created',
-                    [
-                        'assigned_date' => (string)($_POST['assigned_date'] ?? date('Y-m-d')),
-                        'shift' => (string)($_POST['shift'] ?? ''),
-                        'bus_reg_no' => (string)($_POST['bus_reg_no'] ?? ''),
-                    ]
+                        $ctx
                 );
                 $this->redirect('/O/assignments?msg=created');
                 return;
@@ -164,6 +166,11 @@ public function assignments()
             $assignmentId = (int)($_POST['assignment_id'] ?? 0);
             $before = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
             $ok = $m->update($depotId, $_POST);
+            if (is_string($ok) && strpos($ok, 'conflict_bus::') === 0) {
+                $existing = explode('::', $ok, 2)[1] ?? '';
+                $this->redirect('/O/assignments?msg=conflict_bus&exists=' . urlencode($existing));
+                return;
+            }
             if (is_string($ok) && strpos($ok, 'conflict_driver::') === 0) {
                 $existing = explode('::', $ok, 2)[1] ?? '';
                 $this->redirect('/O/assignments?msg=conflict_driver&exists=' . urlencode($existing));
@@ -176,11 +183,14 @@ public function assignments()
             }
             if ($ok) {
                 $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
-                $ctx = [
+                $ctx = $this->resolveAssignmentAutomationContext($m, [
                     'assigned_date' => (string)($after['assigned_date'] ?? $_POST['assigned_date'] ?? date('Y-m-d')),
                     'shift' => (string)($after['shift'] ?? $_POST['shift'] ?? ''),
                     'bus_reg_no' => (string)($after['bus_reg_no'] ?? $_POST['bus_reg_no'] ?? ''),
-                ];
+                    'route_id' => (int)($after['route_id'] ?? 0),
+                    'route_no' => (string)($after['route_no'] ?? ''),
+                    'timetable_id' => (int)($_POST['timetable_id'] ?? 0),
+                ]);
                 $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'updated', $ctx);
             }
             $this->redirect('/O/assignments?msg=' . ($ok ? 'updated' : 'error'));
@@ -196,13 +206,30 @@ public function assignments()
                 (int)$_POST['sltb_conductor_id'],
                 $_POST['shift'] ?? null
             );
+            if (is_string($ok) && strpos($ok, 'conflict_bus::') === 0) {
+                $existing = explode('::', $ok, 2)[1] ?? '';
+                $this->redirect('/O/assignments?msg=conflict_bus&exists=' . urlencode($existing));
+                return;
+            }
+            if (is_string($ok) && strpos($ok, 'conflict_driver::') === 0) {
+                $existing = explode('::', $ok, 2)[1] ?? '';
+                $this->redirect('/O/assignments?msg=conflict_driver&exists=' . urlencode($existing));
+                return;
+            }
+            if (is_string($ok) && strpos($ok, 'conflict_conductor::') === 0) {
+                $existing = explode('::', $ok, 2)[1] ?? '';
+                $this->redirect('/O/assignments?msg=conflict_conductor&exists=' . urlencode($existing));
+                return;
+            }
             if ($ok) {
                 $after = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
-                $ctx = [
+                $ctx = $this->resolveAssignmentAutomationContext($m, [
                     'assigned_date' => (string)($after['assigned_date'] ?? $before['assigned_date'] ?? date('Y-m-d')),
                     'shift' => (string)($after['shift'] ?? $_POST['shift'] ?? $before['shift'] ?? ''),
                     'bus_reg_no' => (string)($after['bus_reg_no'] ?? $before['bus_reg_no'] ?? ''),
-                ];
+                    'route_id' => (int)($after['route_id'] ?? $before['route_id'] ?? 0),
+                    'route_no' => (string)($after['route_no'] ?? $before['route_no'] ?? ''),
+                ]);
                 $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'reassigned', $ctx);
             }
             $this->redirect('/O/assignments?msg=' . ($ok ? 'updated' : 'error'));
@@ -213,11 +240,13 @@ public function assignments()
             $before = $assignmentId > 0 ? $m->findById($depotId, $assignmentId) : null;
             $ok = $m->delete($assignmentId, $depotId);
             if ($ok && $before) {
-                $ctx = [
+                $ctx = $this->resolveAssignmentAutomationContext($m, [
                     'assigned_date' => (string)($before['assigned_date'] ?? date('Y-m-d')),
                     'shift' => (string)($before['shift'] ?? ''),
                     'bus_reg_no' => (string)($before['bus_reg_no'] ?? ''),
-                ];
+                    'route_id' => (int)($before['route_id'] ?? 0),
+                    'route_no' => (string)($before['route_no'] ?? ''),
+                ]);
                 $this->sendAssignmentAutomation($depotId, $actorId, $senderRole, 'deleted', $ctx, 'urgent');
             }
             $this->redirect('/O/assignments?msg=' . ($ok ? 'deleted' : 'error'));
@@ -237,6 +266,39 @@ public function assignments()
     ]);
 }
 
+    private function resolveAssignmentAutomationContext(AssignmentModel $model, array $context): array
+    {
+        $routeId = (int)($context['route_id'] ?? 0);
+        $routeNo = trim((string)($context['route_no'] ?? ''));
+        if ($routeId > 0 && $routeNo !== '') {
+            return $context;
+        }
+
+        $resolved = null;
+        $timetableId = (int)($context['timetable_id'] ?? 0);
+        if ($timetableId > 0) {
+            $resolved = $model->routeContextForTimetable($timetableId);
+        }
+
+        if ($resolved === null) {
+            $bus = trim((string)($context['bus_reg_no'] ?? ''));
+            if ($bus !== '') {
+                $resolved = $model->routeContextForBus($bus, (string)($context['assigned_date'] ?? ''));
+            }
+        }
+
+        if ($resolved) {
+            if ($routeId <= 0) {
+                $context['route_id'] = (int)($resolved['route_id'] ?? 0);
+            }
+            if ($routeNo === '') {
+                $context['route_no'] = (string)($resolved['route_no'] ?? '');
+            }
+        }
+
+        return $context;
+    }
+
 public function assignmentStaffConflicts()
 {
     $m = new AssignmentModel();
@@ -244,7 +306,7 @@ public function assignmentStaffConflicts()
     header('Content-Type: application/json');
     if (!$depotId) { http_response_code(401); echo json_encode(['ok'=>false]); return; }
     $departure = trim((string)($_GET['departure'] ?? ''));
-    if (!preg_match('/^\d{2}:\d{2}$/', $departure)) {
+    if (!preg_match('/^(?:\d{2}:\d{2}|Morning|Evening|Night)$/', $departure)) {
         http_response_code(400); echo json_encode(['ok'=>false,'error'=>'bad_departure']); return;
     }
     $from = trim((string)($_GET['period_from'] ?? date('Y-m-d')));
@@ -252,9 +314,11 @@ public function assignmentStaffConflicts()
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) $from = date('Y-m-d');
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $to))   $to   = $from;
     $bus = trim((string)($_GET['bus'] ?? ''));
-    $result = ['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure, $from, $to);
+    $timetableId = (int)($_GET['timetable_id'] ?? 0);
+    $assignmentId = (int)($_GET['assignment_id'] ?? 0);
+    $result = ['ok'=>true] + $m->staffConflictsForTurn((int)$depotId, $departure, $from, $to, $timetableId, $assignmentId);
     if ($bus !== '') {
-        $busConflicts = $m->busConflictsForPeriod((int)$depotId, $bus, $departure, $from, $to);
+        $busConflicts = $m->busConflictsForPeriod((int)$depotId, $bus, $departure, $from, $to, $timetableId, $assignmentId);
         $result['bus_taken']     = count($busConflicts) > 0;
         $result['bus_conflicts'] = $busConflicts;
     }
@@ -1591,12 +1655,12 @@ public function trip_logs(): void{
         $message .= '.';
 
         if ($routeId > 0) {
-            $this->m->sendMessage($depotId, [$routeId], $message, $priority, 'route', false, $senderUserId, $senderRole);
+            $this->m->sendMessage($depotId, [$routeId], $message, $priority, 'route', false, $senderUserId, $senderRole, 'assignment_update');
             return;
         }
 
         if ($bus !== '') {
-            $this->m->sendMessage($depotId, [$bus], $message, $priority, 'bus', false, $senderUserId, $senderRole);
+            $this->m->sendMessage($depotId, [$bus], $message, $priority, 'bus', false, $senderUserId, $senderRole, 'assignment_update');
         }
     }
 }

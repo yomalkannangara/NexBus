@@ -21,6 +21,55 @@ class TimekeeperMessageModel extends BaseModel
         return "n.type IN ('Message','Delay','Timetable','Alert','Breakdown')";
     }
 
+    private function metadataCategoryExpr(bool $hasCategory, bool $hasMetadata, string $alias = 'n'): string
+    {
+        if ($hasCategory) {
+            return "COALESCE(NULLIF({$alias}.category, ''), '')";
+        }
+        if ($hasMetadata) {
+            return "COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT({$alias}.metadata, '$.category')), ''), '')";
+        }
+        return "''";
+    }
+
+    private function depotNoticeBaseExpr(bool $hasCategory, bool $hasMetadata, string $alias = 'n'): string
+    {
+        if (!$hasMetadata) {
+            return "({$alias}.message LIKE 'OPERATION UPDATE:%')";
+        }
+
+        $sourceExpr = "COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT({$alias}.metadata, '$.source')), ''), '')";
+        $scopeExpr = "COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT({$alias}.metadata, '$.scope')), ''), '')";
+        $allDepotExpr = "COALESCE(JSON_UNQUOTE(JSON_EXTRACT({$alias}.metadata, '$.all_depot')), 'false') = 'true'";
+        $categoryExpr = $this->metadataCategoryExpr($hasCategory, $hasMetadata, $alias);
+
+        return "(
+            {$sourceExpr} = 'depot_message'
+            AND (
+                {$scopeExpr} IN ('role','depot','bus','route')
+                OR {$allDepotExpr}
+                OR {$categoryExpr} <> ''
+                OR {$alias}.message LIKE 'OPERATION UPDATE:%'
+            )
+        )";
+    }
+
+    private function displayTypeExpr(bool $hasCategory, bool $hasMetadata, string $alias = 'n'): string
+    {
+        $categoryExpr = $this->metadataCategoryExpr($hasCategory, $hasMetadata, $alias);
+        $depotNoticeExpr = $this->depotNoticeBaseExpr($hasCategory, $hasMetadata, $alias);
+
+        return "CASE
+                    WHEN {$alias}.type <> 'Message' THEN {$alias}.type
+                    WHEN NOT {$depotNoticeExpr} THEN {$alias}.type
+                    WHEN {$alias}.message LIKE 'OPERATION UPDATE:%'
+                         OR {$categoryExpr} IN ('assignment_update', 'assignment_schedule', 'schedule_change', 'poya_schedule') THEN 'Timetable'
+                    WHEN {$categoryExpr} = 'breakdown_alert'
+                         OR {$alias}.message LIKE 'BREAKDOWN:%' THEN 'Breakdown'
+                    ELSE 'Alert'
+                END";
+    }
+
     public function recentForUser(int $userId, int $limit = 50, string $filter = 'all'): array
     {
         if ($userId <= 0) {
@@ -32,6 +81,7 @@ class TimekeeperMessageModel extends BaseModel
         $hasPriority = $this->columnExists('notifications', 'priority');
         $hasMetadata = $this->columnExists('notifications', 'metadata');
         $hasCategory = $this->columnExists('notifications', 'category');
+        $typeExpr = $this->displayTypeExpr($hasCategory, $hasMetadata);
 
         $prioritySelect  = $hasPriority ? 'n.priority' : "'normal' AS priority";
         $categorySelect  = $hasCategory ? 'n.category'
@@ -49,7 +99,7 @@ class TimekeeperMessageModel extends BaseModel
         $sql = "SELECT
                     n.{$idCol} AS id,
                     n.user_id,
-                    n.type,
+                    {$typeExpr} AS type,
                     n.message,
                     n.is_seen,
                     n.created_at,
@@ -64,9 +114,9 @@ class TimekeeperMessageModel extends BaseModel
         if ($filter === 'unread') {
             $sql .= ' AND n.is_seen = 0';
         } elseif ($filter === 'message') {
-            $sql .= " AND n.type = 'Message'";
+            $sql .= " AND ({$typeExpr}) = 'Message'";
         } elseif ($filter === 'alert') {
-            $sql .= " AND n.type IN ('Delay','Timetable','Alert','Breakdown')";
+            $sql .= " AND ({$typeExpr}) IN ('Delay','Timetable','Alert','Breakdown')";
         }
 
         $sql .= " ORDER BY n.created_at DESC LIMIT {$limit}";
@@ -181,12 +231,32 @@ class TimekeeperMessageModel extends BaseModel
 
         if ($hasMetadata) {
             try {
+                $meta = [];
+                $sel = $this->pdo->prepare("SELECT metadata FROM notifications WHERE {$idCol} = ? AND user_id = ? LIMIT 1");
+                $sel->execute([$messageId, $userId]);
+                $currentMetadata = $sel->fetchColumn();
+
+                if (is_string($currentMetadata) && trim($currentMetadata) !== '') {
+                    $decoded = json_decode($currentMetadata, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $meta = $decoded;
+                    }
+                }
+
+                $meta['acknowledged_by'] = $userId;
+                $meta['acknowledged_at'] = date('Y-m-d H:i:s');
+
                 $st = $this->pdo->prepare(
-                    "UPDATE notifications SET is_seen=1,
-                        metadata=JSON_SET(COALESCE(metadata,'{}'), '$.acknowledged_by', ?, '$.acknowledged_at', ?)
-                     WHERE {$idCol}=? AND user_id=?"
+                    "UPDATE notifications
+                     SET is_seen = 1,
+                         metadata = ?
+                     WHERE {$idCol} = ? AND user_id = ?"
                 );
-                return $st->execute([$userId, date('Y-m-d H:i:s'), $messageId, $userId]);
+                return $st->execute([
+                    json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    $messageId,
+                    $userId,
+                ]);
             } catch (\Throwable $e) {
                 return false;
             }
@@ -207,7 +277,7 @@ class TimekeeperMessageModel extends BaseModel
         // Resolve sender info + their depot
         try {
             $st = $this->pdo->prepare(
-                "SELECT user_id, first_name, last_name, role, sltb_depot_id, private_operator_id
+                "SELECT user_id, first_name, last_name, role, sltb_depot_id, private_operator_id, timekeeper_location
                  FROM users WHERE user_id = ? LIMIT 1"
             );
             $st->execute([$senderUserId]);
@@ -236,16 +306,11 @@ class TimekeeperMessageModel extends BaseModel
                 );
                 $stRoutes->execute([$depotId]);
                 $routeIds = array_map('intval', $stRoutes->fetchAll(PDO::FETCH_COLUMN));
-            } elseif ($senderRole === 'PrivateTimekeeper' && $operatorId > 0) {
-                $stRoutes = $this->pdo->prepare(
-                    "SELECT DISTINCT t.route_id
-                     FROM timetables t
-                     JOIN private_buses pb ON pb.reg_no = t.bus_reg_no
-                     WHERE pb.private_operator_id = ?
-                       AND t.route_id IS NOT NULL"
+            } elseif ($senderRole === 'PrivateTimekeeper') {
+                $routeIds = $this->privateTimekeeperVisibleRouteIds(
+                    (string)($sender['timekeeper_location'] ?? ''),
+                    $operatorId
                 );
-                $stRoutes->execute([$operatorId]);
-                $routeIds = array_map('intval', $stRoutes->fetchAll(PDO::FETCH_COLUMN));
             }
         } catch (\Throwable $e) {
             $routeIds = [];

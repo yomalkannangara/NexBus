@@ -90,6 +90,26 @@ ALTER TABLE notifications
   ADD COLUMN IF NOT EXISTS category VARCHAR(60) DEFAULT NULL AFTER metadata;
 
 
+-- ============================================================== 
+-- PART 2B: Schema — Exact SLTB assignment turn matching
+-- ============================================================== 
+
+ALTER TABLE `sltb_assignments`
+  MODIFY COLUMN `shift` VARCHAR(8) NOT NULL,
+  ADD COLUMN IF NOT EXISTS `timetable_id` int(11) DEFAULT NULL AFTER `shift`;
+
+-- Keep exact-time rows normalized as HH:MM while preserving legacy
+-- Morning/Evening/Night rows until they are re-saved through the app.
+UPDATE `sltb_assignments`
+SET `shift` = LEFT(`shift`, 5)
+WHERE `shift` REGEXP '^[0-9]{2}:[0-9]{2}(:[0-9]{2})?$';
+
+UPDATE `sltb_assignments` a
+JOIN `timetables` t ON t.`timetable_id` = a.`timetable_id`
+SET a.`shift` = TIME_FORMAT(t.`departure_time`, '%H:%i')
+WHERE a.`timetable_id` IS NOT NULL;
+
+
 -- ==============================================================
 -- PART 3: Demo data — April 21 2026 (Tuesday, DOW=2)
 -- ==============================================================
