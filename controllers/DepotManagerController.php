@@ -401,6 +401,11 @@ public function fleet()
         
         $special_tt = array_values($special_tt);
 
+        // Show latest timetable entries first in card view.
+        usort($special_tt, function ($a, $b) {
+            return ((int)($b['timetable_id'] ?? 0)) <=> ((int)($a['timetable_id'] ?? 0));
+        });
+
         $this->view('depot_manager', 'timetables', [
             // Use the same depot-scoped route list as the rest of this page.
             'routes' => $off->routes($dep),
