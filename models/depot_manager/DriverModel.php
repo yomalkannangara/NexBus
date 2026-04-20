@@ -17,7 +17,31 @@ class DriverModel extends BaseModel
             $_SESSION['user']['depot_id'] ??
             0
         );
-}
+    }
+
+    private function resolveExistingField(string $table, string $idColumn, string $field, int $id, ?string $value): ?string
+    {
+        $value = trim((string)$value);
+
+        if ($value !== '') {
+            return $value;
+        }
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        try {
+            $sql = "SELECT {$field} FROM {$table} WHERE {$idColumn}=? AND sltb_depot_id=? LIMIT 1";
+            $st = $this->pdo->prepare($sql);
+            $st->execute([$id, $this->depotId]);
+            $existing = trim((string)($st->fetch(PDO::FETCH_ASSOC)[$field] ?? ''));
+            return $existing !== '' ? $existing : null;
+        } catch (PDOException $e) {
+            return null;
+        }
+    }
+
     public function metrics(): array
     {
         $total     = $this->countSafe("SELECT COUNT(*) c FROM sltb_drivers WHERE sltb_depot_id=?", [$this->depotId]);
@@ -178,11 +202,12 @@ class DriverModel extends BaseModel
             $st = $this->pdo->prepare($sql);
             $status = $d['status'] ?? 'Active';
             $status = in_array($status, ['Active', 'Suspended'], true) ? $status : 'Active';
+            $employeeNo = trim((string)($d['employee_no'] ?? ($d['license_no'] ?? '')));
             
             return $st->execute([
                 $this->depotId,
                 $d['full_name'] ?? '',
-                $d['employee_no'] ?? '',
+                $employeeNo !== '' ? $employeeNo : null,
                 $d['phone'] ?? null,
                 $status
             ]);
@@ -201,14 +226,16 @@ class DriverModel extends BaseModel
             $status = $d['status'] ?? 'Active';
             $status = in_array($status, ['Active', 'Suspended'], true) ? $status : 'Active';
             $reason = ($status === 'Suspended') ? ($d['suspend_reason'] ?? null) : null;
+            $conductorId = (int)($d['private_conductor_id'] ?? 0);
+            $employeeNo = $this->resolveExistingField('sltb_conductors', 'sltb_conductor_id', 'employee_no', $conductorId, $d['employee_no'] ?? ($d['license_no'] ?? null));
             
             return $st->execute([
                 $d['full_name'] ?? '',
-                $d['employee_no'] ?? '',
+                $employeeNo,
                 $d['phone'] ?? null,
                 $status,
                 $reason,
-                (int)($d['private_conductor_id'] ?? 0),
+                $conductorId,
                 $this->depotId
             ]);
         } catch (PDOException $e) {
