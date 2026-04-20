@@ -265,9 +265,15 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
               data-shift="<?= htmlspecialchars($r['shift'] ?? '') ?>"
               data-bus-reg="<?= htmlspecialchars($r['bus_reg_no'] ?? '') ?>"
               data-driver-id="<?= (int)($r['sltb_driver_id'] ?? 0) ?>"
+              data-driver-name="<?= htmlspecialchars($r['driver_name'] ?? '') ?>"
               data-conductor-id="<?= (int)($r['sltb_conductor_id'] ?? 0) ?>"
+              data-conductor-name="<?= htmlspecialchars($r['conductor_name'] ?? '') ?>"
               data-route-no="<?= htmlspecialchars($r['route_no'] ?? '') ?>"
+              data-route-name="<?= htmlspecialchars($r['route_name'] ?? '') ?>"
+              data-route-start="<?= htmlspecialchars($r['route_start'] ?? '') ?>"
+              data-route-end="<?= htmlspecialchars($r['route_end'] ?? '') ?>"
               data-route-display="<?= htmlspecialchars($r['route_display'] ?? ($r['route_start'].' → '.$r['route_end'])) ?>"
+              data-capacity="<?= (int)($r['capacity'] ?? 0) ?>"
               data-timetable-id="<?= (int)($r['timetable_id'] ?? 0) ?>"
             >
               <td><a href="/O/bus_profile?bus_reg_no=<?= urlencode($r['bus_reg_no'] ?? '') ?>" style="color:#80143c;font-weight:700;"><?= htmlspecialchars($r['bus_reg_no']) ?></a></td>
@@ -420,7 +426,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 
       <div class="asgn-action-row">
         <button type="button" id="closeAddModal2" class="btn-outline-maroon">Cancel</button>
-        <button type="submit" class="btn-maroon">Save Assignment</button>
+        <button type="submit" class="btn-maroon" id="add-submit-btn">Save Assignment</button>
       </div>
     </form>
   </div>
@@ -437,6 +443,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
     <form method="post" id="editForm">
       <input type="hidden" name="action" value="update_assignment">
       <input type="hidden" name="assignment_id" id="edit-assignment-id">
+      <input type="hidden" name="timetable_id" id="edit-timetable-id">
 
       <div class="asgn-form-row">
         <label>Date</label>
@@ -449,6 +456,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
       <div class="asgn-form-row">
         <label>Bus Registration</label>
         <input list="add-buses-dl" name="bus_reg_no" id="edit-bus" required placeholder="Type or select bus reg no">
+        <div class="asgn-warn" id="edit-bus-warn"></div>
       </div>
       <div class="asgn-two-col">
         <div class="asgn-form-row"><label>Route No</label><input type="text" id="edit-route-no" readonly></div>
@@ -480,7 +488,7 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
 
       <div class="asgn-action-row">
         <button type="button" id="closeEditModal2" class="btn-outline-maroon">Cancel</button>
-        <button type="submit" class="btn-maroon">Update</button>
+        <button type="submit" class="btn-maroon" id="edit-submit-btn">Update</button>
       </div>
     </form>
   </div>
@@ -527,6 +535,69 @@ function fillBus(inputId, routeNoId, routeNameId, capacityId) {
   if (routeNameId) document.getElementById(routeNameId).value = info.route_name || (info.route_start && info.route_end ? info.route_start + ' → ' + info.route_end : '');
   if (capacityId)  document.getElementById(capacityId).value  = info.capacity   ? info.capacity + ' seats' : '';
 }
+
+function routeNameFromRow(tr) {
+  const routeName = (tr.dataset.routeName || '').trim();
+  if (routeName) return routeName;
+  const routeStart = (tr.dataset.routeStart || '').trim();
+  const routeEnd = (tr.dataset.routeEnd || '').trim();
+  if (routeStart && routeEnd) return routeStart + ' → ' + routeEnd;
+  return '';
+}
+
+function capacityTextFromRow(tr) {
+  const capacity = parseInt(tr.dataset.capacity || '0', 10);
+  return capacity > 0 ? capacity + ' seats' : '';
+}
+
+function clearSavedSelectOption(selectEl) {
+  if (!selectEl) return;
+  Array.from(selectEl.querySelectorAll('option[data-saved-option="1"]')).forEach(opt => opt.remove());
+}
+
+function ensureSelectValue(selectId, value, label) {
+  const selectEl = document.getElementById(selectId);
+  if (!selectEl) return;
+
+  clearSavedSelectOption(selectEl);
+  const normalizedValue = String(value || '').trim();
+  if (!normalizedValue) {
+    selectEl.value = '';
+    return;
+  }
+
+  const existing = Array.from(selectEl.options).find(opt => String(opt.value) === normalizedValue);
+  if (!existing) {
+    const savedOption = document.createElement('option');
+    savedOption.value = normalizedValue;
+    savedOption.textContent = (label || ('Saved selection #' + normalizedValue)) + ' (saved)';
+    savedOption.dataset.savedOption = '1';
+    selectEl.appendChild(savedOption);
+  }
+
+  selectEl.value = normalizedValue;
+}
+
+function fillEditFromRow(tr) {
+  document.getElementById('edit-route-no').value = tr.dataset.routeNo || '';
+  document.getElementById('edit-route-name').value = routeNameFromRow(tr);
+  document.getElementById('edit-capacity').value = capacityTextFromRow(tr);
+
+  ensureSelectValue('edit-driver', tr.dataset.driverId || '', tr.dataset.driverName || 'Assigned driver');
+  ensureSelectValue('edit-conductor', tr.dataset.conductorId || '', tr.dataset.conductorName || 'Assigned conductor');
+}
+
+function readSelectedId(selectId) {
+  return parseInt(document.getElementById(selectId)?.value || '0', 10) || 0;
+}
+
+function setSubmitDisabled(buttonId, disabled) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return;
+  btn.disabled = !!disabled;
+  btn.style.opacity = disabled ? '.45' : '';
+}
+
 const addBusEl  = document.getElementById('add-bus');
 const editBusEl = document.getElementById('edit-bus');
 ['change','input'].forEach(ev => {
@@ -536,10 +607,12 @@ const editBusEl = document.getElementById('edit-bus');
 
 /* ── Turn number pills (Add modal) ── */
 let currentTurnConflicts = { drivers: {}, conductors: {} };
+let currentEditConflicts = { drivers: {}, conductors: {}, bus_taken: false, bus_conflicts: [] };
 
 async function loadTurns() {
   const bus  = (addBusEl.value || '').trim().toUpperCase();
   const date = document.getElementById('add-period-from').value || '<?= date('Y-m-d') ?>';
+  document.getElementById('add-assigned-date').value = date;
   const container = document.getElementById('add-turn-container');
   if (!bus) {
     container.innerHTML = '<span style="color:#9ca3af;font-size:13px;">Select a bus to load available turns</span>';
@@ -592,9 +665,11 @@ async function loadConflictsAndCheck() {
     const until = document.getElementById('add-until-notice').checked;
     const to    = until ? '2099-12-31' : (document.getElementById('add-period-to').value || from);
     const bus   = (addBusEl.value || '').trim().toUpperCase();
+    const timetableId = document.getElementById('add-timetable-id').value || '';
     const url   = '/O/assignments/staff-conflicts?departure=' + encodeURIComponent(departure)
                 + '&period_from=' + encodeURIComponent(from)
                 + '&period_to='   + encodeURIComponent(to)
+                + (timetableId ? '&timetable_id=' + encodeURIComponent(timetableId) : '')
                 + (bus ? '&bus=' + encodeURIComponent(bus) : '');
     const res  = await fetch(url, { headers: { Accept: 'application/json' } });
     const data = await res.json();
@@ -612,15 +687,20 @@ async function loadConflictsAndCheck() {
 
 function checkAddConflicts() {
   const bus         = (addBusEl.value || '').trim().toUpperCase();
-  const driverId    = parseInt(document.getElementById('add-driver').value)    || 0;
-  const conductorId = parseInt(document.getElementById('add-conductor').value) || 0;
   const dWarn = document.getElementById('add-driver-warn');
   const cWarn = document.getElementById('add-conductor-warn');
   const bWarn = document.getElementById('add-bus-warn');
-  const submitBtn = document.querySelector('#addForm button[type=submit]');
+
+  filterConflictingOptions('add-driver', currentTurnConflicts.drivers);
+  filterConflictingOptions('add-conductor', currentTurnConflicts.conductors);
+
+  const driverId    = readSelectedId('add-driver');
+  const conductorId = readSelectedId('add-conductor');
 
   const conflictBusD = currentTurnConflicts.drivers[driverId];
   const conflictBusC = currentTurnConflicts.conductors[conductorId];
+  const driverConflict = !!(driverId && conflictBusD && conflictBusD !== bus);
+  const conductorConflict = !!(conductorId && conflictBusC && conflictBusC !== bus);
   if (driverId && conflictBusD && conflictBusD !== bus) { dWarn.textContent = '\u26a0 Already assigned to ' + conflictBusD + ' for this shift.'; dWarn.classList.add('show'); }
   else dWarn.classList.remove('show');
   if (conductorId && conflictBusC && conflictBusC !== bus) { cWarn.textContent = '\u26a0 Already assigned to ' + conflictBusC + ' for this shift.'; cWarn.classList.add('show'); }
@@ -635,27 +715,26 @@ function checkAddConflicts() {
       : '';
     bWarn.textContent = '\u26d4 This bus is already assigned for this shift in the selected period.' + staffInfo + ' Remove or change the existing assignment first.';
     bWarn.classList.add('show', 'warn-red');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '.45'; }
   } else {
     bWarn.classList.remove('show', 'warn-red');
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ''; }
   }
 
-  /* Hide ALL staff already assigned anywhere in this period/shift from the dropdowns */
-  filterConflictingOptions('add-driver',    currentTurnConflicts.drivers,    bus);
-  filterConflictingOptions('add-conductor', currentTurnConflicts.conductors, bus);
+  setSubmitDisabled('add-submit-btn', !!(currentTurnConflicts.bus_taken || driverConflict || conductorConflict));
 }
 
-function filterConflictingOptions(selectId, conflictMap, currentBus) {
+function filterConflictingOptions(selectId, conflictMap) {
   const sel = document.getElementById(selectId);
   if (!sel) return;
+  const selectedId = readSelectedId(selectId);
   Array.from(sel.options).forEach(function (opt) {
     if (!opt.value) return; /* keep placeholder */
     const id = parseInt(opt.value);
-    /* hide if this staff member is assigned to ANY bus in this period/shift */
     opt.hidden   = !!conflictMap[id];
     opt.disabled = opt.hidden;
   });
+  if (selectedId && conflictMap[selectedId]) {
+    sel.value = '';
+  }
 }
 
 document.getElementById('add-period-from').addEventListener('change', loadTurns);
@@ -681,60 +760,124 @@ document.getElementById('add-until-notice').addEventListener('change', function 
   loadConflictsAndCheck();
 });
 
-/* ── Edit conflict check (client-side from today's rows) ── */
-const shiftDriverMap    = {};
-const shiftConductorMap = {};
-<?php foreach($rows as $r): ?>
-<?php if(($r['sltb_driver_id'] ?? 0) || ($r['sltb_conductor_id'] ?? 0)): ?>
-(function(){
-  const sh  = <?= json_encode($r['shift'] ?? '') ?>;
-  const bus = <?= json_encode($r['bus_reg_no'] ?? '') ?>;
-  <?php if(!empty($r['sltb_driver_id'])): ?>
-  if (!shiftDriverMap[sh]) shiftDriverMap[sh] = {};
-  shiftDriverMap[sh][<?= (int)$r['sltb_driver_id'] ?>] = bus;
-  <?php endif; ?>
-  <?php if(!empty($r['sltb_conductor_id'])): ?>
-  if (!shiftConductorMap[sh]) shiftConductorMap[sh] = {};
-  shiftConductorMap[sh][<?= (int)$r['sltb_conductor_id'] ?>] = bus;
-  <?php endif; ?>
-})();
-<?php endif; ?>
-<?php endforeach; ?>
+let editInitialBus = '';
+let editInitialShift = '';
+let editInitialTimetableId = '';
+
+function normalizeTurnValue(value) {
+  const text = (value || '').trim();
+  if (/^\d{2}:\d{2}(?::\d{2})?$/.test(text)) {
+    return text.slice(0, 5);
+  }
+  return text;
+}
+
+function syncEditTimetableId() {
+  const hidden = document.getElementById('edit-timetable-id');
+  if (!hidden) return;
+  const currentBus = (editBusEl.value || '').trim().toUpperCase();
+  const currentShift = normalizeTurnValue(document.getElementById('edit-shift').value);
+  hidden.value = (currentBus === editInitialBus && currentShift === editInitialShift) ? editInitialTimetableId : '';
+}
+
+async function loadEditConflictsAndCheck() {
+  const departure = normalizeTurnValue(document.getElementById('edit-shift').value);
+  const date = document.getElementById('edit-assigned-date').value || '<?= date('Y-m-d') ?>';
+  const bus = (editBusEl.value || '').trim().toUpperCase();
+  const timetableId = document.getElementById('edit-timetable-id').value || '';
+  const assignmentId = document.getElementById('edit-assignment-id').value || '';
+
+  if (!departure) {
+    currentEditConflicts = { drivers: {}, conductors: {}, bus_taken: false, bus_conflicts: [] };
+    checkEditConflicts();
+    return;
+  }
+
+  try {
+    const url = '/O/assignments/staff-conflicts?departure=' + encodeURIComponent(departure)
+              + '&period_from=' + encodeURIComponent(date)
+              + '&period_to=' + encodeURIComponent(date)
+              + (timetableId ? '&timetable_id=' + encodeURIComponent(timetableId) : '')
+              + (assignmentId ? '&assignment_id=' + encodeURIComponent(assignmentId) : '')
+              + (bus ? '&bus=' + encodeURIComponent(bus) : '');
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    const data = await res.json();
+    if (data.ok) {
+      currentEditConflicts = {
+        drivers: data.drivers || {},
+        conductors: data.conductors || {},
+        bus_taken: data.bus_taken || false,
+        bus_conflicts: data.bus_conflicts || [],
+      };
+    }
+  } catch (e) {
+    currentEditConflicts = { drivers: {}, conductors: {}, bus_taken: false, bus_conflicts: [] };
+  }
+
+  checkEditConflicts();
+}
 
 function checkEditConflicts() {
-  const shift       = document.getElementById('edit-shift').value;
   const bus         = (editBusEl.value || '').trim().toUpperCase();
-  const driverId    = parseInt(document.getElementById('edit-driver').value)    || 0;
-  const conductorId = parseInt(document.getElementById('edit-conductor').value) || 0;
+  filterConflictingOptions('edit-driver', currentEditConflicts.drivers);
+  filterConflictingOptions('edit-conductor', currentEditConflicts.conductors);
+  const driverId    = readSelectedId('edit-driver');
+  const conductorId = readSelectedId('edit-conductor');
   const dWarn = document.getElementById('edit-driver-warn');
   const cWarn = document.getElementById('edit-conductor-warn');
-  const dMap  = shiftDriverMap[shift]    || {};
-  const cMap  = shiftConductorMap[shift] || {};
-  if (driverId    && dMap[driverId]    && dMap[driverId]    !== bus) { dWarn.textContent = '⚠ Assigned to ' + dMap[driverId]    + ' for this shift today.'; dWarn.classList.add('show'); }
+  const bWarn = document.getElementById('edit-bus-warn');
+  const conflictBusD = currentEditConflicts.drivers[driverId];
+  const conflictBusC = currentEditConflicts.conductors[conductorId];
+  const driverConflict = !!(driverId && conflictBusD && conflictBusD !== bus);
+  const conductorConflict = !!(conductorId && conflictBusC && conflictBusC !== bus);
+
+  if (driverConflict) { dWarn.textContent = '⚠ Assigned to ' + conflictBusD + ' for this shift.'; dWarn.classList.add('show'); }
   else dWarn.classList.remove('show');
-  if (conductorId && cMap[conductorId] && cMap[conductorId] !== bus) { cWarn.textContent = '⚠ Assigned to ' + cMap[conductorId] + ' for this shift today.'; cWarn.classList.add('show'); }
+  if (conductorConflict) { cWarn.textContent = '⚠ Assigned to ' + conflictBusC + ' for this shift.'; cWarn.classList.add('show'); }
   else cWarn.classList.remove('show');
+
+  if (bus && currentEditConflicts.bus_taken) {
+    const conflicts = currentEditConflicts.bus_conflicts || [];
+    const first = conflicts[0] || {};
+    const staffInfo = first.driver_name
+      ? ' Currently assigned: ' + (first.driver_name || '—') + ' (driver) / ' + (first.conductor_name || '—') + ' (conductor).'
+      : '';
+    bWarn.textContent = '⛔ This bus is already assigned for this shift on the selected date.' + staffInfo;
+    bWarn.classList.add('show', 'warn-red');
+  } else {
+    bWarn.classList.remove('show', 'warn-red');
+  }
+
+  setSubmitDisabled('edit-submit-btn', !!(currentEditConflicts.bus_taken || driverConflict || conductorConflict));
 }
 ['change','input'].forEach(ev => {
   document.getElementById('edit-driver').addEventListener(ev, checkEditConflicts);
   document.getElementById('edit-conductor').addEventListener(ev, checkEditConflicts);
-  document.getElementById('edit-shift').addEventListener(ev, checkEditConflicts);
-  editBusEl.addEventListener(ev, checkEditConflicts);
+  document.getElementById('edit-shift').addEventListener(ev, () => { syncEditTimetableId(); loadEditConflictsAndCheck(); });
+  editBusEl.addEventListener(ev, () => { fillBus('edit-bus','edit-route-no','edit-route-name','edit-capacity'); syncEditTimetableId(); loadEditConflictsAndCheck(); });
 });
+document.getElementById('edit-assigned-date').addEventListener('change', loadEditConflictsAndCheck);
 
 /* ── Edit modal populate ── */
 document.querySelectorAll('.btn-row-edit').forEach(btn => {
   btn.addEventListener('click', () => {
     const tr = btn.closest('tr');
     if (!tr) return;
+    editInitialBus = (tr.dataset.busReg || '').trim().toUpperCase();
+    editInitialShift = normalizeTurnValue(tr.dataset.shift || '');
+    editInitialTimetableId = tr.dataset.timetableId || '';
     document.getElementById('edit-assignment-id').value = tr.dataset.assignmentId || '';
+    document.getElementById('edit-timetable-id').value = editInitialTimetableId;
     document.getElementById('edit-assigned-date').value = tr.dataset.assignedDate || '';
     document.getElementById('edit-shift').value         = tr.dataset.shift || '';
     editBusEl.value                                      = tr.dataset.busReg || '';
-    document.getElementById('edit-driver').value        = tr.dataset.driverId || '';
-    document.getElementById('edit-conductor').value     = tr.dataset.conductorId || '';
-    fillBus('edit-bus', 'edit-route-no', 'edit-route-name', 'edit-capacity');
-    checkEditConflicts();
+    fillEditFromRow(tr);
+
+    if (!document.getElementById('edit-route-no').value || !document.getElementById('edit-route-name').value || !document.getElementById('edit-capacity').value) {
+      fillBus('edit-bus', 'edit-route-no', 'edit-route-name', 'edit-capacity');
+    }
+
+    loadEditConflictsAndCheck();
     openModal('editModalOverlay');
   });
 });

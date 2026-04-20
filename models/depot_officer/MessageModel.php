@@ -77,6 +77,42 @@ class MessageModel extends BaseModel
         }
     }
 
+    private function locationScopedPrivateTimekeeperIdsForRoutes(array $routeIds): array
+    {
+        $routeRows = $this->routeStopRows($routeIds);
+        if (empty($routeRows)) {
+            return [];
+        }
+
+        try {
+            $rows = $this->pdo->query(
+                "SELECT user_id, timekeeper_location
+                 FROM users
+                 WHERE role = 'PrivateTimekeeper'
+                   AND COALESCE(private_operator_id, 0) = 0"
+            )->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($rows as $row) {
+            $userId = (int)($row['user_id'] ?? 0);
+            if ($userId <= 0) {
+                continue;
+            }
+
+            foreach ($routeRows as $routeRow) {
+                if ($this->routeContainsLocationValue((string)($routeRow['stops_raw'] ?? '[]'), (string)($row['timekeeper_location'] ?? ''))) {
+                    $ids[] = $userId;
+                    break;
+                }
+            }
+        }
+
+        return array_values(array_unique(array_filter($ids, fn($id) => $id > 0)));
+    }
+
     private function recipientIdsForRoutes(array $routeIds, ?string $recipientGroup = null): array
     {
         $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
@@ -109,6 +145,8 @@ class MessageModel extends BaseModel
                 $st->execute($operatorIds);
                 $ids = array_merge($ids, array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)));
             }
+
+            $ids = array_merge($ids, $this->locationScopedPrivateTimekeeperIdsForRoutes($routeIds));
         }
 
         return array_values(array_unique(array_filter($ids, fn($id) => $id > 0)));
@@ -207,6 +245,30 @@ class MessageModel extends BaseModel
         return array_unique(array_map('intval', $okIds));
     }
 
+    private function notificationTypeForSend(string $text, string $scope = 'individual', bool $allDepot = false, ?string $category = null): string
+    {
+        $text = trim($text);
+        $category = trim((string)$category);
+
+        if ($text !== '' && str_starts_with($text, 'OPERATION UPDATE:')) {
+            return 'Timetable';
+        }
+
+        if (in_array($category, ['assignment_update', 'assignment_schedule', 'schedule_change', 'poya_schedule'], true)) {
+            return 'Timetable';
+        }
+
+        if ($category === 'breakdown_alert' || stripos($text, 'BREAKDOWN:') === 0) {
+            return 'Breakdown';
+        }
+
+        if ($category !== '' || $allDepot || in_array($scope, ['role', 'depot', 'bus', 'route'], true)) {
+            return 'Alert';
+        }
+
+        return 'Message';
+    }
+
     public function send(
         int $depotId,
         array $userIds,
@@ -221,6 +283,8 @@ class MessageModel extends BaseModel
     ): bool {
         $text = trim($text);
         if (!$text) return false;
+
+        $notificationType = $this->notificationTypeForSend($text, $scope, $allDepot, $category);
 
         // Expand recipients based on scope
         if ($allDepot) {
@@ -245,6 +309,7 @@ class MessageModel extends BaseModel
             'source_role'    => $senderRole,
             'source_name'    => $senderName,
             'scope'          => $scope,
+            'all_depot'      => $allDepot,
             'category'       => $category,
             'recipient_group'=> $this->normalizeRecipientGroup($recipientGroup),
         ];
@@ -269,7 +334,7 @@ class MessageModel extends BaseModel
         try {
             $this->pdo->beginTransaction();
             foreach ($okIds as $uid) {
-                $params = [$uid, 'Message', $text];
+                $params = [$uid, $notificationType, $text];
                 if ($hasPriority) $params[] = $priority;
                 if ($hasMetadata) $params[] = $metadataJson;
                 if ($hasCategory) $params[] = $category;

@@ -7,10 +7,13 @@ $chatThread = $chat_thread ?? [];
 $chatUnread = (int)($chat_unread ?? 0);
 $myUserId = (int)($my_user_id ?? 0);
 $hasDepotOfficer = !empty($has_depot_officer);
-$chatDepots = $chat_depots ?? [];
-$activeChatDepotId = (int)($active_chat_depot_id ?? 0);
-$activeChatDepot = $active_chat_depot ?? null;
-$activeDepotName = trim((string)($activeChatDepot['depot_name'] ?? 'Relevant Depot'));
+$chatPartners = $chat_partners ?? [];
+$activeChatUserId = (int)($active_chat_user_id ?? 0);
+$activeChatPartner = $active_chat_partner ?? null;
+$activePartnerName = trim((string)($activeChatPartner['officer_name'] ?? 'Depot Officer'));
+$activePartnerDepot = trim((string)($activeChatPartner['depot_name'] ?? ''));
+$chatMode = trim((string)($chat_mode ?? 'none'));
+$chatNotice = trim((string)($chat_notice ?? ''));
 $msg        = $msg ?? null;
 
 $flashMap = [
@@ -85,6 +88,7 @@ function tp_time_ago(?string $ts): string {
 .tchat-head h2 { margin:0; font-size:1.02rem; font-weight:800; color:#111827; }
 .tchat-head p { margin:4px 0 0; font-size:.8rem; color:#6b7280; }
 .tchat-warning { border:1px solid #facc15; background:#fef9c3; color:#92400e; border-radius:12px; padding:12px 14px; font-size:.88rem; }
+.tchat-notice { border:1px solid #f5d0fe; background:#fdf4ff; color:#86198f; border-radius:12px; padding:12px 14px; font-size:.88rem; }
 .tchat-layout { display:grid; grid-template-columns:280px minmax(0,1fr); gap:14px; align-items:start; }
 .tchat-list { border:1px solid #ece7ef; border-radius:12px; background:#fffaf5; overflow:hidden; }
 .tchat-list-head { padding:14px 16px; font-size:.74rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--owner); border-bottom:1px solid #f1e6eb; }
@@ -210,41 +214,49 @@ function tp_time_ago(?string $ts): string {
         <?php endif; ?>
     </div>
 
-    <section class="tchat-card">
+    <section class="tchat-card" id="tpChatSection">
         <div class="tchat-head">
             <div>
-                <h2>Direct Chat with Route Depots</h2>
-                <p>Choose the relevant depot and message its depot officer directly.</p>
+                <h2>Direct Chat with Depot Officers</h2>
+                <p>Relevant officers are chosen from the routes visible to you. When those depots are unstaffed, a useful staffed fallback is shown instead.</p>
             </div>
             <div class="tmsg-badge">Chat Unread: <?= $chatUnread ?></div>
         </div>
 
+        <?php if ($chatNotice !== '' && $hasDepotOfficer): ?>
+            <div class="<?= $chatMode === 'fallback' ? 'tchat-notice' : 'tchat-warning' ?>"><?= htmlspecialchars($chatNotice) ?></div>
+        <?php endif; ?>
+
         <?php if (!$hasDepotOfficer): ?>
-            <div class="tchat-warning">No route-linked depot officer is currently available for the routes visible to you. Direct chat will appear once a relevant depot officer is found.</div>
+            <div class="tchat-warning"><?= htmlspecialchars($chatNotice !== '' ? $chatNotice : 'No route-linked depot officer is currently available for the routes visible to you. Direct chat will appear once a relevant depot officer is found.') ?></div>
         <?php endif; ?>
 
         <?php if ($hasDepotOfficer): ?>
         <div class="tchat-layout">
             <aside class="tchat-list">
-                <div class="tchat-list-head">Relevant Depots</div>
+                <div class="tchat-list-head">Depot Officers</div>
                 <div class="tchat-list-body">
-                    <?php foreach ($chatDepots as $depot):
-                        $depotId = (int)($depot['depot_id'] ?? 0);
-                        $isActiveDepot = $depotId === $activeChatDepotId;
-                        $preview = trim((string)($depot['last_message'] ?? ''));
-                        $depotCode = trim((string)($depot['depot_code'] ?? ''));
-                        $chatHref = '/TP/messages?filter=' . rawurlencode($filter) . '&chat_depot_id=' . $depotId;
+                    <?php foreach ($chatPartners as $partner):
+                        $partnerId = (int)($partner['user_id'] ?? 0);
+                        $isActivePartner = $partnerId === $activeChatUserId;
+                        $preview = trim((string)($partner['last_message'] ?? ''));
+                        $depotName = trim((string)($partner['depot_name'] ?? ''));
+                        $depotCode = trim((string)($partner['depot_code'] ?? ''));
+                        $partnerMeta = $depotName !== ''
+                            ? $depotName . ($depotCode !== '' ? ' (' . $depotCode . ')' : '')
+                            : $depotCode;
+                        $chatHref = '/TP/messages?filter=' . rawurlencode($filter) . '&chat_user_id=' . $partnerId . '#tpChatSection';
                     ?>
-                    <a class="tchat-link<?= $isActiveDepot ? ' active' : '' ?>" href="<?= htmlspecialchars($chatHref) ?>">
+                    <a class="tchat-link<?= $isActivePartner ? ' active' : '' ?>" href="<?= htmlspecialchars($chatHref) ?>">
                         <div class="tchat-link-top">
-                            <span class="tchat-link-name"><?= htmlspecialchars((string)($depot['depot_name'] ?? ('Depot #' . $depotId))) ?></span>
-                            <?php if ((int)($depot['unread_count'] ?? 0) > 0): ?>
-                                <span class="tchat-link-badge"><?= min(99, (int)$depot['unread_count']) ?></span>
+                            <span class="tchat-link-name"><?= htmlspecialchars((string)($partner['officer_name'] ?? ('Depot Officer #' . $partnerId))) ?></span>
+                            <?php if ((int)($partner['unread_count'] ?? 0) > 0): ?>
+                                <span class="tchat-link-badge"><?= min(99, (int)$partner['unread_count']) ?></span>
                             <?php endif; ?>
                         </div>
-                        <?php if ($depotCode !== ''): ?><div class="tchat-link-meta"><?= htmlspecialchars($depotCode) ?></div><?php endif; ?>
-                        <div class="tchat-link-preview"><?= htmlspecialchars($preview !== '' ? $preview : 'No messages yet for this depot.') ?></div>
-                        <?php if (!empty($depot['last_time'])): ?><div class="tchat-link-time"><?= htmlspecialchars(tp_time_ago((string)$depot['last_time'])) ?></div><?php endif; ?>
+                        <?php if ($partnerMeta !== ''): ?><div class="tchat-link-meta"><?= htmlspecialchars($partnerMeta) ?></div><?php endif; ?>
+                        <div class="tchat-link-preview"><?= htmlspecialchars($preview !== '' ? $preview : 'No messages yet for this officer.') ?></div>
+                        <?php if (!empty($partner['last_time'])): ?><div class="tchat-link-time"><?= htmlspecialchars(tp_time_ago((string)$partner['last_time'])) ?></div><?php endif; ?>
                     </a>
                     <?php endforeach; ?>
                 </div>
@@ -253,14 +265,14 @@ function tp_time_ago(?string $ts): string {
             <div class="tchat-main">
                 <div class="tchat-main-head">
                     <div>
-                        <h2><?= htmlspecialchars($activeDepotName) ?></h2>
-                        <p>Direct chat with the selected depot officer.</p>
+                        <h2><?= htmlspecialchars($activePartnerName) ?></h2>
+                        <p><?= htmlspecialchars($activePartnerDepot !== '' ? $activePartnerDepot : 'Direct chat with the selected depot officer.') ?></p>
                     </div>
                 </div>
 
                 <div class="tchat-thread" id="tpChatThread">
                     <?php if (empty($chatThread)): ?>
-                        <div class="tchat-empty">No direct messages yet. Start a conversation with <?= htmlspecialchars($activeDepotName) ?> below.</div>
+                        <div class="tchat-empty">No direct messages yet. Start a conversation with <?= htmlspecialchars($activePartnerName) ?> below.</div>
                     <?php else: ?>
                         <?php foreach ($chatThread as $m):
                             $isMe = (int)($m['from_user_id'] ?? 0) === $myUserId;
@@ -285,7 +297,7 @@ function tp_time_ago(?string $ts): string {
                 </div>
 
                 <div class="tchat-compose">
-                    <textarea id="tpChatInput" class="tchat-textarea" rows="1" placeholder="Message <?= htmlspecialchars($activeDepotName) ?>..." onkeydown="tpChatKeySubmit(event)"></textarea>
+                    <textarea id="tpChatInput" class="tchat-textarea" rows="1" placeholder="Message <?= htmlspecialchars($activePartnerName) ?>..." onkeydown="tpChatKeySubmit(event)"></textarea>
                     <button id="tpChatSendBtn" class="tchat-send" type="button" onclick="tpSendChat()">Send</button>
                 </div>
                 <div class="tchat-hint">Enter to send · Shift+Enter for a new line.</div>
@@ -366,7 +378,7 @@ function ackMsg(id, btn) {
 
 var tpMyUserId = <?= (int)$myUserId ?>;
 var tpLastDmId = 0;
-var tpActiveChatDepotId = <?= (int)$activeChatDepotId ?>;
+var tpActiveChatUserId = <?= (int)$activeChatUserId ?>;
 
 document.querySelectorAll('#tpChatThread .tchat-row[data-dm-id]').forEach(function(el){
     var n = parseInt(el.dataset.dmId || '0', 10);
@@ -440,12 +452,12 @@ window.tpSendChat = function() {
     var btn = document.getElementById('tpChatSendBtn');
     if (!input || !btn) return;
     var text = input.value.trim();
-    if (!text || !tpActiveChatDepotId) return;
+    if (!text || !tpActiveChatUserId) return;
 
     btn.disabled = true;
     var fd = new FormData();
     fd.append('message', text);
-    fd.append('chat_depot_id', String(tpActiveChatDepotId));
+    fd.append('chat_user_id', String(tpActiveChatUserId));
     fetch('/TP/messages?action=chat_send', { method: 'POST', body: fd })
         .then(function(r){ return r.json(); })
         .then(function(d){
@@ -470,8 +482,8 @@ window.tpSendChat = function() {
 };
 
 function tpPollChat() {
-    if (!tpActiveChatDepotId) return;
-    fetch('/TP/messages?action=chat_poll&since_id=' + tpLastDmId + '&chat_depot_id=' + tpActiveChatDepotId)
+    if (!tpActiveChatUserId) return;
+    fetch('/TP/messages?action=chat_poll&since_id=' + tpLastDmId + '&chat_user_id=' + tpActiveChatUserId)
         .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
         .then(function(msgs){
             if (!Array.isArray(msgs) || !msgs.length) return;

@@ -400,6 +400,21 @@ function tke_delay_text(int $seconds): string {
 <script>
 (function () {
     var _cancelTripId = 0;
+    var HISTORY_REFRESH_KEY = 'nexbus:tp:history:refresh';
+
+    function announceHistoryUpdate(eventType, tripId) {
+        var payload = JSON.stringify({
+            type: eventType,
+            tripId: Number(tripId || 0),
+            at: Date.now()
+        });
+
+        try {
+            localStorage.setItem(HISTORY_REFRESH_KEY, payload);
+        } catch (e) {
+            // Ignore storage failures; the trip update itself already succeeded.
+        }
+    }
 
     function showToast(msg, type) {
         var t = document.createElement('div');
@@ -445,6 +460,7 @@ function tke_delay_text(int $seconds): string {
         btn.disabled = true;
         btn.textContent = 'Marking\u2026';
         postAction({ action: 'arrive', trip_id: tripId }, function () {
+            announceHistoryUpdate('arrive', tripId);
             showToast('Trip marked as Completed.', 'success');
             setTimeout(function () { location.reload(); }, 900);
         }, btn);
@@ -473,6 +489,7 @@ function tke_delay_text(int $seconds): string {
         btn.disabled = true;
         btn.textContent = 'Cancelling\u2026';
         postAction({ action: 'cancel', trip_id: _cancelTripId, reason: full }, function () {
+            announceHistoryUpdate('cancel', _cancelTripId);
             tkeCloseCancel();
             showToast('Trip cancelled.', 'success');
             setTimeout(function () { location.reload(); }, 900);

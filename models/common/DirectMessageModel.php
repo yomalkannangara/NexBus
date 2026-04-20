@@ -59,30 +59,11 @@ class DirectMessageModel extends BaseModel
     /** Return DepotOfficer user IDs for all SLTB depots serving the given route IDs. */
     public function depotOfficerIdsForRoutes(array $routeIds): array
     {
-        $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
-        if (empty($routeIds)) return [];
-
-        try {
-            $ph = implode(',', array_fill(0, count($routeIds), '?'));
-            $st = $this->pdo->prepare(
-                "SELECT DISTINCT u.user_id
-                 FROM users u
-                 JOIN (
-                    SELECT DISTINCT sb.sltb_depot_id
-                    FROM timetables t
-                    JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
-                    WHERE t.operator_type = 'SLTB'
-                      AND t.route_id IN ({$ph})
-                      AND sb.sltb_depot_id > 0
-                 ) dep ON dep.sltb_depot_id = u.sltb_depot_id
-                 WHERE u.role = 'DepotOfficer'
-                 ORDER BY u.user_id ASC"
-            );
-            $st->execute($routeIds);
-            return array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
-        } catch (\Throwable $e) {
-            return [];
+        $ids = [];
+        foreach ($this->routeDepotOptions($routeIds) as $option) {
+            $ids = array_merge($ids, $option['officer_ids'] ?? []);
         }
+        return array_values(array_unique(array_filter(array_map('intval', $ids), fn($id) => $id > 0)));
     }
 
     /**
@@ -116,6 +97,26 @@ class DirectMessageModel extends BaseModel
                 $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
             } catch (\Throwable $e) {
                 $rows = [];
+            }
+
+            $rowMap = [];
+            foreach ($rows as $row) {
+                $depotId = (int)($row['depot_id'] ?? 0);
+                if ($depotId > 0) {
+                    $rowMap[$depotId] = $row;
+                }
+            }
+            foreach ($this->sltbDepotRowsFromRouteStops($routeIds) as $row) {
+                $depotId = (int)($row['depot_id'] ?? 0);
+                if ($depotId > 0 && !isset($rowMap[$depotId])) {
+                    $rowMap[$depotId] = $row;
+                }
+            }
+            if (!empty($rowMap)) {
+                uasort($rowMap, static function (array $a, array $b): int {
+                    return strcasecmp((string)($a['depot_name'] ?? ''), (string)($b['depot_name'] ?? ''));
+                });
+                $rows = array_values($rowMap);
             }
         }
 
@@ -155,6 +156,66 @@ class DirectMessageModel extends BaseModel
         }
 
         return $options;
+    }
+
+    /**
+     * Return route-linked depot officers for a timekeeper as individual chat options.
+     * Each entry contains officer metadata plus depot metadata for display.
+     */
+    public function routeDepotOfficerOptions(array $routeIds, int $fallbackDepotId = 0): array
+    {
+        return $this->officerOptionsFromDepotRows(
+            $this->routeDepotOptions($routeIds, $fallbackDepotId),
+            'route'
+        );
+    }
+
+    /**
+     * Resolve depot-officer chat options for a timekeeper.
+     * First uses exact route-linked depots, then falls back to staffed depots
+     * that best match the route area or preferred location when exact depots
+     * are unstaffed.
+     */
+    public function usefulDepotOfficerChatOptions(array $routeIds, int $fallbackDepotId = 0, ?string $preferredLocation = null): array
+    {
+        $primary = $this->routeDepotOfficerOptions($routeIds, $fallbackDepotId);
+        if (!empty($primary)) {
+            return [
+                'options' => $primary,
+                'mode' => 'route',
+                'message' => null,
+            ];
+        }
+
+        $fallbackDepots = $this->staffedDepotFallbackRows($routeIds, $preferredLocation);
+        $fallback = $this->officerOptionsFromDepotRows($fallbackDepots, 'fallback');
+        if (!empty($fallback)) {
+            $locationLabel = trim((string)$preferredLocation);
+            if ($locationLabel !== '' && strcasecmp($locationLabel, 'Common') !== 0) {
+                $locationLabel = ucwords(strtolower($locationLabel));
+                $message = 'No exact route-linked depot officers were found for your current routes. Showing staffed ' . $locationLabel . '-area depot officers instead.';
+            } else {
+                $message = 'No exact route-linked depot officers were found for your current routes. Showing the closest staffed depot officers instead.';
+            }
+
+            return [
+                'options' => $fallback,
+                'mode' => 'fallback',
+                'message' => $message,
+            ];
+        }
+
+        if (!empty($routeIds)) {
+            $message = 'No route-linked depot officers are currently available for the routes visible to you, and no useful staffed fallback depot officers could be found.';
+        } else {
+            $message = 'No visible routes were found for this user right now, so direct chat cannot be resolved.';
+        }
+
+        return [
+            'options' => [],
+            'mode' => 'none',
+            'message' => $message,
+        ];
     }
 
     /** Count unread direct messages from the given users to the current user. */
@@ -197,6 +258,205 @@ class DirectMessageModel extends BaseModel
             'last_time' => $lastTime,
             'unread_count' => $this->unreadCountFromMultiple($userId, $doIds),
         ];
+    }
+
+    /** Return a lightweight summary for a 1:1 direct conversation. */
+    public function conversationSummaryWithUser(int $userId, int $partnerId): array
+    {
+        $lastMessage = null;
+        $lastTime = null;
+
+        $thread = $this->threadBetween($userId, $partnerId, 1);
+        if (!empty($thread)) {
+            $last = $thread[count($thread) - 1];
+            $lastMessage = mb_substr((string)($last['message'] ?? ''), 0, 80);
+            $lastTime = $last['created_at'] ?? null;
+        }
+
+        return [
+            'last_message' => $lastMessage,
+            'last_time' => $lastTime,
+            'unread_count' => $this->unreadCountFromMultiple($userId, [$partnerId]),
+        ];
+    }
+
+    private function officerOptionsFromDepotRows(array $depots, string $sourceScope = 'route'): array
+    {
+        $options = [];
+        $seenUserIds = [];
+
+        foreach ($depots as $depot) {
+            $depotId = (int)($depot['depot_id'] ?? 0);
+            if ($depotId <= 0) {
+                continue;
+            }
+
+            $officerIds = array_values(array_unique(array_filter(
+                array_map('intval', $depot['officer_ids'] ?? $this->depotOfficerIds($depotId)),
+                fn($id) => $id > 0
+            )));
+            if (empty($officerIds)) {
+                continue;
+            }
+
+            try {
+                $ph = implode(',', array_fill(0, count($officerIds), '?'));
+                $st = $this->pdo->prepare(
+                    "SELECT user_id, first_name, last_name, role
+                     FROM users
+                     WHERE user_id IN ({$ph})
+                     ORDER BY first_name ASC, last_name ASC, user_id ASC"
+                );
+                $st->execute($officerIds);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e) {
+                $rows = [];
+            }
+
+            foreach ($rows as $row) {
+                $userId = (int)($row['user_id'] ?? 0);
+                if ($userId <= 0 || isset($seenUserIds[$userId])) {
+                    continue;
+                }
+
+                $seenUserIds[$userId] = true;
+                $officerName = trim((string)($row['first_name'] ?? '') . ' ' . (string)($row['last_name'] ?? ''));
+                if ($officerName === '') {
+                    $officerName = 'Depot Officer #' . $userId;
+                }
+
+                $options[] = [
+                    'user_id' => $userId,
+                    'officer_name' => $officerName,
+                    'role' => (string)($row['role'] ?? 'DepotOfficer'),
+                    'depot_id' => $depotId,
+                    'depot_name' => (string)($depot['depot_name'] ?? ('Depot #' . $depotId)),
+                    'depot_code' => (string)($depot['depot_code'] ?? ''),
+                    'source_scope' => $sourceScope,
+                ];
+            }
+        }
+
+        usort($options, static function (array $a, array $b): int {
+            $cmp = strcasecmp((string)($a['depot_name'] ?? ''), (string)($b['depot_name'] ?? ''));
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+
+            $cmp = strcasecmp((string)($a['officer_name'] ?? ''), (string)($b['officer_name'] ?? ''));
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+
+            return ((int)($a['user_id'] ?? 0)) <=> ((int)($b['user_id'] ?? 0));
+        });
+
+        return $options;
+    }
+
+    private function staffedDepotFallbackRows(array $routeIds, ?string $preferredLocation = null, int $limit = 3): array
+    {
+        $preferredToken = $this->normalizeRouteText((string)$preferredLocation);
+        $routeTokens = [];
+        foreach ($this->routeStopRows($routeIds) as $routeRow) {
+            foreach ($this->extractRouteStopNames((string)($routeRow['stops_raw'] ?? '[]')) as $stopName) {
+                $token = $this->normalizeRouteText((string)$stopName);
+                if ($token !== '') {
+                    $routeTokens[$token] = true;
+                }
+            }
+        }
+        $routeTokens = array_keys($routeTokens);
+
+        try {
+            $rows = $this->pdo->query(
+                "SELECT sd.sltb_depot_id AS depot_id,
+                        COALESCE(sd.name, CONCAT('Depot #', sd.sltb_depot_id)) AS depot_name,
+                        COALESCE(sd.code, '') AS depot_code
+                 FROM sltb_depots sd
+                 JOIN users u
+                   ON u.sltb_depot_id = sd.sltb_depot_id
+                  AND u.role = 'DepotOfficer'
+                 GROUP BY sd.sltb_depot_id, sd.name, sd.code
+                 ORDER BY depot_name ASC"
+            )->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $scored = [];
+        foreach ($rows as $row) {
+            $depotId = (int)($row['depot_id'] ?? 0);
+            if ($depotId <= 0) {
+                continue;
+            }
+
+            $tokens = [];
+            $nameToken = $this->normalizeRouteText((string)($row['depot_name'] ?? ''));
+            if ($nameToken !== '') {
+                $tokens[] = $nameToken;
+                if (str_ends_with($nameToken, ' depot')) {
+                    $trimmed = trim(substr($nameToken, 0, -6));
+                    if ($trimmed !== '') {
+                        $tokens[] = $trimmed;
+                    }
+                }
+            }
+
+            $codeToken = $this->normalizeRouteText((string)($row['depot_code'] ?? ''));
+            if ($codeToken !== '') {
+                $tokens[] = $codeToken;
+            }
+            $tokens = array_values(array_unique(array_filter($tokens, fn($token) => $token !== '')));
+
+            $score = 0;
+            if ($preferredToken !== '' && $preferredToken !== 'common') {
+                foreach ($tokens as $token) {
+                    if ($token === $preferredToken) {
+                        $score = max($score, 100);
+                    } elseif (str_contains($token, $preferredToken) || str_contains($preferredToken, $token)) {
+                        $score = max($score, 80);
+                    }
+                }
+            }
+
+            foreach ($routeTokens as $routeToken) {
+                foreach ($tokens as $token) {
+                    if ($routeToken === $token) {
+                        $score = max($score, 60);
+                        continue;
+                    }
+                    if ((strlen($token) >= 4 && str_contains($routeToken, $token)) || (strlen($routeToken) >= 4 && str_contains($token, $routeToken))) {
+                        $score = max($score, 35);
+                    }
+                }
+            }
+
+            if ($score <= 0) {
+                continue;
+            }
+
+            $row['_score'] = $score;
+            $scored[] = $row;
+        }
+
+        usort($scored, static function (array $a, array $b): int {
+            $scoreCmp = ((int)($b['_score'] ?? 0)) <=> ((int)($a['_score'] ?? 0));
+            if ($scoreCmp !== 0) {
+                return $scoreCmp;
+            }
+
+            return strcasecmp((string)($a['depot_name'] ?? ''), (string)($b['depot_name'] ?? ''));
+        });
+
+        if ($limit > 0 && count($scored) > $limit) {
+            $scored = array_slice($scored, 0, $limit);
+        }
+
+        return array_map(static function (array $row): array {
+            unset($row['_score']);
+            return $row;
+        }, $scored);
     }
 
     /**
