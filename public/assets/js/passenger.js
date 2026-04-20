@@ -57,40 +57,71 @@ document.addEventListener('change', (e)=>{
 });
 
 
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', () => {
   const routeSelect = document.querySelector('select[name="route_id"]');
   const busSelect   = document.getElementById('busSelect');
 
   if (!routeSelect || !busSelect) return;
 
-  routeSelect.addEventListener('change', async function(){
+  // Maps bus_reg_no -> operator_type so we can auto-tick the Bus Type radio
+  const busTypeMap = {};
+
+  function resetBuses(placeholder) {
+    busSelect.innerHTML = '<option value="">' + placeholder + '</option>';
+    Object.keys(busTypeMap).forEach(k => delete busTypeMap[k]);
+  }
+
+  routeSelect.addEventListener('change', async function () {
     const routeId = this.value;
-    busSelect.innerHTML = '<option value="">Loading...</option>';
-    if (!routeId) {
-      busSelect.innerHTML = '<option value="">Choose a bus</option>';
-      return;
-    }
+    if (!routeId) { resetBuses('Choose a bus'); return; }
+
+    resetBuses('Loading buses…');
+    busSelect.disabled = true;
 
     try {
-      const res = await fetch(`/feedback?route_id=${routeId}`);
+      const res  = await fetch('/feedback?route_id=' + encodeURIComponent(routeId));
       const data = await res.json();
 
+      resetBuses('Any bus (optional)');
+
       if (Array.isArray(data) && data.length > 0) {
-        busSelect.innerHTML = '<option value="">Choose a bus</option>';
-        data.forEach(bus=>{
+        data.forEach(bus => {
+          const regNo  = bus.bus_reg_no || '';
+          const opType = bus.operator_type || '';
+          if (!regNo) return;
+          busTypeMap[regNo] = opType;
           const opt = document.createElement('option');
-          opt.value = bus.bus_id;
-          opt.textContent = `${bus.bus_reg_no} (${bus.operator_type})`;
+          opt.value       = regNo;           // <-- was bus.bus_id (wrong field, caused null in DB)
+          opt.textContent = regNo + (opType ? ' (' + opType + ')' : '');
           busSelect.appendChild(opt);
         });
       } else {
-        busSelect.innerHTML = '<option value="">No buses found</option>';
+        resetBuses('No buses found for this route');
       }
     } catch (err) {
-      console.error('Bus fetch failed:', err);
-      busSelect.innerHTML = '<option value="">Error loading buses</option>';
+      console.error('[NexBus] Bus fetch failed:', err);
+      resetBuses('Could not load buses');
     }
+
+    busSelect.disabled = false;
   });
+
+  // Auto-tick Bus Type radio when a bus is chosen
+  busSelect.addEventListener('change', function () {
+    const regNo  = this.value;
+    const opType = regNo ? (busTypeMap[regNo] || '') : '';
+    if (!opType) return;
+    const radioVal = opType.toUpperCase() === 'SLTB' ? 'SLTB' : 'Private';
+    const radio = document.querySelector('input[name="bus_type"][value="' + radioVal + '"]');
+    if (radio) radio.checked = true;
+  });
+
+  // Guarantee busSelect is NEVER disabled when the form submits
+  // (disabled controls are excluded from POST data)
+  const feedbackForm = busSelect.closest('form');
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', () => {
+      busSelect.disabled = false;
+    });
+  }
 });
-
-
