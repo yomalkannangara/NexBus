@@ -190,11 +190,34 @@ class TimekeeperPrivateController extends BaseController
         }
 
         $model = new TimekeeperMessageModel();
-        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'alert'], true)
+        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'message', 'alert'], true)
             ? (string)$_GET['filter']
             : 'all';
 
         $action = (string)($_GET['action'] ?? '');
+        $opId = $this->myOpId();
+        $tripModel = new TripEntryModel($opId);
+        $dm = new \App\models\common\DirectMessageModel();
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', array_column($tripModel->todayList(), 'route_id')))));
+        $chatDepots = $dm->routeDepotOptions($routeIds);
+        foreach ($chatDepots as &$chatDepot) {
+            $chatDepot = array_merge($chatDepot, $dm->conversationSummaryWithDepot($uid, $chatDepot['officer_ids'] ?? []));
+        }
+        unset($chatDepot);
+
+        $activeChatDepotId = (int)($_POST['chat_depot_id'] ?? $_GET['chat_depot_id'] ?? 0);
+        $activeChatDepot = null;
+        foreach ($chatDepots as $chatDepot) {
+            if ((int)($chatDepot['depot_id'] ?? 0) === $activeChatDepotId) {
+                $activeChatDepot = $chatDepot;
+                break;
+            }
+        }
+        if ($activeChatDepot === null && !empty($chatDepots)) {
+            $activeChatDepot = $chatDepots[0];
+            $activeChatDepotId = (int)($activeChatDepot['depot_id'] ?? 0);
+        }
+        $doIds = $activeChatDepot['officer_ids'] ?? [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'read' && isset($_GET['id'])) {
             $ok = $model->markRead((int)$_GET['id'], $uid);
@@ -225,8 +248,25 @@ class TimekeeperPrivateController extends BaseController
             exit;
         }
 
-        $opId = $this->myOpId();
+        if ($action === 'chat_send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $text = trim((string)($_POST['message'] ?? ''));
+            $ids = ($text !== '' && !empty($doIds)) ? $dm->sendToMultiple($uid, $doIds, $text) : [];
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => !empty($ids), 'id' => $ids[0] ?? null]);
+            exit;
+        }
+
+        if ($action === 'chat_poll') {
+            $sinceId = (int)($_GET['since_id'] ?? 0);
+            $msgs = $dm->threadWithDepot($uid, $doIds, 50, $sinceId);
+            header('Content-Type: application/json');
+            echo json_encode($msgs);
+            exit;
+        }
+
         $dash = new DashboardModel($opId);
+        $chatThread = $dm->threadWithDepot($uid, $doIds, 100);
+        $dm->markReadFromMultiple($uid, $doIds);
 
         $this->view('timekeeper_private', 'messages', [
             'S'           => $dash->info(),
@@ -234,6 +274,13 @@ class TimekeeperPrivateController extends BaseController
             'filter'      => $filter,
             'unread_count'=> $model->unreadCount($uid),
             'msg'         => $_GET['msg'] ?? null,
+            'chat_thread' => $chatThread,
+            'chat_unread' => $dm->unreadCount($uid),
+            'chat_depots' => $chatDepots,
+            'active_chat_depot_id' => $activeChatDepotId,
+            'active_chat_depot' => $activeChatDepot,
+            'my_user_id'  => $uid,
+            'has_depot_officer' => !empty($chatDepots),
         ]);
     }
 

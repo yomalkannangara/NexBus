@@ -6,6 +6,169 @@ use PDO;
 
 class MessageModel extends BaseModel
 {
+    private function normalizeRecipientGroup(?string $recipientGroup): ?string
+    {
+        $recipientGroup = trim((string)$recipientGroup);
+        return in_array($recipientGroup, ['SLTBTimekeeper', 'PrivateTimekeeper'], true)
+            ? $recipientGroup
+            : null;
+    }
+
+    private function depotRouteIds(int $depotId): array
+    {
+        if ($depotId <= 0) return [];
+
+        try {
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT t.route_id
+                 FROM timetables t
+                 JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                 WHERE t.operator_type = 'SLTB'
+                   AND sb.sltb_depot_id = ?
+                   AND t.route_id IS NOT NULL"
+            );
+            $st->execute([$depotId]);
+            return array_values(array_unique(array_filter(array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)), fn($id) => $id > 0)));
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    private function sltbDepotIdsForRoutes(array $routeIds): array
+    {
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
+        if (empty($routeIds)) return [];
+
+        try {
+            $ph = implode(',', array_fill(0, count($routeIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT sb.sltb_depot_id
+                 FROM timetables t
+                 JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                 WHERE t.operator_type = 'SLTB'
+                   AND t.route_id IN ({$ph})
+                   AND sb.sltb_depot_id > 0"
+            );
+            $st->execute($routeIds);
+            return array_values(array_unique(array_filter(array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)), fn($id) => $id > 0)));
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    private function privateOperatorIdsForRoutes(array $routeIds): array
+    {
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
+        if (empty($routeIds)) return [];
+
+        try {
+            $ph = implode(',', array_fill(0, count($routeIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT pb.private_operator_id
+                 FROM timetables t
+                 JOIN private_buses pb ON pb.reg_no = t.bus_reg_no
+                 WHERE t.route_id IN ({$ph})
+                   AND pb.private_operator_id > 0"
+            );
+            $st->execute($routeIds);
+            return array_values(array_unique(array_filter(array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)), fn($id) => $id > 0)));
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    private function recipientIdsForRoutes(array $routeIds, ?string $recipientGroup = null): array
+    {
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
+        if (empty($routeIds)) return [];
+
+        $recipientGroup = $this->normalizeRecipientGroup($recipientGroup);
+        $ids = [];
+
+        if ($recipientGroup !== 'PrivateTimekeeper') {
+            $depotIds = $this->sltbDepotIdsForRoutes($routeIds);
+            if (!empty($depotIds)) {
+                $ph = implode(',', array_fill(0, count($depotIds), '?'));
+                $st = $this->pdo->prepare(
+                    "SELECT user_id FROM users
+                     WHERE role = 'SLTBTimekeeper' AND sltb_depot_id IN ({$ph})"
+                );
+                $st->execute($depotIds);
+                $ids = array_merge($ids, array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)));
+            }
+        }
+
+        if ($recipientGroup !== 'SLTBTimekeeper') {
+            $operatorIds = $this->privateOperatorIdsForRoutes($routeIds);
+            if (!empty($operatorIds)) {
+                $ph = implode(',', array_fill(0, count($operatorIds), '?'));
+                $st = $this->pdo->prepare(
+                    "SELECT user_id FROM users
+                     WHERE role = 'PrivateTimekeeper' AND private_operator_id IN ({$ph})"
+                );
+                $st->execute($operatorIds);
+                $ids = array_merge($ids, array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN)));
+            }
+        }
+
+        return array_values(array_unique(array_filter($ids, fn($id) => $id > 0)));
+    }
+
+    private function recipientIdsForBuses(array $busIds, ?string $recipientGroup = null): array
+    {
+        $busIds = array_values(array_unique(array_filter(array_map(static fn($v) => trim((string)$v), $busIds), fn($v) => $v !== '')));
+        if (empty($busIds)) return [];
+
+        try {
+            $ph = implode(',', array_fill(0, count($busIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT route_id
+                 FROM timetables
+                 WHERE bus_reg_no IN ({$ph})
+                   AND route_id IS NOT NULL"
+            );
+            $st->execute($busIds);
+            $routeIds = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        } catch (\Throwable $e) {
+            $routeIds = [];
+        }
+
+        return $this->recipientIdsForRoutes($routeIds, $recipientGroup);
+    }
+
+    private function allRelevantRecipientIds(int $depotId, ?string $recipientGroup = null): array
+    {
+        return $this->recipientIdsForRoutes($this->depotRouteIds($depotId), $recipientGroup);
+    }
+
+    public function messagingRecipients(int $depotId, ?string $recipientGroup = null): array
+    {
+        $recipientIds = $this->allRelevantRecipientIds($depotId, $recipientGroup);
+        if (empty($recipientIds)) return [];
+
+        $ph = implode(',', array_fill(0, count($recipientIds), '?'));
+        $st = $this->pdo->prepare(
+            "SELECT user_id,
+                    CONCAT(first_name, ' ', COALESCE(last_name, '')) AS full_name,
+                    role,
+                    email,
+                    phone
+             FROM users
+             WHERE user_id IN ({$ph})
+             ORDER BY role, full_name"
+        );
+        $st->execute($recipientIds);
+        return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function availableRolesForMessaging(int $depotId): array
+    {
+        $roles = array_column($this->messagingRecipients($depotId), 'role');
+        $roles = array_values(array_unique(array_filter(array_map('strval', $roles))));
+        sort($roles);
+        return $roles;
+    }
+
     /**
      * Expand recipient IDs based on scope.
      * scope='individual': use provided userIds as-is.
@@ -13,33 +176,32 @@ class MessageModel extends BaseModel
      * scope='route': userIds are route_ids; expands to all SLTBTimekeepers at the depot.
      * scope='bus': userIds are bus_ids; expands to all SLTBTimekeepers at the depot.
      */
-    public function expandRecipients(int $depotId, array $userIds, string $scope='individual'): array {
+    public function expandRecipients(int $depotId, array $userIds, string $scope='individual', ?string $recipientGroup = null): array {
         if (empty($userIds)) return [];
 
         $okIds = [];
+        $recipientGroup = $this->normalizeRecipientGroup($recipientGroup);
 
         if ($scope === 'individual') {
-            // Validate user IDs belong to this depot
-            $in = implode(',', array_fill(0, count($userIds), '?'));
-            $st = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=? AND user_id IN ($in)");
-            $st->execute(array_merge([$depotId], array_map('intval',$userIds)));
-            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+            $allowedIds = array_map('intval', array_column($this->messagingRecipients($depotId, $recipientGroup), 'user_id'));
+            $requestedIds = array_map('intval', $userIds);
+            $okIds = array_values(array_intersect($requestedIds, $allowedIds));
 
         } elseif ($scope === 'role') {
-            // userIds are role names; expand to all users with that role in depot
-            $in = implode(',', array_fill(0, count($userIds), '?'));
-            $st = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=? AND role IN ($in)");
-            $st->execute(array_merge([$depotId], $userIds));
-            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+            $allowedRoles = ['SLTBTimekeeper', 'PrivateTimekeeper'];
+            $roles = array_values(array_intersect($allowedRoles, array_map(static fn($v) => trim((string)$v), $userIds)));
+            if (!empty($roles)) {
+                $matching = array_filter(
+                    $this->messagingRecipients($depotId),
+                    fn($row) => in_array((string)($row['role'] ?? ''), $roles, true)
+                );
+                $okIds = array_column($matching, 'user_id');
+            }
 
         } elseif ($scope === 'route' || $scope === 'bus') {
-            // Drivers/conductors are not system users.
-            // Messages for a specific bus or route go to all SLTBTimekeepers at the depot.
-            $st = $this->pdo->prepare(
-                "SELECT user_id FROM users WHERE sltb_depot_id=? AND role='SLTBTimekeeper'"
-            );
-            $st->execute([$depotId]);
-            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+            $okIds = $scope === 'route'
+                ? $this->recipientIdsForRoutes($userIds, $recipientGroup)
+                : $this->recipientIdsForBuses($userIds, $recipientGroup);
         }
 
         return array_unique(array_map('intval', $okIds));
@@ -54,18 +216,17 @@ class MessageModel extends BaseModel
         bool $allDepot=false,
         ?int $senderUserId=null,
         ?string $senderRole=null,
-        ?string $category=null
+        ?string $category=null,
+        ?string $recipientGroup=null
     ): bool {
         $text = trim($text);
         if (!$text) return false;
 
         // Expand recipients based on scope
         if ($allDepot) {
-            $st = $this->pdo->prepare("SELECT user_id FROM users WHERE sltb_depot_id=?");
-            $st->execute([$depotId]);
-            $okIds = $st->fetchAll(PDO::FETCH_COLUMN);
+            $okIds = $this->allRelevantRecipientIds($depotId, $recipientGroup);
         } else {
-            $okIds = $this->expandRecipients($depotId, $userIds, $scope);
+            $okIds = $this->expandRecipients($depotId, $userIds, $scope, $recipientGroup);
         }
         
         if (!$okIds) return false;
@@ -85,6 +246,7 @@ class MessageModel extends BaseModel
             'source_name'    => $senderName,
             'scope'          => $scope,
             'category'       => $category,
+            'recipient_group'=> $this->normalizeRecipientGroup($recipientGroup),
         ];
         $metadataJson = json_encode($metadata, JSON_UNESCAPED_UNICODE);
 

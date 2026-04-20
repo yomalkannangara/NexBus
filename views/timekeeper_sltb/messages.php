@@ -7,6 +7,10 @@ $msg            = $msg ?? null;
 $chatThread     = $chat_thread ?? [];
 $myUserId       = (int)($my_user_id ?? 0);
 $hasDepotOfficer= (bool)($has_depot_officer ?? false);
+$chatDepots     = $chat_depots ?? [];
+$activeChatDepotId = (int)($active_chat_depot_id ?? 0);
+$activeChatDepot = $active_chat_depot ?? null;
+$activeDepotName = trim((string)($activeChatDepot['depot_name'] ?? 'Relevant Depot'));
 
 $flashMap = [
     'read'       => ['type'=>'ok',  'text'=>'Message marked as read.'],
@@ -100,6 +104,26 @@ function ts_time_ago(?string $ts): string {
 .ts-bubble-row.theirs .ts-bubble-meta { text-align:left; color:#6b7280; }
 .ts-chat-date-sep { text-align:center; font-size:.7rem; color:#9ca3af; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin:6px 0; }
 .ts-no-do-warning { background:#fef9c3; border:1px solid #fde047; border-radius:10px; padding:14px 16px; font-size:.84rem; color:#78350f; font-weight:600; margin:12px; }
+.ts-chat-layout { display:grid; grid-template-columns:280px minmax(0,1fr); flex:1; min-height:0; }
+.ts-chat-list { border-right:1px solid #f0e8de; background:#fffaf5; overflow-y:auto; }
+.ts-chat-list-head { padding:14px 16px 10px; font-size:.75rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:#7b1c3e; }
+.ts-chat-link { display:block; padding:12px 14px; border-top:1px solid #f6efe7; text-decoration:none; color:inherit; background:transparent; }
+.ts-chat-link:hover { background:#fff3ea; }
+.ts-chat-link.active { background:#fff; box-shadow:inset 3px 0 0 var(--sltb); }
+.ts-chat-link-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.ts-chat-link-name { font-size:.88rem; font-weight:800; color:#111827; }
+.ts-chat-link-badge { min-width:18px; height:18px; padding:0 6px; border-radius:999px; background:#dc2626; color:#fff; font-size:.68rem; font-weight:900; display:inline-flex; align-items:center; justify-content:center; }
+.ts-chat-link-meta { margin-top:3px; font-size:.68rem; color:#9a3412; font-weight:700; }
+.ts-chat-link-preview { margin-top:6px; font-size:.76rem; color:#4b5563; line-height:1.45; }
+.ts-chat-link-time { margin-top:6px; font-size:.68rem; color:#9ca3af; }
+.ts-chat-main { display:flex; flex-direction:column; min-width:0; min-height:0; }
+.ts-chat-main-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; border-bottom:1px solid #f0e8de; background:#fff; }
+.ts-chat-main-head strong { font-size:.92rem; color:#111827; }
+.ts-chat-main-head span { font-size:.74rem; color:#6b7280; }
+@media (max-width: 900px) {
+  .ts-chat-layout { grid-template-columns:1fr; }
+  .ts-chat-list { max-height:190px; border-right:none; border-bottom:1px solid #f0e8de; }
+}
 /* bubble context menu */
 .ts-bub-ctx { position:fixed;z-index:2000;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:150px;overflow:hidden;display:none; }
 .ts-bub-ctx button { display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:none;background:none;font-size:13px;color:#374151;cursor:pointer;text-align:left; }
@@ -144,6 +168,7 @@ function ts_time_ago(?string $ts): string {
       <div class="ts-filter-group">
         <a class="ts-filter-a <?= $filter==='all'    ?'active':'' ?>" href="/TS/messages?filter=all">All</a>
         <a class="ts-filter-a <?= $filter==='unread' ?'active':'' ?>" href="/TS/messages?filter=unread">Unread</a>
+        <a class="ts-filter-a <?= $filter==='message' ?'active':'' ?>" href="/TS/messages?filter=message">Messages</a>
         <a class="ts-filter-a <?= $filter==='alert'  ?'active':'' ?>" href="/TS/messages?filter=alert">Alerts</a>
       </div>
       <?php if ($unreadCount > 0): ?>
@@ -201,62 +226,95 @@ function ts_time_ago(?string $ts): string {
   <!-- CHAT PANEL -->
   <div class="ts-panel" id="panelChat">
     <?php if (!$hasDepotOfficer): ?>
-      <div class="ts-no-do-warning">No Depot Officer is currently assigned to your depot. Direct chat will be available once one is assigned.</div>
+      <div class="ts-no-do-warning">No route-linked depot officer is currently available. Direct chat will appear once a relevant depot officer is found for your visible routes.</div>
     <?php endif; ?>
-    <div class="ts-chat-inner" id="chatInner">
-      <?php if (empty($chatThread) && $hasDepotOfficer): ?>
-        <div class="ts-chat-empty">
-          <div style="font-size:48px">No messages yet</div>
-          <div style="font-size:.82rem">Start a conversation with your Depot Officer below</div>
+    <?php if ($hasDepotOfficer): ?>
+    <div class="ts-chat-layout">
+      <aside class="ts-chat-list">
+        <div class="ts-chat-list-head">Relevant Depots</div>
+        <?php foreach ($chatDepots as $depot):
+          $depotId = (int)($depot['depot_id'] ?? 0);
+          $isActiveDepot = $depotId === $activeChatDepotId;
+          $preview = trim((string)($depot['last_message'] ?? ''));
+          $depotCode = trim((string)($depot['depot_code'] ?? ''));
+          $chatHref = '/TS/messages?filter=' . rawurlencode($filter) . '&chat_depot_id=' . $depotId . '#chat';
+        ?>
+        <a class="ts-chat-link<?= $isActiveDepot ? ' active' : '' ?>" href="<?= htmlspecialchars($chatHref) ?>">
+          <div class="ts-chat-link-top">
+            <span class="ts-chat-link-name"><?= htmlspecialchars((string)($depot['depot_name'] ?? ('Depot #' . $depotId))) ?></span>
+            <?php if ((int)($depot['unread_count'] ?? 0) > 0): ?>
+              <span class="ts-chat-link-badge"><?= min(99, (int)$depot['unread_count']) ?></span>
+            <?php endif; ?>
+          </div>
+          <?php if ($depotCode !== ''): ?><div class="ts-chat-link-meta"><?= htmlspecialchars($depotCode) ?></div><?php endif; ?>
+          <div class="ts-chat-link-preview"><?= htmlspecialchars($preview !== '' ? $preview : 'No messages yet for this depot.') ?></div>
+          <?php if (!empty($depot['last_time'])): ?><div class="ts-chat-link-time"><?= htmlspecialchars(ts_time_ago((string)$depot['last_time'])) ?></div><?php endif; ?>
+        </a>
+        <?php endforeach; ?>
+      </aside>
+
+      <section class="ts-chat-main">
+        <div class="ts-chat-main-head">
+          <strong><?= htmlspecialchars($activeDepotName) ?></strong>
+          <span>Direct chat with the relevant depot officer</span>
         </div>
-      <?php else: ?>
-        <?php $prevDate = null; foreach ($chatThread as $m):
-          $isMe    = (int)$m['from_user_id'] === $myUserId;
-          $side    = $isMe ? 'mine' : 'theirs';
-          $fullN   = trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? ''));
-          $init    = strtoupper(substr($fullN ?: ($isMe ? 'Y' : 'D'), 0, 1));
-          $time    = $m['created_at'] ?? '';
-          $dateStr = $time ? date('Y-m-d', strtotime($time)) : '';
-          $timeDisp= $time ? date('H:i', strtotime($time)) : '';
-          if ($dateStr && $dateStr !== $prevDate): $prevDate = $dateStr; ?>
-          <div class="ts-chat-date-sep"><?= htmlspecialchars(date('d F Y', strtotime($time))) ?></div>
-        <?php endif; ?>
-        <div class="ts-bubble-row <?= $side ?>" data-dm-id="<?= (int)($m['id'] ?? 0) ?>"<?= $isMe ? ' style="cursor:pointer"' : '' ?>>
-          <div class="ts-avatar"><?= htmlspecialchars($init) ?></div>
-          <div>
-            <div class="ts-bubble"><?= nl2br(htmlspecialchars((string)($m['message'] ?? ''))) ?></div>
-            <?php if ($isMe): ?>
-            <div class="ts-bub-edit-wrap">
-              <textarea class="ts-bub-edit-ta"></textarea>
-              <div class="ts-bub-edit-actions">
-                <button type="button" class="ts-bub-edit-save" onclick="tsBubSaveEdit(this)">Save</button>
-                <button type="button" class="ts-bub-edit-cancel" onclick="tsBubCancelEdit(this)">Cancel</button>
+
+        <div class="ts-chat-inner" id="chatInner">
+          <?php if (empty($chatThread)): ?>
+            <div class="ts-chat-empty">
+              <div style="font-size:48px">No messages yet</div>
+              <div style="font-size:.82rem">Start a conversation with <?= htmlspecialchars($activeDepotName) ?> below.</div>
+            </div>
+          <?php else: ?>
+            <?php $prevDate = null; foreach ($chatThread as $m):
+              $isMe    = (int)$m['from_user_id'] === $myUserId;
+              $side    = $isMe ? 'mine' : 'theirs';
+              $fullN   = trim(($m['first_name'] ?? '') . ' ' . ($m['last_name'] ?? ''));
+              $init    = strtoupper(substr($fullN ?: ($isMe ? 'Y' : 'D'), 0, 1));
+              $time    = $m['created_at'] ?? '';
+              $dateStr = $time ? date('Y-m-d', strtotime($time)) : '';
+              $timeDisp= $time ? date('H:i', strtotime($time)) : '';
+              if ($dateStr && $dateStr !== $prevDate): $prevDate = $dateStr; ?>
+              <div class="ts-chat-date-sep"><?= htmlspecialchars(date('d F Y', strtotime($time))) ?></div>
+            <?php endif; ?>
+            <div class="ts-bubble-row <?= $side ?>" data-dm-id="<?= (int)($m['id'] ?? 0) ?>"<?= $isMe ? ' style="cursor:pointer"' : '' ?>>
+              <div class="ts-avatar"><?= htmlspecialchars($init) ?></div>
+              <div>
+                <div class="ts-bubble"><?= nl2br(htmlspecialchars((string)($m['message'] ?? ''))) ?></div>
+                <?php if ($isMe): ?>
+                <div class="ts-bub-edit-wrap">
+                  <textarea class="ts-bub-edit-ta"></textarea>
+                  <div class="ts-bub-edit-actions">
+                    <button type="button" class="ts-bub-edit-save" onclick="tsBubSaveEdit(this)">Save</button>
+                    <button type="button" class="ts-bub-edit-cancel" onclick="tsBubCancelEdit(this)">Cancel</button>
+                  </div>
+                </div>
+                <?php endif; ?>
+                <div class="ts-bubble-meta">
+                  <?= $isMe ? 'You' : htmlspecialchars($fullN ?: 'Depot Officer') ?>
+                  <?= (!$isMe && ($m['role'] ?? '')) ? ' &middot; ' . htmlspecialchars($m['role']) : '' ?>
+                  &middot; <?= htmlspecialchars($timeDisp) ?>
+                  <?= !empty($m['edited_at']) ? '<span class="ts-bub-edited-tag">(edited)</span>' : '' ?>
+                </div>
               </div>
             </div>
-            <?php endif; ?>
-            <div class="ts-bubble-meta">
-              <?= $isMe ? 'You' : htmlspecialchars($fullN ?: 'Depot') ?>
-              <?= (!$isMe && ($m['role'] ?? '')) ? ' &middot; ' . htmlspecialchars($m['role']) : '' ?>
-              &middot; <?= htmlspecialchars($timeDisp) ?>
-              <?= !empty($m['edited_at']) ? '<span class="ts-bub-edited-tag">(edited)</span>' : '' ?>
-            </div>
-          </div>
+            <?php endforeach; ?>
+          <?php endif; ?>
         </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
-    <?php if ($hasDepotOfficer): ?>
-    <div class="ts-chat-compose">
-      <div class="ts-chat-compose-row">
-        <textarea class="ts-chat-textarea" id="chatInput" rows="1"
-          placeholder="Message your Depot Officer..."
-          onkeydown="tsChatKeySubmit(event)"></textarea>
-        <button class="ts-chat-send" id="chatSendBtn" onclick="tsSendChat()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Send
-        </button>
-      </div>
-      <div class="ts-chat-hint">Enter to send &middot; Shift+Enter for new line</div>
+
+        <div class="ts-chat-compose">
+          <div class="ts-chat-compose-row">
+            <textarea class="ts-chat-textarea" id="chatInput" rows="1"
+              placeholder="Message <?= htmlspecialchars($activeDepotName) ?>..."
+              onkeydown="tsChatKeySubmit(event)"></textarea>
+            <button class="ts-chat-send" id="chatSendBtn" onclick="tsSendChat()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send
+            </button>
+          </div>
+          <div class="ts-chat-hint">Enter to send &middot; Shift+Enter for new line</div>
+        </div>
+      </section>
     </div>
     <?php endif; ?>
   </div><!-- /panelChat -->
@@ -287,6 +345,7 @@ function ts_time_ago(?string $ts): string {
 var myUserId = <?php echo (int)$myUserId; ?>;
 var lastDmId = 0;
 var chatUnread = 0;
+var activeChatDepotId = <?php echo (int)$activeChatDepotId; ?>;
 
 // Seed lastDmId from server-rendered bubbles and attach click handlers to mine bubbles
 document.querySelectorAll('.ts-bubble-row[data-dm-id]').forEach(function(el){
@@ -311,6 +370,13 @@ window.tsSwitchTab = function(name, btn) {
     if (panel) panel.classList.add('active');
     if (name === 'chat') { scrollChat(); resetChatBadge(); }
 };
+
+if (window.location.hash === '#chat') {
+  var chatTab = document.getElementById('tabChat');
+  if (chatTab) {
+    window.tsSwitchTab('chat', chatTab);
+  }
+}
 
 function scrollChat() {
     var el = document.getElementById('chatInner');
@@ -343,10 +409,11 @@ window.tsSendChat = function() {
     var btn   = document.getElementById('chatSendBtn');
     if (!input || !btn) return;
     var text  = input.value.trim();
-    if (!text) return;
+  if (!text || !activeChatDepotId) return;
     btn.disabled = true;
     var fd = new FormData();
     fd.append('message', text);
+  fd.append('chat_depot_id', String(activeChatDepotId));
     fetch('/TS/messages?action=chat_send', { method:'POST', body:fd })
         .then(function(r){ return r.json(); })
         .then(function(d) {
@@ -431,7 +498,8 @@ function resetChatBadge() {
 
 // Poll chat
 function pollChat() {
-    fetch('/TS/messages?action=chat_poll&since_id=' + lastDmId)
+  if (!activeChatDepotId) return;
+  fetch('/TS/messages?action=chat_poll&since_id=' + lastDmId + '&chat_depot_id=' + activeChatDepotId)
         .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
         .then(function(msgs) {
             if (!Array.isArray(msgs) || !msgs.length) return;

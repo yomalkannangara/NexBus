@@ -41,19 +41,162 @@ class DirectMessageModel extends BaseModel
         try { $this->pdo->exec("ALTER TABLE direct_messages ADD COLUMN edited_at DATETIME NULL DEFAULT NULL"); } catch (\Throwable $e) {}
     }
 
-    /** Return DepotOfficer/DepotManager user IDs for an SLTB depot. */
+    /** Return DepotOfficer user IDs for an SLTB depot. */
     public function depotOfficerIds(int $depotId): array
     {
         if ($depotId <= 0) return [];
         try {
             $st = $this->pdo->prepare(
                 "SELECT user_id FROM users
-                 WHERE sltb_depot_id = ? AND role IN ('DepotOfficer','DepotManager')
-                 ORDER BY role = 'DepotOfficer' DESC, user_id ASC"
+                 WHERE sltb_depot_id = ? AND role = 'DepotOfficer'
+                 ORDER BY user_id ASC"
             );
             $st->execute([$depotId]);
             return array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
         } catch (\Throwable $e) { return []; }
+    }
+
+    /** Return DepotOfficer user IDs for all SLTB depots serving the given route IDs. */
+    public function depotOfficerIdsForRoutes(array $routeIds): array
+    {
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
+        if (empty($routeIds)) return [];
+
+        try {
+            $ph = implode(',', array_fill(0, count($routeIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT DISTINCT u.user_id
+                 FROM users u
+                 JOIN (
+                    SELECT DISTINCT sb.sltb_depot_id
+                    FROM timetables t
+                    JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                    WHERE t.operator_type = 'SLTB'
+                      AND t.route_id IN ({$ph})
+                      AND sb.sltb_depot_id > 0
+                 ) dep ON dep.sltb_depot_id = u.sltb_depot_id
+                 WHERE u.role = 'DepotOfficer'
+                 ORDER BY u.user_id ASC"
+            );
+            $st->execute($routeIds);
+            return array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Return route-linked depot chat options for a timekeeper.
+     * Each entry contains depot metadata plus the officer ids that back the thread.
+     */
+    public function routeDepotOptions(array $routeIds, int $fallbackDepotId = 0): array
+    {
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', $routeIds), fn($id) => $id > 0)));
+        $rows = [];
+
+        if (!empty($routeIds)) {
+            try {
+                $ph = implode(',', array_fill(0, count($routeIds), '?'));
+                $st = $this->pdo->prepare(
+                    "SELECT DISTINCT dep.sltb_depot_id AS depot_id,
+                            COALESCE(sd.name, CONCAT('Depot #', dep.sltb_depot_id)) AS depot_name,
+                            COALESCE(sd.code, '') AS depot_code
+                     FROM (
+                        SELECT DISTINCT sb.sltb_depot_id
+                        FROM timetables t
+                        JOIN sltb_buses sb ON sb.reg_no = t.bus_reg_no
+                        WHERE t.operator_type = 'SLTB'
+                          AND t.route_id IN ({$ph})
+                          AND sb.sltb_depot_id > 0
+                     ) dep
+                     LEFT JOIN sltb_depots sd ON sd.sltb_depot_id = dep.sltb_depot_id
+                     ORDER BY depot_name ASC"
+                );
+                $st->execute($routeIds);
+                $rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } catch (\Throwable $e) {
+                $rows = [];
+            }
+        }
+
+        if (empty($rows) && $fallbackDepotId > 0) {
+            try {
+                $st = $this->pdo->prepare(
+                    "SELECT sd.sltb_depot_id AS depot_id,
+                            COALESCE(sd.name, CONCAT('Depot #', sd.sltb_depot_id)) AS depot_name,
+                            COALESCE(sd.code, '') AS depot_code
+                     FROM sltb_depots sd
+                     WHERE sd.sltb_depot_id = ?
+                     LIMIT 1"
+                );
+                $st->execute([$fallbackDepotId]);
+                $row = $st->fetch(PDO::FETCH_ASSOC);
+                if ($row) {
+                    $rows = [$row];
+                }
+            } catch (\Throwable $e) {
+                $rows = [];
+            }
+        }
+
+        $options = [];
+        foreach ($rows as $row) {
+            $depotId = (int)($row['depot_id'] ?? 0);
+            $officerIds = $this->depotOfficerIds($depotId);
+            if (empty($officerIds)) {
+                continue;
+            }
+            $options[] = [
+                'depot_id' => $depotId,
+                'depot_name' => (string)($row['depot_name'] ?? ('Depot #' . $depotId)),
+                'depot_code' => (string)($row['depot_code'] ?? ''),
+                'officer_ids' => $officerIds,
+            ];
+        }
+
+        return $options;
+    }
+
+    /** Count unread direct messages from the given users to the current user. */
+    public function unreadCountFromMultiple(int $myId, array $partnerIds): int
+    {
+        $partnerIds = array_values(array_unique(array_filter(array_map('intval', $partnerIds), fn($id) => $id > 0)));
+        if ($myId <= 0 || empty($partnerIds)) return 0;
+
+        try {
+            $ph = implode(',', array_fill(0, count($partnerIds), '?'));
+            $st = $this->pdo->prepare(
+                "SELECT COUNT(*) FROM direct_messages
+                 WHERE from_user_id IN ({$ph})
+                   AND to_user_id = ?
+                   AND is_read = 0
+                   AND is_deleted = 0"
+            );
+            $st->execute(array_merge($partnerIds, [$myId]));
+            return (int)$st->fetchColumn();
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    }
+
+    /** Return a lightweight summary for a timekeeper <-> depot conversation. */
+    public function conversationSummaryWithDepot(int $userId, array $doIds): array
+    {
+        $lastMessage = null;
+        $lastTime = null;
+
+        $thread = $this->threadWithDepot($userId, $doIds, 1);
+        if (!empty($thread)) {
+            $last = $thread[count($thread) - 1];
+            $lastMessage = mb_substr((string)($last['message'] ?? ''), 0, 80);
+            $lastTime = $last['created_at'] ?? null;
+        }
+
+        return [
+            'last_message' => $lastMessage,
+            'last_time' => $lastTime,
+            'unread_count' => $this->unreadCountFromMultiple($userId, $doIds),
+        ];
     }
 
     /**

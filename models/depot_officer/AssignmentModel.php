@@ -285,6 +285,7 @@ public function allToday(int $depotId): array {
               WHERE bus_reg_no=? AND assigned_date=? AND shift=? AND sltb_depot_id=? LIMIT 1"
         );
         $stBus->execute([$bus, $assigned_date, $this->timeToShift($shift), $depotId]);
+        
         $ebRow = $stBus->fetch(PDO::FETCH_ASSOC);
         if ($ebRow) {
             $sameDriver    = (int)$ebRow['sltb_driver_id']    === $driver;
@@ -374,6 +375,10 @@ public function allToday(int $depotId): array {
             if ($code === '23000' || strpos($e->getMessage(), 'Duplicate') !== false) {
                 $setParts = ['sltb_driver_id = ?', 'sltb_conductor_id = ?'];
                 $updValues = [$driver, $conductor];
+                if ($this->columnExists('sltb_assignments','timetable_id')) {
+                    $setParts[] = 'timetable_id = ?';
+                    $updValues[] = $timetableId;
+                }
                 if ($this->columnExists('sltb_assignments','override_remark')) {
                     $setParts[] = 'override_remark = ?';
                     $setParts[] = 'overridden_by = ?';
@@ -500,9 +505,34 @@ public function allToday(int $depotId): array {
 
     public function findById(int $depotId, int $assignmentId): ?array {
         $st = $this->pdo->prepare(
-            "SELECT assignment_id, assigned_date, shift, bus_reg_no, sltb_driver_id, sltb_conductor_id
-             FROM sltb_assignments
-             WHERE assignment_id=? AND sltb_depot_id=?
+            "SELECT a.assignment_id,
+                    a.assigned_date,
+                    a.shift,
+                    a.bus_reg_no,
+                    a.sltb_driver_id,
+                    a.sltb_conductor_id,
+                    tt.route_id,
+                    r.route_no
+             FROM sltb_assignments a
+             LEFT JOIN (
+                SELECT t.bus_reg_no,
+                       CAST(
+                           SUBSTRING_INDEX(
+                               GROUP_CONCAT(
+                                   t.route_id
+                                   ORDER BY t.effective_from DESC, t.departure_time ASC, t.timetable_id DESC
+                                   SEPARATOR ','
+                               ),
+                               ',',
+                               1
+                           ) AS UNSIGNED
+                       ) AS route_id
+                FROM timetables t
+                WHERE t.operator_type='SLTB'
+                GROUP BY t.bus_reg_no
+             ) tt ON tt.bus_reg_no = a.bus_reg_no
+             LEFT JOIN routes r ON r.route_id = tt.route_id
+             WHERE a.assignment_id=? AND a.sltb_depot_id=?
              LIMIT 1"
         );
         $st->execute([$assignmentId, $depotId]);

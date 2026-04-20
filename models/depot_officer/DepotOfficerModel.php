@@ -117,7 +117,7 @@ public function depot(int $depotId): ?array {
     public function currentTimetables(int $depotId, string $refDate): array { return $this->special->listCurrent($depotId, $refDate); }
 
     // Messages
-    public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false, ?int $senderUserId=null, ?string $senderRole=null, ?string $category=null): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot,$senderUserId,$senderRole,$category); }
+    public function sendMessage(int $depotId, array $userIds, string $text, string $priority='normal', string $scope='individual', bool $allDepot=false, ?int $senderUserId=null, ?string $senderRole=null, ?string $category=null, ?string $recipientGroup=null): bool { return $this->msg->send($depotId,$userIds,$text,$priority,$scope,$allDepot,$senderUserId,$senderRole,$category,$recipientGroup); }
     public function recentMessages(int $depotId, int $myId, int $limit=20, string $filter='all'): array {
         return call_user_func([$this->msg, 'recent'], $depotId, $myId, $limit, $filter);
     }
@@ -242,11 +242,8 @@ public function depot(int $depotId): ?array {
     }
 
     // Messaging helpers for recipient selection (role/bus/route queries for UI)
-    public function availableRoles(int $depotId): array {
-        $st = $this->pdo->prepare("SELECT DISTINCT role FROM users WHERE sltb_depot_id=? ORDER BY role");
-        $st->execute([$depotId]);
-        return array_column($st->fetchAll(PDO::FETCH_ASSOC), 'role');
-    }
+    public function messageRecipients(int $depotId): array { return $this->msg->messagingRecipients($depotId); }
+    public function availableRoles(int $depotId): array { return $this->msg->availableRolesForMessaging($depotId); }
 
     public function depotBusesForMessaging(int $depotId): array {
         try {

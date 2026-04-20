@@ -381,6 +381,9 @@ public function assignmentShifts()
             $scope     = in_array($_POST['scope'] ?? '', ['individual','role','depot','bus','route'], true)
                          ? $_POST['scope'] : 'individual';
             $allDepot  = ($_POST['all_depot'] ?? '0') === '1';
+            $recipientGroup = in_array($_POST['recipient_group'] ?? '', ['SLTBTimekeeper', 'PrivateTimekeeper'], true)
+                ? (string)$_POST['recipient_group']
+                : null;
             $rawTo     = (array)($_POST['to'] ?? []);
 
             if ($scope === 'role') {
@@ -396,7 +399,7 @@ public function assignmentShifts()
             $senderRole = (string)($u['role'] ?? 'DepotOfficer');
             $category   = trim($_POST['category'] ?? '') ?: null;
             $ok = ($text && ($to || $allDepot))
-                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole, $category)
+                                ? $this->m->sendMessage($dep, $to, $text, $priority, $scope, $allDepot, $uid, $senderRole, $category, $recipientGroup)
                   : false;
 
             $this->redirect('/O/messages?msg=' . ($ok ? 'sent' : 'error'));
@@ -409,7 +412,7 @@ public function assignmentShifts()
 
         $this->view('depot_officer', 'messages', [
             'me'         => $u,
-            'staff'      => $this->m->depotStaff($dep),
+            'staff'      => $this->m->messageRecipients($dep),
             'roles'      => $this->m->availableRoles($dep),
             'buses'      => $this->m->depotBusesForMessaging($dep),
             'routes'     => $this->m->depotRoutesForMessaging($dep),
@@ -1485,6 +1488,8 @@ public function trip_logs(): void{
         $bus = trim((string)($context['bus_reg_no'] ?? ''));
         $date = trim((string)($context['assigned_date'] ?? date('Y-m-d')));
         $shift = trim((string)($context['shift'] ?? ''));
+        $routeId = (int)($context['route_id'] ?? 0);
+        $routeNo = trim((string)($context['route_no'] ?? ''));
 
         $labels = [
             'created'    => 'Assignment created',
@@ -1498,9 +1503,18 @@ public function trip_logs(): void{
         if ($shift !== '') {
             $message .= " ({$shift} shift)";
         }
+        if ($routeNo !== '') {
+            $message .= " on route {$routeNo}";
+        }
         $message .= '.';
 
-        // Notify all SLTBTimekeepers at this depot — drivers/conductors are not system users.
-        $this->m->sendMessage($depotId, ['SLTBTimekeeper'], $message, $priority, 'role', false, $senderUserId, $senderRole);
+        if ($routeId > 0) {
+            $this->m->sendMessage($depotId, [$routeId], $message, $priority, 'route', false, $senderUserId, $senderRole);
+            return;
+        }
+
+        if ($bus !== '') {
+            $this->m->sendMessage($depotId, [$bus], $message, $priority, 'bus', false, $senderUserId, $senderRole);
+        }
     }
 }

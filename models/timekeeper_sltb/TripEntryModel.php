@@ -369,7 +369,7 @@ class TripEntryModel extends BaseModel
         $notifiedUserIds = [];
         foreach ($depotsToNotify as $did) {
             $stRecipients = $this->pdo->prepare(
-                "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+                    "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role = 'DepotOfficer'"
             );
             $stRecipients->execute([':depot' => $did]);
             $recipientIds = array_diff(
@@ -382,49 +382,6 @@ class TripEntryModel extends BaseModel
             }
         }
 
-        // ── Notify nearby depots that serve the same route ────────────────
-        $nearbyDepots = $this->nearbyDepotIds($depotId, $routeId);
-        foreach ($nearbyDepots as $nearDepotId) {
-            if (in_array($nearDepotId, $depotsToNotify, true)) {
-                continue; // already notified above
-            }
-            try {
-                $depotName = (string)($this->pdo->query(
-                    "SELECT name FROM sltb_depots WHERE sltb_depot_id=" . (int)$nearDepotId . " LIMIT 1"
-                )->fetchColumn() ?: 'Nearby Depot');
-            } catch (\Throwable $e) {
-                $depotName = 'Nearby Depot';
-            }
-
-            $nearMessage = sprintf(
-                'NEARBY ROUTE ALERT: Trip #%d on Bus %s (Route ID: %d) was cancelled near your route. Originating depot: %s. Reason: %s. Passengers may need re-routing.',
-                $tripId, $busNo, $routeId, $depotName, $reason
-            );
-            $nearMetadata = json_encode([
-                'source' => 'sltb_timekeeper_emergency',
-                'source_role' => $sourceRole,
-                'source_user_id' => $sourceUserId,
-                'source_name' => $sourceName,
-                'event_kind' => 'nearby_trip_cancelled',
-                'trip_id' => $tripId,
-                'route_id' => $routeId,
-                'bus_reg_no' => $busNo,
-                'originating_depot_id' => $depotId,
-                'reason' => $reason,
-            ], JSON_UNESCAPED_UNICODE);
-
-            $stNearby = $this->pdo->prepare(
-                "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
-            );
-            $stNearby->execute([':depot' => $nearDepotId]);
-            $nearRecipients = array_diff(
-                array_map('intval', $stNearby->fetchAll(PDO::FETCH_COLUMN)),
-                $notifiedUserIds
-            );
-            if ($nearRecipients) {
-                $this->insertNotifications(array_values($nearRecipients), $event['type'], $nearMessage, 'urgent', $nearMetadata);
-            }
-        }
     }
 
     public function todayList(): array
@@ -433,6 +390,7 @@ class TripEntryModel extends BaseModel
         $sql = <<<SQL
         SELECT
             t.timetable_id,
+            t.route_id,
             r.route_no, {$stopsExpr} AS stops_json,
             t.bus_reg_no,
             TIME(t.departure_time)  AS sched_dep,

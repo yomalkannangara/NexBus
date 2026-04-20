@@ -229,11 +229,33 @@ class TimekeeperSltbController extends BaseController
         }
 
         $model = new TimekeeperMessageModel();
-        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'alert'], true)
+        $tripModel = new TripEntryModel();
+        $dm = new \App\models\common\DirectMessageModel();
+        $filter = in_array($_GET['filter'] ?? '', ['all', 'unread', 'message', 'alert'], true)
             ? (string)$_GET['filter']
             : 'all';
 
         $action = (string)($_GET['action'] ?? '');
+        $routeIds = array_values(array_unique(array_filter(array_map('intval', array_column($tripModel->todayList(), 'route_id')))));
+        $chatDepots = $dm->routeDepotOptions($routeIds, $this->myDepotId());
+        foreach ($chatDepots as &$chatDepot) {
+            $chatDepot = array_merge($chatDepot, $dm->conversationSummaryWithDepot($uid, $chatDepot['officer_ids'] ?? []));
+        }
+        unset($chatDepot);
+
+        $activeChatDepotId = (int)($_POST['chat_depot_id'] ?? $_GET['chat_depot_id'] ?? 0);
+        $activeChatDepot = null;
+        foreach ($chatDepots as $chatDepot) {
+            if ((int)($chatDepot['depot_id'] ?? 0) === $activeChatDepotId) {
+                $activeChatDepot = $chatDepot;
+                break;
+            }
+        }
+        if ($activeChatDepot === null && !empty($chatDepots)) {
+            $activeChatDepot = $chatDepots[0];
+            $activeChatDepotId = (int)($activeChatDepot['depot_id'] ?? 0);
+        }
+        $doIds = $activeChatDepot['officer_ids'] ?? [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'read' && isset($_GET['id'])) {
             $ok = $model->markRead((int)$_GET['id'], $uid);
@@ -277,9 +299,6 @@ class TimekeeperSltbController extends BaseController
         // ── Direct chat: send message to depot officers ────────────────────
         if ($action === 'chat_send' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $text    = trim((string)($_POST['message'] ?? ''));
-            $depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
-            $dm      = new \App\models\common\DirectMessageModel();
-            $doIds   = $dm->depotOfficerIds($depotId);
             $ids     = ($text !== '' && !empty($doIds)) ? $dm->sendToMultiple($uid, $doIds, $text) : [];
             header('Content-Type: application/json');
             echo json_encode(['ok' => !empty($ids), 'id' => $ids[0] ?? null]);
@@ -310,9 +329,6 @@ class TimekeeperSltbController extends BaseController
         // ── Direct chat: poll for new chat messages ────────────────────────
         if ($action === 'chat_poll') {
             $sinceId = (int)($_GET['since_id'] ?? 0);
-            $depotId = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
-            $dm      = new \App\models\common\DirectMessageModel();
-            $doIds   = $dm->depotOfficerIds($depotId);
             $msgs    = $dm->threadWithDepot($uid, $doIds, 50, $sinceId);
             header('Content-Type: application/json');
             echo json_encode($msgs);
@@ -320,14 +336,10 @@ class TimekeeperSltbController extends BaseController
         }
 
         // ── Render ─────────────────────────────────────────────────────────
-        $depotId  = (int)($_SESSION['user']['sltb_depot_id'] ?? 0);
-        $dm       = new \App\models\common\DirectMessageModel();
-        $doIds    = $dm->depotOfficerIds($depotId);
         $chatThread = $dm->threadWithDepot($uid, $doIds, 100);
         // Mark DO→TK messages as read on page load
         $dm->markReadFromMultiple($uid, $doIds);
 
-        $tripModel = new TripEntryModel();
         $this->view('timekeeper_sltb', 'messages', [
             'S'            => $tripModel->info(),
             'recent'       => $model->recentForUser($uid, 80, $filter),
@@ -336,8 +348,11 @@ class TimekeeperSltbController extends BaseController
             'msg'          => $_GET['msg'] ?? null,
             'chat_thread'  => $chatThread,
             'chat_unread'  => $dm->unreadCount($uid),
+            'chat_depots'  => $chatDepots,
+            'active_chat_depot_id' => $activeChatDepotId,
+            'active_chat_depot' => $activeChatDepot,
             'my_user_id'   => $uid,
-            'has_depot_officer' => !empty($doIds),
+            'has_depot_officer' => !empty($chatDepots),
         ]);
     }
 

@@ -255,6 +255,7 @@ class TripEntryModel extends BaseModel
         $sql = "
         SELECT
             tt.timetable_id,
+            tt.route_id,
             r.route_no, {$stopsExpr} AS stops_json,
             tt.bus_reg_no,
             TIME(tt.departure_time)  AS sched_dep,
@@ -780,35 +781,27 @@ class TripEntryModel extends BaseModel
         );
 
         if (empty($depotIds)) {
-            // No SLTB depot identified on this route — notify all DepotOfficer/DepotManager users
-            try {
-                $stAll = $this->pdo->query(
-                    "SELECT user_id FROM users WHERE role IN ('DepotOfficer','DepotManager')"
-                );
-                $allUsers = array_map('intval', $stAll->fetchAll(PDO::FETCH_COLUMN));
-                foreach ($allUsers as $rid) {
-                    $params = [':uid' => $rid, ':type' => 'Alert', ':message' => $message];
-                    if ($hasPriority) $params[':priority'] = 'urgent';
-                    if ($hasMetadata) $params[':metadata'] = $metadata;
-                    $ins->execute($params);
-                }
-            } catch (\Throwable $e) { }
             return;
         }
 
+        $notifiedUserIds = [];
         foreach ($depotIds as $depotId) {
             try {
                 $stUsers = $this->pdo->prepare(
-                    "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role IN ('DepotOfficer','DepotManager')"
+                    "SELECT user_id FROM users WHERE sltb_depot_id=:depot AND role = 'DepotOfficer'"
                 );
                 $stUsers->execute([':depot' => $depotId]);
-                $recipients = array_map('intval', $stUsers->fetchAll(PDO::FETCH_COLUMN));
+                $recipients = array_diff(
+                    array_map('intval', $stUsers->fetchAll(PDO::FETCH_COLUMN)),
+                    $notifiedUserIds
+                );
                 foreach ($recipients as $rid) {
                     $params = [':uid' => $rid, ':type' => 'Alert', ':message' => $message];
                     if ($hasPriority) $params[':priority'] = 'urgent';
                     if ($hasMetadata) $params[':metadata'] = $metadata;
                     $ins->execute($params);
                 }
+                $notifiedUserIds = array_merge($notifiedUserIds, $recipients);
             } catch (\Throwable $e) {
                 // Do not let notification failure break the cancel operation
             }

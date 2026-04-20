@@ -769,12 +769,12 @@ $flashMessages = [
                         <button type="button" class="msg-scope-tab" data-scope="role">By Role</button>
                         <button type="button" class="msg-scope-tab" data-scope="bus">By Bus</button>
                         <button type="button" class="msg-scope-tab" data-scope="route">By Route</button>
-                        <button type="button" class="msg-scope-tab" data-scope="depot">All Depot</button>
+                        <button type="button" class="msg-scope-tab" data-scope="depot">All Linked</button>
                     </div>
 
                     <!-- Individual -->
                     <div class="msg-scope-panel shown" id="scope-individual">
-                        <input type="text" class="msg-recipient-search" id="recipientSearch" placeholder="Search staff…">
+                        <input type="text" class="msg-recipient-search" id="recipientSearch" placeholder="Search timekeepers…">
                         <div class="msg-recipient-list" id="recipientList">
                             <?php foreach ($staff as $s):
                                 $sid   = (int)($s['user_id'] ?? 0);
@@ -798,7 +798,7 @@ $flashMessages = [
                             <label class="msg-recipient-item" style="border:1px solid #e9e3da;border-radius:8px;cursor:pointer;">
                                 <input type="checkbox" name="to[]" value="<?= htmlspecialchars($roleName) ?>" class="role-cb" onchange="updateRoleTags()">
                                 <span class="ri-name"><?= htmlspecialchars($roleName) ?></span>
-                                <span style="font-size:10px;color:#9ca3af"><?= count(array_filter($staff, fn($s) => $s['role'] === $roleName)) ?> staff</span>
+                                <span style="font-size:10px;color:#9ca3af"><?= count(array_filter($staff, fn($s) => $s['role'] === $roleName)) ?> recipients</span>
                             </label>
                             <?php endforeach; ?>
                         </div>
@@ -848,9 +848,21 @@ $flashMessages = [
                     <!-- All Depot -->
                     <div class="msg-scope-panel" id="scope-depot">
                         <div style="margin-top:10px;padding:10px;background:#fef3c7;border:1px solid #fde047;border-radius:8px;font-size:12px;color:#78350f;font-weight:600;">
-                            ⚠️ This will send to all <?= count($staff) ?> staff in your depot. Use for critical announcements only.
+                            ⚠️ This will send to all <?= count($staff) ?> route-linked timekeepers. Use for critical operational announcements only.
                         </div>
                         <input type="hidden" name="all_depot" id="allDepotInput" value="0">
+                    </div>
+                </div>
+
+                <div class="msg-cp-section">
+                    <div class="msg-cp-label">👥 Timekeeper Group</div>
+                    <select name="recipient_group" style="width:100%;padding:10px 12px;border:1px solid #d6cfc7;border-radius:10px;background:#fff;font:inherit;color:#111827;">
+                        <option value="">All relevant timekeepers</option>
+                        <option value="SLTBTimekeeper">SLTB timekeepers only</option>
+                        <option value="PrivateTimekeeper">Private timekeepers only</option>
+                    </select>
+                    <div style="margin-top:6px;font-size:12px;color:#6b7280;line-height:1.45;">
+                        Use this together with route or bus targeting to notify the correct SLTB or private timekeeper group.
                     </div>
                 </div>
 
