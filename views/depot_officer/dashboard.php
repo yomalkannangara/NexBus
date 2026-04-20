@@ -526,7 +526,7 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
     function fetchBuses() {
       if (inFlight || document.hidden) return;
       inFlight = true;
-      fetch('/api/buses/live')
+      fetch('/O/live')
         .then(function (r) { return r.json(); })
         .then(function (buses) {
           if (!Array.isArray(buses)) return;
@@ -539,6 +539,9 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
               + (b.speedKmh > 60
                 ? '<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">âš¡ '+b.speedKmh+' km/h</span>'
                 : '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">âœ“ '+b.speedKmh+' km/h</span>')
+              + (b.nearestDepot
+                ? '<br><small style="color:#6b7280">Nearest depot: ' + b.nearestDepot + (b.nearestDepotDistanceText ? ' (' + b.nearestDepotDistanceText + ')' : '') + '</small>'
+                : '')
               + '<br><small style="color:#6b7280">'+new Date(b.updatedAt).toLocaleTimeString()+'</small></div>';
             if (markers[id]) {
               markers[id].setLatLng([b.lat, b.lng]).setIcon(busIcon(b.speedKmh)).bindPopup(popup);

@@ -132,11 +132,15 @@
       var speedTag = speed > 60
         ? '<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">'+speed.toFixed(1)+' km/h - SPEEDING</span>'
         : '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">'+speed.toFixed(1)+' km/h - Normal</span>';
+      var nearest = b.nearestDepot
+        ? '<small style="color:#6b7280">Nearest depot: ' + b.nearestDepot + (b.nearestDepotDistanceText ? ' (' + b.nearestDepotDistanceText + ')' : '') + '</small><br>'
+        : '';
 
       return '<div style="min-width:150px">'
         +'<b style="font-size:.95rem">Bus '+(b.busId || b.busRegNo || 'N/A')+'</b><br>'
         +'Route: <strong>'+(b.routeNo || '-')+'</strong><br>'
         +speedTag+'<br>'
+        +nearest
         +'<small style="color:#6b7280">'+new Date(b.updatedAt || b.snapshotAt || Date.now()).toLocaleTimeString()+'</small>'
         +'</div>';
     }

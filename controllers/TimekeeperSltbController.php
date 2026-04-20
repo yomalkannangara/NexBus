@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\controllers;
 
 use App\controllers\BaseController;
+use App\Support\DepotLocator;
 use App\models\common\TimekeeperMessageModel;
 
 use App\models\timekeeper_sltb\DashboardModel;
@@ -155,6 +156,8 @@ class TimekeeperSltbController extends BaseController
                 'inDb'              => true,
             ];
         }, $rows);
+
+        $out = (new DepotLocator($pdo))->attachNearestDepot($out);
 
         echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
