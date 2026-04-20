@@ -87,7 +87,15 @@
         fd.append('action', 'delete');
         fd.append('earning_id', id);
 
-        fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
+        fetch(endpoint, {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          }
+        })
           .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return true; })
           .then(() => { window.location.reload(); })
           .catch(err => {
@@ -118,7 +126,15 @@
       fd.append('action', isUpdate ? 'update' : 'create');
       if (isUpdate) fd.append('earning_id', fId.value);
 
-      fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
+      fetch(endpoint, {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return true; })
         .then(() => { window.location.reload(); })
         .catch(err => {

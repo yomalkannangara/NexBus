@@ -1117,7 +1117,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const earningId = (document.getElementById('f_e_id')?.value || '').trim();
       fd.append('action', earningId ? 'update' : 'create');
 
-      fetch(endpoint, { method: 'POST', body: fd })
+      fetch(endpoint, {
+        method: 'POST',
+        body: fd,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
         .then(async function (res) {
           const data = await res.json();
           if (res.ok && data.success) {
@@ -1191,7 +1198,14 @@ document.addEventListener('DOMContentLoaded', function() {
       btnConfirmDel.disabled = true;
       btnConfirmDel.textContent = 'Deleting...';
 
-      fetch(endpoint, { method: 'POST', body: fd })
+      fetch(endpoint, {
+        method: 'POST',
+        body: fd,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
         .then(async function (res) {
           const data = await res.json();
           if (res.ok && data.success) {
