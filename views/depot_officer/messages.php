@@ -857,9 +857,9 @@ $flashMessages = [
                 <div class="msg-cp-section">
                     <div class="msg-cp-label">👥 Timekeeper Group</div>
                     <select name="recipient_group" style="width:100%;padding:10px 12px;border:1px solid #d6cfc7;border-radius:10px;background:#fff;font:inherit;color:#111827;">
-                        <option value="">All relevant timekeepers</option>
-                        <option value="SLTBTimekeeper">SLTB timekeepers only</option>
-                        <option value="PrivateTimekeeper">Private timekeepers only</option>
+                        <option value="">All Relevant Timekeepers</option>
+                        <option value="SLTBTimekeeper">SLTB Timekeepers Only</option>
+                        <option value="PrivateTimekeeper">Private Timekeepers Only</option>
                     </select>
                     <div style="margin-top:6px;font-size:12px;color:#6b7280;line-height:1.45;">
                         Use this together with route or bus targeting to notify the correct SLTB or private timekeeper group.

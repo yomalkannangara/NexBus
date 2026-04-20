@@ -50,10 +50,14 @@ try {
     foreach ($statements as $stmt) {
         $pdo->exec($stmt);
     }
-    $pdo->commit();
+    if ($pdo->inTransaction()) {
+        $pdo->commit();
+    }
     fwrite(STDOUT, "Executed " . count($statements) . " statements from $path\n");
 } catch (Throwable $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     fwrite(STDERR, "Error executing SQL: " . $e->getMessage() . PHP_EOL);
     exit(3);
 }

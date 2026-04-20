@@ -1,6 +1,7 @@
 <?php
 namespace App\controllers;
 
+use App\Support\DepotLocator;
 use App\models\depot_officer\DepotOfficerModel;
 use App\models\depot_officer\AssignmentModel;
 class DepotOfficerController extends \App\controllers\BaseController {
@@ -25,6 +26,93 @@ class DepotOfficerController extends \App\controllers\BaseController {
             'todayDelayed' => $this->m->delayedToday($dep),
             'stats'        => $this->m->dashboardStats($dep),
         ]);
+    }
+
+    public function live(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+        if (!isset($GLOBALS['db'])) {
+            echo '[]';
+            return;
+        }
+
+        $pdo = $GLOBALS['db'];
+
+        try {
+            $stmt = $pdo->query(
+                "SELECT
+                     tm.bus_reg_no                   AS busId,
+                     tm.operator_type                AS operatorType,
+                     ROUND(tm.speed, 1)              AS speedKmh,
+                     tm.lat,
+                     tm.lng,
+                     tm.heading,
+                     tm.operational_status           AS operationalStatus,
+                     tm.snapshot_at                  AS snapshotAt,
+                     r.route_no                      AS routeNo,
+                     sd.name                         AS depot,
+                     sb.sltb_depot_id                AS depotId,
+                     pbo.name                        AS owner,
+                     pb.private_operator_id          AS ownerId
+                 FROM tracking_monitoring tm
+                 INNER JOIN (
+                     SELECT bus_reg_no, MAX(snapshot_at) AS max_snap
+                     FROM tracking_monitoring
+                     WHERE snapshot_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                     GROUP BY bus_reg_no
+                 ) latest
+                     ON latest.bus_reg_no = tm.bus_reg_no
+                    AND latest.max_snap = tm.snapshot_at
+                 LEFT JOIN routes r ON r.route_id = tm.route_id
+                 LEFT JOIN sltb_buses sb ON sb.reg_no = tm.bus_reg_no
+                 LEFT JOIN sltb_depots sd ON sd.sltb_depot_id = sb.sltb_depot_id
+                 LEFT JOIN private_buses pb ON pb.reg_no = tm.bus_reg_no
+                 LEFT JOIN private_bus_owners pbo ON pbo.private_operator_id = pb.private_operator_id
+                 ORDER BY tm.snapshot_at DESC"
+            );
+
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            error_log('[depot-officer live] query error: ' . $e->getMessage());
+            echo '[]';
+            return;
+        }
+
+        if (empty($rows)) {
+            echo '[]';
+            return;
+        }
+
+        $out = array_map(static function (array $r): array {
+            $opType = $r['operatorType'] ?? 'SLTB';
+            return [
+                'busId'             => $r['busId'],
+                'routeNo'           => $r['routeNo'] ?? '',
+                'speedKmh'          => (float)($r['speedKmh'] ?? 0),
+                'operatorType'      => $opType,
+                'depot'             => $opType === 'SLTB'
+                                         ? ($r['depot'] ?: ($r['depotId'] ? 'Depot #' . $r['depotId'] : 'SLTB Depot'))
+                                         : null,
+                'depotId'           => $r['depotId'] !== null ? (int)$r['depotId'] : null,
+                'owner'             => $opType === 'Private'
+                                         ? ($r['owner'] ?: ($r['ownerId'] ? 'Owner #' . $r['ownerId'] : 'Private Owner'))
+                                         : null,
+                'ownerId'           => $r['ownerId'] !== null ? (int)$r['ownerId'] : null,
+                'lat'               => $r['lat'] !== null ? (float)$r['lat'] : null,
+                'lng'               => $r['lng'] !== null ? (float)$r['lng'] : null,
+                'heading'           => $r['heading'] !== null ? (int)$r['heading'] : null,
+                'operationalStatus' => $r['operationalStatus'] ?? 'OnTime',
+                'snapshotAt'        => $r['snapshotAt'],
+                'updatedAt'         => $r['snapshotAt'],
+                'inDb'              => true,
+            ];
+        }, $rows);
+
+        $out = (new DepotLocator($pdo))->attachNearestDepot($out);
+
+        echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     }
 
 public function assignments()

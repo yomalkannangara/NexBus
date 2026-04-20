@@ -9,6 +9,7 @@ $user     = $_SESSION['user'] ?? [];
 $greeting = (int)date('H') < 12 ? 'Good Morning' : ((int)date('H') < 17 ? 'Good Afternoon' : 'Good Evening');
 $uname    = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
 $uname    = $uname !== '' ? $uname : ($user['name'] ?? ($user['full_name'] ?? 'Officer'));
+$depotId  = (int)($depot['id'] ?? ($user['sltb_depot_id'] ?? 0));
 ?>
 
 <style>
@@ -495,6 +496,7 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
   <script>
   (function () {
     if (typeof L === 'undefined') return;
+    var DEPOT_ID = <?= json_encode($depotId, JSON_NUMERIC_CHECK) ?>;
     var map = L.map('do-live-map').setView([6.927, 79.861], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -526,10 +528,15 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
     function fetchBuses() {
       if (inFlight || document.hidden) return;
       inFlight = true;
-      fetch('/api/buses/live')
+      fetch('/live/buses/pull')
         .then(function (r) { return r.json(); })
         .then(function (buses) {
           if (!Array.isArray(buses)) return;
+          if (DEPOT_ID > 0) {
+            buses = buses.filter(function (b) {
+              return String(b.depotId || '') === String(DEPOT_ID);
+            });
+          }
           var seen = {};
           buses.forEach(function (b) {
             var id = b.busId;
@@ -539,6 +546,9 @@ $barW = fn(int $n, int $max=20): string => $n > 0 ? min(100, (int)round($n/$max*
               + (b.speedKmh > 60
                 ? '<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">âš¡ '+b.speedKmh+' km/h</span>'
                 : '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:8px;font-size:.75rem;font-weight:600">âœ“ '+b.speedKmh+' km/h</span>')
+              + (b.nearestDepot
+                ? '<br><small style="color:#6b7280">Nearest depot: ' + b.nearestDepot + (b.nearestDepotDistanceText ? ' (' + b.nearestDepotDistanceText + ')' : '') + '</small>'
+                : '')
               + '<br><small style="color:#6b7280">'+new Date(b.updatedAt).toLocaleTimeString()+'</small></div>';
             if (markers[id]) {
               markers[id].setLatLng([b.lat, b.lng]).setIcon(busIcon(b.speedKmh)).bindPopup(popup);

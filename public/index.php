@@ -81,6 +81,7 @@ $routes = [
     '/O/timetables'    => ['DepotOfficerController','timetables'],
     '/O/messages'      => ['DepotOfficerController','messages'],
     '/O/messages/stream' => ['DepotOfficerController','sseStream'],
+    '/O/live'          => ['DepotOfficerController','live'],
     '/O/trip_logs'     => ['DepotOfficerController','trip_logs'],
     '/O/attendance'    => ['DepotOfficerController','attendance'],
     '/O/bus_profile'   => ['DepotOfficerController','bus_profile'],
