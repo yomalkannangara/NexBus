@@ -292,11 +292,15 @@ public function fleet()
 
             // Conductor create/update/delete
             if ($act === 'create_conductor') {
-                $m->createConductor($_POST);
+                if (!$m->createConductor($_POST)) {
+                    return $this->redirect('/M/drivers?msg=error');
+                }
                 return $this->redirect('/M/drivers?msg=conductor_created');
             }
             if ($act === 'update_conductor') {
-                $m->updateConductor($_POST);
+                if (!$m->updateConductor($_POST)) {
+                    return $this->redirect('/M/drivers?msg=error');
+                }
                 return $this->redirect('/M/drivers?msg=conductor_updated');
             }
             if ($act === 'delete_conductor') {
