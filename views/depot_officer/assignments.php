@@ -374,6 +374,14 @@ $totalConduct  = (int)($availability['total_conductors']     ?? 0);
         </div>
       </div>
 
+      <div class="asgn-section-label">Turn / Time</div>
+      <div class="asgn-form-row">
+        <label>Available Turns</label>
+        <div id="add-turn-container" class="turn-pills">
+          <span style="color:#9ca3af;font-size:13px;">Select a bus to load available turns</span>
+        </div>
+      </div>
+
       <!-- Recurrence -->
       <div class="asgn-section-label">Recurrence</div>
       <div class="asgn-form-row">
@@ -687,6 +695,7 @@ async function loadConflictsAndCheck() {
 
 function checkAddConflicts() {
   const bus         = (addBusEl.value || '').trim().toUpperCase();
+  const shift       = normalizeTurnValue(document.getElementById('add-shift')?.value || '');
   const dWarn = document.getElementById('add-driver-warn');
   const cWarn = document.getElementById('add-conductor-warn');
   const bWarn = document.getElementById('add-bus-warn');
@@ -719,7 +728,7 @@ function checkAddConflicts() {
     bWarn.classList.remove('show', 'warn-red');
   }
 
-  setSubmitDisabled('add-submit-btn', !!(currentTurnConflicts.bus_taken || driverConflict || conductorConflict));
+  setSubmitDisabled('add-submit-btn', !!(!bus || !shift || currentTurnConflicts.bus_taken || driverConflict || conductorConflict));
 }
 
 function filterConflictingOptions(selectId, conflictMap) {
@@ -741,6 +750,17 @@ document.getElementById('add-period-from').addEventListener('change', loadTurns)
 document.getElementById('add-period-to').addEventListener('change', loadConflictsAndCheck);
 document.getElementById('add-driver').addEventListener('change', checkAddConflicts);
 document.getElementById('add-conductor').addEventListener('change', checkAddConflicts);
+document.getElementById('addForm').addEventListener('submit', function (event) {
+  const shift = normalizeTurnValue(document.getElementById('add-shift')?.value || '');
+  if (shift) return;
+
+  event.preventDefault();
+  const busWarn = document.getElementById('add-bus-warn');
+  if (busWarn) {
+    busWarn.textContent = 'Select a bus turn/time before saving the assignment.';
+    busWarn.classList.add('show', 'warn-red');
+  }
+});
 
 /* ── Recurrence UI ── */
 document.getElementById('add-recur-group').addEventListener('change', function () {

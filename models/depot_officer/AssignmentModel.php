@@ -227,7 +227,7 @@ public function allToday(int $depotId): array {
         ? "LEFT JOIN timetables tt_exact ON tt_exact.timetable_id = a.timetable_id"
         : '';
     $departureSelect = $hasTimetableId
-        ? "COALESCE(tt_exact.departure_time, tt.departure_time) AS departure_time,"
+        ? "COALESCE(tt_exact.departure_time, CASE WHEN a.shift REGEXP '^[0-9]{2}:[0-9]{2}(:[0-9]{2})?$' THEN LEFT(a.shift, 5) ELSE NULL END, tt.departure_time) AS departure_time,"
         : "tt.departure_time,";
     $routeJoin = $hasTimetableId
         ? "LEFT JOIN routes r ON r.route_id = COALESCE(tt_exact.route_id, tt.route_id)"
@@ -249,6 +249,7 @@ public function allToday(int $depotId): array {
                 a.sltb_conductor_id,
                 b.status AS bus_status,
                 COALESCE(b.capacity,0) AS capacity,
+                a.assign_note,
                 d.full_name AS driver_name,
                 c.full_name AS conductor_name,
                 r.route_no,
@@ -355,6 +356,7 @@ public function allToday(int $depotId): array {
                 // Return active buses along with their primary route (if any)
                    $sql = "SELECT b.reg_no,
                                COALESCE(b.capacity, 0) AS capacity,
+                               
                                r.route_no,
                                r.stops_json
                            FROM sltb_buses b
@@ -400,6 +402,7 @@ public function allToday(int $depotId): array {
                     $r['route_start'] = $start ?: '';
                     $r['route_end']   = $end ?: '';
                     $r['capacity']    = (int)($r['capacity'] ?? 0);
+                    $r['assign_note'] = '';
                 }
                 return $rows;
     }
@@ -549,14 +552,14 @@ public function allToday(int $depotId): array {
         if ($shift === '') {
             return false;
         }
-
+        $assignmentNote = ((string)($d ['assign_note'] ?? ''));
         $bus = strtoupper(trim((string)($d['bus_reg_no'] ?? '')));
         $driver = (int)($d['sltb_driver_id'] ?? 0);
         $conductor = (int)($d['sltb_conductor_id'] ?? 0);
         if ($bus === '' || $driver <= 0 || $conductor <= 0) {
             return false;
         }
-
+//ep
         $overrideRemark = trim((string)($d['override_remark'] ?? '')) ?: null;
         $overriddenBy = $_SESSION['user']['user_id'] ?? null;
         $now = date('Y-m-d H:i:s');
@@ -570,7 +573,7 @@ public function allToday(int $depotId): array {
                 return 'conflict_bus::' . $bus;
             }
         }
-
+//ep
         $prevBusForDriver = $this->findStaffConflictBus(
             $depotId,
             $assigned_date,
@@ -583,7 +586,7 @@ public function allToday(int $depotId): array {
         if ($prevBusForDriver && $prevBusForDriver !== $bus && !$overrideRemark) {
             return 'conflict_driver::' . $prevBusForDriver;
         }
-
+//ep
         $prevBusForConductor = $this->findStaffConflictBus(
             $depotId,
             $assigned_date,
@@ -598,8 +601,8 @@ public function allToday(int $depotId): array {
         }
 
         // Build INSERT dynamically depending on whether override columns exist
-        $baseCols = ['assigned_date','shift','bus_reg_no','sltb_driver_id','sltb_conductor_id','sltb_depot_id'];
-        $values = [$assigned_date, $shift, $bus, $driver, $conductor, $depotId];
+        $baseCols = ['assigned_date', 'assign_note', 'shift','bus_reg_no','sltb_driver_id','sltb_conductor_id','sltb_depot_id'];
+        $values = [$assigned_date, $assignmentNote, $shift, $bus, $driver, $conductor, $depotId];
         if ($timetableId && $this->columnExists('sltb_assignments','timetable_id')) {
             $baseCols[] = 'timetable_id';
             $values[] = $timetableId;
@@ -614,8 +617,8 @@ public function allToday(int $depotId): array {
         }
 
         if ($existingAssignmentId > 0) {
-            $setParts = ['assigned_date = ?', 'shift = ?', 'bus_reg_no = ?', 'sltb_driver_id = ?', 'sltb_conductor_id = ?'];
-            $updateValues = [$assigned_date, $shift, $bus, $driver, $conductor];
+            $setParts = ['assigned_date = ?', 'assign_note = ?', 'shift = ?', 'bus_reg_no = ?', 'sltb_driver_id = ?', 'sltb_conductor_id = ?'];
+            $updateValues = [$assigned_date,$assignmentNote, $shift, $bus, $driver, $conductor];
             if ($this->columnExists('sltb_assignments', 'timetable_id')) {
                 $setParts[] = 'timetable_id = ?';
                 $updateValues[] = $timetableId;
@@ -635,8 +638,8 @@ public function allToday(int $depotId): array {
             if ($ok && $overrideRemark && $this->tableExists('sltb_assignment_overrides')) {
                 $previous = array_filter(array_unique([$prevBusForDriver, $prevBusForConductor]));
                 $previousStr = $previous ? implode(',', $previous) : null;
-                $ins = $this->pdo->prepare("INSERT INTO sltb_assignment_overrides (assignment_id, assigned_date, shift, bus_reg_no, previous_bus_reg_no, driver_id, conductor_id, override_remark, overridden_by, override_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
-                $ins->execute([$existingAssignmentId, $assigned_date, $shift, $bus, $previousStr, $driver ?: null, $conductor ?: null, $overrideRemark, $overriddenBy, $now]);
+                $ins = $this->pdo->prepare("INSERT INTO sltb_assignment_overrides (assignment_id, assigned_date, assign_note, shift, bus_reg_no, previous_bus_reg_no, driver_id, conductor_id, override_remark, overridden_by, override_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                $ins->execute([$existingAssignmentId, $assigned_date, $assignmentNote, $shift, $bus, $previousStr, $driver ?: null, $conductor ?: null, $overrideRemark, $overriddenBy, $now]);
             }
             return $ok;
         }
@@ -649,15 +652,15 @@ public function allToday(int $depotId): array {
             // record audit only if audit table exists and an override was provided
             if ($ok && $overrideRemark && $this->tableExists('sltb_assignment_overrides')) {
                 // fetch assignment_id for audit
-                $aidSt = $this->pdo->prepare("SELECT assignment_id FROM sltb_assignments WHERE bus_reg_no=? AND assigned_date=? AND shift=? AND sltb_depot_id=? LIMIT 1");
-                $aidSt->execute([$bus, $assigned_date, $shift, $depotId]);
+                $aidSt = $this->pdo->prepare("SELECT assignment_id FROM sltb_assignments WHERE bus_reg_no=? AND assigned_date=? AND assign_note=? AND shift=? AND sltb_depot_id=? LIMIT 1");
+                $aidSt->execute([$bus, $assigned_date, $assignmentNote, $shift, $depotId]);
                 $aidRow = $aidSt->fetch(PDO::FETCH_ASSOC);
                 $assignmentId = $aidRow['assignment_id'] ?? null;
                 $previous = array_filter(array_unique([$prevBusForDriver, $prevBusForConductor]));
                 $previousStr = $previous ? implode(',', $previous) : null;
                 if ($assignmentId) {
-                    $ins = $this->pdo->prepare("INSERT INTO sltb_assignment_overrides (assignment_id, assigned_date, shift, bus_reg_no, previous_bus_reg_no, driver_id, conductor_id, override_remark, overridden_by, override_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
-                    $ins->execute([$assignmentId, $assigned_date, $shift, $bus, $previousStr, $driver ?: null, $conductor ?: null, $overrideRemark, $overriddenBy, $now]);
+                    $ins = $this->pdo->prepare("INSERT INTO sltb_assignment_overrides (assignment_id, assigned_date, assign_note, shift, bus_reg_no, previous_bus_reg_no, driver_id, conductor_id, override_remark, overridden_by, override_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+                    $ins->execute([$assignmentId, $assigned_date, $assignmentNote, $shift, $bus, $previousStr, $driver ?: null, $conductor ?: null, $overrideRemark, $overriddenBy, $now]);
                 }
             }
             return $ok;
@@ -678,7 +681,7 @@ public function allToday(int $depotId): array {
                     $updValues[] = $overrideRemark;
                     $updValues[] = $overriddenBy;
                     $updValues[] = $overrideRemark ? $now : null;
-                }
+                }//ep
                 $upd = "UPDATE sltb_assignments SET " . implode(', ', $setParts) . " WHERE bus_reg_no = ? AND assigned_date = ? AND shift = ? AND sltb_depot_id = ?";
                 $ust = $this->pdo->prepare($upd);
                 $updValues = array_merge($updValues, [$bus, $assigned_date, $shift, $depotId]);
