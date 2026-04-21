@@ -1,24 +1,10 @@
 <?php
 namespace App\Support;
 
-/**
- * Validator — centralized input validation for the Private Bus Owner role.
- *
- * Usage:
- *   $v = new Validator($_POST);
- *   $v->required('full_name', 'Full Name')
- *     ->name('full_name',  'Full Name')
- *     ->length('full_name', 'Full Name', 2, 80);
- *   if ($v->fails()) {
- *       // $v->errors() returns ['field' => 'message', ...]
- *   }
- */
 class Validator
 {
-    /** @var array<string, mixed> Input data being validated */
     private array $data;
 
-    /** @var array<string, string> Collected error messages [field => message] */
     private array $errors = [];
 
     public function __construct(array $data)
@@ -26,18 +12,13 @@ class Validator
         $this->data = $data;
     }
 
-    /* ================================================================
-     * Core helpers
-     * ============================================================== */
 
-    /** Raw value, trimmed; null if key missing */
     private function val(string $field): ?string
     {
         $v = $this->data[$field] ?? null;
-        return ($v !== null) ? trim((string)$v) : null;
+        return ($v !== null) ? trim((string) $v) : null;
     }
 
-    /** Add an error only if no error for that field yet (first-error-wins) */
     private function addError(string $field, string $message): static
     {
         if (!isset($this->errors[$field])) {
@@ -46,11 +27,6 @@ class Validator
         return $this;
     }
 
-    /* ================================================================
-     * 1. REQUIRED FIELDS
-     * ============================================================== */
-
-    /** Fails if field is missing, empty, or only whitespace */
     public function required(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -60,11 +36,6 @@ class Validator
         return $this;
     }
 
-    /* ================================================================
-     * 2. DATA TYPE VALIDATION
-     * ============================================================== */
-
-    /** Must be a plain integer */
     public function integer(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -74,7 +45,6 @@ class Validator
         return $this;
     }
 
-    /** Must be a positive integer */
     public function positiveInt(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -87,7 +57,6 @@ class Validator
         return $this;
     }
 
-    /** Must be numeric (int or float) */
     public function numeric(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -97,7 +66,6 @@ class Validator
         return $this;
     }
 
-    /** Must be one of the given allowed values (strict) */
     public function inList(string $field, string $label, array $allowed): static
     {
         $v = $this->val($field);
@@ -108,11 +76,6 @@ class Validator
         return $this;
     }
 
-    /* ================================================================
-     * 3. LENGTH VALIDATION
-     * ============================================================== */
-
-    /** Minimum character length (only checked when field has a value) */
     public function minLength(string $field, string $label, int $min): static
     {
         $v = $this->val($field);
@@ -122,7 +85,6 @@ class Validator
         return $this;
     }
 
-    /** Maximum character length */
     public function maxLength(string $field, string $label, int $max): static
     {
         $v = $this->val($field);
@@ -132,20 +94,11 @@ class Validator
         return $this;
     }
 
-    /** Shorthand for min + max in one call */
     public function length(string $field, string $label, int $min, int $max): static
     {
         return $this->minLength($field, $label, $min)->maxLength($field, $label, $max);
     }
 
-    /* ================================================================
-     * 4. FORMAT VALIDATION (regex / PHP filters)
-     * ============================================================== */
-
-    /**
-     * Full Name — letters (including Unicode), spaces, hyphens, apostrophes only.
-     * Each word should start with a capital letter (enforced server-side in model).
-     */
     public function name(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -160,15 +113,10 @@ class Validator
         return $this;
     }
 
-    /**
-     * Sri Lankan phone number.
-     * Accepts: 07XXXXXXXX, +94XXXXXXXXX, 94XXXXXXXXX (10 or 12 digits with optional +/spaces).
-     */
     public function sriLankanPhone(string $field, string $label): static
     {
         $v = $this->val($field);
         if ($v !== null && $v !== '') {
-            // Strip spaces and dashes for checking
             $clean = preg_replace('/[\s\-]/', '', $v);
             $pattern = '/^(?:\+94|94|0)[1-9]\d{8}$/';
             if (!preg_match($pattern, $clean)) {
@@ -181,9 +129,6 @@ class Validator
         return $this;
     }
 
-    /**
-     * General phone — 7–15 digits, optional leading +, spaces, hyphens.
-     */
     public function phone(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -199,10 +144,6 @@ class Validator
         return $this;
     }
 
-    /**
-     * Sri Lanka private bus registration — e.g. PB-1001, NA-1234
-     * Pattern: 2–3 uppercase letters, hyphen, 1–6 digits.
-     */
     public function busRegistration(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -217,10 +158,6 @@ class Validator
         return $this;
     }
 
-    /**
-     * Driver license number — alphanumeric, may contain hyphens or slashes.
-     * e.g. B1234567, L-PRV-1001
-     */
     public function licenseNo(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -235,9 +172,6 @@ class Validator
         return $this;
     }
 
-    /**
-     * Chassis number — alphanumeric + hyphens, caps enforced by model.
-     */
     public function chassisNo(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -252,15 +186,12 @@ class Validator
         return $this;
     }
 
-    /**
-     * Manufactured year — 4-digit year between 1950 and current year.
-     */
     public function manufacturedYear(string $field, string $label): static
     {
         $v = $this->val($field);
         if ($v !== null && $v !== '') {
-            $y = (int)$v;
-            $now = (int)date('Y');
+            $y = (int) $v;
+            $now = (int) date('Y');
             if (!preg_match('/^\d{4}$/', $v) || $y < 1950 || $y > $now) {
                 $this->addError(
                     $field,
@@ -271,9 +202,6 @@ class Validator
         return $this;
     }
 
-    /**
-     * Date string in YYYY-MM-DD format.
-     */
     public function date(string $field, string $label): static
     {
         $v = $this->val($field);
@@ -286,37 +214,86 @@ class Validator
         return $this;
     }
 
-    /* ================================================================
-     * 5. RESULT ACCESSORS
-     * ============================================================== */
-
-    /** Returns true if any validation rule failed */
     public function fails(): bool
     {
         return !empty($this->errors);
     }
 
-    /** Returns true if all rules passed */
     public function passes(): bool
     {
         return empty($this->errors);
     }
 
-    /** Returns all error messages keyed by field name */
     public function errors(): array
     {
         return $this->errors;
     }
 
-    /** Returns the first error message for a specific field, or null */
     public function error(string $field): ?string
     {
         return $this->errors[$field] ?? null;
     }
 
-    /** Returns ONLY the first global error message (convenience) */
     public function firstError(): ?string
     {
         return !empty($this->errors) ? array_values($this->errors)[0] : null;
     }
 }
+
+
+
+$phone = trim((string) ($_POST['emergency_contacts'] ?? ''));
+if ($phone !== '' && !preg_match('/^07\d{8}$/', $phone)) {
+    echo "<script>
+                                alert('Phone number must be 10 digits and start with 07.');
+                                window.history.back(); 
+                         </script>";
+    exit;
+}
+
+$phone = trim((string) ($_POST['phone'] ?? ''));
+if ($phone !== '' && !preg_match('/^07\d{8}$/', $phone)) {
+    $this->flashErrors(['phone' => 'Phone number must be 10 digits and start with 07.']);
+    $this->flashOldInput($_POST);
+    return $this->redirect('/B/drivers?msg=validation_error');
+}
+
+
+
+
+$registrationDate = trim((string) ($_POST['registration_date'] ?? ''));
+if ($registrationDate !== '') {
+    $date = \DateTime::createFromFormat('Y-m-d', $registrationDate);
+    $isValidDate = $date && $date->format('Y-m-d') === $registrationDate;
+    $today = date('Y-m-d');
+
+    if (!$isValidDate || $registrationDate > $today) {
+        $this->flashErrors([
+            'registration_date' => 'Registration date cannot be a future date.',
+        ]);
+        $this->flashOldInput($_POST);
+        return $this->redirect('/B/drivers?msg=validation_error');
+    }
+}
+
+
+$chassisNo = trim((string) ($_POST['chassis_no'] ?? ''));
+if (!preg_match('/^[A-Za-z][0-9]+[A-Za-z]$/', $chassisNo)) {
+    $this->flashErrors([
+        'chassis_no' => 'Chassis number must start and end with a letter, with digits in between.',
+    ]);
+    $this->flashOldInput($_POST);
+    return $this->redirect('/B/fleet?msg=validation_error');
+}
+
+
+
+$nic = strtoupper(preg_replace('/\s+/', '', trim((string) ($_POST['nic'] ?? ''))));
+if ($nic === '' || !preg_match('/^(?:\d{9}[VX]|\d{12})$/', $nic)) {
+    $this->flashErrors([
+        'nic' => 'NIC must be valid (old: 9 digits + V/X, or new: 12 digits).',
+    ]);
+    $this->flashOldInput($_POST);
+    return $this->redirect('/B/drivers?msg=validation_error');
+}
+$_POST['nic'] = $nic;

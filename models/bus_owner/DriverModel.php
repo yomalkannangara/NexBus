@@ -158,11 +158,45 @@ class DriverModel extends BaseModel
     {
         if ($id <= 0) return false;
 
-        $sql = "DELETE FROM private_drivers WHERE private_driver_id = :id";
-        $params = [':id' => $id];
-        if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
-        $st = $this->pdo->prepare($sql);
-        return $st->execute($params);
+        // Verify the driver belongs to this operator before doing anything
+        if ($this->hasOperator()) {
+            $chk = $this->pdo->prepare(
+                "SELECT COUNT(*) FROM private_drivers
+                  WHERE private_driver_id = :id AND private_operator_id = :op"
+            );
+            $chk->execute([':id' => $id, ':op' => $this->operatorId()]);
+            if ((int)$chk->fetchColumn() === 0) return false;
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. Remove any assignment records that reference this driver
+            $delAssign = $this->pdo->prepare(
+                "DELETE FROM private_assignments WHERE private_driver_id = :id"
+            );
+            $delAssign->execute([':id' => $id]);
+
+            // 2. Remove status-change log entries for this driver
+            $delLogs = $this->pdo->prepare(
+                "DELETE FROM private_staff_status_logs
+                  WHERE staff_type = 'driver' AND staff_id = :id"
+            );
+            $delLogs->execute([':id' => $id]);
+
+            // 3. Delete the driver row itself
+            $delDriver = $this->pdo->prepare(
+                "DELETE FROM private_drivers WHERE private_driver_id = :id"
+            );
+            $delDriver->execute([':id' => $id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (\PDOException $e) {
+            $this->pdo->rollBack();
+            error_log('[DriverModel::delete] ' . $e->getMessage());
+            return false;
+        }
     }
 
     public function getCount(): int
@@ -270,11 +304,51 @@ class DriverModel extends BaseModel
     {
         if ($id <= 0) return false;
 
-        $sql = "DELETE FROM private_conductors WHERE private_conductor_id = :id";
-        $params = [':id' => $id];
-        if ($this->hasOperator()) { $sql .= " AND private_operator_id = :op"; $params[':op'] = $this->operatorId(); }
-        $st = $this->pdo->prepare($sql);
-        return $st->execute($params);
+        // Verify the conductor belongs to this operator before doing anything
+        if ($this->hasOperator()) {
+            $chk = $this->pdo->prepare(
+                "SELECT COUNT(*) FROM private_conductors
+                  WHERE private_conductor_id = :id AND private_operator_id = :op"
+            );
+            $chk->execute([':id' => $id, ':op' => $this->operatorId()]);
+            if ((int)$chk->fetchColumn() === 0) return false;
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. Remove trip records that reference this conductor
+            $delTrips = $this->pdo->prepare(
+                "DELETE FROM private_trips WHERE private_conductor_id = :id"
+            );
+            $delTrips->execute([':id' => $id]);
+
+            // 2. Remove assignment records that reference this conductor
+            $delAssign = $this->pdo->prepare(
+                "DELETE FROM private_assignments WHERE private_conductor_id = :id"
+            );
+            $delAssign->execute([':id' => $id]);
+
+            // 3. Remove status-change log entries for this conductor
+            $delLogs = $this->pdo->prepare(
+                "DELETE FROM private_staff_status_logs
+                  WHERE staff_type = 'conductor' AND staff_id = :id"
+            );
+            $delLogs->execute([':id' => $id]);
+
+            // 4. Delete the conductor row itself
+            $delCond = $this->pdo->prepare(
+                "DELETE FROM private_conductors WHERE private_conductor_id = :id"
+            );
+            $delCond->execute([':id' => $id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (\PDOException $e) {
+            $this->pdo->rollBack();
+            error_log('[DriverModel::deleteConductor] ' . $e->getMessage());
+            return false;
+        }
     }
 
     public function getConductorCount(): int

@@ -3,13 +3,14 @@ namespace App\models\ntc_admin;
 
 use PDO;
 
-class DashboardModel extends BaseModel {
+class DashboardModel extends BaseModel
+{
     private function scalarInt(string $sql, array $params = []): int
     {
         try {
             $st = $this->pdo->prepare($sql);
             $st->execute($params);
-            return (int)($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
+            return (int) ($st->fetch(PDO::FETCH_ASSOC)['c'] ?? 0);
         } catch (\Throwable $e) {
             return 0;
         }
@@ -55,12 +56,13 @@ class DashboardModel extends BaseModel {
         );
     }
 
-    public function stats(): array {
-        $p = (int)$this->pdo->query("SELECT COUNT(*) c FROM private_buses")->fetch()['c'];
-        $s = (int)$this->pdo->query("SELECT COUNT(*) c FROM sltb_buses")->fetch()['c'];
-        $owners = (int)$this->pdo->query("SELECT COUNT(*) c FROM private_bus_owners")->fetch()['c'];
-        $depots = (int)$this->pdo->query("SELECT COUNT(*) c FROM sltb_depots")->fetch()['c'];
-        $routes = (int)$this->pdo->query("SELECT COUNT(*) c FROM routes WHERE is_active=1")->fetch()['c'];
+    public function stats(): array
+    {
+        $p = (int) $this->pdo->query("SELECT COUNT(*) c FROM private_buses")->fetch()['c'];
+        $s = (int) $this->pdo->query("SELECT COUNT(*) c FROM sltb_buses")->fetch()['c'];
+        $owners = (int) $this->pdo->query("SELECT COUNT(*) c FROM private_bus_owners")->fetch()['c'];
+        $depots = (int) $this->pdo->query("SELECT COUNT(*) c FROM sltb_depots")->fetch()['c'];
+        $routes = (int) $this->pdo->query("SELECT COUNT(*) c FROM routes WHERE is_active=1")->fetch()['c'];
 
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -93,7 +95,8 @@ class DashboardModel extends BaseModel {
             'avgRating'
         );
     }
-    public function routes(): array {
+    public function routes(): array
+    {
         return $this->pdo->query("SELECT route_id, route_no FROM routes ORDER BY route_no+0, route_no")->fetchAll();
     }
 }
